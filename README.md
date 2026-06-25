@@ -1,139 +1,135 @@
-# Sistema de Facturación Electrónica — Costa Rica
+# Neurix POS — Facturación Electrónica Costa Rica
 
-Sistema de Punto de Venta (POS) con integración de Facturación Electrónica para Costa Rica según las especificaciones del Ministerio de Hacienda.
+Sistema de Punto de Venta con integración de Facturación Electrónica para Costa Rica, cumpliendo las especificaciones v4.4 del Ministerio de Hacienda (obligatorio desde septiembre 2025).
 
 ## Stack tecnológico
 
 | Capa | Tecnología |
 |---|---|
-| Lenguaje | PHP >= 7.4 |
+| Lenguaje | PHP >= 7.4 (probado en 8.x) |
 | Framework | CodeIgniter 3.1.9 |
-| Base de datos | MySQL / MariaDB |
+| Base de datos | MySQL 5.7+ / MariaDB 10.3+ |
 | PDF | mPDF 8.x |
 | Email | SwiftMailer 6.x + PHPMailer 6.9 |
-| Pagos | Stripe PHP 7.x |
+| Pagos en línea | Stripe PHP 7.x |
 | Código de barras | Laminas Barcode 2.x |
 | Impresión térmica | mike42/escpos-php |
 | Firma XML | Firmadocr (PHP nativo, XAdES-EPES) |
 
-## Requisitos
+## Requisitos del servidor
 
-- PHP >= 7.4 (recomendado 8.1+)
+- PHP >= 7.4 con extensiones: `curl`, `dom`, `openssl`, `mbstring`, `gd`, `imap`
 - MySQL 5.7+ / MariaDB 10.3+
-- Extensiones PHP: `curl`, `imap`, `dom`, `openssl`, `mbstring`, `gd`
+- Apache con `mod_rewrite` habilitado
 - Composer
-- Servidor web: Apache con `mod_rewrite` habilitado
 
 ## Instalación
 
 ```bash
-# 1. Clonar el repositorio
-git clone <repo-url> facturacion
-cd facturacion
+# 1. Clonar
+git clone https://github.com/Aragon2001/Neurix-Pos.git
+cd Neurix-Pos
 
-# 2. Instalar dependencias
+# 2. Dependencias PHP
 composer install
 
-# 3. Configurar base de datos
+# 3. Base de datos
 cp app/config/database.php.example app/config/database.php
-# Editar con credenciales reales
+# Editar hostname, username, password, database
 
-# 4. Configurar entorno
-# En Apache/Nginx, definir:  CI_ENV=production
-# Para desarrollo local:     CI_ENV=development
-
-# 5. Permisos (Linux/Mac)
+# 4. Permisos (Linux)
 chmod -R 755 app/cache app/logs uploads
+
+# 5. Migraciones
+# Importar el dump base de la BD y luego aplicar en orden:
+# files/updates/db_updates/4_0_*.sql
+
+# 6. Certificados Hacienda
+# Copiar el .p12 del contribuyente a:
+#   files/certificados/prod/{cedula}.p12   ← producción
+#   files/certificados/test/{cedula}.p12   ← sandbox
 ```
 
 ## Configuración
 
-### Variables de entorno
-
-El archivo `conf.env` contiene configuración para las utilidades .NET de sincronización de escritorio. **No subir al repositorio** (está en `.gitignore`).
-
-La configuración de base de datos va en `app/config/database.php` (también excluido de git).
-
-### Entornos de Hacienda
-
-En la tabla de settings de la base de datos, el campo `ambiente` controla el destino de los comprobantes:
-
-| Valor | Descripción |
+| Archivo | Descripción |
 |---|---|
-| `test` | API sandbox de Hacienda (pruebas) |
-| `prod` | API producción TRIBU-CR |
+| `app/config/database.php` | Credenciales de BD (excluido de git, usar `.example`) |
+| `app/config/config.php` | URL base, cifrado de sesión |
+| Settings en BD | Parámetros del emisor, certificado, tokens TRIBU-CR |
 
-## Estructura del proyecto
+El campo `ambiente` en Settings controla el destino de los comprobantes:
+
+| Valor | API |
+|---|---|
+| `test` | `api-sandbox.comprobanteselectronicos.go.cr` |
+| `prod` | `api.hacienda.go.cr/fe/ae` (TRIBU-CR) |
+
+## Estructura
 
 ```
-www/
-├── index.php              # Punto de entrada CodeIgniter
-├── .htaccess              # Rewrite rules Apache
-├── .gitignore
-├── composer.json
-├── app/                   # Aplicación principal
-│   ├── config/            # Configuración CI3
-│   ├── controllers/       # Controladores HTTP
-│   ├── models/            # Modelos de datos
-│   ├── libraries/         # Librerías custom
-│   │   ├── Crearxml.php   # Generador XML Hacienda v4.4
-│   │   ├── Firmadocr.php  # Firmado XAdES-EPES
-│   │   ├── Apiclient.php  # Cliente API TRIBU-CR
+Neurix-Pos/
+├── index.php                  # Punto de entrada CI3
+├── app/
+│   ├── config/
+│   │   └── database.php.example
+│   ├── controllers/
+│   │   ├── Shacienda.php      # Envío/consulta comprobantes + REP
+│   │   ├── Pos.php            # Punto de venta
+│   │   ├── Creditnotes.php    # Notas de crédito
 │   │   └── ...
-│   └── views/             # Plantillas HTML
-├── system/                # Núcleo CodeIgniter 3.1.9
-├── vendor/                # Dependencias Composer
-├── themes/                # Estilos y assets del POS
-├── files/                 # Archivos del sistema
-└── uploads/               # XMLs y documentos generados (no en git)
+│   ├── libraries/
+│   │   ├── Crearxml.php       # Generador XML v4.4 (todos los tipos)
+│   │   ├── Firmadocr.php      # Firmado XAdES-EPES
+│   │   └── Apiclient.php      # Cliente REST TRIBU-CR
+│   └── models/
+│       └── Hacienda_model.php
+├── files/
+│   ├── certificados/
+│   │   ├── prod/              # Certificado .p12 producción (no en git)
+│   │   └── test/              # Certificado .p12 sandbox (no en git)
+│   └── updates/db_updates/    # Scripts SQL de migración
+├── themes/                    # UI del POS
+├── uploads/                   # Imágenes y archivos (parcialmente en git)
+├── vendor/                    # Dependencias Composer (no en git)
+└── composer.json
 ```
 
-## Módulos principales
-
-| Módulo | Controlador | Descripción |
-|---|---|---|
-| POS | `Pos.php` | Punto de venta, ventas, pagos |
-| Hacienda | `Shacienda.php` | Envío y consulta de comprobantes |
-| Facturas de compra | `Facturascompras.php` | FEC - Facturas electrónicas de compra |
-| Notas de crédito | `Creditnotes.php` | Notas de crédito electrónicas |
-| Reportes | `Reports.php` | Reportes de ventas e impuestos |
-| Productos | `Products.php` | Catálogo con códigos CABYS |
-| Clientes | `Customers.php` | Gestión de receptores fiscales |
-| Configuración | `Settings.php` | Parámetros del sistema y certificados |
-
-## Tipos de comprobante soportados (v4.4)
+## Comprobantes electrónicos soportados (v4.4)
 
 | Código | Tipo | Estado |
 |---|---|---|
-| 01 | Factura Electrónica | Activo |
-| 03 | Nota de Crédito Electrónica | Activo |
-| 04 | Tiquete Electrónico | Activo |
-| 08 | Factura Electrónica de Compra | Activo |
-| 02 | Nota de Débito Electrónica | Pendiente reescritura |
-| 09 | Recibo Electrónico de Pago (REP) | Pendiente implementación |
+| 01 | Factura Electrónica | ✅ Activo |
+| 02 | Nota de Débito Electrónica | ✅ Activo |
+| 03 | Nota de Crédito Electrónica | ✅ Activo |
+| 04 | Tiquete Electrónico | ✅ Activo |
+| 05/06/07 | Mensaje Receptor | ✅ Activo |
+| 08 | Factura Electrónica de Compra | ✅ Activo |
+| 09 | Recibo Electrónico de Pago (REP) | ✅ Activo |
 
-## Métodos de pago soportados
+## Métodos de pago
 
-| Código | Descripción |
-|---|---|
-| 01 | Efectivo |
-| 02 | Tarjeta |
-| 03 | Cheque |
-| 04 | Transferencia / Depósito |
-| 08 | SINPE Móvil |
-| 09 | Plataformas digitales (PayPal, etc.) |
-| 99 | Otros |
+| Código v4.4 | Descripción | `paid_by` en BD |
+|---|---|---|
+| 01 | Efectivo | `cash` |
+| 02 | Tarjeta | `CC` |
+| 03 | Cheque | `Cheque` |
+| 04 | Transferencia / Depósito | `TransDep` |
+| 08 | SINPE Móvil | `SINPE` |
+| 09 | Plataformas digitales (PayPal) | `digital` |
+| 99 | Otros | — |
 
-## Firma digital
+## Pendientes
 
-El sistema usa firma en PHP puro (`Firmadocr.php`) siguiendo el estándar XAdES-EPES requerido por Hacienda. Requiere certificado digital `.p12` del contribuyente configurado en Settings.
+| # | Tarea | Prioridad |
+|---|---|---|
+| 1 | Verificar credenciales TRIBU-CR producción antes de activar | Alta |
+| 2 | Agregar botón "Generar REP" en UI de detalle de pago | Media |
+| 3 | Verificar códigos CABYS 2025 en catálogo de productos | Media |
+| 4 | Migración a PHP 8.3 + CodeIgniter 4 o Laravel | Largo plazo |
 
-Alternativamente, puede configurarse un servidor externo de firmado (campo `server_lic` en Settings).
+## Seguridad
 
-## Pendientes conocidos
-
-1. **`getNotaDebito()`** en `Crearxml.php` — función rota, contiene código Laravel no migrado a CI3. No genera Notas de Débito funcionales.
-2. **REP (tipo 09)** — Recibo Electrónico de Pago no implementado, requerido para ventas a crédito con IVA diferido.
-3. **`codigo_actividad` del receptor** — falta campo en tabla `customers` para almacenar el código de actividad económica del receptor (requerido en v4.4 para facturas fiscales).
-4. **API TRIBU-CR producción** — verificar credenciales y flujo de autenticación con el nuevo endpoint `api.hacienda.go.cr/fe/ae` antes de ir a producción.
-5. **PHP 8.3 + CI4/Laravel** — migración mayor pendiente para cumplimiento de largo plazo.
+- SQL injection corregida en `Hacienda_model.php` (query binding con `?`)
+- Credenciales de BD y certificados `.p12` excluidos del repositorio
+- Modo producción por defecto (`CI_ENV=production`); definir `CI_ENV=development` para debug local
