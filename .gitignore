@@ -3,18 +3,35 @@
 conf.env
 app/config/database.php
 
-# Logs y caché de CI
-app/logs/*.log
-app/cache/*
-!app/cache/.gitkeep
-!app/logs/.gitkeep
+# Sesiones y logs de CI3 (archivos generados en runtime)
+app/logs/*
+!app/logs/index.html
 
-# Archivos subidos y XMLs generados
-uploads/
+# Caché de CI3
+app/cache/*
+!app/cache/index.html
+
+# Archivos subidos por usuarios (imágenes de productos, XMLs de facturas)
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.gif
+uploads/*.webp
+uploads/*.xml
+uploads/*.pdf
+uploads/thumbs/*.jpg
+uploads/thumbs/*.jpeg
+uploads/thumbs/*.png
+uploads/thumbs/*.gif
+uploads/thumbs/*.webp
+!uploads/thumbs/no_image.jpg
+!uploads/thumbs/no_image.png
+
+# XMLs temporales generados
 app/*/xmltemp/
 files/temp/
 
-# Certificados y llaves privadas
+# Certificados y llaves privadas (copiar manualmente al servidor)
 *.p12
 *.pem
 *.key
