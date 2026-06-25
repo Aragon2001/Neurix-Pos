@@ -18,10 +18,10 @@
             <a href="<?= site_url(); ?>" class="logo">
                 <?php if ($store) { ?>
                     <span class="logo-mini"><?= $store->code; ?></span>
-                    <span class="logo-lg"><?= $store->name == 'SimplePOS' ? 'Simple<b>POS</b>' : $store->name; ?></span>
+                    <span class="logo-lg"><?= $store->name; ?></span>
                 <?php } else { ?>
                     <span class="logo-mini">POS</span>
-                    <span class="logo-lg"><?= $Settings->site_name == 'SimplePOS' ? 'Simple<b>POS</b>' : $Settings->site_name; ?></span>
+                    <span class="logo-lg"><?= $Settings->site_name; ?></span>
                 <?php } ?>
             </a>
             <nav class="navbar navbar-static-top" role="navigation">
@@ -203,6 +203,7 @@
                                 </a>
                                 <ul class="treeview-menu">
                                     <li id="creditnotes_index"><a href="<?= site_url('creditnotes'); ?>"><i class="fa fa-circle-o"></i> <?= lang('credit_notes'); ?></a></li>
+                                    <li id="debitnotes_index"><a href="<?= site_url('debitnotes'); ?>"><i class="fa fa-circle-o"></i> Notas de Débito</a></li>
                                 </ul>
                             </li>
                             <li class="treeview mm_purchases">

@@ -1788,7 +1788,7 @@ class Pos extends MY_Controller {
         $this->data['page_title'] = lang("invoice");
         $this->data['hacienda'] = $this->hacienda_model->getInvoice($sale_id);
         $this->data['invoicebarcode'] = isset($this->data['hacienda']->consecutivo) ? $this->invice_barcode($this->data['hacienda']->consecutivo, 'code128', 60) : null;
-        $this->load->view($this->theme . 'pos/' . ($this->Settings->print_img ? 'view' : 'view'), $this->data);
+        $this->load->view($this->theme . 'pos/' . ($this->Settings->print_img ? 'eview' : 'view'), $this->data);
     }
 
     function view_proforma($sale_id = NULL, $noprint = NULL) {

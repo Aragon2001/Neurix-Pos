@@ -8,11 +8,11 @@
  * 30th April 2015
  *
  * Package:
- * Simple POS - Point of sale made easy
+ * NEURIX POS - ARASOFT SOLUTIONS
  * 
  * You can translate this file to your language. 
  * For instruction on new language setup, please visit the documentations. 
- * You also can share your language files by emailing to admin@gi3-softsolutions.com
+ * You also can share your language files by emailing to arasoftsolutions@outlook.com
  * Thank you 
  */
 

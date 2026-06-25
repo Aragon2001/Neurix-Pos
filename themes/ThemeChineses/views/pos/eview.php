@@ -4,7 +4,7 @@
 if ($modal) {
     ?>
     <style type="text/css" media="all">
-        body { color: #000;  }
+        body { color: #000; font-size: 16px !important; }
         #wrapper { max-width: 500px; margin: 0 auto; padding-top: 20px; font-size: 28px; }
         .btn { margin-bottom: 5px; }
         .table { border-radius: 3px; }
@@ -92,7 +92,7 @@ if ($modal) {
                                         $tax_summary = array();
                                         $r = 1;
                                         foreach ($rows as $row) {
-                                            echo '<tr><td colspan="2">#'.$r.' '. $row->product_name .'</td></tr>';
+                                            echo '<tr><td colspan="2">#'.$r.' '. $row->product_name .'('.$row->unit_of_measurement.')'.'</td></tr>';
                                             echo '<tr><td>' . $this->tec->formatQuantity($row->quantity) .' x '. $this->tec->formatMoney($row->net_unit_price + ($row->item_tax / $row->quantity)) . '</td>';
                                             echo '<td style="text-align:right;">' . $this->tec->formatMoney($row->subtotal) . '</td></tr>';
                                             $r++;

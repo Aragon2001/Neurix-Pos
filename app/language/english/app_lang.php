@@ -6,10 +6,10 @@
  *
  * Last edited: 15th September 2015
  *
- * Package: Simple POS - Point of sale made easy
+ * Package: NEURIX POS - ARASOFT SOLUTIONS
  *
  * You can translate this file to your language and to share with others
- * please email this file to admin@gi3-softsolutions.com
+ * please email this file to arasoftsolutions@outlook.com
  *
  **************************************************************************** */
 
@@ -19,7 +19,7 @@
 * Please only change the part after = and make sure you change the the words in between "";
 * $lang['ccf1']                         = "Customer Custom Field 1";
 * Don't change this                     = "You can change this part";
-* For support email admin@gi3-softsolutions.com Thank you!
+* For support email arasoftsolutions@outlook.com Thank you!
 */
 
 
