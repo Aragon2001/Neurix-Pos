@@ -1,10 +1,9 @@
 <?php
 
 /**
- * Created by PhpStorm.
- * User: Rhonald Brito
- * Date: 4/7/2018
- * Time: 19:36
+ * NEURIX POS - ARASOFT SOLUTIONS
+ * Author: Jostin Aragon Barboza
+ * Email: arasoftsolutions@outlook.com
  */
 class Xmlhacienda extends MY_Controller
 {
@@ -60,5 +59,23 @@ class Xmlhacienda extends MY_Controller
         $xml = $this->hacienda_model->xmlMensajeRecepcion($id);
         header('Content-Type: application/xml; charset=utf-8');
         echo str_replace('<?xml version="1.0" encoding="UTF-8"?>','',$xml->xml_hacienda);
+    }
+
+    public function xmlFirmadoND($id) {
+        $xml = $this->hacienda_model->xmlFirmadoND($id);
+        header('Content-Type: application/xml; charset=utf-8');
+        echo str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml->xml_sign);
+    }
+
+    public function xmlMensajeND($id) {
+        $xml = $this->hacienda_model->xmlMensajeND($id);
+        header('Content-Type: application/xml; charset=utf-8');
+        echo str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml->xml_hacienda);
+    }
+
+    public function xmlFirmadoREP($payment_id) {
+        $xml = $this->hacienda_model->xmlFirmadoREP($payment_id);
+        header('Content-Type: application/xml; charset=utf-8');
+        echo str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml->xml_sign);
     }
 }

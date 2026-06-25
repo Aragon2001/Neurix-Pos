@@ -347,6 +347,61 @@ class Shacienda extends MY_Controller
             $cierraToken = true;
         }
 
+        // --- REP (Recibo Electrónico de Pago, tipo 09) ---
+        $pendientesREP = $this->hacienda_model->getPendientesREP();
+        if ($pendientesREP) {
+            if ($abrirToken) {
+                $token_data = $this->ApiClient->getTokenH();
+                $expires_in = date("i:s", $token_data->expires_in);
+                $expires_in = explode(":", $expires_in);
+                $ExpireToken = date('Y-m-d H:i:s', strtotime('+' . $expires_in[0] . ' minutes +' . $expires_in[0] . ' seconds ', strtotime(date('Y-m-d H:i:s'))));
+                $abrirToken = false;
+            }
+            foreach ($pendientesREP as $row) {
+                $date_act = date('Y-m-d H:i:s', strtotime('+15 seconds ', strtotime(date('Y-m-d H:i:s'))));
+                if ($ExpireToken < $date_act) {
+                    $this->ApiClient->refreshTokenH();
+                }
+
+                if ($row->xml_sign) {
+                    $MH = $this->ApiClient->send_invoice([
+                        'xml'           => $row->xml,
+                        'xml_sign'      => $row->xml_sign,
+                        'clave'         => $row->clave,
+                        'consecutivo'   => $row->consecutivo,
+                        'fecha_emision' => $row->fecha_emision,
+                    ]);
+                    $mensajeHacienda = '';
+                    $indestado = 'Sin Estado';
+                    if (isset($MH['mensajeHacienda']->respuestaxml)) {
+                        $mensajeHacienda = base64_decode($MH['mensajeHacienda']->respuestaxml);
+                    }
+                    if (isset($MH['mensajeHacienda']->indestado)) {
+                        $indestado = $MH['mensajeHacienda']->indestado;
+                    }
+                    $this->hacienda_model->insertHaciendaREP([
+                        'xml_sign'         => isset($MH['xml_firmado']) ? base64_decode($MH['xml_firmado']) : $row->xml_sign,
+                        'xml_hacienda'     => $mensajeHacienda,
+                        'estatus_hacienda' => $indestado,
+                    ], $row->clave);
+                } else {
+                    $this->load->library('firmar', NULL, 'firmar');
+                    $certificado = './files/certificados/' . $this->Settings->ambiente . '/' . $this->Settings->certificado_ced . '.p12';
+                    if (file_exists($certificado)) {
+                        try {
+                            $firmado = $this->firmar->firmar($certificado, $this->Settings->certificado_pin, $row->xml, '09');
+                        } catch (Exception $e) {
+                            $firmado = false;
+                        }
+                        if ($firmado) {
+                            $this->hacienda_model->insertHaciendaREP(['xml_sign' => $firmado], $row->clave);
+                        }
+                    }
+                }
+            }
+            $cierraToken = true;
+        }
+
         $noenviadosNC = $this->hacienda_model->getnoEnviadosCN();
         if ($noenviadosNC) {
             foreach ($noenviadosNC as $row) {
@@ -513,6 +568,41 @@ class Shacienda extends MY_Controller
             }
         }
 
+
+        $noenviadosREP = $this->hacienda_model->getnoEnviadosREP();
+        if ($noenviadosREP) {
+            foreach ($noenviadosREP as $row) {
+                $payment_id = $row->payment_id;
+                $rep = $this->hacienda_model->getREP($payment_id);
+                if (!$rep) continue;
+
+                $xml_sign    = $this->hacienda_model->xmlFirmadoREP($payment_id)->xml_sign ?? null;
+                $xml_mensaje = $this->hacienda_model->xmlMensajeREP($payment_id)->xml_hacienda ?? null;
+
+                $subject = lang('email_subject') . ' - REP - ' . $this->Settings->site_name;
+                $message = '<p>Adjunto encontrará el Recibo Electrónico de Pago (REP) #' . $rep->consecutivo . ' generado por ' . $this->Settings->nombre_emisor . '.</p>';
+
+                $attach = [];
+                if ($xml_sign)    $attach['T9_' . $rep->clave] = $xml_sign;
+                if ($xml_mensaje) $attach['M9_' . $rep->clave] = $xml_mensaje;
+
+                $sale = $this->pos_model->getSaleByID($rep->sale_id);
+                $customer = $sale ? $this->pos_model->getCustomerByID($sale->customer_id) : null;
+                $to = $customer ? $customer->email : null;
+
+                if ($to) {
+                    $this->load->library('Swiftmailer', NULL, 'Swiftmailer');
+                    if ($this->Swiftmailer->send_email($to, $subject, $message, null, null, $attach)) {
+                        echo " REP enviado a: " . $to . ",";
+                        $this->hacienda_model->MarcaEnviadoREP($payment_id, '1');
+                    } else {
+                        $this->hacienda_model->MarcaEnviadoREP($payment_id, '0');
+                    }
+                } else {
+                    $this->hacienda_model->MarcaEnviadoREP($payment_id, '1');
+                }
+            }
+        }
 
         if ($cierraToken) {
             $this->ApiClient->CloseTokenH();
@@ -1563,5 +1653,94 @@ class Shacienda extends MY_Controller
 
         $this->session->set_flashdata('message', 'REP generado y enviado a Hacienda.');
         redirect($_SERVER['HTTP_REFERER']);
+    }
+
+    public function generarND($nd_id = null)
+    {
+        if (!$nd_id) $nd_id = $this->input->get('nd_id');
+        if (!$nd_id) { show_404(); }
+
+        $this->load->model('pos_model');
+        $nd = $this->pos_model->getDebitNoteByID($nd_id);
+        if (!$nd) {
+            $this->session->set_flashdata('error', 'Nota de Débito no encontrada.');
+            redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        if ($this->hacienda_model->getND($nd_id)) {
+            $this->session->set_flashdata('error', 'Ya existe un XML para esta Nota de Débito.');
+            redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $referencia = $this->hacienda_model->getInvoice($nd->sale_id);
+        if (!$referencia || $referencia->estatus_hacienda !== 'aceptado') {
+            $this->session->set_flashdata('error', 'La factura original aún no está aceptada por Hacienda.');
+            redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $items = $this->pos_model->getAllDebitNotesItems($nd_id);
+        $itemsArr = json_decode(json_encode($items), true);
+
+        $this->load->library('firmar', NULL, 'firmar');
+        $this->load->library('Crearxml', NULL, 'Crearxml');
+
+        $NDdigital = $this->Crearxml->getNotaDebito((array) $nd, $itemsArr, $referencia, array());
+        if (!$NDdigital) {
+            $this->session->set_flashdata('error', 'No se pudo generar el XML de la Nota de Débito.');
+            redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $certificado = './files/certificados/' . $this->Settings->ambiente . '/' . $this->Settings->certificado_ced . '.p12';
+        $firmado = false;
+        if (file_exists($certificado)) {
+            try {
+                $firmado = $this->firmar->firmar($certificado, $this->Settings->certificado_pin, $NDdigital['xml'], '02');
+            } catch (Exception $e) {
+                $firmado = false;
+            }
+        }
+
+        $dataHacienda = [
+            'nd_id'            => $nd_id,
+            'sale_id'          => $nd->sale_id,
+            'clave'            => $NDdigital['clave'],
+            'consecutivo'      => $NDdigital['consecutivo'],
+            'fecha_emision'    => $NDdigital['fecha_emision'],
+            'estatus_hacienda' => 'procesando',
+            'xml'              => $NDdigital['xml'],
+            'xml_sign'         => $firmado ? base64_decode($firmado) : null,
+            'mail'             => 0,
+        ];
+
+        $this->hacienda_model->insertxmlND($dataHacienda);
+
+        if ($firmado) {
+            $this->load->library('Apiclient', NULL, 'ApiClient');
+            $this->ApiClient->getTokenH();
+
+            $resultado = $this->ApiClient->send_invoice([
+                'xml'           => $NDdigital['xml'],
+                'xml_sign'      => $dataHacienda['xml_sign'],
+                'clave'         => $NDdigital['clave'],
+                'consecutivo'   => $NDdigital['consecutivo'],
+                'fecha_emision' => $NDdigital['fecha_emision'],
+            ]);
+
+            if ($resultado && is_array($resultado)) {
+                $mensajeHacienda = '';
+                if (isset($resultado['mensajeHacienda']->respuestaxml)) {
+                    $mensajeHacienda = base64_decode($resultado['mensajeHacienda']->respuestaxml);
+                }
+                $indestado = isset($resultado['mensajeHacienda']->indestado) ? $resultado['mensajeHacienda']->indestado : 'procesando';
+                $this->hacienda_model->insertHaciendaND([
+                    'xml_sign'         => isset($resultado['xml_firmado']) ? base64_decode($resultado['xml_firmado']) : $dataHacienda['xml_sign'],
+                    'xml_hacienda'     => $mensajeHacienda,
+                    'estatus_hacienda' => $indestado,
+                ], $NDdigital['clave']);
+            }
+        }
+
+        $this->session->set_flashdata('message', 'Nota de Débito generada y enviada a Hacienda.');
+        redirect('debitnotes/viewnd/' . $nd_id);
     }
 }

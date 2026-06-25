@@ -653,4 +653,76 @@ class Hacienda_model extends CI_Model {
         return false;
     }
 
+    public function getnoEnviadosREP() {
+        $this->db->where(array('mail' => '0', 'estatus_hacienda' => 'aceptado'));
+        $this->db->select('payment_id');
+        $this->db->limit(10);
+        $q = $this->db->get($this->db->dbprefix('hacienda_rep'));
+        if ($q->num_rows() > 0) {
+            return $q->result();
+        }
+        return false;
+    }
+
+    public function xmlMensajeREP($payment_id) {
+        $this->db->where('payment_id', $payment_id);
+        $this->db->select('xml_hacienda');
+        $q = $this->db->get($this->db->dbprefix('hacienda_rep'));
+        if ($q->num_rows() > 0) return $q->row();
+        return false;
+    }
+
+    public function ccsctv_nd() {
+        $terminal_pos = $this->Settings->terminal_pos;
+        $query = $this->db->query(
+            "SELECT consecutivo FROM tec_hacienda_nd WHERE SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
+            array($terminal_pos)
+        );
+        $r = $query->result();
+        return @$r[0]->consecutivo;
+    }
+
+    public function getND($nd_id) {
+        $this->db->where('nd_id', $nd_id);
+        $q = $this->db->get($this->db->dbprefix('hacienda_nd'));
+        if ($q->num_rows() > 0) return $q->row();
+        return false;
+    }
+
+    public function insertxmlND($data) {
+        if ($this->getND($data['nd_id']) === false) {
+            if ($this->db->insert($this->db->dbprefix('hacienda_nd'), $data)) return true;
+        }
+        return false;
+    }
+
+    public function insertHaciendaND($data, $clave) {
+        return $this->db->update($this->db->dbprefix('hacienda_nd'), $data, array('clave' => $clave));
+    }
+
+    public function xmlFirmadoND($nd_id) {
+        $this->db->where('nd_id', $nd_id)->select('xml_sign');
+        $q = $this->db->get($this->db->dbprefix('hacienda_nd'));
+        if ($q->num_rows() > 0) return $q->row();
+        return false;
+    }
+
+    public function xmlMensajeND($nd_id) {
+        $this->db->where('nd_id', $nd_id)->select('xml_hacienda');
+        $q = $this->db->get($this->db->dbprefix('hacienda_nd'));
+        if ($q->num_rows() > 0) return $q->row();
+        return false;
+    }
+
+    public function getPendientesND() {
+        $this->db->where('estatus_hacienda', 'procesando')->limit(10);
+        $q = $this->db->get($this->db->dbprefix('hacienda_nd'));
+        if ($q->num_rows() > 0) return $q->result();
+        return false;
+    }
+
+    public function MarcaEnviadoND($nd_id, $status) {
+        return $this->db->update($this->db->dbprefix('hacienda_nd'), array('mail' => $status), array('nd_id' => $nd_id));
+    }
+
 }
