@@ -157,6 +157,14 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="cabys">Código CABYS <small>(Clasificador Hacienda — 13 dígitos)</small></label>
+                                    <input type="text" id="cabys-buscar" class="form-control tip" placeholder="Buscar por descripción (mín. 3 caracteres)..." autocomplete="off" style="margin-bottom:4px;">
+                                    <?= form_input('cabys', set_value('cabys'), 'class="form-control tip" id="cabys" maxlength="13" placeholder="Ej: 8101102000000"'); ?>
+                                    <span id="cabys-info" class="help-block" style="display:none;color:#3c763d;"></span>
+                                    <span class="help-block">Busque por descripción o escriba el código de 13 dígitos directamente.</span>
+                                </div>
+
+                                <div class="form-group">
                                     <?= lang('image', 'image'); ?>
                                     <p>Tiene que tener un peso máximo de 500 MB y tamaño máximo de 1000 px</p>
                                     <input type="file" name="userfile" id="image">
@@ -573,4 +581,36 @@ $(function() {
     })
 
 })
+</script>
+<script>
+$(function() {
+    var cabysUrl = '<?= site_url("hacienda_proxy/cabys") ?>';
+    $('#cabys-buscar').autocomplete({
+        minLength: 3,
+        delay: 400,
+        source: function(req, resp) {
+            $.getJSON(cabysUrl, { q: req.term, top: 20 }, function(data) {
+                if (!Array.isArray(data)) { resp([]); return; }
+                resp($.map(data, function(item) {
+                    return {
+                        label: item.codigo + ' — ' + item.descripcion + ' (IVA ' + item.impuesto + '%)',
+                        value: item.descripcion,
+                        codigo: item.codigo,
+                        descripcion: item.descripcion,
+                        impuesto: item.impuesto
+                    };
+                }));
+            }).fail(function() { resp([]); });
+        },
+        select: function(event, ui) {
+            event.preventDefault();
+            $(this).val(ui.item.descripcion);
+            $('#cabys').val(ui.item.codigo);
+            $('#cabys-info').html('<i class="fa fa-check"></i> <strong>' + ui.item.codigo + '</strong> — ' + ui.item.descripcion + ' (IVA ' + ui.item.impuesto + '%)').show();
+        }
+    });
+    $('#cabys').on('input', function() {
+        if ($(this).val().length > 0) $('#cabys-info').hide();
+    });
+});
 </script>

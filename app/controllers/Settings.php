@@ -58,7 +58,7 @@ class Settings extends MY_Controller
 
         if ($this->form_validation->run() == true) {
             $data = array(
-                'site_name' => DEMO ? 'SimplePOS' : $this->input->post('site_name'),
+                'site_name' => DEMO ? 'NEURIX POS' : $this->input->post('site_name'),
                 'language' => $this->input->post('language'),
                 'tel' => $this->input->post('tel'),
                 'currency_prefix' => DEMO ? 'USD' : strtoupper($this->input->post('currency_prefix')),
@@ -155,7 +155,10 @@ class Settings extends MY_Controller
                 'cod_barrio' => $this->input->post('cod_barrio'),
                 'block_hacienda' => $this->input->post('block_hacienda'),
                 'enable_fractions' => $this->input->post('enable_fractions'),
-                'quantity_suggest' => $this->input->post('quantity_suggest')
+                'quantity_suggest' => $this->input->post('quantity_suggest'),
+                'ambiente' => in_array($this->input->post('ambiente'), ['test', 'prod'])
+                    ? $this->input->post('ambiente')
+                    : 'test',
             );
 
             if ($this->Settings->block_hacienda == "1") {
@@ -190,7 +193,7 @@ class Settings extends MY_Controller
             }
 
             if (DEMO) {
-                $data['site_name'] = 'SimplePOS';
+                $data['site_name'] = 'NEURIX POS';
             } else {
                 if ($_FILES['userfile']['size'] > 0) {
 
@@ -234,6 +237,49 @@ class Settings extends MY_Controller
             $meta = array('page_title' => lang('settings'), 'bc' => $bc);
             $this->page_construct('settings/index', $this->data, $meta);
         }
+    }
+
+    function upload_certificado()
+    {
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('settings');
+        }
+
+        if (!isset($_FILES['certificado_p12']) || $_FILES['certificado_p12']['size'] === 0) {
+            $this->session->set_flashdata('error', 'No se seleccionó ningún archivo.');
+            redirect('settings');
+        }
+
+        $file     = $_FILES['certificado_p12'];
+        $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $ambiente = $this->Settings->ambiente ?: 'test';
+        $cedula   = trim(str_replace('-', '', $this->Settings->certificado_ced));
+
+        if ($ext !== 'p12') {
+            $this->session->set_flashdata('error', 'El archivo debe tener extensión .p12');
+            redirect('settings');
+        }
+
+        if (empty($cedula)) {
+            $this->session->set_flashdata('error', 'Guarde primero el Nombre del Certificado en Ajustes antes de subir el archivo.');
+            redirect('settings');
+        }
+
+        $destDir  = FCPATH . 'files/certificados/' . $ambiente . '/';
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0755, true);
+        }
+
+        $destFile = $destDir . $cedula . '.p12';
+
+        if (!move_uploaded_file($file['tmp_name'], $destFile)) {
+            $this->session->set_flashdata('error', 'No se pudo guardar el certificado. Verifique permisos en files/certificados/' . $ambiente . '/');
+            redirect('settings');
+        }
+
+        $this->session->set_flashdata('message', 'Certificado subido correctamente a files/certificados/' . $ambiente . '/' . $cedula . '.p12');
+        redirect('settings');
     }
 
     function updates()

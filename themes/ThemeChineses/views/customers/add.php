@@ -44,7 +44,28 @@
 
                         <div class="form-group">
                             <label class="control-label" for="cf2"><?= $this->lang->line("ccf2"); ?></label>
-                            <?= form_input('cf2', set_value('cf2'), 'class="form-control input-sm" id="cf2"');?>
+                            <div class="input-group">
+                                <?= form_input('cf2', set_value('cf2'), 'class="form-control input-sm" id="cf2"');?>
+                                <span class="input-group-btn">
+                                    <button type="button" id="btn-hacienda" class="btn btn-info btn-sm" title="Consultar nombre y actividades en Hacienda">
+                                        <i class="fa fa-search"></i> Buscar en Hacienda
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div id="hacienda-alert" class="alert" style="display:none; margin-top:4px;"></div>
+
+                        <div class="form-group">
+                            <label class="control-label" for="codigo_actividad">Código Actividad Económica (Hacienda)</label>
+                            <?= form_input('codigo_actividad', set_value('codigo_actividad'), 'class="form-control input-sm" id="codigo_actividad" maxlength="6" placeholder="Ej: 811001"');?>
+                            <span class="help-block">Solo para clientes jurídicos que emiten comprobantes (receptor obligado).</span>
+                        </div>
+
+                        <div id="hacienda-actividades-wrap" class="form-group" style="display:none;">
+                            <label class="control-label">Actividad Económica — seleccione la correcta</label>
+                            <select id="hacienda-actividades-sel" class="form-control input-sm"></select>
+                            <span class="help-block">Las actividades corresponden a las registradas en Hacienda para esta identificación.</span>
                         </div>
 
                         <? if($Settings->enable_credit == 1) { ?>
@@ -64,3 +85,72 @@
 		</div>
 	</div>
 </section>
+<script>
+$(function() {
+    var proxyUrl = '<?= site_url("hacienda_proxy/ae/") ?>';
+
+    function consultarHacienda(cedula) {
+        cedula = cedula.replace(/\D/g, '');
+        if (cedula.length < 9 || cedula.length > 12) {
+            showAlert('warning', 'La cédula debe tener entre 9 y 12 dígitos para consultar Hacienda.');
+            return;
+        }
+        var $btn = $('#btn-hacienda').prop('disabled', true).text('Consultando...');
+        $('#hacienda-alert').hide();
+        $('#hacienda-actividades-wrap').hide();
+
+        $.ajax({
+            url: proxyUrl + cedula,
+            method: 'GET',
+            dataType: 'json',
+            timeout: 15000,
+            success: function(data) {
+                if (data.error) { showAlert('warning', data.error); return; }
+                if (data.nombre) $('#name').val(data.nombre);
+                if (data.tipoIdentificacion) {
+                    $('#cf1').val(data.tipoIdentificacion).trigger('change');
+                }
+                var alertas = [];
+                if (data.situacion) {
+                    if (data.situacion.moroso) alertas.push('MOROSO');
+                    if (data.situacion.omiso)  alertas.push('OMISO');
+                }
+                if (alertas.length) {
+                    showAlert('danger', '&#9888; Contribuyente: ' + alertas.join(', ') + ' ante Hacienda. Verifique antes de facturar a crédito.');
+                } else {
+                    showAlert('success', '&#10003; Contribuyente encontrado. Revise y corrija los datos si es necesario.');
+                }
+                var acts = data.actividades || [];
+                if (acts.length === 1) {
+                    $('#codigo_actividad').val(acts[0].codigo);
+                } else if (acts.length > 1) {
+                    var $sel = $('#hacienda-actividades-sel').empty();
+                    $.each(acts, function(i, a) {
+                        $sel.append($('<option>').val(a.codigo).text(a.codigo + ' — ' + a.descripcion));
+                    });
+                    $('#codigo_actividad').val(acts[0].codigo);
+                    $sel.off('change').on('change', function() { $('#codigo_actividad').val($(this).val()); });
+                    $('#hacienda-actividades-wrap').show();
+                }
+            },
+            error: function(xhr) {
+                var msg = 'No se pudo consultar Hacienda. Registre manualmente.';
+                try { var d = JSON.parse(xhr.responseText); if (d.error) msg = d.error; } catch(e) {}
+                showAlert('warning', msg);
+            },
+            complete: function() { $btn.prop('disabled', false).html('<i class="fa fa-search"></i> Buscar en Hacienda'); }
+        });
+    }
+
+    function showAlert(type, msg) {
+        $('#hacienda-alert').removeClass('alert-success alert-warning alert-danger alert-info')
+            .addClass('alert-' + type).html(msg).show();
+    }
+
+    $('#btn-hacienda').on('click', function() { consultarHacienda($('#cf2').val()); });
+    $('#cf2').on('blur', function() {
+        var v = $(this).val().replace(/\D/g, '');
+        if (v.length >= 9 && v.length <= 12) consultarHacienda(v);
+    });
+});
+</script>

@@ -57,8 +57,8 @@
                                         'red-light' => 'Red Light',
                                         'yellow' => 'Yellow',
                                         'yellow-light' => 'Yellow Light',
-                                        'green' => 'FacturaExpert',
-                                        'purple' => 'Gi3-SoftSolutions',
+                                        'green' => 'Green',
+                                        'purple' => 'Purple',
                                     );
                                     ?>
                                     <?php echo form_dropdown('theme_style', $ths, $settings->theme_style, 'class="form-control tip select2" id="theme_style"  required="required" style="width:100%;"'); ?>
@@ -387,6 +387,19 @@
                             <div class="col-lg-12">
                                 <h3>Configuracion Hacienda</h3>
                                 <div class="well well-sm">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="ambiente"><b>Ambiente activo</b></label>
+                                            <?php
+                                            $amb_opts = ['test' => 'Pruebas (Sandbox)', 'prod' => 'Producción'];
+                                            echo form_dropdown('ambiente', $amb_opts, $Settings->ambiente ?: 'test', 'class="form-control tip select2" id="ambiente" style="width:100%;"');
+                                            ?>
+                                            <span class="help-block text-warning"><i class="fa fa-exclamation-triangle"></i> Cambie a <b>Producción</b> solo cuando tenga credenciales y certificado de producción confirmados.</span>
+                                        </div>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="well well-sm">
 
                                     <div class="col-md-4">
                                         <div class="form-group">
@@ -494,9 +507,29 @@
                                             <label class="control-label"
                                                    for="certificado_pin">Pin del Certificado .p12 <small>(Este pin tiene una longitud de 4)</small></label>
 
-                                            <div class="controls"> 
+                                            <div class="controls">
                                                 <input value="<?= $Settings->certificado_pin ?>" class="form-control" id="certificado_pin" name="certificado_pin" type="text" placeholder="0000">
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label">Subir Certificado .p12 <small>(Sobrescribe el archivo actual)</small></label>
+                                            <?php
+                                            $certFile = FCPATH . 'files/certificados/' . $Settings->ambiente . '/' . $Settings->certificado_ced . '.p12';
+                                            $certExists = $Settings->certificado_ced && file_exists($certFile);
+                                            ?>
+                                            <?php if ($certExists): ?>
+                                                <p class="text-success" style="margin:0 0 4px;"><i class="fa fa-check-circle"></i> Certificado cargado: <strong><?= htmlspecialchars($Settings->certificado_ced) ?>.p12</strong></p>
+                                            <?php else: ?>
+                                                <p class="text-warning" style="margin:0 0 4px;"><i class="fa fa-exclamation-triangle"></i> No hay certificado en el servidor.</p>
+                                            <?php endif; ?>
+                                            <form action="<?= site_url('settings/upload_certificado') ?>" method="post" enctype="multipart/form-data" style="display:flex;gap:6px;align-items:center;">
+                                                <input type="file" name="certificado_p12" accept=".p12" class="form-control" style="flex:1;" required>
+                                                <button type="submit" class="btn btn-warning btn-sm" style="white-space:nowrap;"><i class="fa fa-upload"></i> Subir</button>
+                                            </form>
+                                            <span class="help-block">Ambiente activo: <strong><?= htmlspecialchars($Settings->ambiente ?: 'test') ?></strong></span>
                                         </div>
                                     </div>
 
@@ -639,6 +672,22 @@
                             </div>
                         </div>
                         
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h3>Sincronización Catálogo CABYS</h3>
+                                <div class="well well-sm">
+                                    <div class="col-md-6">
+                                        <p>Si Hacienda publicó una actualización del catálogo CABYS (como la de junio 2026), limpie el caché local para que el buscador consulte las versiones más recientes.</p>
+                                        <button type="button" id="btn-limpiar-cabys" class="btn btn-warning">
+                                            <i class="fa fa-refresh"></i> Limpiar caché CABYS
+                                        </button>
+                                        <span id="cabys-sync-result" style="margin-left:10px;display:none;"></span>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-lg-12">
                                 <h3>Bloqueo de Configuracion</h3> <small>(Si ya usted ha probado la configuracion de hacienda y esta 100% seguro de que todo esta bien bloquee esta configuracion para que no sea cambiada)</small>
@@ -1073,6 +1122,18 @@
                     });
         });
 
+        $('#btn-limpiar-cabys').on('click', function () {
+            var $btn = $(this).prop('disabled', true).html('<i class="fa fa-spin fa-spinner"></i> Limpiando...');
+            $.post('<?= site_url("hacienda_proxy/limpiar_cache_cabys") ?>', {
+                <?= $this->security->get_csrf_token_name(); ?>: "<?= $this->security->get_csrf_hash(); ?>"
+            }).done(function (data) {
+                $('#cabys-sync-result').html('<span class="text-success"><i class="fa fa-check"></i> Caché limpiado (' + (data.eliminados || 0) + ' registros)</span>').show();
+            }).fail(function () {
+                $('#cabys-sync-result').html('<span class="text-danger">Error al limpiar caché</span>').show();
+            }).always(function () {
+                $btn.prop('disabled', false).html('<i class="fa fa-refresh"></i> Limpiar caché CABYS');
+            });
+        });
 
     });
 </script>
