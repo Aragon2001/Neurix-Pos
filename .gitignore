@@ -1,0 +1,42 @@
+# Entorno y secretos
+.env
+conf.env
+app/config/database.php
+
+# Logs y caché de CI
+app/logs/*.log
+app/cache/*
+!app/cache/.gitkeep
+!app/logs/.gitkeep
+
+# Archivos subidos y XMLs generados
+uploads/
+app/*/xmltemp/
+files/temp/
+
+# Certificados y llaves privadas
+*.p12
+*.pem
+*.key
+*.pfx
+
+# Composer
+vendor/
+
+# Editores e IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Word temp files
+~$*.docx
+~$*.xlsx
