@@ -1,0 +1,11 @@
+parameters:
+    level: 3
+    # Sólo helpers: pure PHP sin dependencias de CI3 → análisis sin ruido
+    paths:
+        - app/helpers
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # Funciones de CI3 usadas en helpers (character_limiter en pos_helper)
+        - '#Function (log_message|redirect|show_error|get_instance|config_item|site_url|base_url|html_escape) not found#'
+        # BASEPATH/APPPATH definidos en runtime por index.php
+        - '#Constant (BASEPATH|APPPATH|ENVIRONMENT) not found#'

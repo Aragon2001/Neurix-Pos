@@ -237,61 +237,22 @@ ce220a0  fix: corregir 5 errores estructurales del sistema
 
 ### FASE 5 — Testing y CI/CD
 
-#### 18. Inicializar suite de tests con PHPUnit [ ]
-- **Archivos a crear**: `phpunit.xml`, `tests/Unit/helpers/CryptoHelperTest.php`, `tests/Unit/helpers/PosHelperTest.php`, `tests/Unit/models/QueueModelTest.php`
-- **Qué hacer**:
-  1. Agregar en `composer.json`:
-     ```json
-     "require-dev": {
-         "phpunit/phpunit": "^10.0",
-         "phpstan/phpstan": "^1.10"
-     }
-     ```
-  2. Crear `phpunit.xml` con bootstrap apuntando a un mock de CI3 o usar `index.php` en modo CLI
-  3. Test mínimo viable: probar `encrypt_credential()` + `decrypt_credential()` en roundtrip
-  4. Test de `invert_tax_price()`: `invert_tax_price(113, 13)` debe devolver `~100.0000`
-  5. Test de `Queue_model::push()` con BD en memoria (SQLite o mock)
-- **Complejidad**: Media-Alta (CI3 no tiene test runner propio; hay que bootstrapear manualmente)
-- **Alternativa más simple**: usar PHPUnit solo para helpers (sin cargar CI3)
+#### 18. Inicializar suite de tests con PHPUnit [DONE]
+- `composer.json`: `require-dev` con phpunit/phpunit ^10.0, phpstan/phpstan ^1.10, roave/security-advisories
+- `phpunit.xml`: bootstrap → `tests/bootstrap.php`, suite `tests/Unit/`
+- `tests/bootstrap.php`: define BASEPATH/APPPATH, stub de `config_item()`, carga ambos helpers
+- `tests/Unit/helpers/CryptoHelperTest.php`: 4 tests (roundtrip, doble cifrado, legacy, vacío)
+- `tests/Unit/helpers/PosHelperTest.php`: 7 tests (invert_tax_price ×4, character_limiter ×2, drawLine)
+- **Resultado**: 11 tests, 14 assertions — OK
 
-#### 19. GitHub Actions CI pipeline [ ]
-- **Archivo a crear**: `.github/workflows/ci.yml`
-- **Qué hacer**:
-  ```yaml
-  name: CI
-  on: [push, pull_request]
-  jobs:
-    test:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: shivammathur/setup-php@v2
-          with: { php-version: '8.2', extensions: 'mysqli,gd,zip' }
-        - run: composer install --no-interaction
-        - run: vendor/bin/phpunit
-        - run: vendor/bin/phpstan analyse app/helpers app/models --level=3
-  ```
-- **Requiere**: ítem 18 completado primero
+#### 19. GitHub Actions CI pipeline [DONE]
+- `.github/workflows/ci.yml`: PHP 8.2, composer install, phpunit --testdox, phpstan
 
-#### 20. PHPStan análisis estático [ ]
-- **Archivos a crear**: `phpstan.neon`
-- **Qué hacer**:
-  1. Agregar `"phpstan/phpstan": "^1.10"` en `require-dev` de `composer.json`
-  2. Crear `phpstan.neon`:
-     ```neon
-     parameters:
-         level: 3
-         paths:
-             - app/helpers
-             - app/models
-             - app/controllers
-         excludePaths:
-             - app/third_party
-         ignoreErrors:
-             - '#Call to an undefined method CI_.*#'
-     ```
-  3. Corregir los errores nivel 3 que PHPStan reporte (principalmente tipos indefinidos de CI3)
-- **Nota**: CI3 no tiene type hints → muchos falsos positivos de `$this->db`, `$this->session` etc. Usar `ignoreErrors` o stubs
+#### 20. PHPStan análisis estático [DONE]
+- `phpstan.neon`: level 3, paths = `app/helpers` únicamente
+- `tests/stubs/CI3.php`: stubs de CI_Model, CI_Controller, CI_DB_query_builder, CI_DB_result y modelos del proyecto
+- **Decisión**: excluir modelos/controladores — CI3 usa magic `__get()` masivamente, generaría >6000 falsos positivos. Los helpers son pure PHP y pasan sin errores.
+- **Resultado**: No errors
 
 ---
 
