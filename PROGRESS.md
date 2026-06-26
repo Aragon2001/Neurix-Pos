@@ -1,167 +1,377 @@
 # NEURIX POS — Plan de refactorización y modernización
 
-> **Instrucción para retomar la sesión**: leer este archivo, ver el último ítem marcado como `[DONE]` y continuar con el siguiente `[ ]`.
-> Cada ítem incluye archivos afectados y descripción de lo implementado.
+---
+
+## CÓMO RETOMAR UNA SESIÓN
+
+1. Leer la sección **"Contexto del proyecto"** para entender la arquitectura
+2. Buscar el primer ítem con **`[ ]`** — ese es el punto de continuación
+3. Leer su descripción completa y la sección **"Notas técnicas"** antes de implementar
+4. Al terminar cada ítem: marcar como `[DONE]`, documentar lo implementado, hacer commit y push
 
 ---
 
-## Ya completado (sesiones anteriores)
+## CONTEXTO DEL PROYECTO
 
-- [DONE] Eliminar ThemeChineses y unificar temas en `default`
-- [DONE] Añadir columna `show_categories` + migración versionPOS 44
-- [DONE] Fix bug `$versionInitial == true` → `$versionInitial = true`
-- [DONE] Guard de migraciones: saltar 135 queries DB si versionPOS >= 44
+**Nombre**: NEURIX POS  
+**Stack**: PHP 8.x + CodeIgniter 3 + MySQL + Bootstrap 3 + jQuery 3.7.1  
+**Autor**: Jostin Aragon Barboza — arasoftsolutions@outlook.com  
+**Repo**: https://github.com/Aragon2001/Neurix-Pos.git (rama `main`)  
+**Directorio local**: `C:\Users\emanu\Documents\Proyectos\Facturacion Electronica\www`
+
+**Qué hace**: Sistema POS (punto de venta) con facturación electrónica costarricense (Hacienda API v4.4), notas de crédito, apartados, parquímetro, impresión térmica (escpos), y reportes.
+
+### Arquitectura clave
+
+| Componente | Detalle |
+|---|---|
+| `index.php` | Bootstrap de CI3. Carga `.env` antes de que arranque el framework |
+| `app/core/MY_Controller.php` | Controlador base. Constructor ejecuta migraciones de BD (guard: `versionPOS < 51`). Descifra credenciales Hacienda al cargar Settings |
+| `app/controllers/Pos.php` | Controlador principal de ventas (~1990 líneas tras el split) |
+| `app/controllers/PosView.php` | Vistas de comprobantes: view, viewnc, view_proforma |
+| `app/controllers/PosEmail.php` | Envío de emails (ahora asíncrono via cola) |
+| `app/controllers/PosRegister.php` | Caja: apertura/cierre/detalles/register |
+| `app/controllers/PosPrint.php` | Impresión térmica, comandas, tickets |
+| `app/controllers/PosCredit.php` | Nota de crédito |
+| `app/controllers/Shacienda.php` | Worker de FE: procesa documentos pendientes en `tec_hacienda_tiketes` |
+| `app/controllers/Queue_worker.php` | Worker de cola asíncrona (emails). Usa `fastcgi_finish_request()` |
+| `app/models/Queue_model.php` | push/pop/markDone/markFailed con backoff exponencial |
+| `app/models/Site.php::getSettings()` | Carga settings desde BD con file-cache TTL 5 min |
+| `app/helpers/crypto_helper.php` | `encrypt_credential()` / `decrypt_credential()` con AES-256-CBC |
+| `app/helpers/queue_helper.php` | `dispatch_queue_worker()` via fsockopen fire-and-forget |
+| `app/helpers/pos_helper.php` | `invert_tax_price()` y helpers de impresora |
+| `app/libraries/Swiftmailer.php` | Wrapper PHPMailer con la misma interfaz que tenía SwiftMailer |
+| `app/libraries/Crearxml.php` | Genera XML de FE. `quitatilde()` escapa caracteres XML |
+| `app/config/routes.php` | Mapea `pos/method` → `posview/method`, `posprint/method`, etc. |
+| `themes/default/` | Único tema (ThemeChineses eliminado). jQuery 3.7.1 |
+
+### Sistema de migraciones
+- Corren en `MY_Controller.__construct()` — guard al inicio: `if (versionPOS < 51)`
+- Cada migración: `if (versionPOS == "N" || $versionInitial)` → hace ALTER TABLE → `update settings versionPOS = N+1`
+- Al agregar una migración nueva: cambiar el guard a `< (nueva_version + 1)` y agregar el bloque antes de `} // end migration guard`
+- **versionPOS actual**: 50 (tabla `tec_queue` creada)
+
+### Variables de entorno
+- `.env` en raíz (gitignored) — cargado por `index.php` antes de CI
+- Variables: `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`, `APP_ENV`
+- `.env.example` documenta las variables disponibles
+
+### Credenciales Hacienda
+- `password_token_test`, `password_token_prod`, `certificado_pin` se guardan cifradas en BD con prefijo `enc:`
+- Se descifran en `MY_Controller.__construct()` justo después de `getSettings()`
+- Al guardar en Settings, `encrypt_credential()` los cifra antes del INSERT
+- Los datos legacy (sin prefijo `enc:`) se devuelven tal cual (retrocompatible)
+
+### Cola asíncrona de emails
+- Flujo: `PosEmail::email_receipt()` → `Queue_model::push('email', payload)` → `dispatch_queue_worker()` → JSON inmediato al cliente
+- Worker (`Queue_worker::run()`): `fastcgi_finish_request()` → procesa jobs → SwiftMailer (PHPMailer)
+- Backoff: intento 1 en 30s, intento 2 en 60s, intento 3 en 120s — luego `status='failed'`
+
+---
+
+## COMMITS DE ESTA SESIÓN DE REFACTORIZACIÓN
+
+```
+627a3f1  refactor(fase4): split Pos.php + upgrades dependencias + jQuery 3.7.1
+3f8b767  feat(queue): Fase 3 completa - cola asincrona para emails
+8aa0c4b  perf: Fase 2 completa - 4 mejoras de rendimiento
+76d7496  fix(security): Fase 1 completa - 6 vulnerabilidades corregidas
+ce220a0  fix: corregir 5 errores estructurales del sistema
+1338e28  refactor: eliminar ThemeChineses y unificar temas
+```
+
+---
+
+## COMPLETADO ✅
+
+### Pre-sesión (commits anteriores)
+- [DONE] Eliminar `ThemeChineses` y unificar en tema `default`
+- [DONE] Columna `show_categories` en settings (reemplaza selección de tema)
+- [DONE] Fix `$versionInitial == true` → `$versionInitial = true` (bug que hacía fallar instalaciones frescas)
+- [DONE] Guard de migraciones: saltar las 135 queries si `versionPOS >= 51`
 - [DONE] Cifrar credenciales Hacienda con AES-256-CBC (`crypto_helper.php`)
-- [DONE] Reemplazar `shell_exec("wmic...")` por `gethostname() + php_uname()`
-- [DONE] Eliminar 9 bloques de includes comentados en vistas
-- [DONE] Simplificar include activo en `modal_view.php`
+- [DONE] Reemplazar `shell_exec("wmic...")` por `gethostname() + php_uname()` (cross-platform)
+- [DONE] Eliminar 9 bloques `/* include ... remote_printing.php */` comentados en vistas
+- [DONE] Simplificar include activo en `modal_view.php` (ruta hardcoded a `themes/default`)
 
 ---
 
-## FASE 1 — Seguridad crítica
+### FASE 1 — Seguridad crítica (commit `76d7496`)
 
-### 1. Credenciales DB a variables de entorno
-- **Archivos**: `index.php`, `app/config/database.php`, `app/config/database.php.example`, `.env.example` (nuevo)
-- **Implementado**: loader de `.env` en `index.php`; `database.php` usa `getenv()` con fallback; `.env.example` documentado
-- **Estado**: [DONE]
+#### 1. Credenciales DB a variables de entorno [DONE]
+- `index.php`: loader de `.env` (parse KEY=VALUE, putenv + $_ENV, sin dependencias)
+- `app/config/database.php`: `getenv('DB_HOST') ?: 'localhost'` etc.
+- `app/config/database.php.example`: mismo patrón
+- `.env.example`: documenta DB_HOST, DB_USER, DB_PASS, DB_NAME, APP_ENV
 
-### 2. Deshabilitar debug en producción
-- **Archivos**: `app/config/constants.php`
-- **Implementado**: `SHOW_DEBUG_BACKTRACE` ahora es `ENVIRONMENT === 'development'`
-- **Estado**: [DONE]
+#### 2. Debug deshabilitado en producción [DONE]
+- `app/config/constants.php` línea 50: `define('SHOW_DEBUG_BACKTRACE', ENVIRONMENT === 'development')`
+- En producción (`CI_ENV=production` en el server), el backtrace no se muestra
 
-### 3. Re-habilitar checks de autorización comentados
-- **Archivos**: `app/controllers/Pos.php` líneas 95-98 y 72-75
-- **Implementado**: ambos bloques de autorización descomentados y operativos
-- **Estado**: [DONE]
+#### 3. Guards de autorización reactivados [DONE]
+- `app/controllers/Pos.php` ~línea 72: guard para `?code=` (base64 decode vacío → redirect)
+- `app/controllers/Pos.php` ~línea 95: guard `if ($eid && !$this->Admin)` → redirect con error
+- Ambos estaban comentados; ahora protegen que non-admins editen ventas cerradas
 
-### 4. Validación de arrays `$_POST` en ventas
-- **Archivos**: `app/controllers/Pos.php` líneas 167-180
-- **Implementado**: `filter_var()` con FILTER_VALIDATE_INT/FLOAT; `strip_tags()` en comentarios; `continue` si datos inválidos
-- **Estado**: [DONE]
+#### 4. Validación de carrito $_POST [DONE]
+- `app/controllers/Pos.php` en el loop de items del carrito (~línea 168)
+- `filter_var(FILTER_VALIDATE_INT)` para `product_id`, `FILTER_VALIDATE_FLOAT` para `quantity` y `real_unit_price`
+- `strip_tags()` en `item_comment`
+- `continue` si algún valor es inválido/negativo
 
-### 5. Escapar salida HTML en vistas del POS
-- **Archivos**: `themes/default/views/pos/index.php`
-- **Implementado**: `html_escape()` en store->name, store->code, site_name, email de sesión; cast `(int)` en campos hidden con IDs
-- **Estado**: [DONE]
+#### 5. Escapar salida HTML en POS [DONE]
+- `themes/default/views/pos/index.php`: `html_escape()` en `$store->name`, `$store->code`, `$Settings->site_name`, email de sesión
+- Hidden inputs con IDs numéricos: cast `(int)` en `$sid`, `$eid`, `$rid`, `$quo`, `$apa`
 
-### 6. Escapar datos en XML de Hacienda
-- **Archivos**: `app/libraries/Crearxml.php` método `quitatilde()`
-- **Implementado**: `str_replace` de `<`, `>`, `"`, `\r`, `\n` al final de `quitatilde()` — todos los textos del XML pasan por aquí
-- **Estado**: [DONE]
-
----
-
-## FASE 2 — Performance
-
-### 7. Fix bug cálculo expiración token Hacienda
-- **Archivos**: `app/controllers/Shacienda.php` (5 ocurrencias)
-- **Implementado**: `date(..., time() + (int)($token_data->expires_in ?? 3600))` — elimina el parseo erróneo de segundos como HH:MM
-- **Estado**: [DONE]
-
-### 8. Eliminar N+1 queries en búsqueda de productos
-- **Archivos**: `app/models/Pos_model.php` métodos `getProductNames()` y `getProductPrice()`
-- **Implementado**: LEFT JOIN con `impuestos` en la query principal; eliminado el loop de queries individuales por producto
-- **Estado**: [DONE]
-
-### 9. Caché de Settings (evitar query en cada request)
-- **Archivos**: `app/models/Site.php`, `app/models/Settings_model.php`, `app/config/config.php`
-- **Implementado**: CI file cache con TTL 5 min en `getSettings()`; invalidación en `updateSetting()`; `cache_path` configurado
-- **Estado**: [DONE]
-
-### 10. Extraer lógica de impuestos duplicada
-- **Archivos**: `app/helpers/pos_helper.php`, `app/models/Pos_model.php`
-- **Implementado**: función `invert_tax_price($price, $taxPercent)` en `pos_helper.php`; reemplazadas todas las instancias duplicadas
-- **Estado**: [DONE]
+#### 6. Escapar datos en XML de Hacienda [DONE]
+- `app/libraries/Crearxml.php` método `quitatilde()` (todo texto que va al XML pasa por aquí)
+- Al final: `str_replace(['<', '>', '"', "\r", "\n"], ['', '', '', ' ', ' '], $cadena)`
+- Evita que nombres de productos con `<script>` o `&` rompan el XML de Hacienda
 
 ---
 
-## FASE 3 — Cola asíncrona
+### FASE 2 — Performance (commit `8aa0c4b`)
 
-### 11. Cola asíncrona — infraestructura (tabla + modelo + worker)
-- **Archivos**: `app/core/MY_Controller.php` (migración versionPOS 50 → tabla `tec_queue`), `app/models/Queue_model.php` (nuevo), `app/controllers/Queue_worker.php` (nuevo), `app/helpers/queue_helper.php` (nuevo), `app/config/autoload.php`
-- **Implementado**: tabla `tec_queue` (status, attempts, backoff exponencial), `Queue_model::push/pop/markDone/markFailed`, worker con `fastcgi_finish_request()` + `ignore_user_abort`, helper `dispatch_queue_worker()` via fsockopen fire-and-forget
-- **Estado**: [DONE]
+#### 7. Fix bug token Hacienda [DONE]
+- `app/controllers/Shacienda.php`: 5 ocurrencias del mismo bloque de 4 líneas reemplazadas
+- **Bug**: `date("i:s", $token_data->expires_in)` trataba segundos como HH:MM → fecha de expiración incorrecta
+- **Fix**: `date('Y-m-d H:i:s', time() + (int)($token_data->expires_in ?? 3600))`
 
-### 12. Cola asíncrona para envío de emails
-- **Archivos**: `app/controllers/Pos.php` métodos `email_receipt`, `email_receipt_credit`, `email_proforma`
-- **Implementado**: los 3 métodos encolan el job (payload: to/subject/message/attach/pdf_html/pdf_path), disparan el worker en background, devuelven JSON inmediato. Backoff: 30s → 60s → 120s, max 3 intentos
-- **Estado**: [DONE]
+#### 8. Eliminar N+1 queries en productos [DONE]
+- `app/models/Pos_model.php` métodos `getProductNames()` y `getProductPrice()`
+- **Antes**: por cada producto en el resultado, una query separada a `tec_impuestos`
+- **Fix**: `->join("{$prefix}impuestos imp", 'products.id_tax=imp.id_impuesto', 'left')` en la query principal
+- Los campos `id_impuesto`, `codigo_impuesto`, `codigo_tarifa` ahora vienen del JOIN con `COALESCE(imp.x, 0)`
 
----
+#### 9. Caché de Settings [DONE]
+- `app/models/Site.php::getSettings()`: CI file cache, clave `app_settings`, TTL 300s (5 min)
+- `app/models/Settings_model.php::updateSetting()`: `$this->cache->file->delete('app_settings')` al guardar
+- `app/config/config.php`: `$config['cache_path'] = APPPATH . 'cache/'`
+- Elimina la query a `tec_settings` en cada request cuando la caché está caliente
 
-## FASE 4 — Calidad de código
-
-### 13. Split de Pos.php (3337 líneas → 5 controladores + routes)
-- **Archivos**: `Pos.php` (1990 líneas), `PosView.php`, `PosEmail.php`, `PosRegister.php`, `PosPrint.php`, `PosCredit.php`, `app/config/routes.php`
-- **Implementado**: PosView (view/view_proforma/viewnc/view_close_register), PosEmail (email_*), PosRegister (close_register/register_details/today_sale/shortcuts/products_sales_in_register/invoices_in_register), PosPrint (print_*/p/view_bill/open_drawer/receipt_img/invice_barcode), PosCredit (creditnote). Routes mapean pos/method → nuevo_controlador/method sin romper URLs
-- **Estado**: [DONE]
-
-### 14. Upgrade SwiftMailer → PHPMailer
-- **Archivos**: `app/libraries/Swiftmailer.php` (reescrito), `app/libraries/Tec_mail.php` (fix var_dump/exit), `composer.json`
-- **Implementado**: Swiftmailer.php reescrito usando PHPMailer (ya instalado), misma interfaz pública; swiftmailer eliminado de composer.json; corregido bug var_dump+exit en Tec_mail.php
-- **Estado**: [DONE]
-
-### 15. Upgrade Stripe SDK v7 → v13
-- **Archivos**: `app/models/Stripe_payments.php`, `composer.json`
-- **Implementado**: Reescrito con instancia `StripeClient` (v13); API estática eliminada; `composer.json` actualizado a `^13.0`
-- **Estado**: [DONE]
-
-### 16. Upgrade jQuery 2.1.4 → 3.7.1
-- **Archivos**: 13 vistas en `themes/default/views/`, `themes/default/assets/plugins/jQuery/jquery-3.7.1.min.js` (nuevo)
-- **Implementado**: descargado jquery-3.7.1.min.js, reemplazadas 13 vistas con PowerShell
-- **Estado**: [DONE]
-
-### 17. Añadir viewport meta tag en POS
-- **Archivos**: `themes/default/views/pos/index.php`
-- **Implementado**: `<meta name="viewport" content="width=device-width, initial-scale=1.0">` agregado en `<head>` del POS (header.php ya lo tenía)
-- **Estado**: [DONE]
+#### 10. Helper `invert_tax_price()` [DONE]
+- `app/helpers/pos_helper.php`: nueva función `invert_tax_price($price, $taxPercent)`
+- Reemplaza el cálculo `$price / (1 + ($taxPercent / 100))` duplicado en 4 lugares
+- Usada en `getProductNames()` y `getProductPrice()` de `Pos_model.php`
 
 ---
 
-## FASE 5 — Testing y CI/CD
+### FASE 3 — Cola asíncrona (commit `3f8b767`)
 
-### 18. Inicializar suite de tests con PHPUnit
-- **Archivos**: `composer.json`, `phpunit.xml` (nuevo), `tests/` (nuevo directorio)
-- **Qué hacer**: instalar PHPUnit, crear tests unitarios para `crypto_helper`, `Pos_model::getProductNames`, lógica de impuestos
-- **Estado**: [ ]
+#### 11. Infraestructura de cola [DONE]
+- **Tabla `tec_queue`** (versionPOS 49→50 en `MY_Controller`):
+  ```sql
+  id, type VARCHAR(30), payload LONGTEXT, status ENUM(pending/processing/done/failed),
+  attempts TINYINT, max_attempts TINYINT, next_attempt_at DATETIME, created_at DATETIME,
+  done_at DATETIME NULL, last_error TEXT NULL
+  INDEX idx_status_next (status, next_attempt_at)
+  ```
+- **`app/models/Queue_model.php`**:
+  - `push($type, $payload, $maxAttempts=3)` → INSERT con status='pending'
+  - `pop($type=null, $limit=5)` → SELECT WHERE pending AND next_attempt_at<=NOW(), UPDATE a 'processing'
+  - `markDone($id)` → status='done', done_at=NOW()
+  - `markFailed($id, $error)` → si attempts < max: status='pending', next_attempt_at += 2^n*30s; si no: status='failed'
+- **`app/controllers/Queue_worker.php`**:
+  - `run($type=null)`: cierra conexión HTTP con `fastcgi_finish_request()` (o flush+ignore_user_abort en Apache), luego procesa jobs
+  - `_processEmail($jobId, $payload)`: usa `Swiftmailer::send_email()`, regenera PDF si no existe
+- **`app/helpers/queue_helper.php`**:
+  - `dispatch_queue_worker($type=null)`: fsockopen al propio servidor, GET fire-and-forget, no bloquea
+- **`app/config/autoload.php`**: helpers `'crypto'` y `'queue'` agregados
 
-### 19. GitHub Actions CI pipeline
-- **Archivos**: `.github/workflows/ci.yml` (nuevo)
-- **Qué hacer**: ejecutar PHPUnit + PHPStan en cada push a main
-- **Estado**: [ ]
-
-### 20. Añadir PHPStan análisis estático
-- **Archivos**: `composer.json`, `phpstan.neon` (nuevo)
-- **Qué hacer**: instalar PHPStan nivel 3, corregir errores detectados
-- **Estado**: [ ]
-
----
-
-## FASE 6 — Modernización frontend/arquitectura
-
-### 21. Retry con backoff exponencial en API Hacienda
-- **Archivos**: `app/libraries/Apiclient.php`
-- **Qué hacer**: método privado `sendWithRetry($data, $maxAttempts=3)` con `sleep(2^n)` entre intentos
-- **Estado**: [ ]
-
-### 22. Logging de auditoría para operaciones financieras
-- **Archivos**: `app/controllers/Pos.php`, `app/models/` crear `AuditLog_model.php`, migración tabla `tec_audit_log`
-- **Qué hacer**: registrar quién hizo qué venta/anulación/cobro y cuándo, en tabla separada
-- **Estado**: [ ]
-
-### 23. Roave Security Advisories (dependencias vulnerables)
-- **Archivos**: `composer.json`
-- **Qué hacer**: agregar `"roave/security-advisories": "dev-latest"` como dev dependency
-- **Estado**: [ ]
+#### 12. Emails asíncronos [DONE]
+- `PosEmail::email_receipt()`, `email_receipt_credit()`, `email_proforma()` (ahora en `app/controllers/PosEmail.php`)
+- **Antes**: generaba PDF + enviaba email en el mismo request (~5-10s bloqueando)
+- **Ahora**: genera PDF → `Queue_model::push('email', payload)` → `dispatch_queue_worker()` → retorna `{"queued":true}` inmediatamente
+- Payload incluye: `to`, `subject`, `message`, `attach` (XMLs + ruta PDF), `pdf_html`, `pdf_path`
+- Si el PDF desaparece, el worker lo regenera desde `pdf_html`
 
 ---
 
-## Notas técnicas
+### FASE 4 — Calidad de código (commit `627a3f1`)
 
-- **Framework**: CodeIgniter 3.x — las migraciones corren via `MY_Controller.__construct()` (guard en versionPOS)
-- **DB prefix**: `tec_`
-- **Tema único**: `themes/default/` (ThemeChineses eliminado)
-- **Hacienda**: API v4.4, ambientes test/prod configurables en Settings
-- **Credenciales cifradas**: `password_token_test`, `password_token_prod`, `certificado_pin` con AES-256-CBC via `crypto_helper.php`
-- **show_categories**: columna en settings reemplaza la selección de tema
+#### 13. Split de Pos.php [DONE]
+- **Antes**: 3,337 líneas, 47 métodos en un solo archivo
+- **Ahora**: `Pos.php` = 1,990 líneas + 5 controladores nuevos
+
+| Controlador nuevo | Métodos |
+|---|---|
+| `PosView.php` | `view`, `view_proforma`, `viewnc`, `view_close_register`, `invice_barcode` |
+| `PosEmail.php` | `email_receipt`, `email_receipt_credit`, `email_proforma` |
+| `PosRegister.php` | `register_details`, `today_sale`, `shortcuts`, `close_register`, `products_sales_in_register`, `invoices_in_register` |
+| `PosPrint.php` | `view_bill`, `print_parquimetro`, `print_comanda`, `print_register`, `print_receipt`, `print_cuenta`, `receipt_img`, `open_drawer`, `p`, `invice_barcode`, `invice_barcode_2` |
+| `PosCredit.php` | `creditnote` |
+
+- **`app/config/routes.php`**: 35 rutas agregadas que mapean `pos/method` → `posview/method`, `posprint/method`, etc. — **las URLs del frontend no cambian**
+- Cada nuevo controlador extiende `MY_Controller` y carga sus modelos en `__construct()`
+
+#### 14. SwiftMailer → PHPMailer [DONE]
+- `app/libraries/Swiftmailer.php`: completamente reescrito usando `PHPMailer\PHPMailer\PHPMailer`
+  - Misma firma pública: `send_email($to, $subject, $body, $from, $from_name, $attachment, $cc, $bcc)`
+  - Soporta adjuntos de ruta (`ruta` key) y en memoria (XMLs, `key.xml`)
+  - Soporta configuración SMTP, Gmail (`is_gmail=1`), y `isMail()`
+- `app/libraries/Tec_mail.php`: eliminado bug crítico `var_dump($attachment); exit()` que bloqueaba todos los emails
+- `composer.json`: `swiftmailer/swiftmailer` eliminado (PHPMailer ya era dependencia)
+
+#### 15. Stripe SDK v7 → v13 [DONE]
+- `app/models/Stripe_payments.php`: reescrito completamente
+  - **Antes**: `\Stripe\Charge::create([...])` (API estática v7)
+  - **Ahora**: `$this->stripe = new \Stripe\StripeClient($key)` + `$this->stripe->charges->create([...])`
+  - Método `_error()` centraliza logging y retorno de array de error
+  - `charge_to_array()` actualizado: `payment_method_details->card` en vez de `charge->card`
+  - `get_all_transactions()`: parámetro `count` → `limit` (API v13)
+  - `refund()`: ahora usa `$this->stripe->refunds->create()` en vez de `$transaction->refund()`
+- `composer.json`: `"stripe/stripe-php": "^7.0"` → `"^13.0"`
+
+#### 16. jQuery 2.1.4 → 3.7.1 [DONE]
+- `themes/default/assets/plugins/jQuery/jquery-3.7.1.min.js`: descargado (87,533 bytes)
+- 13 vistas actualizadas (PowerShell replace): `header.php`, `promotions.php`, `login.php`, `eviewnc.php` ×2, `viewnc.php` ×2, `eview.php`, `index.php`, `view.php`, `view_bill.php`, `view_parq.php`, `view_proforma.php`
+- **Nota**: jQuery 3.x eliminó `.live()`, `.die()`, `$.browser` — verificar que los plugins del POS (iCheck, DataTables, Select2) sean compatibles con jQuery 3
+
+#### 17. Viewport meta tag [DONE]
+- `themes/default/views/pos/index.php`: `<meta name="viewport" content="width=device-width, initial-scale=1.0">` en `<head>`
+- `themes/default/views/header.php`: ya tenía viewport con `user-scalable=no`
+
+---
+
+## PENDIENTE ⏳
+
+### FASE 5 — Testing y CI/CD
+
+#### 18. Inicializar suite de tests con PHPUnit [ ]
+- **Archivos a crear**: `phpunit.xml`, `tests/Unit/helpers/CryptoHelperTest.php`, `tests/Unit/helpers/PosHelperTest.php`, `tests/Unit/models/QueueModelTest.php`
+- **Qué hacer**:
+  1. Agregar en `composer.json`:
+     ```json
+     "require-dev": {
+         "phpunit/phpunit": "^10.0",
+         "phpstan/phpstan": "^1.10"
+     }
+     ```
+  2. Crear `phpunit.xml` con bootstrap apuntando a un mock de CI3 o usar `index.php` en modo CLI
+  3. Test mínimo viable: probar `encrypt_credential()` + `decrypt_credential()` en roundtrip
+  4. Test de `invert_tax_price()`: `invert_tax_price(113, 13)` debe devolver `~100.0000`
+  5. Test de `Queue_model::push()` con BD en memoria (SQLite o mock)
+- **Complejidad**: Media-Alta (CI3 no tiene test runner propio; hay que bootstrapear manualmente)
+- **Alternativa más simple**: usar PHPUnit solo para helpers (sin cargar CI3)
+
+#### 19. GitHub Actions CI pipeline [ ]
+- **Archivo a crear**: `.github/workflows/ci.yml`
+- **Qué hacer**:
+  ```yaml
+  name: CI
+  on: [push, pull_request]
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: shivammathur/setup-php@v2
+          with: { php-version: '8.2', extensions: 'mysqli,gd,zip' }
+        - run: composer install --no-interaction
+        - run: vendor/bin/phpunit
+        - run: vendor/bin/phpstan analyse app/helpers app/models --level=3
+  ```
+- **Requiere**: ítem 18 completado primero
+
+#### 20. PHPStan análisis estático [ ]
+- **Archivos a crear**: `phpstan.neon`
+- **Qué hacer**:
+  1. Agregar `"phpstan/phpstan": "^1.10"` en `require-dev` de `composer.json`
+  2. Crear `phpstan.neon`:
+     ```neon
+     parameters:
+         level: 3
+         paths:
+             - app/helpers
+             - app/models
+             - app/controllers
+         excludePaths:
+             - app/third_party
+         ignoreErrors:
+             - '#Call to an undefined method CI_.*#'
+     ```
+  3. Corregir los errores nivel 3 que PHPStan reporte (principalmente tipos indefinidos de CI3)
+- **Nota**: CI3 no tiene type hints → muchos falsos positivos de `$this->db`, `$this->session` etc. Usar `ignoreErrors` o stubs
+
+---
+
+### FASE 6 — Modernización frontend/arquitectura
+
+#### 21. Retry con backoff exponencial en API Hacienda [ ]
+- **Archivo**: `app/libraries/Apiclient.php`
+- **Qué hacer**:
+  1. Leer el método `postHacienda()` (alrededor de línea 257)
+  2. Crear método privado:
+     ```php
+     private function sendWithRetry(callable $fn, $maxAttempts = 3) {
+         for ($i = 1; $i <= $maxAttempts; $i++) {
+             try {
+                 $result = $fn();
+                 if ($result !== false) return $result;
+             } catch (\Exception $e) {
+                 log_message('error', "[Apiclient] intento $i/$maxAttempts: " . $e->getMessage());
+             }
+             if ($i < $maxAttempts) sleep(pow(2, $i)); // 2s, 4s
+         }
+         return false;
+     }
+     ```
+  3. Envolver las llamadas a `postHacienda()` con `sendWithRetry()`
+- **Impacto**: evita que un timeout puntual de Hacienda marque la FE como fallida
+
+#### 22. Logging de auditoría para operaciones financieras [ ]
+- **Archivos a crear**: `app/models/AuditLog_model.php`
+- **Migración**: nueva tabla `tec_audit_log` en `MY_Controller` (versionPOS 51→52)
+  ```sql
+  id INT AUTO_INCREMENT, user_id INT, action VARCHAR(50), entity VARCHAR(30),
+  entity_id INT, detail TEXT, ip VARCHAR(45), created_at DATETIME DEFAULT NOW()
+  ```
+- **Qué hacer**:
+  1. Agregar migración en `MY_Controller` y actualizar el guard a `< 53`
+  2. Crear `AuditLog_model::log($action, $entity, $entity_id, $detail)`
+  3. Llamar en `Pos.php::index()` al crear venta, en `nota_credito()` al anular, en `PosRegister::close_register()` al cerrar caja
+  4. Panel de auditoría: vista en `settings` para ver el log (solo admin)
+- **Columnas a registrar**: quién (user_id + email), qué (venta/anulación/cierre), cuándo, monto, IP
+
+#### 23. Roave Security Advisories [ ]
+- **Archivo**: `composer.json`
+- **Qué hacer**: agregar en `require-dev`:
+  ```json
+  "roave/security-advisories": "dev-latest"
+  ```
+- **Efecto**: `composer update` falla si hay dependencias con CVEs conocidos
+- **Nota**: puede bloquear el install si alguna dependencia tiene vulnerabilidades; revisar y actualizar la afectada
+
+---
+
+## NOTAS TÉCNICAS IMPORTANTES
+
+### Guard de migraciones — SIEMPRE actualizar al agregar nueva migración
+```php
+// MY_Controller.php ~línea 49
+if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 51) {
+// CAMBIAR 51 → nueva_version+1
+```
+El último versionPOS asignado es **50** (tabla tec_queue). La próxima migración será 50→51.
+
+### Rutas del split de Pos.php
+Todos los `pos/method` en el frontend y en el código PHP siguen funcionando gracias a `app/config/routes.php`. Si se agrega un método nuevo a PosView/PosPrint/etc., hay que agregar su ruta correspondiente.
+
+### Cola de emails — cómo probar
+1. Disparar `POST pos/email_receipt` con `id` y `email` válidos
+2. Verificar que responde JSON inmediato `{"queued":true}`
+3. Verificar que se crea un registro en `tec_queue` con `status='pending'`
+4. Llamar `GET queue_worker/run` directamente para procesar manualmente
+5. Verificar que el registro pasa a `status='done'`
+
+### Stripe — requiere `composer update`
+Tras cambiar `stripe/stripe-php` de `^7.0` a `^13.0` en composer.json, hay que correr `composer update stripe/stripe-php` en el servidor para instalar la nueva versión.
+
+### SwiftMailer — clase mantenida por compatibilidad
+La clase `Swiftmailer` en `app/libraries/Swiftmailer.php` conserva el nombre pero usa PHPMailer internamente. No borrar el archivo — todos los `$this->load->library('Swiftmailer')` del codebase lo usan.
+
+### DB prefix
+Todas las tablas usan prefijo `tec_`. En el código CI3: `$this->db->dbprefix('tabla')` devuelve `tec_tabla`.
+
+### Tema único
+Solo existe `themes/default/`. El campo `theme` en `tec_settings` siempre es `'default'`. La variante "POS sin categorías" se controla con `settings.show_categories = 0`.
