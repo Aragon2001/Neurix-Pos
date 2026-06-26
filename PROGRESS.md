@@ -55,24 +55,24 @@
 ## FASE 2 — Performance
 
 ### 7. Fix bug cálculo expiración token Hacienda
-- **Archivos**: `app/controllers/Shacienda.php` líneas 30-33
-- **Qué hacer**: reemplazar cálculo erróneo de `expires_in` (tratado como HH:MM) por `time() + $token_data->expires_in`
-- **Estado**: [ ]
+- **Archivos**: `app/controllers/Shacienda.php` (5 ocurrencias)
+- **Implementado**: `date(..., time() + (int)($token_data->expires_in ?? 3600))` — elimina el parseo erróneo de segundos como HH:MM
+- **Estado**: [DONE]
 
 ### 8. Eliminar N+1 queries en búsqueda de productos
-- **Archivos**: `app/models/Pos_model.php`, `app/models/Site.php`
-- **Qué hacer**: reemplazar loop con query individual por un JOIN con tabla `impuestos`
-- **Estado**: [ ]
+- **Archivos**: `app/models/Pos_model.php` métodos `getProductNames()` y `getProductPrice()`
+- **Implementado**: LEFT JOIN con `impuestos` en la query principal; eliminado el loop de queries individuales por producto
+- **Estado**: [DONE]
 
 ### 9. Caché de Settings (evitar query en cada request)
-- **Archivos**: `app/models/Site.php` método `getSettings()`, `app/config/config.php`
-- **Qué hacer**: usar CI cache driver (file) con TTL 5 minutos; invalidar al guardar settings
-- **Estado**: [ ]
+- **Archivos**: `app/models/Site.php`, `app/models/Settings_model.php`, `app/config/config.php`
+- **Implementado**: CI file cache con TTL 5 min en `getSettings()`; invalidación en `updateSetting()`; `cache_path` configurado
+- **Estado**: [DONE]
 
 ### 10. Extraer lógica de impuestos duplicada
-- **Archivos**: `app/models/Pos_model.php`, `app/models/Site.php`
-- **Qué hacer**: crear helper `tax_helper.php` con función `invert_tax_price($price, $taxPercent)` y reemplazar las 4 duplicaciones
-- **Estado**: [ ]
+- **Archivos**: `app/helpers/pos_helper.php`, `app/models/Pos_model.php`
+- **Implementado**: función `invert_tax_price($price, $taxPercent)` en `pos_helper.php`; reemplazadas todas las instancias duplicadas
+- **Estado**: [DONE]
 
 ---
 

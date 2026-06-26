@@ -8,8 +8,9 @@ class Settings_model extends CI_Model
     }
 
     public function updateSetting($data = array()) {
-
-        if($this->db->update('settings', $data, array('setting_id' => 1))) {
+        if ($this->db->update('settings', $data, array('setting_id' => 1))) {
+            $this->load->driver('cache', array('adapter' => 'file'));
+            $this->cache->file->delete('app_settings');
             return true;
         }
         return false;

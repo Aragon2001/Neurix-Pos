@@ -70,10 +70,15 @@ class Site extends CI_Model
     }
 
     public function getSettings() {
-        
+        $this->load->driver('cache', array('adapter' => 'file'));
+        if ($cached = $this->cache->file->get('app_settings')) {
+            return $cached;
+        }
         $q = $this->db->get('settings');
         if ($q->num_rows() > 0) {
-            return $q->row();
+            $settings = $q->row();
+            $this->cache->file->save('app_settings', $settings, 300); // 5 min TTL
+            return $settings;
         }
         return FALSE;
     }

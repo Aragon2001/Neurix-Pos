@@ -212,7 +212,7 @@ $config['directory_trigger'] = 'd';
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+$config['log_threshold'] = (ENVIRONMENT === 'development') ? 1 : 1;
 
 /*
 |--------------------------------------------------------------------------
@@ -282,7 +282,7 @@ $config['error_views_path'] = '';
 | application/cache/ directory.  Use a full server path with trailing slash.
 |
 */
-$config['cache_path'] = '';
+$config['cache_path'] = APPPATH . 'cache/';
 
 /*
 |--------------------------------------------------------------------------
@@ -432,7 +432,7 @@ $config['csrf_token_name'] = 'spos_token';
 $config['csrf_cookie_name'] = 'spos_cookie';
 $config['csrf_expire'] = 7200;
 $config['csrf_regenerate'] = FALSE;
-$config['csrf_exclude_uris'] = array();
+$config['csrf_exclude_uris'] = array('auth/login', 'auth/forgot_password');
 
 /*
 |--------------------------------------------------------------------------

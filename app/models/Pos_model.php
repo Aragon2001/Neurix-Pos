@@ -9,10 +9,10 @@ class Pos_model extends CI_Model {
         parent::__construct();
     }
     public function getProductNames($term, $limit = 10, $sensibility = null) {
-       # $this->db->save_queries = TRUE;
         $store_id = $this->session->userdata('store_id');
-        $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(psq.qty_fracc, 0) as qty_fracc, 0 as esta_fraccionado")
-                ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id}) psq", 'products.id=psq.product_id', 'left');
+        $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(psq.qty_fracc, 0) as qty_fracc, 0 as esta_fraccionado, COALESCE(imp.id_impuesto, 0) as id_impuesto, COALESCE(imp.codigo_impuesto, 0) as codigo_impuesto, COALESCE(imp.codigo_tarifa, 0) as codigo_tarifa")
+                ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id}) psq", 'products.id=psq.product_id', 'left')
+                ->join("{$this->db->dbprefix('impuestos')} imp", 'products.id_tax=imp.id_impuesto', 'left');
         if ($this->db->dbdriver == 'sqlite3') {
             $this->db->where("(name LIKE '%{$term}%' OR code LIKE '%{$term}%' OR  (name || ' (' || code || ')') LIKE '%{$term}%')");
         } else {
@@ -34,32 +34,11 @@ class Pos_model extends CI_Model {
 
             foreach (($q->result()) as $row) {
                 $row->store_price = $row->price;
-                
                 if ($row->tax_method == '0') {
-                    $row->tax_method = '1';
-                    if ($row->tax > 0) {
-                        $invertir_impuesto = $row->store_price / (1 + ($row->tax / 100));
-                        $row->store_price = number_format($invertir_impuesto, 4, '.', '');
-                        $row->price = number_format($invertir_impuesto, 4, '.', '');
-
-                    }
+                    $row->tax_method  = '1';
+                    $row->store_price = invert_tax_price($row->store_price, $row->tax);
+                    $row->price       = $row->store_price;
                 }
-
-                $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
-                if ($qq->num_rows() > 0) 
-                {
-                    $im = $qq->row();
-                    $row->id_impuesto=$im->id_impuesto;
-                    $row->codigo_impuesto=$im->codigo_impuesto;
-                    $row->codigo_tarifa=$im->codigo_tarifa;
-                }
-                else
-                {
-                    $row->id_impuesto=0;
-                    $row->codigo_impuesto=0;
-                    $row->codigo_tarifa=0;                
-                }                
                 $data[] = $row;
             }
             return $data;
@@ -69,8 +48,9 @@ class Pos_model extends CI_Model {
 
     public function getProductPrice($term, $limit = 1) {
         $store_id = $this->session->userdata('store_id');
-        $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price")
-                ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id}) psq", 'products.id=psq.product_id', 'left');
+        $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(imp.id_impuesto, 0) as id_impuesto, COALESCE(imp.codigo_impuesto, 0) as codigo_impuesto, COALESCE(imp.codigo_tarifa, 0) as codigo_tarifa")
+                ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id}) psq", 'products.id=psq.product_id', 'left')
+                ->join("{$this->db->dbprefix('impuestos')} imp", 'products.id_tax=imp.id_impuesto', 'left');
         if ($this->db->dbdriver == 'sqlite3') {
             $this->db->where("(name LIKE '%{$term}%' OR code LIKE '%{$term}%' OR  (name || ' (' || code || ')') LIKE '%{$term}%')");
         } else {
@@ -80,32 +60,11 @@ class Pos_model extends CI_Model {
         $q = $this->db->get('products');
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
-                if (isset($row->tax_method) and $row->tax_method == '0') {
-                    $row->tax_method = '1';
-                    if ($row->tax > 0) {
-                        $invertir_impuesto = $row->store_price / (1 + ($row->tax / 100));
-                        $row->store_price = number_format($invertir_impuesto, 4, '.', '');
-                        $row->price = number_format($invertir_impuesto, 4, '.', '');
-                       
-                    }
+                if (isset($row->tax_method) && $row->tax_method == '0') {
+                    $row->tax_method  = '1';
+                    $row->store_price = invert_tax_price($row->store_price, $row->tax);
+                    $row->price       = $row->store_price;
                 }
-
-            $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-            $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
-            if ($qq->num_rows() > 0) 
-            {
-                $im = $qq->row();
-                $row->id_impuesto=$im->id_impuesto;
-                $row->codigo_impuesto=$im->codigo_impuesto;
-                $row->codigo_tarifa=$im->codigo_tarifa;
-            }
-            else
-            {
-                $row->id_impuesto=0;
-                $row->codigo_impuesto=0;
-                $row->codigo_tarifa=0;                
-            }
-
                 $data = $row;
             }
             return $data;
@@ -2267,6 +2226,36 @@ class Pos_model extends CI_Model {
             return $data;
         }
         return FALSE;
+    }
+
+    public function addNoteDebit($data, $items) {
+        if ($this->db->insert('note_debits', $data)) {
+            $id_nd = $this->db->insert_id();
+            foreach ($items as $item) {
+                $item['nd_id'] = $id_nd;
+                $this->db->insert('note_debits_items', $item);
+            }
+            return $id_nd;
+        }
+        return false;
+    }
+
+    public function getDebitNoteByID($id_nd) {
+        $q = $this->db->get_where($this->db->dbprefix('note_debits'), array('id' => $id_nd), 1);
+        if ($q->num_rows() > 0) return $q->row();
+        return false;
+    }
+
+    public function getAllDebitNotesItems($id_nd) {
+        $this->db->select("note_debits_items.*,
+            COALESCE(note_debits_items.product_code, products.code) as product_code,
+            COALESCE(note_debits_items.product_name, products.name) as product_name,
+            products.tax as tax_rate")
+            ->join('products', 'products.id = note_debits_items.product_id', 'left outer')
+            ->order_by('note_debits_items.id');
+        $q = $this->db->get_where('note_debits_items', array($this->db->dbprefix('note_debits_items').'.nd_id' => $id_nd));
+        if ($q->num_rows() > 0) return $q->result();
+        return array();
     }
 
 }

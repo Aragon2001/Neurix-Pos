@@ -2,6 +2,17 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Invierte el impuesto incluido en el precio cuando tax_method == '0'.
+ * Retorna el precio base (sin impuesto) formateado a 4 decimales.
+ */
+if (!function_exists('invert_tax_price')) {
+    function invert_tax_price($price, $taxPercent) {
+        if ($taxPercent <= 0) return number_format((float)$price, 4, '.', '');
+        return number_format((float)$price / (1 + ($taxPercent / 100)), 4, '.', '');
+    }
+}
+
 if (!function_exists('get_printer_chars_per_line')) {
 
     function get_printer_chars_per_line() {

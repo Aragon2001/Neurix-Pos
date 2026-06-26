@@ -27,10 +27,8 @@ class Shacienda extends MY_Controller
         if ($pendientes) {
             if ($abrirToken) {
 
-                $token_data = $this->ApiClient->getTokenH();
-                $expires_in = date("i:s", $token_data->expires_in);
-                $expires_in = explode(":", $expires_in);
-                $ExpireToken = date('Y-m-d H:i:s', strtotime('+' . $expires_in[0] . ' minutes +' . $expires_in[0] . ' seconds ', strtotime(date('Y-m-d H:i:s'))));
+                $token_data  = $this->ApiClient->getTokenH();
+                $ExpireToken = date('Y-m-d H:i:s', time() + (int)($token_data->expires_in ?? 3600));
 
                 $abrirToken = false;
             }
@@ -127,10 +125,8 @@ class Shacienda extends MY_Controller
 
         if ($pendientesRD) {
             if ($abrirToken) {
-                $token_data = $this->ApiClient->getTokenH();
-                $expires_in = date("i:s", $token_data->expires_in);
-                $expires_in = explode(":", $expires_in);
-                $ExpireToken = date('Y-m-d H:i:s', strtotime('+' . $expires_in[0] . ' minutes +' . $expires_in[0] . ' seconds ', strtotime(date('Y-m-d H:i:s'))));
+                $token_data  = $this->ApiClient->getTokenH();
+                $ExpireToken = date('Y-m-d H:i:s', time() + (int)($token_data->expires_in ?? 3600));
 
                 $abrirToken = false;
             }
@@ -147,11 +143,8 @@ class Shacienda extends MY_Controller
         $pendientesNC = $this->hacienda_model->getPendientesCN();
         if ($pendientesNC) {
             if ($abrirToken) {
-                $token_data = $this->ApiClient->getTokenH();
-
-                $expires_in = date("i:s", $token_data->expires_in);
-                $expires_in = explode(":", $expires_in);
-                $ExpireToken = date('Y-m-d H:i:s', strtotime('+' . $expires_in[0] . ' minutes +' . $expires_in[0] . ' seconds ', strtotime(date('Y-m-d H:i:s'))));
+                $token_data  = $this->ApiClient->getTokenH();
+                $ExpireToken = date('Y-m-d H:i:s', time() + (int)($token_data->expires_in ?? 3600));
 
                 $abrirToken = false;
             }
@@ -254,10 +247,8 @@ class Shacienda extends MY_Controller
         if ($pendientesFec) {
             if ($abrirToken) {
 
-                $token_data = $this->ApiClient->getTokenH();
-                $expires_in = date("i:s", $token_data->expires_in);
-                $expires_in = explode(":", $expires_in);
-                $ExpireToken = date('Y-m-d H:i:s', strtotime('+' . $expires_in[0] . ' minutes +' . $expires_in[0] . ' seconds ', strtotime(date('Y-m-d H:i:s'))));
+                $token_data  = $this->ApiClient->getTokenH();
+                $ExpireToken = date('Y-m-d H:i:s', time() + (int)($token_data->expires_in ?? 3600));
 
                 $abrirToken = false;
             }
@@ -351,10 +342,8 @@ class Shacienda extends MY_Controller
         $pendientesREP = $this->hacienda_model->getPendientesREP();
         if ($pendientesREP) {
             if ($abrirToken) {
-                $token_data = $this->ApiClient->getTokenH();
-                $expires_in = date("i:s", $token_data->expires_in);
-                $expires_in = explode(":", $expires_in);
-                $ExpireToken = date('Y-m-d H:i:s', strtotime('+' . $expires_in[0] . ' minutes +' . $expires_in[0] . ' seconds ', strtotime(date('Y-m-d H:i:s'))));
+                $token_data  = $this->ApiClient->getTokenH();
+                $ExpireToken = date('Y-m-d H:i:s', time() + (int)($token_data->expires_in ?? 3600));
                 $abrirToken = false;
             }
             foreach ($pendientesREP as $row) {
