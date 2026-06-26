@@ -21,7 +21,8 @@ class Pos extends MY_Controller {
         $this->load->helper('pos');
         $this->load->model('pos_model');
         $this->load->model('products_model');
-         $this->load->model('customers_model');
+        $this->load->model('customers_model');
+        $this->load->model('AuditLog_model', 'audit_log');
         $this->load->library('form_validation');
     }
 
@@ -903,6 +904,7 @@ class Pos extends MY_Controller {
                         $msg .= '<br> Error al crear xml';
                         $this->session->set_flashdata('message', $msg);
                     }
+                        $this->audit_log->log('venta_creada', 'sale', (int)$sale['sale_id'], '', (float)$grand_total);
                         $redirect_to = $this->Settings->after_sale_page ? "pos" : "pos/view/" . $sale['sale_id'];
                         redirect($redirect_to);
                 } else {
@@ -1569,6 +1571,7 @@ class Pos extends MY_Controller {
                     } catch (Exception $e) {
                         $this->session->set_flashdata('error', "Error inesperado revise la impresora");
                     }
+                    $this->audit_log->log('nota_credito', 'sale', (int)($eid ?? 0), 'NC #' . $creditnote['id_cn'], (float)($data['grand_total'] ?? 0));
                     $redirect_to = $this->Settings->after_sale_page ? "pos" : "pos/viewnc/" . $creditnote['id_cn'];
 
                     redirect("pos");

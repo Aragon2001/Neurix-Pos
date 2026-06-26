@@ -254,36 +254,56 @@ return "documento sin firma";
         return \json_decode($response2);
     }
 
-    public function postHacienda($data) {
-        $messageError = "";
-        $curl = curl_init();
-
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $this->baseUrlRecepcion,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1_2,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLINFO_HEADER_OUT => true,
-            CURLOPT_POSTFIELDS => \json_encode($data),
-            CURLOPT_VERBOSE => true,
-            CURLOPT_HEADER => false,
-            CURLOPT_HTTPHEADER => array(
-                "authorization: Bearer " . $this->getAccessToken(),
-                "content-type: application/json charset=utf-8"
-            ),
-        ));
-        try {
-            $r = curl_exec($curl);
-            $infoReponse = curl_getinfo($curl);
+    public function postHacienda($data): bool
+    {
+        return $this->sendWithRetry(function () use ($data): bool {
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => $this->baseUrlRecepcion,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING       => '',
+                CURLOPT_MAXREDIRS      => 10,
+                CURLOPT_TIMEOUT        => 30,
+                CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+                CURLOPT_SSLVERSION     => CURL_SSLVERSION_TLSv1_2,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLINFO_HEADER_OUT    => true,
+                CURLOPT_POSTFIELDS     => \json_encode($data),
+                CURLOPT_HEADER         => false,
+                CURLOPT_HTTPHEADER     => [
+                    'authorization: Bearer ' . $this->getAccessToken(),
+                    'content-type: application/json charset=utf-8',
+                ],
+            ]);
+            curl_exec($curl);
+            $httpCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $curlError = curl_errno($curl);
             curl_close($curl);
-        } catch (\Exception $e) {
-            
+
+            // 202 Accepted = éxito; 4xx = error del cliente, no reintentar
+            if ($curlError !== 0 || $httpCode >= 500) {
+                return false;
+            }
+            return true;
+        });
+    }
+
+    private function sendWithRetry(callable $fn, int $maxAttempts = 3): bool
+    {
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                if ($fn() !== false) {
+                    return true;
+                }
+            } catch (\Exception $e) {
+                log_message('error', "[Apiclient] intento $attempt/$maxAttempts: " . $e->getMessage());
+            }
+            if ($attempt < $maxAttempts) {
+                sleep((int) pow(2, $attempt)); // 2s, 4s
+            }
         }
-        ;
+        log_message('error', '[Apiclient] postHacienda falló tras ' . $maxAttempts . ' intentos');
+        return false;
     }
 
     public function getMensajeHacienda($key) {

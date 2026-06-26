@@ -46,7 +46,7 @@ class MY_Controller extends CI_Controller
         $this->load->dbforge();
 
 
-        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 53) { // actualizar a max_version+2 al agregar nuevas migraciones
+        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 58) { // actualizar a max_version+1 al agregar nuevas migraciones
 
         $versionInitial = false;
         if (!$this->db->field_exists('versionPOS', 'settings')) {
@@ -2024,29 +2024,133 @@ class MY_Controller extends CI_Controller
 
         if ($this->Settings->versionPOS == "50" || $versionInitial) {
             if (!$this->db->table_exists('impuestos')) {
+                // Estructura idéntica al esquema real (posv) — Hacienda CR v4.4
                 $this->db->query("CREATE TABLE `{$this->db->dbprefix}impuestos` (
-                    `id_impuesto`      INT(11) NOT NULL AUTO_INCREMENT,
-                    `nombre_impuesto`  VARCHAR(100) NOT NULL DEFAULT '',
-                    `codigo_impuesto`  VARCHAR(5)   NOT NULL DEFAULT '01',
-                    `codigo_tarifa`    VARCHAR(5)   NOT NULL DEFAULT '08',
-                    `tarifa`           DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+                    `id_impuesto`          INT(10)       NOT NULL,
+                    `codigo_impuesto`      VARCHAR(12)   DEFAULT NULL,
+                    `codigo_tarifa`        VARCHAR(6)    DEFAULT NULL,
+                    `tasa_impuesto`        DECIMAL(17,0) DEFAULT NULL,
+                    `descripcion_impuesto` VARCHAR(360)  DEFAULT NULL,
+                    `status_impuestos`     VARCHAR(3)    DEFAULT NULL,
                     PRIMARY KEY (`id_impuesto`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-                // Tarifas IVA Costa Rica (Hacienda v4.4)
                 $this->db->query("INSERT INTO `{$this->db->dbprefix}impuestos`
-                    (`id_impuesto`,`nombre_impuesto`,`codigo_impuesto`,`codigo_tarifa`,`tarifa`) VALUES
-                    (1,  'Exento',          '01', '01',  0.00),
-                    (2,  'IVA 1%',          '01', '02',  1.00),
-                    (3,  'IVA 2%',          '01', '03',  2.00),
-                    (4,  'IVA 4% Canasta',  '01', '04',  4.00),
-                    (5,  'IVA 8%',          '01', '05',  8.00),
-                    (6,  'IVA 4%',          '01', '07',  4.00),
-                    (7,  'IVA 13%',         '01', '08', 13.00),
-                    (8,  'IVA 13% General', '01', '08', 13.00),
-                    (9,  'No Sujeto',       '07', '01',  0.00)");
+                    (`id_impuesto`,`codigo_impuesto`,`codigo_tarifa`,`tasa_impuesto`,`descripcion_impuesto`,`status_impuestos`) VALUES
+                    (1,  '01','08', 13, 'Impuesto al Valor Agregado (13%)',              '1'),
+                    (2,  '01','07',  8, 'Impuesto al Valor Agregado (transitorio 8%)',   '1'),
+                    (3,  '01','06',  4, 'Impuesto al Valor Agregado (Transitorio 4%)',   '1'),
+                    (4,  '01','05',  0, 'Impuesto al Valor Agregado (Transitorio 0%)',   '1'),
+                    (5,  '01','04',  4, 'Impuesto al Valor Agregado (Tarifa reducida 4%)','1'),
+                    (6,  '01','03',  2, 'Impuesto al Valor Agregado (Tarifa reducida 2%)','1'),
+                    (7,  '01','02',  1, 'Impuesto al Valor Agregado (Tarifa reducida 1%)','1'),
+                    (8,  '01','01',  0, 'Impuesto al Valor Agregado (Exento)',            '1'),
+                    (9,  '02','0',   5, 'Impuesto Selectivo de Consumo (5%)',             '1'),
+                    (14, '07','0',   0, 'IVA (calculo especial)',                         '1'),
+                    (17, '99','0',   0, 'Otros',                                          '1')");
             }
             $this->db->update('settings', array('versionPOS' => '51'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "51" || $versionInitial) {
+            // Agrega columnas faltantes si la tabla fue creada con un esquema antiguo
+            if (!$this->db->field_exists('tasa_impuesto', 'impuestos'))
+                $this->db->query("ALTER TABLE `{$this->db->dbprefix}impuestos`
+                    ADD COLUMN `tasa_impuesto` DECIMAL(17,0) NULL DEFAULT NULL");
+            if (!$this->db->field_exists('descripcion_impuesto', 'impuestos'))
+                $this->db->query("ALTER TABLE `{$this->db->dbprefix}impuestos`
+                    ADD COLUMN `descripcion_impuesto` VARCHAR(360) NULL DEFAULT NULL");
+            // Corrige datos si v50 corrió con el mapeo incorrecto (id=8 era 13% en vez de Exento)
+            $this->db->query("UPDATE `{$this->db->dbprefix}impuestos`
+                SET `codigo_tarifa`='01', `tasa_impuesto`=0, `descripcion_impuesto`='Impuesto al Valor Agregado (Exento)'
+                WHERE `id_impuesto`=8 AND `codigo_tarifa`='08'");
+            $this->db->update('settings', array('versionPOS' => '52'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "52" || $versionInitial) {
+            if (!$this->db->table_exists('ubicaciones')) {
+                $this->db->query("CREATE TABLE `{$this->db->dbprefix}ubicaciones` (
+                    `id`          INT(10)      NOT NULL AUTO_INCREMENT,
+                    `id_producto` INT(10)      NOT NULL,
+                    `seccion`     VARCHAR(100) DEFAULT NULL,
+                    `tramo`       VARCHAR(100) DEFAULT NULL,
+                    PRIMARY KEY (`id`),
+                    KEY `idx_id_producto` (`id_producto`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            }
+            $this->db->update('settings', array('versionPOS' => '53'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "53" || $versionInitial) {
+            // Agrega columnas faltantes a tec_printers (tabla creada con esquema antiguo)
+            if ($this->db->table_exists('printers')) {
+                if (!$this->db->field_exists('title', 'printers'))
+                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
+                        ADD COLUMN `title` VARCHAR(100) NULL DEFAULT NULL");
+                if (!$this->db->field_exists('profile', 'printers'))
+                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
+                        ADD COLUMN `profile` VARCHAR(50) NULL DEFAULT 'default'");
+                if (!$this->db->field_exists('char_per_line', 'printers'))
+                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
+                        ADD COLUMN `char_per_line` INT(3) NULL DEFAULT 42");
+                if (!$this->db->field_exists('ip_address', 'printers'))
+                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
+                        ADD COLUMN `ip_address` VARCHAR(45) NULL DEFAULT NULL");
+                if (!$this->db->field_exists('path', 'printers'))
+                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
+                        ADD COLUMN `path` VARCHAR(255) NULL DEFAULT NULL");
+            }
+            $this->db->update('settings', array('versionPOS' => '54'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "54" || $versionInitial) {
+            if (!$this->db->field_exists('hora_inicio', 'users'))
+                $this->db->query("ALTER TABLE `{$this->db->dbprefix}users`
+                    ADD COLUMN `hora_inicio` VARCHAR(10) NULL DEFAULT NULL");
+            if (!$this->db->field_exists('hora_fin', 'users'))
+                $this->db->query("ALTER TABLE `{$this->db->dbprefix}users`
+                    ADD COLUMN `hora_fin` VARCHAR(10) NULL DEFAULT NULL");
+            $this->db->update('settings', array('versionPOS' => '55'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "55" || $versionInitial) {
+            if (!$this->db->field_exists('sale_id', 'hacienda_tiketes'))
+                $this->db->query("ALTER TABLE `{$this->db->dbprefix}hacienda_tiketes`
+                    ADD COLUMN `sale_id` INT(11) NULL DEFAULT NULL AFTER `id`,
+                    ADD KEY `idx_sale_id` (`sale_id`)");
+            if ($this->db->table_exists('hacienda_fec') && !$this->db->field_exists('sale_id', 'hacienda_fec'))
+                $this->db->query("ALTER TABLE `{$this->db->dbprefix}hacienda_fec`
+                    ADD COLUMN `sale_id` INT(11) NULL DEFAULT NULL AFTER `id`,
+                    ADD KEY `idx_sale_id` (`sale_id`)");
+            $this->db->update('settings', array('versionPOS' => '56'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "56" || $versionInitial) {
+            if (!$this->db->table_exists('audit_log')) {
+                $this->db->query("CREATE TABLE `{$this->db->dbprefix}audit_log` (
+                    `id`         INT(11)      NOT NULL AUTO_INCREMENT,
+                    `user_id`    INT(11)      NOT NULL DEFAULT 0,
+                    `user_email` VARCHAR(150) NOT NULL DEFAULT '',
+                    `action`     VARCHAR(50)  NOT NULL,
+                    `entity`     VARCHAR(30)  NOT NULL,
+                    `entity_id`  INT(11)      NOT NULL DEFAULT 0,
+                    `detail`     TEXT         NULL,
+                    `amount`     DECIMAL(15,4) NOT NULL DEFAULT 0,
+                    `ip`         VARCHAR(45)  NOT NULL DEFAULT '',
+                    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`id`),
+                    KEY `idx_entity` (`entity`, `entity_id`),
+                    KEY `idx_user`   (`user_id`),
+                    KEY `idx_date`   (`created_at`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            }
+            $this->db->update('settings', array('versionPOS' => '57'));
             $versionInitial = true;
         }
 

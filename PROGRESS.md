@@ -258,50 +258,20 @@ ce220a0  fix: corregir 5 errores estructurales del sistema
 
 ### FASE 6 — Modernización frontend/arquitectura
 
-#### 21. Retry con backoff exponencial en API Hacienda [ ]
-- **Archivo**: `app/libraries/Apiclient.php`
-- **Qué hacer**:
-  1. Leer el método `postHacienda()` (alrededor de línea 257)
-  2. Crear método privado:
-     ```php
-     private function sendWithRetry(callable $fn, $maxAttempts = 3) {
-         for ($i = 1; $i <= $maxAttempts; $i++) {
-             try {
-                 $result = $fn();
-                 if ($result !== false) return $result;
-             } catch (\Exception $e) {
-                 log_message('error', "[Apiclient] intento $i/$maxAttempts: " . $e->getMessage());
-             }
-             if ($i < $maxAttempts) sleep(pow(2, $i)); // 2s, 4s
-         }
-         return false;
-     }
-     ```
-  3. Envolver las llamadas a `postHacienda()` con `sendWithRetry()`
-- **Impacto**: evita que un timeout puntual de Hacienda marque la FE como fallida
+#### 21. Retry con backoff exponencial en API Hacienda [DONE]
+- `app/libraries/Apiclient.php`: `postHacienda()` refactorizado para retornar `bool` y usa `sendWithRetry()`
+- `sendWithRetry(callable $fn, int $maxAttempts = 3)`: 3 intentos, backoff 2s/4s entre fallos
+- Detecta fallo por `curl_errno != 0` o HTTP 5xx; 4xx no se reintenta (error del cliente)
+- Log con `log_message('error', ...)` cuando agota los intentos
 
-#### 22. Logging de auditoría para operaciones financieras [ ]
-- **Archivos a crear**: `app/models/AuditLog_model.php`
-- **Migración**: nueva tabla `tec_audit_log` en `MY_Controller` (versionPOS 51→52)
-  ```sql
-  id INT AUTO_INCREMENT, user_id INT, action VARCHAR(50), entity VARCHAR(30),
-  entity_id INT, detail TEXT, ip VARCHAR(45), created_at DATETIME DEFAULT NOW()
-  ```
-- **Qué hacer**:
-  1. Agregar migración en `MY_Controller` y actualizar el guard a `< 53`
-  2. Crear `AuditLog_model::log($action, $entity, $entity_id, $detail)`
-  3. Llamar en `Pos.php::index()` al crear venta, en `nota_credito()` al anular, en `PosRegister::close_register()` al cerrar caja
-  4. Panel de auditoría: vista en `settings` para ver el log (solo admin)
-- **Columnas a registrar**: quién (user_id + email), qué (venta/anulación/cierre), cuándo, monto, IP
+#### 22. Logging de auditoría para operaciones financieras [DONE]
+- `app/models/AuditLog_model.php`: `log($action, $entity, $entityId, $detail, $amount)` + `getLog()` + `countLog()`
+- `MY_Controller`: migración 56→57 crea tabla `tec_audit_log` (id, user_id, user_email, action, entity, entity_id, detail, amount, ip, created_at). Guard actualizado a `< 58`.
+- `Pos.php`: carga `AuditLog_model`. Log en `index()` tras `addSale()` exitoso (`venta_creada`), log en `nota_credito()` tras `addNoteCredit()` exitoso (`nota_credito`)
+- `PosRegister.php`: carga `AuditLog_model`. Log en `close_register()` tras `closeRegister()` exitoso (`cierre_caja`)
 
-#### 23. Roave Security Advisories [ ]
-- **Archivo**: `composer.json`
-- **Qué hacer**: agregar en `require-dev`:
-  ```json
-  "roave/security-advisories": "dev-latest"
-  ```
-- **Efecto**: `composer update` falla si hay dependencias con CVEs conocidos
-- **Nota**: puede bloquear el install si alguna dependencia tiene vulnerabilidades; revisar y actualizar la afectada
+#### 23. Roave Security Advisories [DONE]
+- Agregado en Fase 5 junto con PHPUnit. `composer update` reportó: "No security vulnerability advisories found."
 
 ---
 
@@ -310,10 +280,10 @@ ce220a0  fix: corregir 5 errores estructurales del sistema
 ### Guard de migraciones — SIEMPRE actualizar al agregar nueva migración
 ```php
 // MY_Controller.php ~línea 49
-if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 51) {
-// CAMBIAR 51 → nueva_version+1
+if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 58) {
+// CAMBIAR 58 → nueva_version+1
 ```
-El último versionPOS asignado es **50** (tabla tec_queue). La próxima migración será 50→51.
+El último versionPOS asignado es **57** (tabla tec_audit_log). La próxima migración será 57→58.
 
 ### Rutas del split de Pos.php
 Todos los `pos/method` en el frontend y en el código PHP siguen funcionando gracias a `app/config/routes.php`. Si se agrega un método nuevo a PosView/PosPrint/etc., hay que agregar su ruta correspondiente.

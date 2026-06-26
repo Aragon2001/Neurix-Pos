@@ -8,6 +8,7 @@ class PosRegister extends MY_Controller
         parent::__construct();
         $this->load->model('pos_model');
         $this->load->model('hacienda_model');
+        $this->load->model('AuditLog_model', 'audit_log');
         $this->load->library('datatables');
     }
 
@@ -195,6 +196,7 @@ class PosRegister extends MY_Controller
         }
 
         if ($this->form_validation->run() == true && $this->pos_model->closeRegister($rid, $user_id, $data)) {
+            $this->audit_log->log('cierre_caja', 'register', (int)$rid, 'Apertura: ' . ($register_open_time ?? ''));
             $this->print_register(null, $data);
             $this->session->unset_userdata('register_id');
             $this->session->unset_userdata('cash_in_hand');
