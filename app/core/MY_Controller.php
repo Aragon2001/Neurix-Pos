@@ -14,6 +14,9 @@ class MY_Controller extends CI_Controller
 
 
         $this->Settings = $this->site->getSettings();
+        $this->Settings->password_token_test = decrypt_credential($this->Settings->password_token_test ?? '');
+        $this->Settings->password_token_prod = decrypt_credential($this->Settings->password_token_prod ?? '');
+        $this->Settings->certificado_pin     = decrypt_credential($this->Settings->certificado_pin ?? '');
         if ($spos_language = $this->input->cookie('spos_language', TRUE)) {
             $this->Settings->selected_language = $spos_language;
             $this->config->set_item('language', $spos_language);
@@ -43,6 +46,8 @@ class MY_Controller extends CI_Controller
         $this->load->dbforge();
 
 
+        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 44) {
+
         $versionInitial = false;
         if (!$this->db->field_exists('versionPOS', 'settings')) {
             $this->dbforge->add_column('settings', array(
@@ -53,7 +58,7 @@ class MY_Controller extends CI_Controller
                     'null' => FALSE,
                 )
             ));
-            $versionInitial == true;
+            $versionInitial = true;
         }
 
         if ($versionInitial) {
@@ -1760,8 +1765,9 @@ class MY_Controller extends CI_Controller
                 $this->db->query("ALTER TABLE ".$this->db->dbprefix('settings')."
                 ADD COLUMN `diskdrive_code` varchar(100)  NULL AFTER `is_shipping`;");
             }
-            $this->db->update('settings', array('diskdrive_code' =>  base64_encode(trim(str_replace("SerialNumber ","",shell_exec(str_replace('/', "\\", "wmic path win32_diskdrive where deviceid='////.//PHYSICALDRIVE0' get serialnumber")))))));
-            $this->db->update('settings', array('versionPOS' => '41')); 
+            $serverIdentifier = base64_encode(md5(gethostname() . php_uname('m') . $_SERVER['DOCUMENT_ROOT']));
+            $this->db->update('settings', array('diskdrive_code' => $serverIdentifier));
+            $this->db->update('settings', array('versionPOS' => '41'));
         }
 
         if ($this->Settings->versionPOS == "41" || $versionInitial)
@@ -1817,6 +1823,16 @@ class MY_Controller extends CI_Controller
                 WHERE theme = 'ThemeChineses'");
             $this->db->update('settings', array('versionPOS' => '44'));
         }
+
+        if ($this->Settings->versionPOS == "44" || $versionInitial) {
+            if (!$this->db->field_exists('last_ip_address', 'users')) {
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('users')."
+                ADD COLUMN `last_ip_address` VARCHAR(45) NULL DEFAULT NULL AFTER `last_login`;");
+            }
+            $this->db->update('settings', array('versionPOS' => '45'));
+        }
+
+        } // end migration guard
     }
 
     function page_construct($page, $data = array(), $meta = array())

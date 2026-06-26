@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) or exit('No direct script access allowed'); ?>
+﻿<?php (defined('BASEPATH')) or exit('No direct script access allowed'); ?>
 <!DOCTYPE html>
 <html>
 
@@ -2347,7 +2347,6 @@
     </script>
     <?php
     if (isset($print) && !empty($print)) {
-        /* include FCPATH.'themes'.DIRECTORY_SEPARATOR.$Settings->theme.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'pos'.DIRECTORY_SEPARATOR.'remote_printing.php'; */
         include 'remote_printing.php';
     }
     ?>

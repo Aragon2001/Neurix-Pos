@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <?php
 if ($modal) {
@@ -263,7 +263,6 @@ if ($modal) {
                     });
                 });
             </script>
-            <?php /* include FCPATH.'themes'.DIRECTORY_SEPARATOR.$Settings->theme.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'pos'.DIRECTORY_SEPARATOR.'remote_printing.php'; */ ?>
             <?php include 'remote_printing.php'; ?>
             <?php
             if ($modal) {

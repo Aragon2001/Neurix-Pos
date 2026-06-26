@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <?php
 if ($modal) {
@@ -122,11 +122,11 @@ if ($modal) {
                             </div>
                             <p>
                                 <? if($Settings->fe == 1){ ?>
-                                <? if($hacienda->tipo_doc === "4"){ ?>
+                                <? if($hacienda->tipo_doc == "4" || $hacienda->tipo_doc == "04"){ ?>
                                 <b><?= lang("electronic_bill") ?></b><br>
-                                <? }else if($hacienda->tipo_doc === "1"){ ?>
+                                <? }else if($hacienda->tipo_doc == "1" || $hacienda->tipo_doc == "01"){ ?>
                                 <b><?= lang("Factura Electronica") ?></b><br>
-                                <? }else if($hacienda->tipo_doc === "0"){ ?>
+                                <? }else if($hacienda->tipo_doc == "0" || $hacienda->tipo_doc == "00"){ ?>
                                 <b><?= lang("Nota de Credito Electronica") ?></b><br>
                                 <? }  ?>
                                 <?= lang("date") . ': ' . $this->tec->hrld($inv->date); ?> <br>
@@ -375,6 +375,15 @@ if ($modal) {
                             </span>
                         <?php } ?>
                         <div style="clear:both;"></div>
+                        <?php if (!$modal && isset($hacienda) && $hacienda && $hacienda->estatus_hacienda === 'aceptado'): ?>
+                        <div style="margin-top:10px;">
+                            <a href="<?= site_url('debitnotes/add/' . $inv->id) ?>"
+                               class="btn btn-block btn-danger no-print"
+                               onclick="return confirm('¿Crear una Nota de Débito para esta factura?');">
+                                <i class="fa fa-plus-circle"></i> Crear Nota de Débito (Hacienda)
+                            </a>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     <!-- end -->
                 </div>
@@ -440,7 +449,6 @@ if ($modal) {
                     });
                 });
             </script>
-            <?php /* include FCPATH.'themes'.DIRECTORY_SEPARATOR.$Settings->theme.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'pos'.DIRECTORY_SEPARATOR.'remote_printing.php'; */ ?>
             <?php include 'remote_printing.php'; ?>
             <?php
             if ($modal) {

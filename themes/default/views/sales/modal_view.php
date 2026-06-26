@@ -213,4 +213,4 @@
     });
 </script>
 
-<?php include FCPATH.'themes'.DIRECTORY_SEPARATOR.$Settings->theme.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'pos'.DIRECTORY_SEPARATOR.'remote_printing.php'; ?>
+<?php include FCPATH.'themes/default/views/pos/remote_printing.php'; ?>
