@@ -1904,42 +1904,41 @@ class Pos extends MY_Controller {
             $this->data['hacienda']->tipo_doc = "0";
             $this->data['invoicebarcode'] = $this->invice_barcode($this->data['hacienda']->consecutivo, 'code128', 60);
 
-            $receipt = $this->load->view($this->theme . 'creditnotes/viewnc', $this->data, TRUE);
-            $message = preg_replace('#\<!-- start -->(.+)\<!-- end -->#Usi', '', $receipt);
-            $subject = lang('email_subject') . ' - ' . $this->Settings->site_name;
+            $receipt  = $this->load->view($this->theme . 'creditnotes/viewnc', $this->data, TRUE);
+            $message  = preg_replace('#\<!-- start -->(.+)\<!-- end -->#Usi', '', $receipt);
+            $subject  = lang('email_subject') . ' - ' . $this->Settings->site_name;
 
-            $xml_sign = $this->hacienda_model->xmlFirmadoCN($credit_id)->xml_sign;
+            $xml_sign     = $this->hacienda_model->xmlFirmadoCN($credit_id)->xml_sign;
             $xml_hacienda = $this->hacienda_model->xmlMensajeCN($credit_id)->xml_hacienda;
-            $clave = $this->hacienda_model->getClaveCN($credit_id)->clave;
+            $clave        = $this->hacienda_model->getClaveCN($credit_id)->clave;
 
             $this->data['tipo_documento'] = "Nota de Credito Electronica";
-            $html = $this->load->view($this->theme . 'creditnotes/invoice', $this->data, true);
+            $html    = $this->load->view($this->theme . 'creditnotes/invoice', $this->data, true);
+            $pdfPath = sys_get_temp_dir() . '/T4_' . $clave . '.pdf';
 
-            $attach = array();
             $mpdf = new \Mpdf\Mpdf();
             $mpdf->WriteHTML($html);
-            $mpdf->Output(sys_get_temp_dir() . '/' . 'T4_' . $clave . '.pdf', 'F');
+            $mpdf->Output($pdfPath, 'F');
 
             $attach = [
                 'T4_' . $clave => $xml_sign,
                 'M4_' . $clave => $xml_hacienda,
-                'ruta' => sys_get_temp_dir() . '/' . 'T4_' . $clave . '.pdf',
+                'ruta'         => $pdfPath,
             ];
 
-    
-            try {
-                $this->load->library('Swiftmailer', NULL, 'Swiftmailer');
-
-                if ($this->Swiftmailer->send_email($to, $subject, $message, null, null, $attach)) {
-                    echo json_encode(array('msg' => lang("email_success")));
-                } else {
-                    echo json_encode(array('msg' => lang("email_failed")));
-                }
-            } catch (Exception $e) {
-                echo json_encode(array('msg' => $e->getMessage()));
-            }
-        }else{
-            echo json_encode(array('msg' => "El estado de la factura no se encuentra aceptada"));
+            $this->load->model('queue_model');
+            $this->queue_model->push(Queue_model::TYPE_EMAIL, [
+                'to'       => $to,
+                'subject'  => $subject,
+                'message'  => $message,
+                'attach'   => $attach,
+                'pdf_html' => $html,
+                'pdf_path' => $pdfPath,
+            ]);
+            dispatch_queue_worker(Queue_model::TYPE_EMAIL);
+            echo json_encode(['msg' => lang('email_success'), 'queued' => true]);
+        } else {
+            echo json_encode(['msg' => 'El estado de la factura no se encuentra aceptada']);
         }
     }
 
@@ -1974,43 +1973,42 @@ class Pos extends MY_Controller {
         $this->data['invoicebarcode'] = $this->invice_barcode($this->data['hacienda']->consecutivo, 'code128', 60);
 
 
-        $receipt = $this->load->view($this->theme . 'pos/view', $this->data, TRUE);
-        $message = preg_replace('#\<!-- start -->(.+)\<!-- end -->#Usi', '', $receipt);
-        $subject = lang('email_subject') . ' - ' . $this->Settings->site_name;
+        $receipt  = $this->load->view($this->theme . 'pos/view', $this->data, TRUE);
+        $message  = preg_replace('#\<!-- start -->(.+)\<!-- end -->#Usi', '', $receipt);
+        $subject  = lang('email_subject') . ' - ' . $this->Settings->site_name;
 
-        $xml_sign = $this->hacienda_model->xmlFirmado($sale_id)->xml_sign;
-        $xml_hacienda = $this->hacienda_model->xmlMensaje($sale_id)->xml_hacienda;
-        $clave = $this->hacienda_model->getClave($sale_id)->clave;
+        $haciendaRow  = $this->hacienda_model->xmlFirmado($sale_id);
+        $mensajeRow   = $this->hacienda_model->xmlMensaje($sale_id);
+        $claveRow     = $this->hacienda_model->getClave($sale_id);
+        $xml_sign     = $haciendaRow ? $haciendaRow->xml_sign    : '';
+        $xml_hacienda = $mensajeRow  ? $mensajeRow->xml_hacienda : '';
+        $clave        = $claveRow    ? $claveRow->clave           : (string)$sale_id;
 
         $this->data['tipo_documento'] = "Tiquete Electronico";
-        $html = $this->load->view($this->theme . 'pos/invoice', $this->data, true);
-            
-        $attach = array();
+        $html     = $this->load->view($this->theme . 'pos/invoice', $this->data, true);
+        $pdfPath  = sys_get_temp_dir() . '/T4_' . $clave . '.pdf';
+
         $mpdf = new \Mpdf\Mpdf();
         $mpdf->WriteHTML($html);
-        $mpdf->Output(sys_get_temp_dir() . '/' . 'T4_' . $clave . '.pdf', 'F');
+        $mpdf->Output($pdfPath, 'F');
 
         $attach = [
             'T4_' . $clave => $xml_sign,
             'M4_' . $clave => $xml_hacienda,
-            'ruta' => sys_get_temp_dir() . '/' . 'T4_' . $clave . '.pdf',
+            'ruta'         => $pdfPath,
         ];
 
-
-        try {
-            $this->load->library('Swiftmailer', NULL, 'Swiftmailer');
-
-            if ($this->Swiftmailer->send_email($to, $subject, $message, null, null, $attach)) {
-                echo json_encode(array('msg' => lang("email_success")));
-            } else {
-                echo json_encode(array('msg' => lang("email_failed")));
-            }
-        } catch (Exception $e) {
-            echo json_encode(array('msg' => $e->getMessage()));
-        }
-        // }else{
-        //     echo json_encode(array('msg' => "El estado de la factura no se encuentra aceptada"));
-        // }
+        $this->load->model('queue_model');
+        $this->queue_model->push(Queue_model::TYPE_EMAIL, [
+            'to'       => $to,
+            'subject'  => $subject,
+            'message'  => $message,
+            'attach'   => $attach,
+            'pdf_html' => $html,
+            'pdf_path' => $pdfPath,
+        ]);
+        dispatch_queue_worker(Queue_model::TYPE_EMAIL);
+        echo json_encode(['msg' => lang('email_success'), 'queued' => true]);
     }
 
     function email_proforma($sale_id = NULL, $to = NULL) {
@@ -2046,29 +2044,28 @@ class Pos extends MY_Controller {
         $this->data['invoicebarcode'] = $this->invice_barcode($this->data['hacienda']->consecutivo, 'code128', 60);
 
 
-        $receipt = $this->load->view($this->theme . 'pos/view_proforma', $this->data, TRUE);
-        $message = preg_replace('#\<!-- start -->(.+)\<!-- end -->#Usi', '', $receipt);
-        $subject = 'Proforma - ' . $this->Settings->site_name;;
+        $receipt  = $this->load->view($this->theme . 'pos/view_proforma', $this->data, TRUE);
+        $message  = preg_replace('#\<!-- start -->(.+)\<!-- end -->#Usi', '', $receipt);
+        $subject  = 'Proforma - ' . $this->Settings->site_name;
+        $pdfPath  = sys_get_temp_dir() . '/Proforma_' . $sale_id . '.pdf';
+
         $mpdf = new \Mpdf\Mpdf();
         $mpdf->WriteHTML($receipt);
-        $mpdf->Output(sys_get_temp_dir() . '/' . 'Proforma.pdf', 'F');
+        $mpdf->Output($pdfPath, 'F');
 
-        $attach = [
-            'ruta' => sys_get_temp_dir() . '/Proforma.pdf',
-        ];
+        $attach = ['ruta' => $pdfPath];
 
-        try {
-            $this->load->library('Swiftmailer', NULL, 'Swiftmailer');
-
-            if ($this->Swiftmailer->send_email($to, $subject, $message, null, null, $attach)) {
-                echo json_encode(array('msg' => lang("email_success")));
-            } else {
-                echo json_encode(array('msg' => lang("email_success")));
-            }
-        } catch (Exception $e) {
-
-            echo json_encode(array('msg' => $e->getMessage()));
-        }
+        $this->load->model('queue_model');
+        $this->queue_model->push(Queue_model::TYPE_EMAIL, [
+            'to'       => $to,
+            'subject'  => $subject,
+            'message'  => $message,
+            'attach'   => $attach,
+            'pdf_html' => $receipt,
+            'pdf_path' => $pdfPath,
+        ]);
+        dispatch_queue_worker(Queue_model::TYPE_EMAIL);
+        echo json_encode(['msg' => lang('email_success'), 'queued' => true]);
     }
 
     function register_details() {

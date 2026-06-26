@@ -78,15 +78,15 @@
 
 ## FASE 3 — Cola asíncrona
 
-### 11. Cola asíncrona para envío FE a Hacienda
-- **Archivos**: `app/models/Queue_model.php` (nuevo), `app/controllers/Shacienda.php`, migración DB tabla `tec_queue`
-- **Qué hacer**: guardar FE como "pending" en BD, retornar inmediatamente al usuario, procesar via cron/endpoint separado con retry y backoff exponencial
-- **Estado**: [ ]
+### 11. Cola asíncrona — infraestructura (tabla + modelo + worker)
+- **Archivos**: `app/core/MY_Controller.php` (migración versionPOS 50 → tabla `tec_queue`), `app/models/Queue_model.php` (nuevo), `app/controllers/Queue_worker.php` (nuevo), `app/helpers/queue_helper.php` (nuevo), `app/config/autoload.php`
+- **Implementado**: tabla `tec_queue` (status, attempts, backoff exponencial), `Queue_model::push/pop/markDone/markFailed`, worker con `fastcgi_finish_request()` + `ignore_user_abort`, helper `dispatch_queue_worker()` via fsockopen fire-and-forget
+- **Estado**: [DONE]
 
 ### 12. Cola asíncrona para envío de emails
 - **Archivos**: `app/controllers/Pos.php` métodos `email_receipt`, `email_receipt_credit`, `email_proforma`
-- **Qué hacer**: encolar el email en `tec_queue`, retornar éxito inmediato, worker lo envía en background
-- **Estado**: [ ]
+- **Implementado**: los 3 métodos encolan el job (payload: to/subject/message/attach/pdf_html/pdf_path), disparan el worker en background, devuelven JSON inmediato. Backoff: 30s → 60s → 120s, max 3 intentos
+- **Estado**: [DONE]
 
 ---
 

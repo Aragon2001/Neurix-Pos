@@ -46,7 +46,7 @@ class MY_Controller extends CI_Controller
         $this->load->dbforge();
 
 
-        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 44) {
+        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 53) { // actualizar a max_version+2 al agregar nuevas migraciones
 
         $versionInitial = false;
         if (!$this->db->field_exists('versionPOS', 'settings')) {
@@ -1830,6 +1830,224 @@ class MY_Controller extends CI_Controller
                 ADD COLUMN `last_ip_address` VARCHAR(45) NULL DEFAULT NULL AFTER `last_login`;");
             }
             $this->db->update('settings', array('versionPOS' => '45'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "45" || $versionInitial) {
+            if (!$this->db->field_exists('avatar', 'users')) {
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('users')."
+                ADD COLUMN `avatar` VARCHAR(255) NULL DEFAULT NULL AFTER `last_ip_address`;");
+            }
+            if (!$this->db->field_exists('gender', 'users')) {
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('users')."
+                ADD COLUMN `gender` VARCHAR(1) NULL DEFAULT NULL AFTER `avatar`;");
+            }
+            $this->db->update('settings', array('versionPOS' => '46'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "46" || $versionInitial) {
+            if (!$this->db->field_exists('user_id', 'registers')) {
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('registers')."
+                ADD COLUMN `user_id` INT(11) NULL DEFAULT NULL AFTER `store_id`;");
+            }
+            if (!$this->db->field_exists('date', 'registers')) {
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('registers')."
+                ADD COLUMN `date` DATETIME NULL DEFAULT NULL AFTER `user_id`;");
+            }
+            if (!$this->db->field_exists('closed_at', 'registers')) {
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('registers')."
+                ADD COLUMN `closed_at` DATETIME NULL DEFAULT NULL AFTER `date`;");
+            }
+            $this->db->update('settings', array('versionPOS' => '47'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "47" || $versionInitial) {
+            // --- tec_suspended_sales: columnas faltantes usadas en SELECT, WHERE e INSERT ---
+            $ss = $this->db->dbprefix('suspended_sales');
+            if (!$this->db->field_exists('customer_name', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `customer_name` VARCHAR(150) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('note', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `note` TEXT NULL;");
+            if (!$this->db->field_exists('store_id', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `store_id` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('status', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `status` VARCHAR(10) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('grand_total', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `grand_total` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('paid', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `paid` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('product_discount', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `product_discount` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('order_discount', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `order_discount` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('order_discount_id', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `order_discount_id` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('total_discount', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `total_discount` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('product_tax', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `product_tax` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('order_tax', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `order_tax` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('order_tax_id', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `order_tax_id` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('total_tax', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `total_tax` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('total_items', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `total_items` DECIMAL(15,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('total_quantity', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `total_quantity` DECIMAL(15,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('rounding', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `rounding` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('id_actividad', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `id_actividad` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('tipo_doc', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `tipo_doc` VARCHAR(2) NULL DEFAULT '04';");
+            if (!$this->db->field_exists('id_shipping_method', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `id_shipping_method` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('MontoExoneracion', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `MontoExoneracion` DECIMAL(25,5) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('PorcentajeExoneracion', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `PorcentajeExoneracion` INT(3) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('TipoDocumentoE', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `TipoDocumentoE` INT(2) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('NombreInstitucionE', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `NombreInstitucionE` VARCHAR(255) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('NumeroDocumentoE', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `NumeroDocumentoE` INT(10) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('FechaEmisionE', 'suspended_sales'))
+                $this->db->query("ALTER TABLE {$ss} ADD COLUMN `FechaEmisionE` TIMESTAMP NULL DEFAULT NULL;");
+
+            // --- tec_payments: columnas faltantes usadas en INSERT y WHERE ---
+            $pm = $this->db->dbprefix('payments');
+            if (!$this->db->field_exists('paid_by', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `paid_by` VARCHAR(30) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('customer_id', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `customer_id` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('cheque_no', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `cheque_no` VARCHAR(60) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('cc_no', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `cc_no` VARCHAR(60) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('gc_no', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `gc_no` VARCHAR(60) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('cc_holder', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `cc_holder` VARCHAR(60) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('cc_month', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `cc_month` VARCHAR(2) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('cc_year', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `cc_year` VARCHAR(4) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('cc_type', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `cc_type` VARCHAR(20) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('cc_cvv2', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `cc_cvv2` VARCHAR(4) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('store_id', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `store_id` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('pos_paid', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `pos_paid` DECIMAL(25,4) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('pos_balance', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `pos_balance` DECIMAL(25,4) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('transaction_id', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `transaction_id` VARCHAR(100) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('currency', 'payments'))
+                $this->db->query("ALTER TABLE {$pm} ADD COLUMN `currency` VARCHAR(3) NULL DEFAULT NULL;");
+
+            // --- tec_products: columna 'ubicacion' usada en suggestions ---
+            if (!$this->db->field_exists('ubicacion', 'products'))
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('products')."
+                ADD COLUMN `ubicacion` VARCHAR(100) NULL DEFAULT NULL;");
+
+            $this->db->update('settings', array('versionPOS' => '48'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "48" || $versionInitial) {
+            // --- tec_sales: columnas faltantes usadas en INSERT (Pos.php) y SELECT (Reports_model) ---
+            $sl = $this->db->dbprefix('sales');
+            if (!$this->db->field_exists('total_tax', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `total_tax` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('total_discount', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `total_discount` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('product_tax', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `product_tax` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('product_discount', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `product_discount` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('order_tax_id', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `order_tax_id` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('order_discount_id', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `order_discount_id` INT(11) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('total_quantity', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `total_quantity` DECIMAL(15,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('rounding', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `rounding` DECIMAL(25,4) NOT NULL DEFAULT 0;");
+            if (!$this->db->field_exists('note', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `note` TEXT NULL;");
+            if (!$this->db->field_exists('hold_ref', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `hold_ref` VARCHAR(100) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('MontoExoneracion', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `MontoExoneracion` DECIMAL(25,5) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('PorcentajeExoneracion', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `PorcentajeExoneracion` INT(3) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('TipoDocumentoE', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `TipoDocumentoE` INT(2) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('NombreInstitucionE', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `NombreInstitucionE` VARCHAR(255) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('NumeroDocumentoE', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `NumeroDocumentoE` INT(10) NULL DEFAULT NULL;");
+            if (!$this->db->field_exists('FechaEmisionE', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `FechaEmisionE` TIMESTAMP NULL DEFAULT NULL;");
+
+            $this->db->update('settings', array('versionPOS' => '49'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "49" || $versionInitial) {
+            if (!$this->db->table_exists('queue')) {
+                $this->db->query("CREATE TABLE `{$this->db->dbprefix}queue` (
+                    `id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `type`            VARCHAR(30)  NOT NULL,
+                    `payload`         LONGTEXT     NOT NULL,
+                    `status`          ENUM('pending','processing','done','failed') NOT NULL DEFAULT 'pending',
+                    `attempts`        TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                    `max_attempts`    TINYINT UNSIGNED NOT NULL DEFAULT 3,
+                    `next_attempt_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `created_at`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `done_at`         DATETIME NULL DEFAULT NULL,
+                    `last_error`      TEXT NULL DEFAULT NULL,
+                    PRIMARY KEY (`id`),
+                    KEY `idx_status_next` (`status`, `next_attempt_at`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            }
+            $this->db->update('settings', array('versionPOS' => '50'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "50" || $versionInitial) {
+            if (!$this->db->table_exists('impuestos')) {
+                $this->db->query("CREATE TABLE `{$this->db->dbprefix}impuestos` (
+                    `id_impuesto`      INT(11) NOT NULL AUTO_INCREMENT,
+                    `nombre_impuesto`  VARCHAR(100) NOT NULL DEFAULT '',
+                    `codigo_impuesto`  VARCHAR(5)   NOT NULL DEFAULT '01',
+                    `codigo_tarifa`    VARCHAR(5)   NOT NULL DEFAULT '08',
+                    `tarifa`           DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+                    PRIMARY KEY (`id_impuesto`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+                // Tarifas IVA Costa Rica (Hacienda v4.4)
+                $this->db->query("INSERT INTO `{$this->db->dbprefix}impuestos`
+                    (`id_impuesto`,`nombre_impuesto`,`codigo_impuesto`,`codigo_tarifa`,`tarifa`) VALUES
+                    (1,  'Exento',          '01', '01',  0.00),
+                    (2,  'IVA 1%',          '01', '02',  1.00),
+                    (3,  'IVA 2%',          '01', '03',  2.00),
+                    (4,  'IVA 4% Canasta',  '01', '04',  4.00),
+                    (5,  'IVA 8%',          '01', '05',  8.00),
+                    (6,  'IVA 4%',          '01', '07',  4.00),
+                    (7,  'IVA 13%',         '01', '08', 13.00),
+                    (8,  'IVA 13% General', '01', '08', 13.00),
+                    (9,  'No Sujeto',       '07', '01',  0.00)");
+            }
+            $this->db->update('settings', array('versionPOS' => '51'));
+            $versionInitial = true;
         }
 
         } // end migration guard
