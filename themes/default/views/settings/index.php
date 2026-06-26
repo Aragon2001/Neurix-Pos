@@ -33,14 +33,15 @@
                                     <?php echo form_dropdown('language', $available_langs, $settings->language, 'class="form-control tip select2" id="language"  required="required" style="width:100%;"'); ?>
                                 </div>
                                 <div class="form-group">
-                                    <?php echo lang('theme', 'theme'); ?>
-                                    <?php
-                                    $th = array(
-                                        'default' => 'POS con categorias',
-                                        'ThemeChineses' => 'POS sin categorias'
-                                    );
-                                    ?>
-                                    <?php echo form_dropdown('theme', $th, $settings->theme, 'class="form-control tip select2" id="theme"  required="required" style="width:100%;"'); ?>
+                                    <label>Panel de categorías en POS</label>
+                                    <div>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="show_categories" value="1" <?= (!isset($settings->show_categories) || $settings->show_categories == "1") ? 'checked' : ''; ?>> Mostrar categorías
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="show_categories" value="0" <?= (isset($settings->show_categories) && $settings->show_categories == "0") ? 'checked' : ''; ?>> Ocultar categorías
+                                        </label>
+                                    </div>
                                 </div>
                                 <? if($settings->theme_style!='purple' and $settings->theme_style!='green'){ ?>
                                 <div class="form-group">

@@ -1224,7 +1224,7 @@ class MY_Controller extends CI_Controller
 			MAX(id)
 		FROM
 			tec_sales
-		WHERE customer_name <> 'Cliente de Paso' AND `status` = 'due'
+		WHERE customer_name NOT IN ('Cliente de Paso', 'Cliente de paso', 'Cliente de Contado', 'Cliente de contado') AND `status` = 'due'
 		GROUP BY
 			total,
 			DATE_FORMAT(`date`, '%Y-%m-%d %h'),
@@ -1433,14 +1433,6 @@ class MY_Controller extends CI_Controller
             }
 
             $this->db->update('settings', array('versionPOS' => '28'));
-        }
-
-        if (isset($this->Settings->enable_parquimetro)) {
-            if ($this->Settings->enable_parquimetro == "1") {
-                if ($this->Settings->theme == "ThemeChineses") {
-                    $this->db->query("Update tec_settings set theme = 'default'");
-                }
-            }
         }
 
         if ($this->Settings->versionPOS == "28" || $versionInitial) {
@@ -1811,7 +1803,19 @@ class MY_Controller extends CI_Controller
                 $this->db->query("ALTER TABLE ".$this->db->dbprefix('settings')."
                 ADD COLUMN `is_gmail` TINYINT(1) DEFAULT 0  NOT NULL AFTER  `mail_client_user`;");
             }
-            $this->db->update('settings', array('versionPOS' => '43')); 
+            $this->db->update('settings', array('versionPOS' => '43'));
+        }
+
+        if ($this->Settings->versionPOS == "43" || $versionInitial) {
+            if (!$this->db->field_exists('show_categories', 'settings')) {
+                $this->db->query("ALTER TABLE ".$this->db->dbprefix('settings')."
+                ADD COLUMN `show_categories` TINYINT(1) DEFAULT 1 NOT NULL AFTER `enabled_massive_mail`;");
+            }
+            // Migrar usuarios de ThemeChineses: tenían POS sin categorías
+            $this->db->query("UPDATE ".$this->db->dbprefix('settings')."
+                SET show_categories = 0, theme = 'default'
+                WHERE theme = 'ThemeChineses'");
+            $this->db->update('settings', array('versionPOS' => '44'));
         }
     }
 

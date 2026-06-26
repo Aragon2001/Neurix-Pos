@@ -119,7 +119,7 @@
                                 </li>
                             </ul>
                         </li>
-                        <? if ($Settings->theme != "ThemeChineses") { ?>
+                        <? if (!isset($Settings->show_categories) || $Settings->show_categories != "0") { ?>
                             <li>
                                 <a href="#" data-toggle="control-sidebar" class="sidebar-icon"><i class="fa fa-folder sidebar-icon"></i></a>
                             </li>
