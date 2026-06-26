@@ -69,10 +69,10 @@ class Pos extends MY_Controller {
                 redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'pos');
             }
             $eid = $eid[0];
-			// if ($eid == null || $eid == '') {
-			// 	 $this->session->set_flashdata('error', lang('access_denied'));
-			// 	 redirect(isset($_server["http_referer"]) ? $_server["http_referer"] : 'pos');
-			// }
+			if (empty($eid)) {
+				$this->session->set_flashdata('error', lang('access_denied'));
+				redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'pos');
+			}
         }
 
         if ($this->input->post('eid')) {
@@ -92,10 +92,10 @@ class Pos extends MY_Controller {
         } else
             $apapost = -1;
 
-        // if ($eid && !$this->Admin) {
-            // $this->session->set_flashdata('error', lang('access_denied'));
-            // redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'pos');
-        // }
+        if ($eid && !$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'pos');
+        }
         if (!$this->Settings->default_customer) {
             $this->session->set_flashdata('warning', lang('please_update_settings'));
             redirect('settings');
@@ -166,11 +166,16 @@ class Pos extends MY_Controller {
             $percentage = '%';
             $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
             for ($r = 0; $r < $i; $r++) {
-                $item_id = $_POST['product_id'][$r];
-                // dd($item_id);
-                $real_unit_price = $this->tec->formatDecimal($_POST['real_unit_price'][$r]);
-                $item_quantity = $_POST['quantity'][$r];
-                $item_comment = $_POST['item_comment'][$r];
+                $item_id       = filter_var($_POST['product_id'][$r] ?? null, FILTER_VALIDATE_INT);
+                $item_quantity = filter_var($_POST['quantity'][$r] ?? null, FILTER_VALIDATE_FLOAT);
+                $real_unit_price = filter_var($_POST['real_unit_price'][$r] ?? null, FILTER_VALIDATE_FLOAT);
+                $item_comment  = strip_tags(trim($_POST['item_comment'][$r] ?? ''));
+
+                if ($item_id === false || $item_id <= 0) continue;
+                if ($item_quantity === false || $item_quantity <= 0) continue;
+                if ($real_unit_price === false || $real_unit_price < 0) continue;
+
+                $real_unit_price = $this->tec->formatDecimal($real_unit_price);
 
 
                 $item_quantity_edit = 0;
@@ -501,7 +506,7 @@ class Pos extends MY_Controller {
             }
 
 
-            if ($tipo_receptor == '05' || trim($receptor->name) == "Cliente de paso" || trim($receptor->name) == "Cliente de contado") {
+            if ($tipo_receptor == '05' || strtolower(trim($receptor->name)) == "cliente de paso" || strtolower(trim($receptor->name)) == "cliente de contado") {
                 $tipodoc = '04';
             } else {
                 $tipodoc = '01';

@@ -117,7 +117,7 @@ class Crearxml
 
         $cabecerafactura = '<?xml version="1.0" encoding="UTF-8"?><FacturaElectronica xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronica" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronica https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/FacturaElectronica_V4.4.xsd">';
         $sireceptor = false;
-        if ($customer_id == "1" || $tipo_receptor == '05' || trim($receptor->name) == "Cliente de paso" || trim($receptor->name) == "Cliente de contado") {
+        if ($customer_id == "1" || $tipo_receptor == '05' || strtolower(trim($receptor->name)) == "cliente de paso" || strtolower(trim($receptor->name)) == "cliente de contado") {
             $invo = $cabeceraticket;
             $sireceptor = false;
             $tipodoc = '04';
@@ -323,8 +323,9 @@ class Crearxml
                             <CodigoComercial>
                             <Tipo>' . $CodigoTipo . '</Tipo>
                             <Codigo>' . substr($CodigoCodigo, 0, 19) . '</Codigo>
-                            </CodigoComercial>
-                            <Cantidad>' . $Cantidad . '</Cantidad>
+                            </CodigoComercial>'
+                            . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+                            . '<Cantidad>' . $Cantidad . '</Cantidad>
                             <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
                             <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>
                             <PrecioUnitario>' . $PrecioUnitario . '</PrecioUnitario>
@@ -586,7 +587,7 @@ class Crearxml
 
         $cabecerafactura = '<?xml version="1.0" encoding="UTF-8"?><FacturaElectronicaCompra xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronicaCompra" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronicaCompra https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/FacturaElectronicaCompra_V4.4.xsd">';
         $sireceptor = false;
-        if ($customer_id == "1" || $tipo_receptor == '05' || trim($receptor->name) == "Cliente de paso" || trim($receptor->name) == "Cliente de contado") {
+        if ($customer_id == "1" || $tipo_receptor == '05' || strtolower(trim($receptor->name)) == "cliente de paso" || strtolower(trim($receptor->name)) == "cliente de contado") {
             $invo = $cabecerafactura;
             $sireceptor = false;
             $tipodoc = '08';
@@ -719,7 +720,7 @@ class Crearxml
 
             $Detalle = $items["product_name"];
 
-            // $row = $this->site->getProductByID($items['product_id']);
+            $row = $this->site->getProductByID($items['product_id']);
             $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
             $qq = $this->db->get_where('impuestos', array('id_impuesto' => isset($items['id_tax']) ? $items['id_tax'] : 8), 1);
             if ($qq->num_rows() > 0) {
@@ -788,8 +789,9 @@ class Crearxml
             <CodigoComercial>
             <Tipo>' . $CodigoTipo . '</Tipo>
             <Codigo>' . substr($CodigoCodigo, 0, 19) . '</Codigo>
-            </CodigoComercial>
-            <Cantidad>' . $Cantidad . '</Cantidad>
+            </CodigoComercial>'
+            . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+            . '<Cantidad>' . $Cantidad . '</Cantidad>
             <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
             <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>
             <PrecioUnitario>' . $PrecioUnitario . '</PrecioUnitario>
@@ -1010,7 +1012,7 @@ class Crearxml
         $fecha = date('Y-m-d\TH:i:s');
 
         $sireceptor = false;
-        if ($tipo_receptor == '05' || trim($receptor->name) == "Cliente de paso" || trim($receptor->name) == "Cliente de contado") {
+        if ($tipo_receptor == '05' || strtolower(trim($receptor->name)) == "cliente de paso" || strtolower(trim($receptor->name)) == "cliente de contado") {
             $sireceptor = false;
         } else {
             $sireceptor = true;
@@ -1170,8 +1172,9 @@ class Crearxml
                         <CodigoComercial>
                         <Tipo>' . $CodigoTipo . '</Tipo>
                         <Codigo>' . substr($CodigoCodigo, 0, 19) . '</Codigo>
-                        </CodigoComercial>
-                        <Cantidad>' . $Cantidad . '</Cantidad>
+                        </CodigoComercial>'
+                        . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+                        . '<Cantidad>' . $Cantidad . '</Cantidad>
                         <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
                         <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>
                         <PrecioUnitario>' . $PrecioUnitario . '</PrecioUnitario>
@@ -1342,7 +1345,7 @@ class Crearxml
 
         $MedioPago = '01';
 
-        $consecutivo = $this->hacienda_model->ccsctv('02');
+        $consecutivo = $this->hacienda_model->ccsctv_nd();
         if ($consecutivo) {
             $NumConse = substr($consecutivo, 10, 20);
         } else {
@@ -1393,8 +1396,8 @@ class Crearxml
         }
 
         $sireceptor = ($tipo_receptor != '05'
-            && trim($receptor->name) != "Cliente de paso"
-            && trim($receptor->name) != "Cliente de contado");
+            && strtolower(trim($receptor->name)) != "cliente de paso"
+            && strtolower(trim($receptor->name)) != "cliente de contado");
 
         date_default_timezone_set('America/Costa_Rica');
         $fecha = date('Y-m-d\TH:i:s');
@@ -1541,8 +1544,9 @@ class Crearxml
                         <CodigoComercial>
                             <Tipo>03</Tipo>
                             <Codigo>' . substr($items["product_code"], 0, 19) . '</Codigo>
-                        </CodigoComercial>
-                        <Cantidad>' . $Cantidad . '</Cantidad>
+                        </CodigoComercial>'
+                        . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+                        . '<Cantidad>' . $Cantidad . '</Cantidad>
                         <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
                         <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>
                         <PrecioUnitario>' . $PrecioUnitario . '</PrecioUnitario>
@@ -1647,7 +1651,7 @@ class Crearxml
         $customer_id = $sale['customer_id'];
         $CodActividad = $sale['id_actividad'];
 
-        $consecutivo = $this->hacienda_model->ccsctv('09');
+        $consecutivo = $this->hacienda_model->ccsctv_rep();
         if ($consecutivo) {
             $NumConse = substr($consecutivo, 10, 20);
         } else {
@@ -1690,8 +1694,8 @@ class Crearxml
 
         $sireceptor = ($customer_id != 1
             && $tipo_receptor != '05'
-            && trim($receptor->name) != "Cliente de paso"
-            && trim($receptor->name) != "Cliente de contado");
+            && strtolower(trim($receptor->name)) != "cliente de paso"
+            && strtolower(trim($receptor->name)) != "cliente de contado");
 
         switch ($payment['paid_by']) {
             case 'cash':      $MedioPago = '01'; break;
@@ -1828,7 +1832,8 @@ class Crearxml
         $modificadas = 'aaaaaaaceeeeiiiidnoooooouuuuybsaaaaaaaceeeeiiiidnoooooouuuyybyRr';
         $cadena = utf8_decode($cadena);
         $cadena = strtr($cadena, utf8_decode($originales), $modificadas);
-        return utf8_encode($cadena);
+        $cadena = utf8_encode($cadena);
+        return str_replace(['<', '>', '"', "\r", "\n"], ['', '', '', ' ', ' '], $cadena);
     }
 
     public function reClacDiscount($itemsInvoices, $invoice)

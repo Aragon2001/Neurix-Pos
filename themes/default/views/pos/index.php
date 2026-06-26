@@ -17,11 +17,11 @@
         <header class="main-header">
             <a href="<?= site_url(); ?>" class="logo">
                 <?php if ($store) { ?>
-                    <span class="logo-mini"><?= $store->code; ?></span>
-                    <span class="logo-lg"><?= $store->name; ?></span>
+                    <span class="logo-mini"><?= html_escape($store->code); ?></span>
+                    <span class="logo-lg"><?= html_escape($store->name); ?></span>
                 <?php } else { ?>
                     <span class="logo-mini">POS</span>
-                    <span class="logo-lg"><?= $Settings->site_name; ?></span>
+                    <span class="logo-lg"><?= html_escape($Settings->site_name); ?></span>
                 <?php } ?>
             </a>
             <nav class="navbar navbar-static-top" role="navigation">
@@ -105,7 +105,7 @@
                                 <li class="user-header">
                                     <img src="<?= base_url('uploads/avatars/' . ($this->session->userdata('avatar') ? $this->session->userdata('avatar') : $this->session->userdata('gender') . '.png')) ?>" class="img-circle" alt="Avatar" />
                                     <p>
-                                        <?= $this->session->userdata('email'); ?>
+                                        <?= html_escape($this->session->userdata('email')); ?>
                                         <small><?= lang('member_since') . ' ' . $this->session->userdata('created_on'); ?></small>
                                     </p>
                                 </li>
@@ -722,12 +722,12 @@
                                 <input type="hidden" name="order_tax" id="tax_val" value="" />
                                 <input type="hidden" name="order_discount" id="discount_val" value="" />
                                 <input type="hidden" name="count" id="total_item" value="" />
-                                <input type="hidden" name="did" id="is_delete" value="<?= $sid; ?>" />
-                                <input type="hidden" name="quo" id="quo" value="<?= $quo; ?>" />
-                                <input type="hidden" name="eid" id="is_delete" value="<?= $eid; ?>" />
-                                <input type="hidden" name="rid" id="is_delete" value="<?= $rid; ?>" />
-                                <input type="hidden" name="apa" id="apa" value="<?= $apa; ?>" />
-                                <input type="hidden" name="apapost" id="apapost" value="<?= $apa; ?>" />
+                                <input type="hidden" name="did" id="is_delete" value="<?= (int)$sid; ?>" />
+                                <input type="hidden" name="quo" id="quo" value="<?= (int)$quo; ?>" />
+                                <input type="hidden" name="eid" id="is_delete" value="<?= (int)$eid; ?>" />
+                                <input type="hidden" name="rid" id="is_delete" value="<?= (int)$rid; ?>" />
+                                <input type="hidden" name="apa" id="apa" value="<?= (int)$apa; ?>" />
+                                <input type="hidden" name="apapost" id="apapost" value="<?= (int)$apa; ?>" />
                                 <input type="hidden" name="total_items" id="total_items" value="0" />
                                 <input type="hidden" name="total_quantity" id="total_quantity" value="0" />
                                 <input type="submit" id="submit" value="Submit Sale" style="display: none;" />
@@ -898,12 +898,12 @@
     </div>
     <div style="width:500px;background:#FFF;display:block">
         <div id="order-data" style="display:none;" class="text-center">
-            <h1><?= $store->name; ?></h1>
+            <h1><?= html_escape($store->name); ?></h1>
             <h2><?= lang('order'); ?></h2>
             <div id="preo" class="text-left"></div>
         </div>
         <div id="bill-data" style="display:none;" class="text-center">
-            <h1><?= $store->name; ?></h1>
+            <h1><?= html_escape($store->name); ?></h1>
             <h2><?= lang('bill'); ?></h2>
             <div id="preb" class="text-left"></div>
         </div>

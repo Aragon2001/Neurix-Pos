@@ -4,12 +4,40 @@
  * Sistema de Facturación Electrónica CR
  */
 
-define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'production');
+ob_start();
+
+// Carga variables de entorno desde .env antes de que CI arranque
+$_envFile = __DIR__ . '/.env';
+if (file_exists($_envFile)) {
+    foreach (file($_envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $_line) {
+        if (strpos(trim($_line), '#') === 0 || strpos($_line, '=') === false) continue;
+        [$_k, $_v] = explode('=', $_line, 2);
+        $_k = trim($_k);
+        $_v = trim($_v, " \t\n\r\0\x0B\"'");
+        if (!array_key_exists($_k, $_SERVER) && !array_key_exists($_k, $_ENV)) {
+            putenv("$_k=$_v");
+            $_ENV[$_k] = $_v;
+        }
+    }
+}
+unset($_envFile, $_line, $_k, $_v);
+
+// PHP 8.1+ activa por defecto mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT),
+// que convierte cualquier error de consulta (columna/tabla inexistente, etc.) en una
+// excepción no controlada -> error 500 en blanco, sin registro en los logs de PHP.
+// Este driver de CodeIgniter 3 (2019) no contempla ese comportamiento, así que lo
+// desactivamos para volver al comportamiento esperado por el framework (db_debug
+// decide qué se muestra, en vez de un fatal error silencioso).
+if (function_exists('mysqli_report')) {
+	mysqli_report(MYSQLI_REPORT_OFF);
+}
+
+define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
 
 switch (ENVIRONMENT)
 {
 	case 'development':
-		error_reporting(-1);
+		error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_USER_DEPRECATED);
 		ini_set('display_errors', 1);
 	break;
 
@@ -27,7 +55,7 @@ switch (ENVIRONMENT)
 
 $system_path      = 'system';
 $application_folder = 'app';
-$view_folder      = '';
+$view_folder      = 'themes';
 
 // ----------------------------------------------------------------
 // DO NOT EDIT BELOW THIS LINE

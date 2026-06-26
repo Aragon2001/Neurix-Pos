@@ -47,7 +47,7 @@ define('FOPEN_READ_WRITE_CREATE_STRICT', 'x+b');
 | of this setting
 |
 */
-define('SHOW_DEBUG_BACKTRACE', TRUE);
+define('SHOW_DEBUG_BACKTRACE', ENVIRONMENT === 'development');
 
 /*
 |--------------------------------------------------------------------------
@@ -84,3 +84,28 @@ define('EXIT_USER_INPUT', 7); // invalid user input
 define('EXIT_DATABASE', 8); // database error
 define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
+
+/*
+|--------------------------------------------------------------------------
+| AMBIENTE / DEMO
+|--------------------------------------------------------------------------
+|
+| Estas dos constantes son usadas en todo el sistema (Auth.php, Settings.php,
+| Products.php, Sales.php, ApiclientController.php, Apiclient.php, etc.)
+| pero NUNCA estaban definidas en ningún archivo del proyecto original. En
+| PHP 8 referenciar una constante no definida es un Error fatal, así que
+| cualquier pantalla que las tocara (login, ventas, ajustes) tronaba la
+| aplicación por completo. Se agregan aquí con valores seguros para
+| pruebas locales:
+|
+|   AMBIENTE: 'test' o 'prod'. Controla qué endpoint de Hacienda /
+|             TRIBU-CR se usa (ver Apiclient.php y ApiclientController.php).
+|             Se deja en 'test' (sandbox) hasta que se confirmen
+|             credenciales de producción.
+|   DEMO:     TRUE bloquea/simula varias acciones (pensado para una demo
+|             pública de solo lectura). Se deja en FALSE para que el
+|             sistema funcione normalmente.
+|
+*/
+define('AMBIENTE', 'test');
+define('DEMO', FALSE);
