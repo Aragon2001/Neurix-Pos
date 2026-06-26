@@ -1,198 +1,164 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 
+/**
+ * Stripe_payments — modelo de pagos con Stripe SDK v13.
+ * SDK v13 usa instancia StripeClient en vez de métodos estáticos (v7).
+ */
 class Stripe_payments extends CI_Model
 {
-
     protected $private_key;
-    public $message = '';
-    public $code;
-    public $error = FALSE;
+    public    $message = '';
+    public    $code;
+    public    $error   = false;
 
-    public function __construct() {
+    /** @var \Stripe\StripeClient */
+    protected $stripe;
+
+    public function __construct()
+    {
         parent::__construct();
         $this->private_key = $this->Settings->stripe_secret_key;
-        $this->set_api_key();
+        $this->stripe = new \Stripe\StripeClient($this->private_key);
     }
 
-    function set_api_key() {
-        \Stripe\Stripe::setApiKey($this->private_key);
-    }
-
-    public function init($config = array()) {
+    public function init(array $config = [])
+    {
         if (isset($config['private_key'])) {
             $this->private_key = $config['private_key'];
+            $this->stripe      = new \Stripe\StripeClient($this->private_key);
         }
-        $this->set_api_key();
-
     }
 
-    public function get_balance() {
+    public function get_balance()
+    {
         try {
-            $bal = \Stripe\Balance::retrieve();
-            return array('mode' => ($bal->livemode ? $bal->livemode : 'Test'), 'pending_amount' => ($bal->pending[0]->amount / 100), 'pending_currency' => strtoupper($bal->pending[0]->currency), 'available_amount' => ($bal->available[0]->amount / 100), 'available_currency' => strtoupper($bal->available[0]->currency));
-        } catch (Exception $e) {
-            $this->error = TRUE;
-            $this->message = $e->getMessage();
-            $this->code = $e->getCode();
-            //return FALSE;
-            return array('error' => TRUE, 'code' => $this->code, 'message' => $this->message);
+            $bal = $this->stripe->balance->retrieve();
+            return [
+                'mode'               => $bal->livemode ? 'Live' : 'Test',
+                'pending_amount'     => $bal->pending[0]->amount   / 100,
+                'pending_currency'   => strtoupper($bal->pending[0]->currency),
+                'available_amount'   => $bal->available[0]->amount / 100,
+                'available_currency' => strtoupper($bal->available[0]->currency),
+            ];
+        } catch (\Exception $e) {
+            return $this->_error($e);
         }
     }
 
-    public function create_card_token($card_info) {
-        if (isset($card_info['number'])) {
-            unset($card_info['type']);
-            $card_info = array('card' => $card_info);
-        }
+    public function insert($token, $description, $amount, $currency)
+    {
         try {
-            $card = \Stripe\Token::create($card_info);
-            return $card;
-        } catch (Exception $e) {
-            $this->error = TRUE;
-            $this->message = $e->getMessage();
-            $this->code = $e->getCode();
-            //return FALSE;
-            return array('error' => TRUE, 'code' => $this->code, 'message' => $this->message);
-        }
-    }
-
-    public function get_transaction($transaction_id) {
-        try {
-            $ch = \Stripe\Charge::retrieve($transaction_id);
-            return $ch;
-        } catch (Exception $e) {
-            $this->error = TRUE;
-            $this->message = $e->getMessage();
-            $this->code = $e->getCode();
-            return FALSE;
-        }
-    }
-
-    public function get_all_transactions($num_charges = 100, $offset = 0) {
-        try {
-            $ch = \Stripe\Charge::all(array(
-                'count' => $num_charges,
-                'offset' => $offset
-            ));
-            $data['error'] = FALSE;
-            $raw_data = array();
-            foreach ($ch->data as $record) {
-                $raw_data[] = $this->charge_to_array($record);
-            }
-            $data['data'] = $raw_data;
-            return $data;
-        } catch (Exception $e) {
-            $this->error = TRUE;
-            $this->message = $e->getMessage();
-            $this->code = $e->getCode();
-            return FALSE;
-        }
-    }
-
-    public function count_all_transactions() {
-        $charges = $this->get_all_transactions();
-        return count($charges);
-    }
-
-    public function insert($token, $description, $amount, $currency) {
-        try {
-            $charge = \Stripe\Charge::create(array(
-                'amount' => $amount,
-                'currency' => $currency,
-                'card' => $token,
-                'description' => $description
-            ));
+            $charge = $this->stripe->charges->create([
+                'amount'      => (int)$amount,
+                'currency'    => $currency,
+                'source'      => $token,
+                'description' => $description,
+            ]);
             return $charge;
-        } catch (Exception $e) {
-            $this->error = TRUE;
-            $this->message = $e->getMessage();
-            $this->code = $e->getCode();
-            //return FALSE;
-            return array('error' => TRUE, 'code' => $this->code, 'message' => $this->message);
+        } catch (\Exception $e) {
+            return $this->_error($e);
         }
     }
 
-    function charge($token, $description, $amount, $currency) {
+    public function charge($token, $description, $amount, $currency)
+    {
         return $this->insert($token, $description, $amount, $currency);
     }
 
-    public function insert_many($data) {
-        $ids = array();
-
-        foreach ($data as $row) {
-            $ids[] = $this->insert($row['token'], $row['description'], $row['amount'], $row['currency']);
+    public function get_transaction($transaction_id)
+    {
+        try {
+            return $this->stripe->charges->retrieve($transaction_id);
+        } catch (\Exception $e) {
+            $this->_error($e);
+            return false;
         }
-        return $ids;
     }
 
-    public function get_limit($limit, $offset = 0) {
+    public function get_all_transactions($limit = 100, $offset = 0)
+    {
+        try {
+            $ch  = $this->stripe->charges->all(['limit' => min($limit, 100)]);
+            $raw = [];
+            foreach ($ch->data as $record) {
+                $raw[] = $this->charge_to_array($record);
+            }
+            return ['error' => false, 'data' => $raw];
+        } catch (\Exception $e) {
+            $this->_error($e);
+            return false;
+        }
+    }
+
+    public function refund($transaction_id, $amount = 'all')
+    {
+        try {
+            $params = ['charge' => $transaction_id];
+            if ($amount !== 'all') {
+                $params['amount'] = (int)$amount;
+            }
+            return $this->stripe->refunds->create($params);
+        } catch (\Exception $e) {
+            $this->_error($e);
+            return false;
+        }
+    }
+
+    public function insert_many(array $data)
+    {
+        return array_map(fn($r) => $this->insert($r['token'], $r['description'], $r['amount'], $r['currency']), $data);
+    }
+
+    public function count_all_transactions()
+    {
+        $charges = $this->get_all_transactions();
+        return is_array($charges) ? count($charges['data'] ?? []) : 0;
+    }
+
+    public function get_limit($limit, $offset = 0)
+    {
         return $this->get_all_transactions($limit, $offset);
     }
 
-    function refund($transaction_id, $amount = 'all') {
-        $transaction = $this->get($transaction_id);
-        if ($transaction) {
-            if ($amount == 'all') {
-                $amount = $transaction['amount'];
-            }
-            try {
-                $response = $transaction->refund(array('amount' => $amount));
-                return $response;
-            } catch (Exception $e) {
-                $this->error = TRUE;
-                $this->message = $e->getMessage();
-                $this->code = $e->getCode();
-                return FALSE;
-            }
-        } else {
-            $this->error = TRUE;
-            return FALSE;
-        }
-    }
-
-    function charge_to_array($charge) {
-        $data = array(
-            'id' => $charge->id,
-            'invoice' => $charge->invoice,
-            'card' => $this->card_to_array($charge->card),
-            'livemode' => $charge->livemode,
-            'amount' => $charge->amount,
+    public function charge_to_array($charge)
+    {
+        $card = $charge->payment_method_details->card ?? null;
+        return [
+            'id'              => $charge->id,
+            'invoice'         => $charge->invoice,
+            'card'            => $card ? $this->card_to_array($charge) : [],
+            'livemode'        => $charge->livemode,
+            'amount'          => $charge->amount,
             'failure_message' => $charge->failure_message,
-            'fee' => $charge->fee,
-            'currency' => $charge->currency,
-            'paid' => $charge->paid,
-            'description' => $charge->description,
-            'disputed' => $charge->disputed,
-            'object' => $charge->object,
-            'refunded' => $charge->refunded,
-            'created' => date('Y-m-d H:i:s', $charge->created),
-            'customer' => $charge->customer,
+            'currency'        => $charge->currency,
+            'paid'            => $charge->paid,
+            'description'     => $charge->description,
+            'object'          => $charge->object,
+            'refunded'        => $charge->refunded,
+            'created'         => date('Y-m-d H:i:s', $charge->created),
+            'customer'        => $charge->customer,
             'amount_refunded' => $charge->amount_refunded,
-        );
-        return $data;
+        ];
     }
 
-    function card_to_array($card) {
-        $data = array(
-            'address_country' => $card->address_country,
-            'type' => $card->type,
-            'address_zip_check' => $card->address_zip_check,
-            'fingerprint' => $card->fingerprint,
-            'address_state' => $card->address_state,
-            'exp_month' => $card->exp_month,
-            'address_line1_check' => $card->address_line1_check,
-            'country' => $card->country,
-            'last4' => $card->last4,
-            'exp_year' => $card->exp_year,
-            'address_zip' => $card->address_zip,
-            'object' => $card->object,
-            'address_line1' => $card->address_line1,
-            'name' => $card->name,
-            'address_line2' => $card->address_line2,
-            'id' => $card->id,
-            'cvc_check' => $card->cvc_check,
-        );
-        return $data;
+    public function card_to_array($charge)
+    {
+        $card = $charge->payment_method_details->card ?? (object)[];
+        return [
+            'last4'     => $card->last4     ?? '',
+            'exp_month' => $card->exp_month ?? '',
+            'exp_year'  => $card->exp_year  ?? '',
+            'country'   => $card->country   ?? '',
+            'brand'     => $card->brand     ?? '',
+        ];
     }
 
+    private function _error(\Exception $e)
+    {
+        $this->error   = true;
+        $this->message = $e->getMessage();
+        $this->code    = $e->getCode();
+        log_message('error', '[Stripe] ' . $e->getMessage());
+        return ['error' => true, 'code' => $this->code, 'message' => $this->message];
+    }
 }

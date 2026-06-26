@@ -53,6 +53,47 @@ $route['default_controller'] = 'welcome';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+// ---- PosView: visualización de comprobantes ----
+$route['pos/view/(:any)']                = 'posview/view/$1';
+$route['pos/view']                       = 'posview/view';
+$route['pos/view_proforma/(:any)']       = 'posview/view_proforma/$1';
+$route['pos/view_proforma']              = 'posview/view_proforma';
+$route['pos/viewnc/(:any)']              = 'posview/viewnc/$1';
+$route['pos/viewnc']                     = 'posview/viewnc';
+$route['pos/view_close_register/(:any)'] = 'posview/view_close_register/$1';
+
+// ---- PosEmail: correos de comprobantes ----
+$route['pos/email_receipt']              = 'posemail/email_receipt';
+$route['pos/email_receipt_credit']       = 'posemail/email_receipt_credit';
+$route['pos/email_proforma']             = 'posemail/email_proforma';
+
+// ---- PosRegister: caja y registros ----
+$route['pos/register_details']           = 'posregister/register_details';
+$route['pos/today_sale']                 = 'posregister/today_sale';
+$route['pos/shortcuts']                  = 'posregister/shortcuts';
+$route['pos/close_register/(:any)']      = 'posregister/close_register/$1';
+$route['pos/close_register']             = 'posregister/close_register';
+$route['pos/products_sales_in_register'] = 'posregister/products_sales_in_register';
+$route['pos/invoices_in_register']       = 'posregister/invoices_in_register';
+
+// ---- PosPrint: impresión y tickets ----
+$route['pos/view_bill']                  = 'posprint/view_bill';
+$route['pos/print_parquimetro/(:any)']   = 'posprint/print_parquimetro/$1';
+$route['pos/print_comanda/(:any)']       = 'posprint/print_comanda/$1';
+$route['pos/print_register/(:any)']      = 'posprint/print_register/$1';
+$route['pos/print_register']             = 'posprint/print_register';
+$route['pos/print_receipt/(:any)']       = 'posprint/print_receipt/$1';
+$route['pos/print_cuenta/(:any)']        = 'posprint/print_cuenta/$1';
+$route['pos/receipt_img']                = 'posprint/receipt_img';
+$route['pos/open_drawer']                = 'posprint/open_drawer';
+$route['pos/p/(:any)']                   = 'posprint/p/$1';
+$route['pos/p']                          = 'posprint/p';
+$route['pos/invice_barcode/(:any)']      = 'posprint/invice_barcode/$1';
+$route['pos/invice_barcode_2/(:any)']    = 'posprint/invice_barcode_2/$1';
+
+// ---- PosCredit: nota de crédito ----
+$route['pos/creditnote']                 = 'poscredit/creditnote';
+
 $route['users'] = 'auth/users';
 $route['login'] = 'auth/login';
 $route['logout'] = 'auth/logout';

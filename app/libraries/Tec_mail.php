@@ -1,9 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 /*
 *  ==============================================================================
-*  Author   : Rhonald Brito
-*  Email    : admin@gi3-softsolutions.com
-*  Web      : http://gi3-softsolutions.com
+*  Author   : Jostin Aragon Barboza
+*  Email    : arasoftsolutions@outlook.com
+*  Company  : ARASOFT SOLUTIONS
 *  ==============================================================================
 */
 
@@ -21,9 +21,6 @@ class Tec_mail
     }
 
     public function send_mail($to, $subject, $body, $from = NULL, $from_name = NULL, $attachment = NULL, $cc = NULL, $bcc = NULL) {
-
-        var_dump($attachment);
-        exit();
         $Settings = $this->site->getSettings();
         $mail = new PHPMailer(true);
         try {

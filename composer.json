@@ -1,21 +1,20 @@
 {
-	"name": "gi3/posss",
-	"version": "4.0.24",
-	"description": "POS Soft Solutions - Facturación Electrónica CR",
+	"name": "arasoft/neurix-pos",
+	"version": "1.0.0",
+	"description": "NEURIX POS - Sistema de Punto de Venta con Facturación Electrónica CR",
 	"type": "project",
 	"authors": [
 		{
-			"name": "Rhonald Brito",
-			"email": "admin@gi3-softsolutions.com"
+			"name": "Jostin Aragon Barboza",
+			"email": "arasoftsolutions@outlook.com"
 		}
 	],
 	"require": {
 		"php": ">=7.4",
 		"phpmailer/phpmailer": "^6.9",
 		"mike42/escpos-php": "^2.0",
-		"stripe/stripe-php": "^7.0",
+		"stripe/stripe-php": "^13.0",
 		"laminas/laminas-barcode": "^2.12",
-		"swiftmailer/swiftmailer": "^6.3",
 		"mpdf/mpdf": "^8.2"
 	}
 }

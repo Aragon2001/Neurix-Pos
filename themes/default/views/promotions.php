@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
+﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -39,7 +39,7 @@
 
             <div class="mastfoot">
                 <div class="inner">
-                    <!-- <p>POS Soft Solutions by <a href="http://gi3-softsolutions.com">Gi3 Soft Solutions S.A.</a>.</p> -->
+                    <!-- <p>NEURIX POS by ARASOFT SOLUTIONS. Contacto: arasoftsolutions@outlook.com</p> -->
                 </div>
             </div>
 
@@ -49,7 +49,7 @@
 
 </div>
 
-<script src="<?= $assets ?>plugins/jQuery/jQuery-2.1.4.min.js" type="text/javascript"></script>
+<script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js" type="text/javascript"></script>
 <script src="<?= $assets ?>bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
 </body>
 </html>

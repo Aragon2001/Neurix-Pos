@@ -4,11 +4,12 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $page_title . ' | ' . $Settings->site_name; ?></title>
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png" />
     <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet" />' : ''; ?>
-    <script src="<?= $assets ?>plugins/jQuery/jQuery-2.1.4.min.js"></script>
+    <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
 </head>
 
 <body class="skin-<?= $Settings->theme_style; ?> sidebar-collapse sidebar-mini pos">

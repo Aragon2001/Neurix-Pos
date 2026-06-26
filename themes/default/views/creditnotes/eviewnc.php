@@ -253,7 +253,7 @@ if ($modal) {
                         <?php unset($Settings->protocol, $Settings->smtp_host, $Settings->smtp_user, $Settings->smtp_pass, $Settings->smtp_port, $Settings->smtp_crypto, $Settings->mailpath, $Settings->timezone, $Settings->setting_id, $Settings->default_email, $Settings->version, $Settings->stripe, $Settings->stripe_secret_key, $Settings->stripe_publishable_key); ?>
                         var Settings = <?= json_encode($Settings); ?>;
                     </script>
-                    <script src="<?= $assets ?>plugins/jQuery/jQuery-2.1.4.min.js"></script>
+                    <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
                     <script src="<?= $assets ?>dist/js/libraries.min.js" type="text/javascript"></script>
                     <script src="<?= $assets ?>dist/js/scripts.min.js" type="text/javascript"></script>
                     <?php

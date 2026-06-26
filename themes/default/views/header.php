@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
+﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
 <html>
     <head id="impHead">
         <meta charset="UTF-8">
@@ -7,20 +7,29 @@
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
         <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet" />' : ''; ?>
-        <script src="<?= $assets ?>plugins/jQuery/jQuery-2.1.4.min.js"></script>
+        <link href="<?= $assets ?>dist/css/neurix-theme.css" rel="stylesheet" type="text/css" />
+        <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
     </head>
-    <body class="skin-<?= $Settings->theme_style; ?> fixed sidebar-mini">
+    <body class="skin-<?= $Settings->theme_style; ?> fixed sidebar-mini neurix-dark">
         <div class="wrapper rtl rtl-inv">
 
             <header class="main-header">
-                <a href="<?= site_url(); ?>" class="logo">
-                    <?php if ($store) { ?>
-                        <span class="logo-mini"><?= $store->code; ?></span>
-                        <span class="logo-lg"><?= $store->name; ?></span>
-                    <?php } else { ?>
-                        <span class="logo-mini">POS</span>
-                        <span class="logo-lg"><?= $Settings->site_name; ?></span>
-                    <?php } ?>
+                <a href="<?= site_url(); ?>" class="logo" style="display:flex;align-items:center;gap:9px;padding:0 12px;">
+                    <span class="logo-mini" style="
+                        display:inline-flex;align-items:center;justify-content:center;
+                        width:32px;height:32px;border-radius:8px;flex-shrink:0;
+                        background:linear-gradient(135deg,#0369a1,#38bdf8);
+                        color:#fff;font-size:15px;font-weight:800;
+                        box-shadow:0 2px 10px rgba(56,189,248,.4);">
+                        <?= mb_strtoupper(mb_substr($Settings->site_name, 0, 1)); ?>
+                    </span>
+                    <span class="logo-lg" style="
+                        background:linear-gradient(90deg,#f1f5f9,#38bdf8);
+                        -webkit-background-clip:text;background-clip:text;
+                        -webkit-text-fill-color:transparent;
+                        font-size:15px;font-weight:800;letter-spacing:-.2px;">
+                        <?= $store ? $store->name : $Settings->site_name; ?>
+                    </span>
                 </a>
                 <nav class="navbar navbar-static-top" role="navigation">
                     <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">

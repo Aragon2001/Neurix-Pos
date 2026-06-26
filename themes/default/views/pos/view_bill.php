@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
+﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -154,7 +154,7 @@
         </div>
     </div>
 </div>
-<script src="<?= $assets ?>plugins/jQuery/jQuery-2.1.4.min.js"<?= ($this->db->dbdriver == 'sqlite3') ? ' onload="window.$ = window.jQuery = module.exports;"' : ''; ?>></script>
+<script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"<?= ($this->db->dbdriver == 'sqlite3') ? ' onload="window.$ = window.jQuery = module.exports;"' : ''; ?>></script>
 
 <?php unset($Settings->setting_id, $Settings->smtp_user, $Settings->smtp_pass, $Settings->smtp_port, $Settings->update, $Settings->reg_ver, $Settings->allow_reg, $Settings->default_email, $Settings->mmode, $Settings->timezone, $Settings->restrict_calendar, $Settings->restrict_user, $Settings->auto_reg, $Settings->reg_notification); ?>
 <script type="text/javascript">

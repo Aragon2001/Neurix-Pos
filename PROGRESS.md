@@ -92,34 +92,30 @@
 
 ## FASE 4 — Calidad de código
 
-### 13. Split de Pos.php (3335 líneas → 5 controladores)
-- **Archivos**: `app/controllers/Pos.php` → dividir en:
-  - `Pos.php` (ventas, caja, carrito)
-  - `PosCredit.php` (notas de crédito)
-  - `PosPrint.php` (impresión de recibos, comandas, etiquetas)
-  - `PosRegister.php` (apertura/cierre de caja, depósitos, retiros)
-  - `PosEmail.php` (envío de correos de comprobantes)
-- **Estado**: [ ]
+### 13. Split de Pos.php (3337 líneas → 5 controladores + routes)
+- **Archivos**: `Pos.php` (1990 líneas), `PosView.php`, `PosEmail.php`, `PosRegister.php`, `PosPrint.php`, `PosCredit.php`, `app/config/routes.php`
+- **Implementado**: PosView (view/view_proforma/viewnc/view_close_register), PosEmail (email_*), PosRegister (close_register/register_details/today_sale/shortcuts/products_sales_in_register/invoices_in_register), PosPrint (print_*/p/view_bill/open_drawer/receipt_img/invice_barcode), PosCredit (creditnote). Routes mapean pos/method → nuevo_controlador/method sin romper URLs
+- **Estado**: [DONE]
 
-### 14. Upgrade SwiftMailer → Symfony Mailer
-- **Archivos**: `composer.json`, `app/libraries/Tec_mail.php`, `app/config/autoload.php`
-- **Qué hacer**: reemplazar `swiftmailer/swiftmailer` (deprecado 2023) por `symfony/mailer`
-- **Estado**: [ ]
+### 14. Upgrade SwiftMailer → PHPMailer
+- **Archivos**: `app/libraries/Swiftmailer.php` (reescrito), `app/libraries/Tec_mail.php` (fix var_dump/exit), `composer.json`
+- **Implementado**: Swiftmailer.php reescrito usando PHPMailer (ya instalado), misma interfaz pública; swiftmailer eliminado de composer.json; corregido bug var_dump+exit en Tec_mail.php
+- **Estado**: [DONE]
 
 ### 15. Upgrade Stripe SDK v7 → v13
-- **Archivos**: `composer.json`, código que use `\Stripe\`
-- **Qué hacer**: actualizar dependencia y adaptar llamadas a la API nueva
-- **Estado**: [ ]
+- **Archivos**: `app/models/Stripe_payments.php`, `composer.json`
+- **Implementado**: Reescrito con instancia `StripeClient` (v13); API estática eliminada; `composer.json` actualizado a `^13.0`
+- **Estado**: [DONE]
 
-### 16. Upgrade jQuery 2.1.4 → 3.7
-- **Archivos**: `themes/default/views/pos/index.php`, `header.php`, `footer.php`
-- **Qué hacer**: reemplazar CDN/local de jQuery; verificar compatibilidad de plugins
-- **Estado**: [ ]
+### 16. Upgrade jQuery 2.1.4 → 3.7.1
+- **Archivos**: 13 vistas en `themes/default/views/`, `themes/default/assets/plugins/jQuery/jquery-3.7.1.min.js` (nuevo)
+- **Implementado**: descargado jquery-3.7.1.min.js, reemplazadas 13 vistas con PowerShell
+- **Estado**: [DONE]
 
 ### 17. Añadir viewport meta tag en POS
 - **Archivos**: `themes/default/views/pos/index.php`
-- **Qué hacer**: agregar `<meta name="viewport" content="width=device-width, initial-scale=1.0">` en `<head>`
-- **Estado**: [ ]
+- **Implementado**: `<meta name="viewport" content="width=device-width, initial-scale=1.0">` agregado en `<head>` del POS (header.php ya lo tenía)
+- **Estado**: [DONE]
 
 ---
 
