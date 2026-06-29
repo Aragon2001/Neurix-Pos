@@ -45,8 +45,8 @@
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Sidebar Toggle (para mostrar/ocultar sidebar) -->
-    <a href="#" class="nav-link ms-2" data-bs-toggle="offcanvas" data-bs-target="#mainSidebar" aria-controls="mainSidebar" title="Alternar sidebar">
+    <!-- Sidebar Toggle (solo visible en móvil/tablet; en desktop el sidebar siempre está visible) -->
+    <a href="#" class="nav-link ms-2 d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mainSidebar" aria-controls="mainSidebar" title="Alternar sidebar">
         <i class="fa fa-bars"></i>
         <span class="d-md-none ms-2">Menú</span>
     </a>
@@ -176,8 +176,14 @@
 
 </nav>
 
-<!-- ═══════════════ SIDEBAR ═══════════════ -->
-<aside class="main-sidebar sidebar-dark-primary offcanvas offcanvas-start" id="mainSidebar" tabindex="-1" aria-labelledby="mainSidebarLabel">
+<!-- ═══════════════ FILA: SIDEBAR + CONTENIDO ═══════════════
+     NOTA: el sidebar usa "offcanvas-lg" (no "offcanvas" simple). Con "offcanvas"
+     a secas, Bootstrap 5 lo mantiene SIEMPRE oculto (fuera de pantalla) hasta que
+     se activa el toggle, incluso en desktop -- por eso el panel se veía sin
+     navegación lateral. "offcanvas-lg" lo convierte en un sidebar fijo y visible
+     a partir de 992px, y solo se comporta como drawer deslizante por debajo de eso. -->
+<div class="d-flex flex-fill nx-layout-row" style="min-height:0;">
+<aside class="main-sidebar sidebar-dark-primary offcanvas-lg offcanvas-start" id="mainSidebar" tabindex="-1" aria-labelledby="mainSidebarLabel">
     <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title" id="mainSidebarLabel">Menú</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>

@@ -1,6 +1,9 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 </div>
+</main>
+</div>
+<!-- /fila sidebar+contenido -->
 
 <!-- Footer (AdminLTE 4 + Bootstrap 5) -->
 <footer class="main-footer bg-body border-top border-secondary mt-4">
@@ -13,7 +16,7 @@
 </footer>
 
 </div>
-</div>
+<!-- /.wrapper -->
 <!-- Modales de aplicación -->
 <div class="modal fade" id="posModal" tabindex="-1" aria-hidden="true"></div>
 <div class="modal fade" id="myModal" tabindex="-1" aria-hidden="true"></div>

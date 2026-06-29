@@ -57,6 +57,29 @@
   transition: transform 0.3s ease-in-out;
 }
 
+/* A partir de 992px (lg) el sidebar deja de ser un drawer y pasa a ser una
+   columna fija y siempre visible junto al contenido (layout clásico de admin).
+   Bootstrap's ".offcanvas-lg" por sí solo no hace esto -- solo quita el fondo
+   oscuro/backdrop y el header del offcanvas; sin estas reglas, el <aside>
+   queda con "display:flex" por defecto del offcanvas, lo cual pone los items
+   del menú en fila en vez de en columna. */
+@media (min-width: 992px) {
+  .main-sidebar.offcanvas-lg {
+    position: static;
+    flex: 0 0 280px;
+    width: 280px;
+    height: auto;
+    display: block;
+  }
+
+  .main-sidebar.offcanvas-lg .offcanvas-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+  }
+}
+
 [data-bs-theme="dark"] .main-sidebar {
   background: #111827 !important;
 }
@@ -186,13 +209,20 @@
   filter: brightness(0) invert(1);
 }
 
-/* ═════════════════ CONTENT WRAPPER ═════════════════ */
-.content-wrapper {
+/* ═════════════════ CONTENT WRAPPER ═════════════════
+   NOTA: el HTML real (header.php) usa class="content" en el <main>, no
+   "content-wrapper" -- esa regla nunca se aplicaba. Se mantiene
+   ".content-wrapper" por compatibilidad y se agrega ".content" (selector
+   real) con las mismas reglas. */
+.content-wrapper,
+.content {
   background: #f9fafb;
   transition: all 0.3s ease;
+  min-width: 0; /* evita que tablas anchas rompan el layout flex */
 }
 
-[data-bs-theme="dark"] .content-wrapper {
+[data-bs-theme="dark"] .content-wrapper,
+[data-bs-theme="dark"] .content {
   background: #111827;
 }
 

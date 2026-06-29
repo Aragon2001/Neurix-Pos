@@ -24,6 +24,7 @@ El repo está completamente limpio, normalizado, y **listo para ejecutar y testi
 | 4 | Cambios sin commitear + ruido de fin de línea (CRLF/LF) | 🟠 Alta | ✅ Corregido — .gitattributes + normalización |
 | 5 | Dos `<ul>` sin cerrar en `header.php` | 🟡 Media | ✅ Corregido — Commit 25bb91b |
 | 6 | Layout AdminLTE 2 + jQuery en AdminLTE 4 project | 🟡 Media | ✅ Corregido — Commits 4c4de0b, 84a6250 |
+| 7 | Sidebar invisible en desktop (`offcanvas` sin breakpoint) + selector CSS muerto (`.content-wrapper` vs `.content`) | 🔴 Crítica | ✅ Corregido — ver sección 7 |
 
 ---
 
@@ -126,11 +127,32 @@ tas
 
 ---
 
+## 7. Sidebar invisible en desktop + selector CSS muerto (CRÍTICO — causa real de "la app sigue viéndose mal")
+
+Después de que los problemas 1-6 quedaran corregidos, el usuario reportó que la app **seguía viéndose mal visualmente** aunque el CSS ya cargaba. Diagnóstico encontró dos bugs nuevos en `header.php`/`footer.php`/`neurix-adminlte4.css` que no estaban cubiertos arriba:
+
+**Bug A — sidebar siempre oculto en desktop.** El `<aside>` del sidebar usaba la clase `offcanvas` (sin sufijo de breakpoint). En Bootstrap 5, `.offcanvas` a secas mantiene el elemento `position:fixed` y fuera de pantalla **en todos los anchos de viewport** hasta que se activa por JS — incluso en desktop. Es decir, nunca había un sidebar de navegación visible salvo que el usuario lo abriera manualmente con el botón de menú. Confirmado inspeccionando directamente `node_modules/bootstrap/dist/css/bootstrap.css` (media queries de `.offcanvas-lg`).
+
+**Fix**: cambiar la clase a `offcanvas-lg` (visible/fijo desde 992px, comportamiento de drawer solo por debajo de ese ancho) y agregar reglas en `neurix-adminlte4.css` para que a ≥992px el `<aside>` sea `position:static`, ancho fijo de 280px, y el `.offcanvas-body` se muestre en columna (flex-direction:column) en vez de fila.
+
+**Bug B — selector CSS muerto.** `neurix-adminlte4.css` estilaba `.content-wrapper`, pero el HTML real (`<main class="content flex-grow-1">`) usa `.content`. Ese bloque de estilos nunca se aplicó. Fix: agregar `.content` como selector adicional junto a `.content-wrapper`.
+
+**Cambios aplicados**:
+- `header.php`: el toggle del sidebar ahora es `d-lg-none` (solo visible en móvil/tablet); se envolvió `<aside>` + `<main>` en un `<div class="d-flex flex-fill nx-layout-row">` para que queden lado a lado debajo del navbar (que sigue full-width); `offcanvas` → `offcanvas-lg`.
+- `footer.php`: se cerró el nuevo div de fila y el `<main>` (que antes quedaba sin cerrar — bug latente preexistente).
+- `neurix-adminlte4.css`: reglas `@media (min-width: 992px)` para el sidebar fijo, y `.content` agregado al selector existente.
+
+**⚠️ No verificado visualmente**: este entorno no tiene PHP ni la posibilidad de descargar Chromium (bloqueado por allowlist de red), así que la corrección se validó únicamente rastreando el CSS compilado real de Bootstrap/AdminLTE — no con captura de pantalla. **Acción pendiente del usuario**: correr `npm run build` y verificar en el navegador que el sidebar se vea fijo y visible en desktop (≥992px) y como drawer deslizante en móvil.
+
+**⚠️ Hallazgo nuevo sin explicar del todo — riesgo de corrupción NUL en cualquier edición.** Al editar `footer.php` con una herramienta de edición de texto (no el find/replace masivo original), el archivo terminó con 915 bytes NUL pegados al final — el mismo patrón de corrupción del problema #1, pero esta vez el contenido nuevo era **más largo**, no más corto, lo que contradice la teoría original ("se sobrescribe un archivo largo con uno corto sin truncar"). Se corrigió quitando los bytes NUL sobrantes, pero la causa de fondo no quedó clara. Esto sugiere que el riesgo de corrupción no está limitado al script de migración masiva original — **cualquier escritura a estos archivos de vista puede introducir bytes NUL al final**, posiblemente por cómo el sistema de archivos/montaje sincroniza escrituras. Recomendación: verificar bytes nulos después de **cualquier** edición a estos archivos, no solo después de migraciones masivas (ver checklist abajo, ya actualizado con esto).
+
+---
+
 ## Cómo evitar que se repita (proceso para Claude Code)
 
 Los 5 problemas de arriba comparten una causa de fondo: **ediciones automatizadas masivas sin verificación posterior**. Antes de declarar "completada" cualquier fase que toque múltiples archivos:
 
-1. **Verificar bytes nulos**: `grep -rlaP "\x00" --include="*.php" themes app` debe devolver vacío.
+1. **Verificar bytes nulos**: `grep -rlaP "\x00" --include="*.php" themes app` debe devolver vacío. **Correr esto después de CUALQUIER edición a un archivo de vista, no solo después de migraciones masivas** — se confirmó que una sola edición puntual a `footer.php` reintrodujo 915 bytes NUL al final del archivo (ver sección 7).
 2. **Verificar HTML bien formado** en los archivos tocados (al menos un chequeo simple de que cada `<ul`, `<div`, etc. tiene su `>` de cierre antes del siguiente `<`).
 3. **Verificar que el build de Vite realmente contiene lo esperado**, no solo que "compiló sin error": revisar tamaño y contenido del CSS resultante (ej. `grep -c ".navbar-toggler-icon" dist/css/*.css` para confirmar que Bootstrap está adentro), no asumir por el nombre del paquete importado.
 4. **No marcar una fase como "100% completada" sin testing visual real** en navegador — los documentos anteriores (eliminados) afirmaban "Listo para producción" y "Renderizado HTML correcto" cuando la app estaba completamente rota.
