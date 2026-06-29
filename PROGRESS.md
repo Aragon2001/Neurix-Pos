@@ -275,6 +275,94 @@ ce220a0  fix: corregir 5 errores estructurales del sistema
 
 ---
 
+---
+
+## SESIÓN 2026-06-29 — MODERNIZACIÓN FRONTEND
+
+**Rama**: `modernizacion-frontend` (pusheada a origin)
+
+### Trabajo Realizado
+
+**Fase 0 — Preparación** ✅
+- Crear rama de git desde main
+- Backup completo de themes/default/assets/
+- Inicializar npm + Vite 8.1.0
+- Instalar 7 dependencias modernas: Bootstrap 5.3.8, AdminLTE 4.0.2, Tom Select 2.6.1, Tempus Dominus 6.10.4, Tabulator 6.5.2, SweetAlert2 11.26.25, Font Awesome 7.3.0
+- Compilar bundles Vite exitosamente (CSS: 1.1MB gzip:792KB, JS: 443KB gzip:115KB)
+- Configurar vite.config.js con salida en themes/default/assets/dist/
+
+**Fase 1 — Bootstrap 3.3.4 → 5.3.8** ✅
+- 131 vistas actualizadas mediante búsqueda/reemplazo masivo:
+  - col-xs-* → col-* (338 ocurrencias)
+  - .panel/.panel-{tipo} → .card/.border-{tipo} (112 ocurrencias)
+  - data-toggle/data-dismiss → data-bs-toggle/data-bs-dismiss (152 ocurrencias)
+  - .form-group → .mb-3, .control-label → .form-label (múltiples)
+  - .input-group-addon → .input-group-text
+  - .glyphicon-* → .fa-* (4 ocurrencias)
+- Verificación: 0 referencias residuales a clases antiguas
+
+**Fase 2 — AdminLTE 4.0 (infraestructura)** ✅ (parcial)
+- Instalar AdminLTE 4.0.2 vía npm
+- Crear themes/default/assets/src/main.js como entry point Vite con imports de todas las librerías modernas
+- Compilar bundles exitosamente
+- Sistema de tema oscuro/claro con localStorage + data-bs-theme nativo de Bootstrap 5
+- Pendiente: cambios HTML en header.php (trabajo de riesgo alto, deferido para sesión posterior)
+
+**Fase 3 — Reemplazo de Plugins jQuery** ✅
+- select2 → Tom Select: 135 instancias (clases + inicializaciones)
+- bootstrap-datetimepicker → Tempus Dominus: 158 instancias (scripts removidos + inicializaciones)
+- DataTables → Tabulator.js: 42 instancias
+- jQuery removido de header.php, integrado bundle Vite
+- iCheck: 0 referencias encontradas (ya no se usa)
+
+**Commit summary**:
+```
+26e56ef feat(fase1): migración Bootstrap 3.3.4 → 5.3.8 en 131 vistas
+5b6dc02 feat(fase3): reemplazo masivo de plugins jQuery por librerías modernas
+e4ea4cf docs(plan): actualizar estado Fases 0-3 completadas + registro de sesión
+```
+
+### Pendiente (Próximas Sesiones)
+
+**Fase 4 — neurix-theme.css** (media prioridad)
+- Ajustes CSS para .card, .form-check-input, Tom Select (.ts-control), Tempus Dominus, Tabulator
+- Posible migración de variables --nx-* a herencia de --bs-*
+
+**Fase 5 — Limpieza Final** (media prioridad)
+- Confirmar 0 referencias a clases antiguas (glyphicon, select2, icheck, panel-*)
+- Agregar .table-responsive a tablas
+- Validar que vistas de impresión mantengan fondo blanco
+
+**Fase 6 — Testing Módulo por Módulo** (crítica)
+- Testing en vivo de cada módulo: Login, Dashboard, Reportes, Hacienda, POS
+- Validar flujos de facturación electrónica
+- Verificar vistas de impresión (pos/eview.php, creditnotes/eviewnc.php) — aún tienen jQuery
+
+### Estado del Sistema
+
+- **Rama actual**: modernizacion-frontend
+- **Compilación Vite**: ✅ Exitosa (bundles en themes/default/assets/dist/)
+- **node_modules**: ✅ Agregado a .gitignore
+- **Cambios masivos**: ✅ Completados sin errores visibles
+- **Riesgo de rotura**: Medio — cambios extensos requieren testing integral antes de merge a main
+
+### Notas Importantes
+
+1. Los cambios de Fase 1-3 usan sed/regex masivo — puede haber edge cases que requieran ajuste manual
+2. Las vistas de impresión (pos/eview.php, etc.) mantienen jQuery porque pueden tener dependencias especiales para impresora térmica/ESCPOS
+3. El bundle Vite incluye todas las librerías modernas — las inicializaciones en vistas pueden necesitar ajustes menores de sintaxis
+4. Compilación está optimizada: CSS minimizado, JS minimizado (terser), gzip friendly
+
+### Próximos Pasos (En Orden)
+
+1. Completar cambios HTML de AdminLTE 4 en header.php (Fase 2 completa)
+2. Hacer testing funcional de al menos 3 módulos clave (Fase 6)
+3. Ajustar neurix-theme.css según feedback del testing (Fase 4)
+4. Limpieza final (Fase 5)
+5. Merge a main cuando testing sea satisfactorio
+
+---
+
 ## NOTAS TÉCNICAS IMPORTANTES
 
 ### Guard de migraciones — SIEMPRE actualizar al agregar nueva migración
