@@ -3,6 +3,9 @@ import 'bootstrap'
 import 'admin-lte'
 import '@fortawesome/fontawesome-free/css/all.css'
 
+// Importar CSS personalizado de Neurix para AdminLTE 4
+import './neurix-adminlte4.css'
+
 // Importar librerías modernas
 import TomSelect from 'tom-select'
 import { Tabulator } from 'tabulator-tables'
@@ -47,11 +50,12 @@ const initTreeview = () => {
 
   treeviewItems.forEach(link => {
     link.addEventListener('click', (e) => {
-      e.preventDefault()
       const parent = link.parentElement
       const treeview = parent.querySelector('.nav-treeview')
 
       if (treeview) {
+        e.preventDefault()
+
         // Colapsar otros treeview
         document.querySelectorAll('.has-treeview').forEach(item => {
           if (item !== parent) {
@@ -63,11 +67,63 @@ const initTreeview = () => {
           }
         })
 
-        // Toggle actual
+        // Toggle actual con animación suave
         parent.classList.toggle('menu-open')
-        treeview.style.display = treeview.style.display === 'none' ? 'block' : 'none'
+        const isOpen = parent.classList.contains('menu-open')
+
+        if (isOpen) {
+          treeview.style.display = 'block'
+          // Pequeña animación
+          treeview.style.opacity = '0'
+          setTimeout(() => {
+            treeview.style.transition = 'opacity 0.3s ease'
+            treeview.style.opacity = '1'
+          }, 0)
+        } else {
+          treeview.style.opacity = '1'
+          treeview.style.transition = 'opacity 0.3s ease'
+          treeview.style.opacity = '0'
+          setTimeout(() => {
+            treeview.style.display = 'none'
+            treeview.style.transition = ''
+          }, 300)
+        }
       }
     })
+  })
+
+  // Mantener abierto si tiene item activo
+  document.querySelectorAll('.has-treeview').forEach(parent => {
+    const activeItem = parent.querySelector('.nav-treeview .nav-link.active')
+    if (activeItem) {
+      parent.classList.add('menu-open')
+      const treeview = parent.querySelector('.nav-treeview')
+      if (treeview) {
+        treeview.style.display = 'block'
+      }
+    }
+  })
+}
+
+// ═════════════════ MENU ACTIVO (Highlight current page) ═════════════════
+const initActiveMenu = () => {
+  const currentUrl = window.location.pathname
+  const navLinks = document.querySelectorAll('.nav-sidebar .nav-link')
+
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href')
+    if (href && currentUrl.includes(href.replace(/^[^/]*\//, ''))) {
+      link.classList.add('active')
+      // Abrir padre si es submenu
+      const parent = link.closest('.has-treeview')
+      if (parent) {
+        parent.classList.add('menu-open')
+        const treeview = parent.querySelector('.nav-treeview')
+        if (treeview) {
+          treeview.style.display = 'block'
+        }
+      }
+    }
   })
 }
 
@@ -82,6 +138,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // AdminLTE 4 componentes
   initTreeview()
+  initActiveMenu()
+
+  // Cerrar offcanvas sidebar al hacer click en un link (mobile)
+  const sidebar = document.getElementById('mainSidebar')
+  if (sidebar) {
+    const offcanvasInstance = bootstrap.Offcanvas.getOrCreateInstance(sidebar)
+    document.querySelectorAll('#mainSidebar .nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        // Solo cerrar si no es un treeview parent
+        if (!link.parentElement.classList.contains('has-treeview')) {
+          offcanvasInstance.hide()
+        }
+      })
+    })
+  }
 
   // Exportar librerías globales para usar en scripts embebidos (legacy support)
   window.TomSelect = TomSelect
@@ -89,6 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
   window.TempusDominus = TempusDominus
   window.Swal = Swal
   window.nxToggleTheme = (theme) => switchTheme(theme)
+
+  // Mostrar versión en console
+  console.log('%c🚀 Neurix POS v1.0', 'font-size: 16px; color: #0369a1; font-weight: bold;')
+  console.log('%cAdminLTE 4 + Bootstrap 5 + Vite', 'font-size: 12px; color: #38bdf8;')
 })
 
 // ═════════════════ TEMA GLOBAL ═════════════════
