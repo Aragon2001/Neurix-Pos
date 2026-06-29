@@ -19,8 +19,8 @@
     <!-- Bundle Vite: Bootstrap 5 + AdminLTE 4 + librerías modernas (sin jQuery) -->
     <script src="<?= base_url('themes/default/assets/dist/js/main.min.js'); ?>" defer></script>
 </head>
-<body>
-<div class="wrapper">
+<body class="layout-fixed">
+<div class="wrapper d-flex flex-column" style="min-height:100vh;">
 
 <!-- ═══════════════ NAVBAR (HEADER) ═══════════════ -->
 <nav class="main-header navbar navbar-expand-md navbar-dark bg-dark border-bottom border-secondary sticky-top">
@@ -402,26 +402,34 @@
     </div>
 </aside>
 
-<!-- ═══════════════ CONTENT WRAPPER ═══════════════ -->
-<div class="content-wrapper">
-    <section class="content-header">
-        <h1><?= $page_title; ?></h1>
-        <ol class="breadcrumb">
-            <li><a href="<?= site_url(); ?>"><i class="fa fa-tachometer"></i> <?= lang('home'); ?></a></li>
-            <?php foreach ($bc as $b): ?>
-                <?php if ($b['link'] === '#'): ?>
-                    <li class="active"><?= $b['page']; ?></li>
-                <?php else: ?>
-                    <li><a href="<?= $b['link']; ?>"><?= $b['page']; ?></a></li>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </ol>
-    </section>
+<!-- ═══════════════ MAIN CONTENT (AdminLTE 4) ═══════════════ -->
+<main class="content flex-grow-1">
+    <div class="container-fluid px-3 py-3">
 
-    <div class="col-lg-12 alerts" style="padding-top:10px;">
+        <!-- Page Header with Breadcrumb -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h3 mb-0"><?= $page_title; ?></h1>
+            </div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="<?= site_url(); ?>"><i class="fa fa-tachometer"></i> <?= lang('home'); ?></a></li>
+                    <?php foreach ($bc as $b): ?>
+                        <?php if ($b['link'] === '#'): ?>
+                            <li class="breadcrumb-item active" aria-current="page"><?= $b['page']; ?></li>
+                        <?php else: ?>
+                            <li class="breadcrumb-item"><a href="<?= $b['link']; ?>"><?= $b['page']; ?></a></li>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Alerts -->
         <div id="custom-alerts" style="display:none;">
-            <div class="alert alert-dismissable">
+            <div class="alert alert-dismissable fade show" role="alert">
                 <div class="custom-msg"></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </div>
         <?php if ($error || $warning || $message): ?>
@@ -432,5 +440,3 @@
         <?php if ($message): ?>window._nxAlerts.push({icon:'success',title:<?= json_encode(strip_tags($message)) ?>});<?php endif; ?>
         </script>
         <?php endif; ?>
-    </div>
-    <div class="clearfix"></div>
