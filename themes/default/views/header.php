@@ -16,9 +16,13 @@
         document.documentElement.setAttribute('data-theme', t); /* Compatibilidad Neurix */
     })();
     </script>
+    <!-- jQuery: necesario para AdminLTE treeview y plugins -->
+    <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
     <!-- Bundle Vite: Bootstrap 5 + AdminLTE 4 + librerías modernas -->
     <script src="<?= $assets ?>dist/js/main.min.js"></script>
     <link rel="stylesheet" href="<?= $assets ?>dist/css/www.min.css">
+    <!-- AdminLTE app.js: inicializar treeview y otros componentes -->
+    <script src="<?= $assets ?>dev/js/app.js"></script>
 </head>
 <body class="skin-blue fixed sidebar-mini">
 <div class="wrapper rtl rtl-inv">
