@@ -360,6 +360,7 @@
         <div class="<?= $Settings->theme_style == "purple" ? "content_wrapper_" . $Settings->theme_style : "content-wrapper" ?>">
 
 
+                <div class="table-responsive">
             <table style="width:100%;" class="layout-table">
                 <tr>
                     <td style="width: 460px;">
@@ -469,6 +470,7 @@
                                 <div id="print" class="fixed-table-container <?= "panel_" . $Settings->theme_style ?>">
                                     <div id="list-table-div">
                                         <div class="fixed-table-header">
+                <div class="table-responsive">
                                             <table class="table table-striped table-condensed table-hover list-table" style="margin:0;">
                                                 <thead>
                                                     <tr class="success">
@@ -485,7 +487,9 @@
                                                     </tr>
                                                 </thead>
                                             </table>
+                </div>
                                         </div>
+                <div class="table-responsive">
                                         <table id="posTable" class="table table-striped table-condensed table-hover list-table" style="margin:0px;" data-height="100">
                                             <thead>
                                                 <tr class="success">
@@ -506,10 +510,12 @@
                                             </thead>
                                             <tbody></tbody>
                                         </table>
+                </div>
                                     </div>
                                     <div style="clear:both;"></div>
 
                                     <div id="totaldiv">
+                <div class="table-responsive">
                                         <table id="totaltbl" class="table table-condensed totals" style="margin-bottom:10px;">
                                             <tbody>
                                                 <tr class="info">
@@ -537,6 +543,7 @@
                                                 </tr>
                                             </tbody>
                                         </table>
+                </div>
                                     </div>
                                 </div>
                                 <div id="botbuttons" class="col-12 text-center">
@@ -741,6 +748,7 @@
                                                 <button type="button" style="width: 100%; height: 34px; float: left; margin-top: 5px;" class="btn btn-info btn-block btn-flat agregatexto">Agregar otro
                                                     texto
                                                 </button>
+                <div class="table-responsive">
                                                 <table style="width: 100%">
                                                     <thead>
                                                         <tr style="background: #a3d2da;  font-size: 16px;  font-weight: bold;">
@@ -766,6 +774,7 @@
                                                         <?php } ?>
                                                     </tbody>
                                                 </table>
+                </div>
 
                                             </div>
                                         </div>
@@ -841,6 +850,7 @@
                     </td>
                 </tr>
             </table>
+                </div>
         </div>
     </div>
 
@@ -873,10 +883,13 @@
     <div class="control-sidebar-bg sb"></div>
 
     <div id="order_tbl" style="display:none;"><span id="order_span"></span>
+                <div class="table-responsive">
         <table id="order-table" class="prT table table-striped table-condensed" style="width:100%;margin-bottom:0;"></table>
     </div>
     <div id="bill_tbl" style="display:none;"><span id="bill_span"></span>
+                <div class="table-responsive">
         <table id="bill-table" width="100%" class="prT table table-striped table-condensed" style="width:100%;margin-bottom:0;"></table>
+                <div class="table-responsive">
         <table id="bill-total-table" width="100%" class="prT table table-striped table-condensed" style="width:100%;margin-bottom:0;"></table>
     </div>
     <div style="width:500px;background:#FFF;display:block">
@@ -956,6 +969,7 @@
                     <input type="hidden" id="ctaselected">
                     <div class="content" style="padding: 0;">
                         <div class="tableFixHead col-lg-5 col-md-5 col-sm-5" style="padding: 0;min-height: 250px;max-height: 250px; ">
+                <div class="table-responsive">
                             <table class="col-md-12" id="tblReceivable">
                                 <thead>
                                     <tr>
@@ -965,6 +979,7 @@
                                 </thead>
                                 <tbody id="artDiv"></tbody>
                             </table>
+                </div>
                         </div>
                         <div class="col-lg-7 col-md-7 col-sm-7 tableFixHead" style="padding: 0;min-height: 250px;max-height: 250px; " id="divCuentas">
 
@@ -1115,6 +1130,7 @@
                     </h4>
                 </div>
                 <div class="modal-body">
+                <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <tr>
                             <th style="width:25%;"><?= lang('net_price'); ?></th>
@@ -1123,6 +1139,7 @@
                             <th style="width:25%;"><span id="pro_tax"></span> <span id="pro_tax_method"></span></th>
                         </tr>
                     </table>
+                </div>
                     <input type="hidden" id="row_id" />
                     <input type="hidden" id="item_id" />
                     <input type="hidden" id="cf" />
@@ -1357,6 +1374,7 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="font16">
+                <div class="table-responsive">
                                 <table class="table table-bordered table-condensed" style="width:100%; margin-bottom: 0; font-size:40px;">
                                     <tbody>
                                         <tr>
@@ -1475,6 +1493,7 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                </div>
                                 <div class="clearfix"></div>
                             </div>
                             <div class="row" style="display:none;">

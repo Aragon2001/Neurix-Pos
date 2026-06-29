@@ -9,6 +9,7 @@
         </div>
         <?= form_open("pos/close_register/" . $user_id); ?>
         <div class="modal-body">
+                <div class="table-responsive">
             <table width="100%" class="stable">
                 <tr>
                     <td style="border-bottom: 1px solid #EEE;"><h4><?= lang('cash_in_hand'); ?>:</h4></td>
@@ -81,6 +82,7 @@
                         </h4></td>
                 </tr>
             </table>
+                </div>
 
 
                 <?php
@@ -203,6 +205,5 @@ if ($Settings->remote_printing == 2) {
 ?>
 <script type="text/javascript">
     $(document).ready(function() {
-        $(".select2").select2({minimumResultsForSearch:6});
     });
 </script>

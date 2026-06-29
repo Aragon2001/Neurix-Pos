@@ -99,6 +99,7 @@
                 </div>
                 <div class="box-body">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="SLData" class="table table-striped table-bordered table-condensed table-hover">
                             <thead>
                             <tr class="active">
@@ -136,6 +137,7 @@
                             </tr>
                             </tfoot>
                         </table>
+                </div>
                     </div>
                     <div class="clearfix"></div>
                 </div>
@@ -157,7 +159,7 @@
                     <div class="mb-3">
                         <?= lang('status', 'status'); ?>
                         <?php $opts = array('paid' => lang('paid'), 'partial' => lang('partial'), 'due' => lang('due'))  ?>
-                        <?= form_dropdown('status', $opts, set_value('status'), 'class="form-control select2 tip" id="status" required="required" style="width:100%;"'); ?>
+                        <?= form_dropdown('status', $opts, set_value('status'), 'class="form-control tom-select tip" id="status" required="required" style="width:100%;"'); ?>
                     </div>
                 </div>
                 <div class="modal-footer">

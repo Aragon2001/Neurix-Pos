@@ -142,6 +142,7 @@ if ($this->input->post('end_date')) {
                     <div class="row">
                         <div class="col-12">
                             <div class="table-responsive">
+                <div class="table-responsive">
                                 <table id="PrRData" class="table table-striped table-bordered table-hover" style="margin-bottom:5px;">
                                     <thead>
                                         <tr class="active">
@@ -170,6 +171,7 @@ if ($this->input->post('end_date')) {
                                         </tr>
                                     </tfoot>
                                 </table>
+                </div>
                             </div>
                         </div>
                     </div>

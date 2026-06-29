@@ -29,7 +29,7 @@
 			font-size: 15px;
 			vertical-align: middle;
 		}
-		.select2-container { width: 100%; }
+		.ts-control { width: 100%; }
 	</style>
 <section class="content">
     <div class="row">
@@ -194,11 +194,13 @@
 								<tbody></tbody>
 								<tfoot></tfoot>
 							</table>
+                </div>
 						</div>
 					</div>
 				</div>
 				<div class="col-md-12">
 						<div class="table-responsive">
+                <div class="table-responsive">
 								<table style="width: 100%">
 									<tr>
 										<td rowspan="14" style="padding: 0; margin: 0; border: 1px solid #9c9c9c;">
@@ -358,6 +360,7 @@
 									</tr>
 		
 								</table>
+                </div>
 								<input name="TotalServGravados" id="inp_TotalServGravados" type="hidden"/>
 								<input name="TotalServExentos" id="inp_TotalServExentos" type="hidden"/>
 								<input name="TotalServExonerado" id="inp_TotalServExonerado" type="hidden"/>
@@ -602,6 +605,7 @@
 									<input type="text" class="form-control" id="pprice" required>
 								</div>
 							</div>
+                <div class="table-responsive">
 							<table class="table table-bordered table-striped">
 								<tr>
 									<th style="width:25%;">Precio Neto</th>
@@ -611,6 +615,7 @@
 	
 								</tr>
 							</table>
+                </div>
 							<input type="hidden" id="punit_price" value=""/>
 							<input type="hidden" id="old_tax" value=""/>
 							<input type="hidden" id="old_qty" value=""/>
@@ -726,6 +731,7 @@
 									<input type="text" class="form-control" id="mprice" value="" required>
 								</div>
 							</div>
+                <div class="table-responsive">
 							<table class="table table-bordered table-striped">
 								<tbody>
 								<tr>
@@ -736,6 +742,7 @@
 								</tr>
 								</tbody>
 							</table>
+                </div>
 						</form>
 					</div>
 					<div class="modal-footer">

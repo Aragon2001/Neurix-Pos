@@ -7,12 +7,14 @@
           <h3 class="box-title">Notas de Débito Electrónicas</h3>
         </div>
         <div class="box-body">
+                <div class="table-responsive">
           <table id="nd_table" class="table table-bordered table-striped">
             <thead><tr>
               <th>ID</th><th>Fecha</th><th>Cliente</th><th>Total</th><th>Razón</th><th>Estado Hacienda</th><th>Consecutivo</th><th>XMLs</th><th>Acciones</th>
             </tr></thead>
             <tbody></tbody>
           </table>
+                </div>
         </div>
       </div>
     </div>

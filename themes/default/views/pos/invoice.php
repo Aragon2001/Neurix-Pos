@@ -50,6 +50,7 @@
                 <div class="date">Fecha: <?= $inv->date ?></div>
             </div>
         </div>
+                <div class="table-responsive">
         <table border="0" cellspacing="0" cellpadding="0">
             <thead>
                 <tr>
@@ -106,6 +107,7 @@
                 </tr>
             </tfoot>
         </table>
+                </div>
         <div class="text-center" >Gravado (G) , Exento (E)</div>
         <div id="thanks">Gracias por su compra!</div>
 

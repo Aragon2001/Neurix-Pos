@@ -107,6 +107,7 @@
                 </div>
                 <div class="box-body">
                         <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="fileData" class="table table-striped table-bordered table-hover" style="margin-bottom:5px;">
                             <thead>
                             <tr class="active">
@@ -131,6 +132,7 @@
                             </tr>
                             </tbody>
                         </table>
+                </div>
                         </div>
 
                         <div class="modal fade" id="picModal" tabindex="-1" role="dialog" aria-labelledby="picModalLabel" aria-hidden="true">

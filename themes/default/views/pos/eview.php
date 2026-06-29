@@ -86,6 +86,7 @@ if ($modal) {
                                     <?= lang("date").': '.$this->tec->hrld($inv->date); ?> <br>
                                 </p>
                                 <div style="clear:both;"></div>
+                <div class="table-responsive">
                                 <table class="table table-striped table-condensed">
                                     <tbody>
                                         <?php
@@ -146,6 +147,7 @@ if ($modal) {
                                         <?php } ?>
                                     </tfoot>
                                 </table>
+                </div>
                                 <?php
                                 if ($payments) {
                                     echo '<table class="table table-striped table-condensed" style="margin-top:10px;"><tbody>';

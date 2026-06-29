@@ -149,6 +149,7 @@
             </div>
             <div class="box-body">
                 <div class="table-responsive">
+                <div class="table-responsive">
                     <table id="prTables" class="table table-striped table-bordered table-hover" style="margin-bottom:5px;">
                         <thead>
 
@@ -191,7 +192,7 @@
                                 <th class="col-1"><input type="text" class="text_filter" placeholder="[<?= lang('quantity'); ?>]"></th>
                                 <th class="col-1"><input type="text" class="text_filter" placeholder="[<?= lang('tax'); ?>]"></th>
                                 <th class="col-1">
-                                    <select class="select2 select_filter"><option value=""><?= lang("all"); ?></option><option value="0"><?= lang("inclusive"); ?></option><option value="1"><?= lang("exclusive"); ?></option></select>
+                                    <select class="tom-select select_filter"><option value=""><?= lang("all"); ?></option><option value="0"><?= lang("inclusive"); ?></option><option value="1"><?= lang("exclusive"); ?></option></select>
                                 </th>
                                 <?php if ($Admin) { ?>
                                 <th class="col-1"><?= lang("cost"); ?></th>
@@ -201,6 +202,7 @@
                             </tr>
                         </tfoot>
                     </table>
+                </div>
                 </div>
 
                 <div class="modal fade" id="picModal" tabindex="-1" role="dialog" aria-labelledby="picModalLabel" aria-hidden="true">

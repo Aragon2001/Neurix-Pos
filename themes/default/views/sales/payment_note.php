@@ -88,6 +88,7 @@
                 </div>
             </div>
             <div class="card">
+                <div class="table-responsive">
                 <table class="table table-borderless" style="margin-bottom:0;">
                     <tbody>
                     <tr>
@@ -113,6 +114,7 @@
                     </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
             <div style="clear: both;"></div>
             <div class="row">

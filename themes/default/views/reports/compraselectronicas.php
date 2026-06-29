@@ -280,6 +280,7 @@ if ($this->input->post('end_date')) {
                                     </tr>
                                     </tfoot>
                                 </table>
+                </div>
                             </div>
                         </div>
                     </div>

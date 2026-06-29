@@ -75,6 +75,7 @@
                 </div>
                 <div class="box-body">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="expData" class="table table-bordered table-hover table-striped">
                             <thead>
                                 <tr class="active">
@@ -109,6 +110,7 @@
                                 </tr>
                             </tfoot>
                         </table>
+                </div>
                     </div>
                     <div class="clearfix"></div>
                 </div>

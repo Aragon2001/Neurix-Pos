@@ -170,6 +170,7 @@ if ($this->input->post('end_date')) {
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="table-responsive">
+                <div class="table-responsive">
                                 <table id="SLRData" class="table table-striped table-bordered table-condensed table-hover">
                                     <thead>
                                         <tr class="active">
@@ -202,7 +203,7 @@ if ($this->input->post('end_date')) {
                                             <th class="col-sm-1"><?= lang("paid"); ?></th>
                                             <th class="col-sm-1"><?= lang("balance"); ?></th>
                                             <th class="col-sm-1">
-                                                <select class="select2 select_filter"><option value=""><?= lang("all"); ?></option><option value="paid"><?= lang("paid"); ?></option><option value="partial"><?= lang("partial"); ?></option><option value="due"><?= lang("due"); ?></option></select>
+                                                <select class="tom-select select_filter"><option value=""><?= lang("all"); ?></option><option value="paid"><?= lang("paid"); ?></option><option value="partial"><?= lang("partial"); ?></option><option value="due"><?= lang("due"); ?></option></select>
                                             </th>
                                         </tr>
                                         <tr>
@@ -210,6 +211,7 @@ if ($this->input->post('end_date')) {
                                         </tr>
                                     </tfoot>
                                 </table>
+                </div>
                             </div>
                         </div>
                     </div>

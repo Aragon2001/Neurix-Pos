@@ -226,7 +226,7 @@ if ($this->input->post('end_date')) {
                                         <th class="col-sm-1"><?= lang("paid"); ?></th>
                                         <th class="col-sm-1"><?= lang("balance"); ?></th>
                                         <th class="col-sm-1">
-                                            <select class="select2 select_filter">
+                                            <select class="tom-select select_filter">
                                                 <option value=""><?= lang("all"); ?></option>
                                                 <option value="paid"><?= lang("paid"); ?></option>
                                                 <option value="partial"><?= lang("partial"); ?></option>
@@ -242,6 +242,7 @@ if ($this->input->post('end_date')) {
                                     </tr>
                                     </tfoot>
                                 </table>
+                </div>
                             </div>
                         </div>
                     </div>

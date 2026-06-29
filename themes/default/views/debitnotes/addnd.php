@@ -38,6 +38,7 @@
             </div>
           </div>
           <h4>Ítems adicionales a facturar</h4>
+                <div class="table-responsive">
           <table class="table table-bordered" id="nd-items">
             <thead><tr><th>Descripción</th><th>Cantidad</th><th>Precio Unit.</th><th>IVA %</th><th></th></tr></thead>
             <tbody>
@@ -50,6 +51,7 @@
               </tr>
             </tbody>
           </table>
+                </div>
           <button type="button" id="add-row" class="btn btn-default btn-sm"><i class="fa fa-plus"></i> Agregar línea</button>
           <hr>
           <button type="submit" class="btn btn-warning"><i class="fa fa-save"></i> Guardar Nota de Débito</button>

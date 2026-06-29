@@ -129,6 +129,7 @@ if ($modal) {
                                 <br>
                             </p>
                             <div style="clear:both;"></div>
+                <div class="table-responsive">
                             <table class="table table-striped table-condensed">
                                 <thead>
                                 <tr>
@@ -214,6 +215,7 @@ if ($modal) {
                                   ?>
                                 </tfoot>
                             </table>
+                </div>
 
                             <hr style="border-top: 1px solid #b1b1b1 !important; "/>
                             <p style="font-size: 14px !important;">

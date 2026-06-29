@@ -16,6 +16,7 @@
                 </div>
                 <div class="col-8">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table class="table table-borderless table-striped dfTable table-right-left">
                             <tbody>
                                 <tr>
@@ -59,6 +60,7 @@
                                 <?php } ?>
                             </tbody>
                         </table>
+                </div>
                     </div>
 
                     <?php if ($product->type == 'combo') { ?>
@@ -78,6 +80,7 @@
                             } ?>
                         </tbody>
                     </table>
+                </div>
                 </div>
                 <?php } ?>
             </div>

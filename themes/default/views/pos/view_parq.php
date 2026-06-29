@@ -127,6 +127,7 @@ if ($modal) {
                                 <br>
                             </p>
                             <div style="clear:both;"></div>
+                <div class="table-responsive">
                             <table class="table table-striped table-condensed">
                                 <thead>
                                 <tr>
@@ -148,6 +149,7 @@ if ($modal) {
                                 </tbody>
                                 
                             </table>
+                </div>
                            
 
                             <p style="margin-top:10px; text-align: center;">No pierda su ticket de estacionamiento</p>

@@ -104,6 +104,7 @@
                 </div>
                 <div class="box-body">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="SLData" class="table table-striped table-bordered table-condensed table-hover">
                             <thead>
                             <tr class="active">
@@ -125,7 +126,7 @@
                                 <th class="col-2"><?= lang("name"); ?></th>
                                 <th class="col-2"><?= lang("user"); ?></th>
                                 <th class="col-sm-1">
-                                    <select class="select2 select_filter">
+                                    <select class="tom-select select_filter">
                                         <option value="0">Activado</option>
                                         <option value="1">Desactivado</option>
                                     </select></th>
@@ -137,6 +138,7 @@
                             </tr>
                             </tfoot>
                         </table>
+                </div>
                     </div>
                     <div class="clearfix"></div>
                 </div>

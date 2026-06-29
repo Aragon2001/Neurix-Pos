@@ -14,6 +14,7 @@
                 <div class="col-md-12">
                 <div class="card" style="margin-bottom:0;">
                         <div class="table-responsive">
+                <div class="table-responsive">
                             <table class="table table-borderless" style="margin-bottom:0;">
                                 <tbody>
                                     <tr>
@@ -34,6 +35,7 @@
                                     </tr>
                                 </tbody>
                             </table>
+                </div>
                         </div>
                     </div>
                 </div>

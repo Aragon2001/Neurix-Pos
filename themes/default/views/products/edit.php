@@ -74,7 +74,7 @@
                                         $cat[$category->id] = $category->name;
                                     }
                                     ?>
-                                    <?= form_dropdown('category', $cat, $product->category_id, 'class="form-control select2 tip" id="category"  required="required"'); ?>
+                                    <?= form_dropdown('category', $cat, $product->category_id, 'class="form-control tom-select tip" id="category"  required="required"'); ?>
                                 </div>
 
                                 <div class="mb-3 st">
@@ -220,6 +220,7 @@
                                                 <tbody></tbody>
                                                 <tfoot></tfoot>
                                             </table>
+                </div>
                                         </div>
                                     </div>
                                 </div>
@@ -314,6 +315,7 @@
                                         });
                                     </script>
 
+                <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <thead>
                                         <tr>
@@ -333,6 +335,7 @@
 										<?php }?>
                                         </tbody>
                                     </table>
+                </div>
                                     <button type="button" class="delete-row btn btn-warning">Eliminar Seccion</button>
                                 </div>
                             </div>
@@ -341,6 +344,7 @@
                         <div class="box box-info" style="margin:20px 0;">
                             <div class="box-header"><h4 class="box-title"><i class="fa fa-dollar"></i> Configure los Precios</h4></div>
                             <div class="box-body table-responsive">
+                <div class="table-responsive">
                             <table class="table table-bordered table-striped" style="width:100%">
                                 <thead>
                                     <tr>
@@ -391,6 +395,7 @@
                                     <?php endif; ?>
                                 </tbody>
                             </table>
+                </div>
                             </div>
                         </div>
                         <?php endif; ?>

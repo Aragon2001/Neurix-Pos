@@ -99,6 +99,7 @@
                                                 </div>
                                             </div>
                                             <div class="table-responsive saltopagina">
+                <div class="table-responsive">
                                                 <table class="table invoice-items">
                                                     <thead>
                                                     <tr class="h4 text-dark">
@@ -130,6 +131,7 @@
 
                                                     </tbody>
                                                 </table>
+                </div>
                                             </div>
 
                                             <div class="invoice-summary">
@@ -140,6 +142,7 @@
                                                         </div>
                                                         <div class="col-sm-4"
                                                              style="position: relative; min-height: 1px; padding-right: 8px; padding-left: 0px;">
+                <div class="table-responsive">
                                                             <table class="table h5 text-dark">
                                                                 <tbody>
                                                                 <tr class="b-top-none">
@@ -200,6 +203,7 @@
 
                                                                 </tbody>
                                                             </table>
+                </div>
                                                         </div>
                                                     </div>
                                                 </div>

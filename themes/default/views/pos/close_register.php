@@ -86,6 +86,7 @@
 
             </div>
             <div  id="imprimeesto" class="col-md-12" style="max-height: 400px; overflow-y: scroll; <?php if ($Settings->enable_detail_register == "0") { ?> display: none; visibility: hidden; <?php } ?>">
+                <div class="table-responsive">
                 <table style='margin: 0 auto;' >
 
                     <tr>
@@ -482,6 +483,7 @@
                     </tr>
 
                 </table>
+                </div>
             </div>
 
             <div class="modal-footer">
@@ -550,7 +552,7 @@ if ($Settings->remote_printing == 2) {
 ?>
 <script type="text/javascript">
     $(document).ready(function () {
-        $(".select2")new TomSelect(this, {minItems: 6});
+        document.querySelectorAll(".tom-select").forEach(el => new TomSelect(this, {minItems: 6});
     });
 
     $('.imprimeweb').on('click', function () {

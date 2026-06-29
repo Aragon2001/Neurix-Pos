@@ -167,6 +167,7 @@ if ($this->input->post('end_date')) {
                                     </tbody>
       
                                 </table>
+                </div>
                             </div>
                         </div>
                     </div>

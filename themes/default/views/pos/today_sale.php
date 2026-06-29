@@ -8,6 +8,7 @@
             <h4 class="modal-title" id="myModalLabel"><?= lang('today_sale').' ('.date($Settings->dateformat).')'; ?></h4>
         </div>
         <div class="modal-body">
+                <div class="table-responsive">
             <table width="100%" class="stable">
                 <tr>
                     <td style="border-bottom: 1px solid #008d4c;"><h4><?= lang('cash_sale'); ?>:</h4></td>
@@ -58,6 +59,7 @@
                 </tr>
 
             </table>
+                </div>
         </div>
     </div>
 

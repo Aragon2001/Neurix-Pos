@@ -35,6 +35,7 @@
             </div>
           </div>
           <hr>
+                <div class="table-responsive">
           <table class="table table-bordered table-condensed">
             <thead><tr><th>Descripción</th><th>Cant.</th><th>Precio Unit.</th><th>IVA</th><th>Total</th></tr></thead>
             <tbody>
@@ -49,6 +50,7 @@
               <?php endforeach; ?>
             </tbody>
           </table>
+                </div>
 
           <?php if ($hacienda): ?>
           <div class="btn-group">

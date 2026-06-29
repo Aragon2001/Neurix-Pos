@@ -20,6 +20,7 @@
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
                 </div>
                 <div class="box-body">
+                <div class="table-responsive">
                     <table id="UTable" class="table table-bordered table-striped table-hover">
                         <thead class="cf">
                         <tr>
@@ -49,6 +50,7 @@
                         ?>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
         </div>

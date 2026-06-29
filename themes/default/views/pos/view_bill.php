@@ -100,6 +100,7 @@
 <div class="wrap">
     <div class="bill" id="bill">
         <div id="product-list">
+                <div class="table-responsive">
             <table style="margin-bottom: 0;" id="billTable" class="table table-striped table-condensed">
                 <thead>
                 <tr>
@@ -111,8 +112,10 @@
                 </thead>
                 <tbody></tbody>
             </table>
+                </div>
         </div>
         <div id="totals">
+                <div class="table-responsive">
             <table style="width:100%; float:right; padding:5px; color:#000; background: #FFF;" id="totalTable">
                 <tbody>
                 <tr>
@@ -142,6 +145,7 @@
                 </tr>
                 </tbody>
             </table>
+                </div>
             <div class="clearfix"></div>
         </div>
     </div>

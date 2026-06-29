@@ -30,6 +30,7 @@
                                     <?php if($mmm){ ?>
                                     <input type="hidden" name='ajuste' value='1' />
                                     <?php } ?> 
+                <div class="table-responsive">
                                     <table id="poTableFast" class="table table-striped table-bordered">
                                         <thead>
                                         <tr class="active">
@@ -45,6 +46,7 @@
                                         
                                         </tfoot>
                                     </table>
+                </div>
                                     <?= form_close(); ?>
                                 </div>
                             </div>

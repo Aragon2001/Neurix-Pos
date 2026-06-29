@@ -143,6 +143,7 @@ if ($this->input->post('end_date')) {
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="table-responsive">
+                <div class="table-responsive">
                                 <table id="SLRData" class="table table-striped table-bordered table-condensed table-hover">
                                     <thead>
                                         <tr>
@@ -183,6 +184,7 @@ if ($this->input->post('end_date')) {
                                         </tr>
                                     </tfoot>
                                 </table>
+                </div>
                             </div>
                         </div>
                     </div>

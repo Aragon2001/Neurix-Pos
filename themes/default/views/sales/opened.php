@@ -68,6 +68,7 @@
                 </div>
                 <div class="box-body">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="OBData" class="table table-striped table-bordered table-condensed table-hover" style="margin-bottom:5px;">
                             <thead>
                                 <tr class="active">
@@ -100,6 +101,7 @@
                                 </tr>
                             </tfoot>
                         </table>
+                </div>
                     </div>
                     <div class="clearfix"></div>
                 </div>

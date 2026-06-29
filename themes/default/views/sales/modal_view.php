@@ -35,6 +35,7 @@
                         <?= lang("sales_person").': '. $created_by->first_name." ".$created_by->last_name; ?> <br>
                     </p>
                     <div style="clear:both;"></div>
+                <div class="table-responsive">
                     <table class="table table-striped table-condensed">
                         <thead>
                             <tr>
@@ -103,6 +104,7 @@
                             <?php } ?>
                         </tfoot>
                     </table>
+                </div>
                     <?php
                     if ($payments) {
                         echo '<table class="table table-striped table-condensed" style="margin-top:10px;"><tbody>';

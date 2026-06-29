@@ -13,6 +13,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table class="table table-bordered">
                             <tbody>
                                 <tr>
@@ -43,7 +44,9 @@
                                 ?>
                             </tbody>
                         </table>
+                </div>
                         <div class="table-responsive">
+                <div class="table-responsive">
                             <table class="table table-striped table-bordered" style="margin-bottom:0;">
                                 <thead>
                                     <tr class="active">
@@ -76,6 +79,7 @@
                                     </tr>
                                 </thead>
                             </table>
+                </div>
                         </div>
                     </div>
                 </div>

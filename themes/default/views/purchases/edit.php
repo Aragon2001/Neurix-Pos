@@ -31,6 +31,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="table-responsive">
+                <div class="table-responsive">
                                     <table id="poTable" class="table table-striped table-bordered">
                                         <thead>
                                             <tr class="active">
@@ -52,6 +53,7 @@
                                             </tr>
                                         </tfoot>
                                     </table>
+                </div>
                                 </div>
                             </div>
                         </div>
@@ -65,14 +67,14 @@
                                         $sp[$supplier->id] = $supplier->name;
                                     }
                                     ?>
-                                    <?= form_dropdown('supplier', $sp, set_value('supplier', $purchase->supplier_id), 'class="form-control select2 tip" id="supplier"  required="required" style="width:100%;"'); ?>
+                                    <?= form_dropdown('supplier', $sp, set_value('supplier', $purchase->supplier_id), 'class="form-control tom-select tip" id="supplier"  required="required" style="width:100%;"'); ?>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <?= lang('received', 'received'); ?>
                                     <?php $sts = array(1 => lang('received'), 0 => lang('not_received_yet')); ?>
-                                    <?= form_dropdown('received', $sts, set_value('received', $purchase->received), 'class="form-control select2 tip" id="received"  required="required" style="width:100%;"'); ?>
+                                    <?= form_dropdown('received', $sts, set_value('received', $purchase->received), 'class="form-control tom-select tip" id="received"  required="required" style="width:100%;"'); ?>
                                 </div>
                             </div>
                         </div>

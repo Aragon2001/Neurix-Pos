@@ -60,3 +60,6 @@ desktop.ini
 node_modules/
 .npm
 dist/
+!themes/default/assets/dist/
+!themes/default/assets/dist/**/*.css
+!themes/default/assets/dist/**/*.js

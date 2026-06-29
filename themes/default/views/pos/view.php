@@ -149,6 +149,7 @@ if ($modal) {
                                 <br>
                             </p>
                             <div style="clear:both;"></div>
+                <div class="table-responsive">
                             <table class="table table-striped table-condensed">
                                 <thead>
                                 <tr>
@@ -266,6 +267,7 @@ if ($modal) {
                                 <?php } ?>
                                 </tfoot>
                             </table>
+                </div>
                             <?php
                             //print_r($payments);
                             if ($payments) {

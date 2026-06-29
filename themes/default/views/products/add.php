@@ -80,7 +80,7 @@
                                         $cat[$category->id] = $category->name;
                                     }
                                     ?>
-                                    <?= form_dropdown('category', $cat, set_value('category'), 'class="form-control select2 tip" id = "category"  required = "required" style = "width:100%;"'); ?>
+                                    <?= form_dropdown('category', $cat, set_value('category'), 'class="form-control tom-select tip" id = "category"  required = "required" style = "width:100%;"'); ?>
                                 </div>
 
                                 <div class="mb-3 st">
@@ -180,6 +180,7 @@
                                         <label class="table-label" for="combo"><?= lang("combo_products"); ?></label>
 
                                         <div class="controls table-controls">
+                <div class="table-responsive">
                                             <table id="prTable" class="table items table-striped table-bordered table-condensed table-hover">
                                                 <thead>
                                                     <tr>
@@ -190,6 +191,7 @@
                                                 </thead>
                                                 <tbody></tbody>
                                             </table>
+                </div>
                                         </div>
                                     </div>
                                 </div>
@@ -268,6 +270,7 @@
                                         });
                                     </script>
 
+                <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
@@ -279,6 +282,7 @@
                                         <tbody id="tbodyubicacion">
                                         </tbody>
                                     </table>
+                </div>
                                     <button type="button" class="delete-row btn btn-warning">Eliminar Seccion</button>
                                 </div>
                             </div>
@@ -289,6 +293,7 @@
                                 <h3 class="box-title"><i class="fa fa-dollar" style="color:var(--nx-a3);margin-right:6px;"></i>Lista de Precios</h3>
                             </div>
                             <div class="box-body" style="padding:0;">
+                <div class="table-responsive">
                             <table class="table table-bordered" style="margin:0;">
                                 <thead>
                                     <tr>
@@ -314,6 +319,7 @@
                                     <?php endforeach; endif; ?>
                                 </tbody>
                             </table>
+                </div>
                             </div>
                         </div>
                         <?php }?>

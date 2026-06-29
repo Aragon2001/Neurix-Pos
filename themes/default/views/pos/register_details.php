@@ -8,6 +8,7 @@
             <h4 class="modal-title" id="myModalLabel"><?= lang('register_details').' ('.lang('opened_at').': '.$this->tec->hrld($this->session->userdata('register_open_time')).')'; ?></h4>
         </div>
         <div class="modal-body">
+                <div class="table-responsive">
             <table width="100%" class="stable">
                 <tr>
                     <td style="border-bottom: 1px solid #EEE;"><h4><?= lang('cash_in_hand'); ?>:</h4></td>
@@ -78,6 +79,7 @@
                         </h4></td>
                 </tr>
             </table>
+                </div>
         </div>
     </div>
 

@@ -29,6 +29,7 @@
                 </div>
                 <div class="box-body">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="StData" class="table table-bordered table-hover table-striped">
                             <thead>
                                 <tr>
@@ -44,6 +45,7 @@
                             </tbody>
 
                         </table>
+                </div>
                     </div>
                     <div class="clearfix"></div>
                 </div>

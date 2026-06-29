@@ -38,7 +38,7 @@
                                         if (@$documento->Estatus != "0" and $documento->Estatus != null) {
                                             echo 'disabled="disabled"';
                                         }
-                                        ?> name='Mensaje' rows='5' required class='select2 '>
+                                        ?> name='Mensaje' rows='5' required class='tom-select '>
                                             <?php
                                             foreach ($Mensaje_opt as $key => $val) {
                                                 echo "<option  value ='$key' " . (@$documento->Mensaje == $key ? " selected='selected' " : '') . ">$val</option>";
@@ -64,7 +64,7 @@
                                         if (@$documento->Estatus != "0" and $documento->Estatus != null) {
                                             echo 'disabled="disabled"';
                                         }
-                                        ?> name='CondicionImpuesto' rows='5'  class='select2 '>
+                                        ?> name='CondicionImpuesto' rows='5'  class='tom-select '>
                                             <?php
                                             foreach ($condicion_opt as $key => $val) {
                                                 echo "<option  value ='$key' " . (@$documento->Mensaje == $key ? " selected='selected' " : '') . ">$val</option>";

@@ -118,6 +118,7 @@
                 </div>
                 <div class="box-body">
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="SLData" class="table table-striped table-bordered table-condensed table-hover">
                             <thead>
                             <tr class="active">
@@ -151,9 +152,9 @@
                                 <th class="col-sm-1"><?= lang("discount"); ?></th>
                                 <th class="col-sm-2"><?= lang("grand_total"); ?></th>
                                 <th class="col-sm-1"><?= lang("paid"); ?></th>
-                                <th class="col-sm-1"><select class="select2 select_filter"><option value=""><?= lang("all"); ?></option><option value="paid"><?= lang("paid"); ?></option><option value="partial"><?= lang("partial"); ?></option><option value="due"><?= lang("due"); ?></option></select></th>
+                                <th class="col-sm-1"><select class="tom-select select_filter"><option value=""><?= lang("all"); ?></option><option value="paid"><?= lang("paid"); ?></option><option value="partial"><?= lang("partial"); ?></option><option value="due"><?= lang("due"); ?></option></select></th>
                                 <th class="col-sm-1">
-                                    <select class="select2 select_filter">
+                                    <select class="tom-select select_filter">
                                         <option value=""><?= lang("all"); ?></option>
                                         <option value="aceptado"><?= lang("Aceptado"); ?></option>
                                         <option value="recibido"><?= lang("Recibido"); ?></option>
@@ -170,6 +171,7 @@
                             </tr>
                             </tfoot>
                         </table>
+                </div>
                     </div>
                     <div class="clearfix"></div>
                 </div>
@@ -191,7 +193,7 @@
                     <div class="mb-3">
                         <?= lang('status', 'status'); ?>
                         <?php $opts = array('paid' => lang('paid'), 'partial' => lang('partial'), 'due' => lang('due'))  ?>
-                        <?= form_dropdown('status', $opts, set_value('status'), 'class="form-control select2 tip" id="status" required="required" style="width:100%;"'); ?>
+                        <?= form_dropdown('status', $opts, set_value('status'), 'class="form-control tom-select tip" id="status" required="required" style="width:100%;"'); ?>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -648,6 +648,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                     Resumen de stock <span style="color:var(--nx-err);"><?= $lowCnt > 0 ? "· $lowCnt bajo alerta" : ''; ?></span>
                 </div>
                 <?php if (!empty($low_stock)): ?>
+                <div class="table-responsive">
                 <table class="nx-tbl" style="font-size:11.5px;">
                     <thead><tr><th>Producto</th><th>Stock</th><th>Mín</th></tr></thead>
                     <tbody>
@@ -660,6 +661,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                     <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
                 <?php else: ?>
                 <div style="padding:20px;text-align:center;color:#4ade80;font-size:13px;">
                     <i class="fa fa-check-circle" style="font-size:22px;display:block;margin-bottom:6px;"></i>
@@ -668,6 +670,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                 <?php endif; ?>
                 <!-- Desglose por tasa IVA -->
                 <?php if (!empty($inv_by_tax)): ?>
+                <div class="table-responsive">
                 <table class="nx-tbl" style="margin-top:10px;font-size:11px;">
                     <thead><tr><th>Tasa</th><th>Costo</th><th>Precio</th></tr></thead>
                     <tbody>
@@ -680,6 +683,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                     <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -736,6 +740,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="box-body" style="padding:8px 14px 4px !important;">
                 <div id="nx-pay-donut" style="min-height:240px;"></div>
                 <?php if (!empty($pay_methods)): ?>
+                <div class="table-responsive">
                 <table class="nx-tbl" style="margin-top:6px;">
                     <?php
                     $pmMap = ['cash'=>'Efectivo','cc'=>'Tarjeta','cheque'=>'Cheque','gift_card'=>'Gift Card','stripe'=>'Stripe','other'=>'Otro'];
@@ -748,6 +753,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                     </tr>
                     <?php endforeach; ?>
                 </table>
+                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -762,6 +768,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             </div>
             <div class="box-body" style="padding:0 !important;overflow:hidden;">
                 <?php if (!empty($top_customers)): ?>
+                <div class="table-responsive">
                 <table class="nx-tbl">
                     <thead><tr><th>#</th><th>Cliente</th><th style="text-align:right;">Total</th></tr></thead>
                     <tbody>
@@ -777,6 +784,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                     <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
                 <?php else: ?>
                 <p style="padding:20px;text-align:center;color:var(--nx-txt3);">Sin datos</p>
                 <?php endif; ?>
@@ -795,6 +803,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                 </div>
             </div>
             <div class="box-body" style="padding:0 !important;overflow:hidden;">
+                <div class="table-responsive">
                 <table class="nx-tbl">
                     <thead><tr><th>#</th><th>Cliente</th><th style="text-align:right;">Total</th><th>Estado</th><th>FE</th></tr></thead>
                     <tbody>
@@ -826,6 +835,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                     <?php endif; ?>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

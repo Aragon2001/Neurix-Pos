@@ -208,6 +208,7 @@ if ($this->input->post('end_date')) {
                     <div class="clearfix"></div>
 
                     <div class="table-responsive">
+                <div class="table-responsive">
                         <table id="PayRData" class="table table-bordered table-hover table-striped table-condensed reports-table">
                             <thead>
                                 <tr>
@@ -238,6 +239,7 @@ if ($this->input->post('end_date')) {
                                 </tr>
                             </tfoot>
                         </table>
+                </div>
                     </div>
                     <?php if ($this->input->post('customer')) { ?>
                     <div class="row">
