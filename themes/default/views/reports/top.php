@@ -29,7 +29,7 @@
                     dataLabels: {
                         enabled: true,
                         rotation: -90,
-                        color: '#000',
+                        color: '#f1f5f9',
                         align: 'right',
                         y: -25,
                         style: {fontSize: '12px'}
@@ -61,7 +61,7 @@
                     dataLabels: {
                         enabled: true,
                         rotation: -90,
-                        color: '#000',
+                        color: '#f1f5f9',
                         align: 'right',
                         y: -25,
                         style: {fontSize: '12px'}
@@ -93,7 +93,7 @@
                     dataLabels: {
                         enabled: true,
                         rotation: -90,
-                        color: '#000',
+                        color: '#f1f5f9',
                         align: 'right',
                         y: -25,
                         style: {fontSize: '12px'}
@@ -125,7 +125,7 @@
                     dataLabels: {
                         enabled: true,
                         rotation: -90,
-                        color: '#000',
+                        color: '#f1f5f9',
                         align: 'right',
                         y: -25,
                         style: {fontSize: '12px'}
@@ -145,7 +145,7 @@
         <div class="col-xs-12">
             <div class="box box-primary">
                 <div class="box-header">
-                    <h3 class="box-title"><?= lang('top_products_heading'); ?></span></h3>
+                    <h3 class="box-title"><?= lang('top_products_heading'); ?></h3>
                 </div>
                 <div class="box-body">
 

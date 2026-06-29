@@ -314,12 +314,12 @@
                                         });
                                     </script>
 
-                                    <table class="table">
+                                    <table class="table table-bordered">
                                         <thead>
                                         <tr>
-                                            <td style="text-align: center;background: #51b8f5;color: white;font-weight: bold;"></td>
-                                            <td style="text-align: center;background: #51b8f5;color: white;font-weight: bold;">SECCION</td>
-                                            <td style="text-align: center;background: #51b8f5;color: white;font-weight: bold;">TRAMO</td>
+                                            <th></th>
+                                            <th>SECCION</th>
+                                            <th>TRAMO</th>
                                         </tr>
                                         </thead>
                                         <tbody id="tbodyubicacion">
@@ -337,103 +337,63 @@
                                 </div>
                             </div>
                         </div>
-                        <?php if($this->Settings->multiprice_enabled == 1){ ?>
-                        <div style=" 
-                                     margin: 20px auto;
-                                     display: block;
-                                     float: none;
-                                     border: 1px solid #9c9c9c;
-                                     overflow: hidden;
-                                     padding: 21px;
-                                     ">
-
-                            <h4>Configure los Precios</h4>
-                            <table style="width: 100%">
+                        <?php if($this->Settings->multiprice_enabled == 1): ?>
+                        <div class="box box-info" style="margin:20px 0;">
+                            <div class="box-header"><h4 class="box-title"><i class="fa fa-dollar"></i> Configure los Precios</h4></div>
+                            <div class="box-body table-responsive">
+                            <table class="table table-bordered table-striped" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <td style="background-color: cadetblue; background-color: #164c4e;
-                                                    color: white;
-                                                    text-align: center;
-                                                    padding: 6px; ">Lista de Precio</td>
-                                        <td style="background-color: cadetblue; background-color: #164c4e;
-                                                    color: white;
-                                                    text-align: center;
-                                                    padding: 6px; ">Margen de ganancia en base al costo</td>
-                                        <td style="background-color: cadetblue; background-color: #164c4e;
-                                                    color: white;
-                                                    text-align: center;
-                                                    padding: 6px; ">Precio</td>
+                                        <th class="text-center">Lista de Precio</th>
+                                        <th class="text-center">Margen de ganancia en base al costo</th>
+                                        <th class="text-center">Precio</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
-                                    <?php if(!$product_prices){?>
-                                    <?php  if($prices){ foreach($prices as $item){ ?>
+                                    <?php if(!$product_prices): ?>
+                                    <?php if($prices): foreach($prices as $item): ?>
                                     <tr>
-                                        <td style="    background-color: cadetblue; background-color: cadetblue;
-                                                color: white;
-                                                text-align: center;
-                                                padding: 6px; ">
-                                            <?php echo $item->nombre_l_precio ?>
-                                            <input type="hidden" value="<?php echo $item->id_lista_precios ?>" name="id_lista_precio[]">
+                                        <td class="text-center">
+                                            <?= $item->nombre_l_precio ?>
+                                            <input type="hidden" value="<?= $item->id_lista_precios ?>" name="id_lista_precio[]">
                                         </td>
-                                        <td>
-                                            <input type="text" style="text-align: center" name="listmargen[]" value="0" class="form-control margen_ganancia" required="required" data-bv-field="margen">
-                                        </td>
-                                        <td>
-
-                                            <input type="text" name="listprice[]" value="<?php echo  $product->cost;?>"  class="form-control precio_item" required="required" data-bv-field="price">
-                                        </td>
+                                        <td><input type="text" style="text-align:center" name="listmargen[]" value="0" class="form-control margen_ganancia" required data-bv-field="margen"></td>
+                                        <td><input type="text" name="listprice[]" value="<?= $product->cost ?>" class="form-control precio_item" required data-bv-field="price"></td>
                                     </tr>
-                                    <?php }}?>
-                                    <?php }else{ if($product_prices){?>
-                                        <?php  if($prices){ foreach($prices as $item){
-                                            $id_lista_precios = 0?>
-                                        <?php foreach($product_prices as $price){ 
-                                            if($price['id_lista_precios'] == $item->id_lista_precios){ $id_lista_precios = $price['id_lista_precios'];?>
+                                    <?php endforeach; endif; ?>
+                                    <?php else: if($product_prices): ?>
+                                        <?php if($prices): foreach($prices as $item):
+                                            $id_lista_precios = 0; ?>
+                                        <?php foreach($product_prices as $price):
+                                            if($price['id_lista_precios'] == $item->id_lista_precios): $id_lista_precios = $price['id_lista_precios']; ?>
                                                 <tr>
-                                                    <td style="    background-color: cadetblue; background-color: cadetblue;
-                                                            color: white;
-                                                            text-align: center;
-                                                            padding: 6px; ">
-                                                        <?php echo $price['nombre_l_precio'] ?>
-                                                        <input type="hidden" value="<?php echo $price['id_lista_precios'] ?>" name="id_lista_precio[]">
-                                                        <input type="hidden" value="<?php echo $price['id_product_prices'] ?>" name="id_product_prices[]">
+                                                    <td class="text-center">
+                                                        <?= $price['nombre_l_precio'] ?>
+                                                        <input type="hidden" value="<?= $price['id_lista_precios'] ?>" name="id_lista_precio[]">
+                                                        <input type="hidden" value="<?= $price['id_product_prices'] ?>" name="id_product_prices[]">
                                                     </td>
-                                                    <td>
-                                                        <input type="text" style="text-align: center" name="listmargen[]" value="<?php echo number_format($price['margen'], 2); ?>" class="form-control margen_ganancia" required="required" data-bv-field="margen">
-                                                    </td>
-                                                    <td>
-                                                        <input type="text" name="listprice[]" value="<?php echo number_format($price['price'], 2) ?>" class="form-control precio_item" required="required" data-bv-field="price">
-                                                    </td>
+                                                    <td><input type="text" style="text-align:center" name="listmargen[]" value="<?= number_format($price['margen'], 2) ?>" class="form-control margen_ganancia" required data-bv-field="margen"></td>
+                                                    <td><input type="text" name="listprice[]" value="<?= number_format($price['price'], 2) ?>" class="form-control precio_item" required data-bv-field="price"></td>
                                                 </tr>
-                                            <?php }
-                                        } if($id_lista_precios != $item->id_lista_precios){?>
-                                                                            <tr>
-                                        <td style="    background-color: cadetblue; background-color: cadetblue;
-                                                color: white;
-                                                text-align: center;
-                                                padding: 6px; ">
-                                            <?php echo $item->nombre_l_precio ?>
-                                            <input type="hidden" value="<?php echo $item->id_lista_precios ?>" name="id_lista_precio[]">
-                                        </td>
-                                        <td>
-                                            <input type="text" style="text-align: center" name="listmargen[]" value="0" class="form-control margen_ganancia" required="required" data-bv-field="margen">
-                                        </td>
-                                        <td>
-
-                                            <input type="text" name="listprice[]" value="<?php echo  $product->cost;?>"  class="form-control precio_item" required="required" data-bv-field="price">
-                                        </td>
-                                    </tr>
-                                    <?php } }
-                                     }?>
-                                   <?php }
-                                    }?>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                        <?php if($id_lista_precios != $item->id_lista_precios): ?>
+                                            <tr>
+                                                <td class="text-center">
+                                                    <?= $item->nombre_l_precio ?>
+                                                    <input type="hidden" value="<?= $item->id_lista_precios ?>" name="id_lista_precio[]">
+                                                </td>
+                                                <td><input type="text" style="text-align:center" name="listmargen[]" value="0" class="form-control margen_ganancia" required data-bv-field="margen"></td>
+                                                <td><input type="text" name="listprice[]" value="<?= $product->cost ?>" class="form-control precio_item" required data-bv-field="price"></td>
+                                            </tr>
+                                        <?php endif; ?>
+                                        <?php endforeach; endif; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
-
+                            </div>
                         </div>
-                        <?php }?>
+                        <?php endif; ?>
                         <div class="form-group">
 <?= lang('details', 'details'); ?>
                             <?= form_textarea('details', $product->details, 'class="form-control tip redactor" id="details"'); ?>

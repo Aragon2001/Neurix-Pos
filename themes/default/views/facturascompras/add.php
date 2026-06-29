@@ -1,11 +1,10 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 <style>
 		.ui-widget-content {
-			border: 1px solid #ccc;
-			background: #FFF;
-			color: #333333;
+			border: 1px solid var(--nx-border);
+			background: var(--nx-card-bg);
+			color: var(--nx-txt1);
 		}
-
 		.ui-menu .ui-menu-item {
 			position: relative;
 			margin: 0;
@@ -14,35 +13,23 @@
 			min-height: 0;
 			list-style-image: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
 		}
-
-		.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus {
-			border: 1px solid #428BCA;
-			background: #428BCA;
+		.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover,
+		.ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus {
+			border: 1px solid var(--nx-a1);
+			background: rgba(56,189,248,.15);
 			font-weight: bold;
-			color: #FFF;
+			color: var(--nx-a1);
 		}
-
-		span.ui-helper-hidden-accessible {
-			display: none;
-		}
-
-		.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
-			border-top: 1px solid #e8edf1;
+		span.ui-helper-hidden-accessible { display: none; }
+		.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th,
+		.table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+			border-top: 1px solid var(--nx-border);
 			line-height: 1.42857;
 			padding: 3px 8px;
 			font-size: 15px;
 			vertical-align: middle;
 		}
-
-		table > thead > tr > th {
-			text-align: center;
-			background: #55a5d6 !important;
-			color: #fbfbfb;
-		}
-
-		.select2-container {
-			width: 100%;
-		}
+		.select2-container { width: 100%; }
 	</style>
 <section class="content">
     <div class="row">
