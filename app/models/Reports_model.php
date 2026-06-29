@@ -313,7 +313,7 @@ class Reports_model extends CI_Model
         $this->db->query("UPDATE `tec_sales` SET `status` = 'due' WHERE  `grand_total` > `paid`;");
         $this->db->query("UPDATE `tec_sales` SET `status` = 'paid' WHERE `grand_total` = `paid`;");
         // $this->db->save_queries = TRUE;
-        $this->db->where('customer_name', 'Cliente de Paso')->where('shipping_method', NULL)->update('tec_sales', array('status'=>'paid'));
+        $this->db->where_in('customer_name', ['Cliente de Paso', 'Cliente de paso', 'Cliente de Contado', 'Cliente de contado'])->where('id_shipping_method', NULL)->update('tec_sales', array('status'=>'paid'));
         // dd($this->db->last_query());
     }
 

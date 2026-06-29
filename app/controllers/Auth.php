@@ -11,11 +11,6 @@ class Auth extends MY_Controller {
         $this->form_validation->set_error_delimiters($this->config->item('error_start_delimiter', 'ion_auth'), $this->config->item('error_end_delimiter', 'ion_auth'));
         $this->load->model('auth_model');
         $this->load->library('ion_auth');
-        $q = $this->db->get("printers");
-        foreach (($q->result()) as $row) {
-            $impresoras[] = $row;
-        }
-        $this->data['impresoras'] = $impresoras;
     }
 
     function index() {
@@ -136,7 +131,7 @@ class Auth extends MY_Controller {
             $m = $this->input->get('m');
         }
 
-        if ($this->Settings->captcha) {
+        if (!empty($this->Settings->captcha)) {
             $this->form_validation->set_rules('captcha', lang('captcha'), 'required|callback_captcha_check');
         }
 
@@ -145,14 +140,12 @@ class Auth extends MY_Controller {
             $remember = (bool) $this->input->post('remember');
 
             if ($this->ion_auth->login($this->input->post('identity'), $this->input->post('password'), $remember)) {
-                if ($this->Settings->mmode) {
+                if (!empty($this->Settings->mmode)) {
                     if (!$this->ion_auth->in_group('admin')) {
                         $this->session->set_flashdata('error', lang('site_is_offline_plz_try_later'));
                         redirect('auth/logout');
                     }
                 }
-                $this->session->set_userdata('printer_default', $this->input->post('printer_default'));
-
                 $this->session->set_flashdata('message', $this->ion_auth->messages());
                 redirect($this->session->userdata('store_id') ? 'pos' : 'welcome');
             } else {
@@ -164,7 +157,7 @@ class Auth extends MY_Controller {
 
             $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
             $this->data['message'] = $this->session->flashdata('message') ? $this->session->flashdata('message') : ($m ? lang($m) : '');
-            if ($this->Settings->captcha) {
+            if (!empty($this->Settings->captcha)) {
                 $this->load->helper('captcha');
                 $vals = array(
                     'img_path' => './uploads/captcha/',

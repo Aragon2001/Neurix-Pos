@@ -2,8 +2,8 @@
 
 /*
  *  ==============================================================================
- *  Author  : Rhonald Brito
- *  Email   : admin@gi3-softsolutions.com
+ *  Author  : Jostin Aragon Barboza
+ *  Email   : arasoftsolutions@outlook.com
  *  Package : laminas-barcode
  *  License : New BSD License
  *  ==============================================================================

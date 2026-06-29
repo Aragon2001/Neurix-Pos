@@ -21,6 +21,10 @@ class Welcome extends MY_Controller
     }
 
     function index() {
+        if ($this->Admin) {
+            redirect('dashboard');
+            return;
+        }
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $this->data['topProducts'] = $this->welcome_model->topProducts();
         $this->data['costAndPriceInv'] = $this->welcome_model->costAndPriceInv();
@@ -29,7 +33,6 @@ class Welcome extends MY_Controller
         $bc = array(array('link' => '#', 'page' => lang('dashboard')));
         $meta = array('page_title' => lang('dashboard'), 'bc' => $bc);
         $this->page_construct('dashboard', $this->data, $meta);
-
     }
 
     function disabled() {

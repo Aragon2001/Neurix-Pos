@@ -3,7 +3,7 @@
 class Errors {
 
     public function error_404() {
-        header("Location: http://gi3-softsolutions.com/");
+        header("Location: /");
         exit();
     }
 

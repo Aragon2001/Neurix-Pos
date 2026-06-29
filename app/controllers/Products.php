@@ -50,9 +50,8 @@ class Products extends MY_Controller {
         $this->datatables->from('products')
                 ->join('categories', 'categories.id=products.category_id', 'left')
                 // ->join('product_store_qty', 'product_store_qty.product_id=products.id', 'left')
-                ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id}) psq", 'products.id=psq.product_id', 'left')
-                // ->where('product_store_qty.store_id', $store_id)
-                ->group_by('products.id');
+                ->join("( SELECT product_id, SUM(quantity) as quantity, MAX(price) as price FROM {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left');
+                // psq subquery already aggregates 1 row per product — no outer GROUP BY needed
 
         $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'>"
                 . "<a href='" . site_url('products/view/$1') . "' title='" . lang("view") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-file-text-o'></i></a>"
@@ -60,7 +59,7 @@ class Products extends MY_Controller {
                 . "<a href='" . site_url('products/single_label/$1') . "' title='" . lang('print_labels') . "' class='tip btn btn-default btn-xs' data-toggle='ajax-modal'><i class='fa fa-print'></i></a> "
             
                 . "<a href='" . site_url('products/edit/$1') . "' title='" . lang("edit_product") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> "
-                . "<a href='" . site_url('products/delete/$1') . "' onClick=\"return confirm('" . lang('alert_x_product') . "')\" title='" . lang("delete_product") . "' class='tip btn btn-danger btn-xs'>"
+                . "<a href='" . site_url('products/delete/$1') . "' data-confirm=\"" . lang('alert_x_product') . "\" title='" . lang("delete_product") . "' class='tip btn btn-danger btn-xs'>"
                 . "<i class='fa fa-trash-o'></i></a></div></div>", "pid, image, code, pname, barcode_symbology");
 
         $this->datatables->unset_column('pid')->unset_column('barcode_symbology');
@@ -242,7 +241,8 @@ class Products extends MY_Controller {
                 'present_fraccion' => $this->input->post('present_fraccion') ? $this->input->post('present_fraccion') : 0,
                 'caja_fraccionada' => $this->input->post('caja_fraccionada') ? $this->input->post('present_fraccion') : 0,
                 'margen' => $this->input->post('margen'),
-                'id_tax' => $id_tax
+                'id_tax' => $id_tax,
+                'cabys' => $this->input->post('cabys') ? $this->input->post('cabys') : null,
             );
 
             if ($this->Settings->multi_store) {
@@ -419,7 +419,8 @@ class Products extends MY_Controller {
                 'present_fraccion' => $this->input->post('present_fraccion') ? $this->input->post('present_fraccion') : 0,
                 'caja_fraccionada' => $this->input->post('caja_fraccionada') ? $this->input->post('caja_fraccionada') : 0,
                 'margen' => $this->input->post('margen'),
-                'id_tax' => $id_tax
+                'id_tax' => $id_tax,
+                'cabys' => $this->input->post('cabys') ? $this->input->post('cabys') : null,
                 );
             if ($this->Settings->multi_store) {
                 $stores = $this->site->getAllStores();
@@ -867,7 +868,7 @@ class Products extends MY_Controller {
         $this->datatables->select("lista_precios.id_lista_precios, lista_precios.nombre_l_precio, lista_precios.status_l_precio,users.username as entry_by", FALSE);
         $this->datatables->from('lista_precios')->group_by('lista_precios.id_lista_precios')
         ->join('users', 'users.id = lista_precios.entry_by', 'left')
-        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('products/editprices/$1') . "' class='tip btn btn-warning btn-xs' title='Editar precio'><i class='fa fa-edit'></i></a> <a href='" . site_url('products/deleteprices/$1') . "' onClick=\"return confirm('¿Seguro de eliminar precio?')\" class='tip btn btn-danger btn-xs' title='Precio eliminado exitosamente'><i class='fa fa-trash-o'></i></a></div></div>", "id_lista_precios");
+        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('products/editprices/$1') . "' class='tip btn btn-warning btn-xs' title='Editar precio'><i class='fa fa-edit'></i></a> <a href='" . site_url('products/deleteprices/$1') . "' data-confirm=\"¿Seguro de eliminar precio?\" class='tip btn btn-danger btn-xs' title='Precio eliminado exitosamente'><i class='fa fa-trash-o'></i></a></div></div>", "id_lista_precios");
         echo $this->datatables->generate();
     }
 

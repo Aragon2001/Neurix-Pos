@@ -33,7 +33,7 @@ class FacturasCompras extends MY_Controller {
 
     function get_fec() {
         $this->load->library('datatables');
-        $this->datatables->select("id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, total, total_tax, total_discount, grand_total, paid, ht.estatus_hacienda,ht.consecutivo, status");
+        $this->datatables->select("fec.id as id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, total, total_tax, total_discount, grand_total, paid, ht.estatus_hacienda, ht.consecutivo, status");
         $this->datatables->from('fec');
         $this->datatables->join('hacienda_fec ht', 'ht.sale_id = fec.id', 'left');
         $this->db->order_by("date","desc");

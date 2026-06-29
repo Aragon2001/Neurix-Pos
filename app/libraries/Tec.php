@@ -1,9 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 /*
  *  ==============================================================================
- *  Author  : Rhonald Brito
- *  Email   : admin@gi3-softsolutions.com
- *  Web     : http://gi3-softsolutions.com
+ *  Author  : Jostin Aragon Barboza
+ *  Email   : arasoftsolutions@outlook.com
+ *  Company : ARASOFT SOLUTIONS
  *  ==============================================================================
  */
 
@@ -118,11 +118,8 @@ class Tec
     }
 
     public function send_email($to, $subject, $message, $from = NULL, $from_name = NULL, $attachment = NULL, $cc = NULL, $bcc = NULL) {
-        list($user, $domain) = explode('@', $to);
-        if ($domain != 'gi3-softsolutions.com' || DEMO) {
-            $this->load->library('tec_mail');
-            return $this->tec_mail->send_mail($to, $subject, $message, $from, $from_name, $attachment, $cc, $bcc);
-        }
+        $this->load->library('tec_mail');
+        return $this->tec_mail->send_mail($to, $subject, $message, $from, $from_name, $attachment, $cc, $bcc);
     }
 
     public function print_arrays() {

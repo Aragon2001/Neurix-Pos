@@ -902,7 +902,7 @@ class Pos_model extends CI_Model {
         if ($query->num_rows() > 0) {
             foreach ($query->result() as $row) {
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
                 if ($qq->num_rows() > 0) 
                 {
                     $im = $qq->row();
@@ -1709,7 +1709,7 @@ class Pos_model extends CI_Model {
                 }
 				
 			$this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-            $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+            $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
             if ($qq->num_rows() > 0) 
             {
                 $im = $qq->row();
@@ -1754,7 +1754,7 @@ class Pos_model extends CI_Model {
                 }
 				
 			$this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-            $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+            $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
             if ($qq->num_rows() > 0) 
             {
                 $im = $qq->row();
@@ -1786,7 +1786,7 @@ class Pos_model extends CI_Model {
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
 			$this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-            $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+            $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
             if ($qq->num_rows() > 0) 
             {
                 $im = $qq->row();
@@ -1830,7 +1830,7 @@ class Pos_model extends CI_Model {
                 }
 
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
                 if ($qq->num_rows() > 0) 
                 {
                     $im = $qq->row();
@@ -1871,7 +1871,7 @@ class Pos_model extends CI_Model {
                     }
                 }
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
                 if ($qq->num_rows() > 0) 
                 {
                     $im = $qq->row();
@@ -1939,7 +1939,7 @@ class Pos_model extends CI_Model {
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
                 if ($qq->num_rows() > 0) 
                 {
                     $im = $qq->row();
@@ -2040,7 +2040,7 @@ class Pos_model extends CI_Model {
                 }
 
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
                 if ($qq->num_rows() > 0) 
                 {
                     $im = $qq->row();
@@ -2066,7 +2066,7 @@ class Pos_model extends CI_Model {
         if ($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
                 if ($qq->num_rows() > 0) 
                 {
                     $im = $qq->row();
@@ -2155,7 +2155,7 @@ class Pos_model extends CI_Model {
                 }
 
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $row->id_tax), 1);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => (!empty($row->id_tax) ? $row->id_tax : 8)), 1);
                 if ($qq->num_rows() > 0) 
                 {
                     $im = $qq->row();

@@ -46,7 +46,7 @@ class MY_Controller extends CI_Controller
         $this->load->dbforge();
 
 
-        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 58) { // actualizar a max_version+1 al agregar nuevas migraciones
+        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 60) { // actualizar a max_version+2 al agregar nuevas migraciones
 
         $versionInitial = false;
         if (!$this->db->field_exists('versionPOS', 'settings')) {
@@ -2151,6 +2151,160 @@ class MY_Controller extends CI_Controller
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
             }
             $this->db->update('settings', array('versionPOS' => '57'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "57" || $versionInitial) {
+            $p  = $this->db->dbprefix;
+            // --- tec_purchases + tec_purchase_items (tablas ausentes del schema inicial) ---
+            if (!$this->db->table_exists('purchases'))
+                $this->db->query("CREATE TABLE `{$p}purchases` (
+                    `id`          INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `date`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `reference`   VARCHAR(100) DEFAULT NULL,
+                    `supplier_id` INT(11) DEFAULT NULL,
+                    `total`       DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `note`        TEXT,
+                    `attachment`  VARCHAR(255) DEFAULT NULL,
+                    `created_by`  INT(11) DEFAULT NULL,
+                    `store_id`    INT(11) DEFAULT 1,
+                    PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            if (!$this->db->table_exists('purchase_items'))
+                $this->db->query("CREATE TABLE `{$p}purchase_items` (
+                    `id`          INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `purchase_id` INT(11) NOT NULL,
+                    `product_id`  INT(11) DEFAULT NULL,
+                    `quantity`    DECIMAL(25,4) NOT NULL DEFAULT 1,
+                    `unit_price`  DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `subtotal`    DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    PRIMARY KEY (`id`),
+                    KEY `purchase_id` (`purchase_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            // --- tec_expenses (tabla ausente del schema inicial) ---
+            if (!$this->db->table_exists('expenses'))
+                $this->db->query("CREATE TABLE `{$p}expenses` (
+                    `id`          INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `date`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `reference`   VARCHAR(100) DEFAULT NULL,
+                    `amount`      DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `note`        TEXT,
+                    `attachment`  VARCHAR(255) DEFAULT NULL,
+                    `created_by`  INT(11) DEFAULT NULL,
+                    `category_id` INT(11) DEFAULT NULL,
+                    `store_id`    INT(11) DEFAULT 1,
+                    PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            // --- tec_hacienda_tiketes: columnas para XML firmado y FK ---
+            $ht = "{$p}hacienda_tiketes";
+            if (!$this->db->field_exists('id_hacienda', 'hacienda_tiketes'))
+                $this->db->query("ALTER TABLE `{$ht}` ADD COLUMN `id_hacienda` INT(11) NULL DEFAULT NULL");
+            if (!$this->db->field_exists('xml_sign', 'hacienda_tiketes'))
+                $this->db->query("ALTER TABLE `{$ht}` ADD COLUMN `xml_sign` LONGTEXT NULL");
+            if (!$this->db->field_exists('xml_hacienda', 'hacienda_tiketes'))
+                $this->db->query("ALTER TABLE `{$ht}` ADD COLUMN `xml_hacienda` LONGTEXT NULL");
+            if (!$this->db->field_exists('fecha_emision', 'hacienda_tiketes'))
+                $this->db->query("ALTER TABLE `{$ht}` ADD COLUMN `fecha_emision` DATETIME NULL DEFAULT NULL");
+            // --- tec_hacienda_fec: mismas columnas ---
+            if ($this->db->table_exists('hacienda_fec')) {
+                $hf = "{$p}hacienda_fec";
+                if (!$this->db->field_exists('id_hacienda', 'hacienda_fec'))
+                    $this->db->query("ALTER TABLE `{$hf}` ADD COLUMN `id_hacienda` INT(11) NULL DEFAULT NULL");
+                if (!$this->db->field_exists('xml_sign', 'hacienda_fec'))
+                    $this->db->query("ALTER TABLE `{$hf}` ADD COLUMN `xml_sign` LONGTEXT NULL");
+                if (!$this->db->field_exists('xml_hacienda', 'hacienda_fec'))
+                    $this->db->query("ALTER TABLE `{$hf}` ADD COLUMN `xml_hacienda` LONGTEXT NULL");
+                if (!$this->db->field_exists('fecha_emision', 'hacienda_fec'))
+                    $this->db->query("ALTER TABLE `{$hf}` ADD COLUMN `fecha_emision` DATETIME NULL DEFAULT NULL");
+            }
+            // --- tec_payments: columna reference ---
+            if (!$this->db->field_exists('reference', 'payments'))
+                $this->db->query("ALTER TABLE `{$p}payments` ADD COLUMN `reference` VARCHAR(100) NULL DEFAULT NULL");
+            // --- tec_registers: columnas de cierre de caja y totales ---
+            $rg = "{$p}registers";
+            foreach (['closed_at' => 'DATETIME NULL DEFAULT NULL',
+                      'note' => 'TEXT NULL',
+                      'total_cc_slips' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                      'total_cc_slips_submitted' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                      'total_cheques' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                      'total_cheques_submitted' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                      'total_cash' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                      'total_cash_submitted' => 'DECIMAL(25,4) NOT NULL DEFAULT 0'] as $col => $def)
+                if (!$this->db->field_exists($col, 'registers'))
+                    $this->db->query("ALTER TABLE `{$rg}` ADD COLUMN `{$col}` {$def}");
+            // --- tec_customers y tec_suppliers: campos personalizados ---
+            foreach (['customers', 'suppliers'] as $t)
+                foreach (['cf1' => "VARCHAR(100) NULL DEFAULT NULL",
+                          'cf2' => "VARCHAR(100) NULL DEFAULT NULL"] as $col => $def)
+                    if (!$this->db->field_exists($col, $t))
+                        $this->db->query("ALTER TABLE `{$p}{$t}` ADD COLUMN `{$col}` {$def}");
+            // --- tec_quotes: columnas de totales y cliente ---
+            $qt = "{$p}quotes";
+            foreach (['customer_name' => "VARCHAR(150) NULL DEFAULT NULL",
+                      'total_tax' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                      'total_discount' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                      'grand_total' => 'DECIMAL(25,4) NOT NULL DEFAULT 0'] as $col => $def)
+                if (!$this->db->field_exists($col, 'quotes'))
+                    $this->db->query("ALTER TABLE `{$qt}` ADD COLUMN `{$col}` {$def}");
+            // --- tec_note_credits: columnas de totales y cliente ---
+            if ($this->db->table_exists('note_credits')) {
+                $nc = "{$p}note_credits";
+                foreach (['customer_name' => "VARCHAR(150) NULL DEFAULT NULL",
+                          'total_tax' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                          'total_discount' => 'DECIMAL(25,4) NOT NULL DEFAULT 0',
+                          'grand_total' => 'DECIMAL(25,4) NOT NULL DEFAULT 0'] as $col => $def)
+                    if (!$this->db->field_exists($col, 'note_credits'))
+                        $this->db->query("ALTER TABLE `{$nc}` ADD COLUMN `{$col}` {$def}");
+            }
+            // --- tec_sale_items: columnas para reportes fiscales ---
+            $si = "{$p}sale_items";
+            foreach (['tax' => 'DECIMAL(25,4) NULL DEFAULT NULL',
+                      'unit_of_measurement' => 'VARCHAR(50) NULL DEFAULT NULL',
+                      'net_unit_price' => 'DECIMAL(25,4) NULL DEFAULT NULL',
+                      'cost' => 'DECIMAL(25,4) NULL DEFAULT NULL'] as $col => $def)
+                if (!$this->db->field_exists($col, 'sale_items'))
+                    $this->db->query("ALTER TABLE `{$si}` ADD COLUMN `{$col}` {$def}");
+            // --- tec_documentoshacienda: columnas de documentos recibidos ---
+            if ($this->db->table_exists('documentoshacienda')) {
+                $dh = "{$p}documentoshacienda";
+                foreach ([
+                    'id_documento'         => 'INT(11) NULL DEFAULT NULL',
+                    'documento'            => 'MEDIUMTEXT NULL',
+                    'nombre_emisor'        => 'VARCHAR(255) NULL DEFAULT NULL',
+                    'correo_emisor'        => 'VARCHAR(150) NULL DEFAULT NULL',
+                    'tipo_doc_emisor'      => 'VARCHAR(20) NULL DEFAULT NULL',
+                    'NumeroCedulaEmisor'   => 'VARCHAR(20) NULL DEFAULT NULL',
+                    'TotalFactura'         => 'DECIMAL(25,5) NULL DEFAULT NULL',
+                    'MontoTotalImpuesto'   => 'DECIMAL(25,5) NULL DEFAULT NULL',
+                    'ConsecutivoDocEmisor' => 'VARCHAR(20) NULL DEFAULT NULL',
+                    'FechaEmisionDoc'      => 'DATETIME NULL DEFAULT NULL',
+                    'Estatus'              => 'VARCHAR(20) NULL DEFAULT NULL',
+                    'CodigoMoneda'         => 'VARCHAR(5) NULL DEFAULT NULL',
+                    'TipoCambio'           => 'DECIMAL(15,5) NULL DEFAULT NULL',
+                    'Fecha_aceptacion'     => 'DATETIME NULL DEFAULT NULL',
+                ] as $col => $def)
+                    if (!$this->db->field_exists($col, 'documentoshacienda'))
+                        $this->db->query("ALTER TABLE `{$dh}` ADD COLUMN `{$col}` {$def}");
+            }
+            $this->db->update('settings', array('versionPOS' => '58'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "58" || $versionInitial) {
+            $s = $this->db->dbprefix('settings');
+            if (!$this->db->field_exists('mailpath', 'settings'))
+                $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `mailpath` VARCHAR(255) NULL DEFAULT NULL");
+            if (!$this->db->field_exists('cash_drawer_codes', 'settings'))
+                $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `cash_drawer_codes` VARCHAR(100) NULL DEFAULT NULL");
+            $this->db->update('settings', array('versionPOS' => '59'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "59" || $versionInitial) {
+            $sl = $this->db->dbprefix('sales');
+            if (!$this->db->field_exists('is_return', 'sales'))
+                $this->db->query("ALTER TABLE {$sl} ADD COLUMN `is_return` TINYINT(1) NOT NULL DEFAULT 0");
+            $this->db->update('settings', array('versionPOS' => '60'));
             $versionInitial = true;
         }
 

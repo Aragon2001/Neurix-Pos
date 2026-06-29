@@ -4,8 +4,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
  *  ==============================================================================
- *  Author  : Rhonald Brito
- *  Email   : admin@gi3-softsolutions.com
+ *  Author  : Jostin Aragon Barboza
+ *  Email   : arasoftsolutions@outlook.com
  *  For     : ESC/POS Print Driver for PHP
  *  License : MIT License
  *  ==============================================================================

@@ -31,9 +31,11 @@ class PosPrint extends MY_Controller
         }
         $store = $this->site->getStoreByID($this->session->userdata('store_id'));
         $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        $this->load->library('escpos');
-        $this->escpos->load($printer);
-        $this->escpos->print_data($data, $store);
+        if ($printer) {
+            $this->load->library('escpos');
+            $this->escpos->load($printer);
+            $this->escpos->print_data($data, $store);
+        }
     }
 
     function print_comanda($datos, $did) {
@@ -73,7 +75,7 @@ class PosPrint extends MY_Controller
         // $this->tec->print_arrays($data);
         if (count($reg_totals) > 2) {
             $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-            if ($printer->type != "web") {
+            if ($printer && $printer->type != "web") {
                 $this->load->library('escpos');
                 $this->escpos->load($printer);
                 $this->escpos->print_data($data);
@@ -441,7 +443,7 @@ class PosPrint extends MY_Controller
         } else {
             $store = $this->site->getStoreByID($this->session->userdata('store_id'));
             $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-            if ($printer->type != "web") {
+            if ($printer && $printer->type != "web") {
                 $this->load->library('escpos');
                 $this->escpos->load($printer);
                 $this->escpos->print_data($data, $store);
@@ -452,7 +454,7 @@ class PosPrint extends MY_Controller
     function print_receipt($id, $open_drawer = false, $type_document = 1, $haciendaInvo = null) {
         $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
 
-        if ($printer->type == "web") {
+        if ($printer && $printer->type == "web") {
             if ($type_document == 3) {
                 $redirect_to = 'pos/viewnc/' . $id;
                 redirect($redirect_to);
@@ -548,6 +550,7 @@ class PosPrint extends MY_Controller
 
     function open_drawer() {
         $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
+        if (!$printer) return;
         $printer->ip = $this->Settings->ip_printer;
         $printer->nombrecompartido = $this->Settings->nombrecompartido;
         $this->load->library('escpos');

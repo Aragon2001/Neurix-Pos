@@ -43,7 +43,7 @@ class Purchases extends MY_Controller
             $this->datatables->where('created_by', $this->session->userdata('user_id'));
         }
         $this->datatables->where('store_id', $this->session->userdata('store_id'));
-        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='".site_url('purchases/view/$1')."' title='".lang('view_purchase')."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-file-text-o'></i></a> <a href='" . site_url('purchases/edit/$1') . "' title='" . lang("edit_purchase") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('purchases/delete/$1') . "' onClick=\"return confirm('" . lang('alert_x_purchase') . "')\" title='" . lang("delete_purchase") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id");
+        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='".site_url('purchases/view/$1')."' title='".lang('view_purchase')."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-file-text-o'></i></a> <a href='" . site_url('purchases/edit/$1') . "' title='" . lang("edit_purchase") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('purchases/delete/$1') . "' data-confirm=\"" . lang('alert_x_purchase') . "\" title='" . lang("delete_purchase") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id");
 
         $this->datatables->unset_column('id');
         echo $this->datatables->generate();
@@ -356,7 +356,7 @@ class Purchases extends MY_Controller
             $this->datatables->where('created_by', $this->session->userdata('user_id'));
         }
         $this->datatables->where('expenses.store_id', $this->session->userdata('store_id'));
-        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='".site_url('purchases/expense_note/$1')."' title='".lang('expense_note')."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-file-text-o'></i></a> <a href='" . site_url('purchases/edit_expense/$1') . "' title='" . lang("edit_expense") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('purchases/delete_expense/$1') . "' onClick=\"return confirm('" . lang('alert_x_expense') . "')\" title='" . lang("delete_expense") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id");
+        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='".site_url('purchases/expense_note/$1')."' title='".lang('expense_note')."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-file-text-o'></i></a> <a href='" . site_url('purchases/edit_expense/$1') . "' title='" . lang("edit_expense") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('purchases/delete_expense/$1') . "' data-confirm=\"" . lang('alert_x_expense') . "\" title='" . lang("delete_expense") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id");
         $this->datatables->unset_column('id');
         echo $this->datatables->generate();
     }

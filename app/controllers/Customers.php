@@ -29,7 +29,7 @@ class Customers extends MY_Controller
         $this->datatables
         ->select("id, name, phone, email, cf1, cf2, limitcredit")
         ->from("customers")
-        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('customers/edit/$1') . "' class='tip btn btn-warning btn-xs' title='".$this->lang->line("edit_customer")."'><i class='fa fa-edit'></i></a> <a href='" . site_url('customers/delete/$1') . "' onClick=\"return confirm('". $this->lang->line('alert_x_customer') ."')\" class='tip btn btn-danger btn-xs' title='".$this->lang->line("delete_customer")."'><i class='fa fa-trash-o'></i></a></div></div>", "id")
+        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('customers/edit/$1') . "' class='tip btn btn-warning btn-xs' title='".$this->lang->line("edit_customer")."'><i class='fa fa-edit'></i></a> <a href='" . site_url('customers/delete/$1') . "' data-confirm=\"". $this->lang->line('alert_x_customer') ."\" class='tip btn btn-danger btn-xs' title='".$this->lang->line("delete_customer")."'><i class='fa fa-trash-o'></i></a></div></div>", "id")
         ->unset_column('id');
 
         echo $this->datatables->generate();
@@ -51,6 +51,7 @@ class Customers extends MY_Controller
                 'phone' => $this->input->post('phone'),
                 'cf1' => $this->input->post('cf1'),
                 'cf2' => $this->input->post('cf2'),
+                'codigo_actividad' => $this->input->post('codigo_actividad'),
             );
 
         }
@@ -101,6 +102,7 @@ class Customers extends MY_Controller
                 'cf1' => $this->input->post('cf1'),
                 'cf2' => $this->input->post('cf2'),
                 'limitcredit' => $this->input->post('limitcredit') ? $this->input->post('limitcredit') : 0,
+                'codigo_actividad' => $this->input->post('codigo_actividad'),
             );
 
         }

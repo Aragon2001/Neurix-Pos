@@ -33,7 +33,7 @@ class Suppliers extends MY_Controller
         $this->datatables
         ->select("id, name, phone, email, cf1, cf2,actividad_economica")
         ->from("suppliers")
-        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('suppliers/edit/$1') . "' class='tip btn btn-warning btn-xs' title='".$this->lang->line("edit_supplier")."'><i class='fa fa-edit'></i></a> <a href='" . site_url('suppliers/delete/$1') . "' onClick=\"return confirm('". $this->lang->line('alert_x_supplier') ."')\" class='tip btn btn-danger btn-xs' title='".$this->lang->line("delete_supplier")."'><i class='fa fa-trash-o'></i></a></div></div>", "id")
+        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('suppliers/edit/$1') . "' class='tip btn btn-warning btn-xs' title='".$this->lang->line("edit_supplier")."'><i class='fa fa-edit'></i></a> <a href='" . site_url('suppliers/delete/$1') . "' data-confirm=\"". $this->lang->line('alert_x_supplier') ."\" class='tip btn btn-danger btn-xs' title='".$this->lang->line("delete_supplier")."'><i class='fa fa-trash-o'></i></a></div></div>", "id")
         ->unset_column('id');
 
         echo $this->datatables->generate();

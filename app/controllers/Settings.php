@@ -84,7 +84,7 @@ class Settings extends MY_Controller
                 'smtp_crypto' => $this->input->post('smtp_crypto'),
                 'pin_code' => $this->input->post('pin_code') ? $this->input->post('pin_code') : NULL,
                 // 'receipt_printer' => $this->input->post('receipt_printer'),
-                // 'cash_drawer_codes' => $this->input->post('cash_drawer_codes'),
+                'cash_drawer_codes' => $this->input->post('cash_drawer_codes'),
                 'focus_add_item' => $this->input->post('focus_add_item'),
                 'edit_last_product' => $this->input->post('edit_last_product'),
                 'add_customer' => $this->input->post('add_customer'),
@@ -160,6 +160,13 @@ class Settings extends MY_Controller
                 'ambiente' => in_array($this->input->post('ambiente'), ['test', 'prod'])
                     ? $this->input->post('ambiente')
                     : 'test',
+                'mailpath' => $this->input->post('mailpath'),
+                'otras_senas' => $this->input->post('otras_senas'),
+                'cod_telefono_emisor' => $this->input->post('cod_telefono_emisor'),
+                'footer_hacienda_fe' => $this->input->post('footer_hacienda_fe'),
+                'footer_hacienda_nc' => $this->input->post('footer_hacienda_nc'),
+                'propina_enable' => $this->input->post('propina_enable'),
+                'propina_rate' => $this->input->post('propina_rate'),
             );
 
             if ($this->Settings->block_hacienda == "1") {
@@ -223,9 +230,27 @@ class Settings extends MY_Controller
 
         if ($this->form_validation->run() == true && $this->settings_model->updateSetting($data)) {
 
+            $this->load->driver('cache', array('adapter' => 'file'));
+            $this->cache->file->delete('app_settings');
+
             $this->session->set_flashdata('message', lang('setting_updated'));
             redirect('settings');
         } else {
+
+            // DIAGNÓSTICO TEMPORAL — remover cuando funcione
+            $diag = '';
+            if ($this->input->post()) {
+                if ($this->form_validation->run() !== true) {
+                    $diag = '<b>Validación falló:</b> ' . validation_errors();
+                } elseif (isset($data)) {
+                    $this->db->db_debug = FALSE;
+                    $this->db->update('settings', $data, array('setting_id' => 1));
+                    $diag = '<b>SQL error:</b> ' . $this->db->error()['message'] . '<br><b>Query:</b> <small>' . htmlspecialchars($this->db->last_query()) . '</small>';
+                }
+                if ($diag) {
+                    $this->session->set_flashdata('error', $diag);
+                }
+            }
 
             $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
             $this->data['settings'] = $this->site->getSettings();
@@ -281,6 +306,19 @@ class Settings extends MY_Controller
 
         $this->session->set_flashdata('message', 'Certificado subido correctamente a files/certificados/' . $ambiente . '/' . $cedula . '.p12');
         redirect('settings');
+    }
+
+    function desbloquear_hacienda()
+    {
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('settings');
+        }
+        $this->db->update('settings', array('block_hacienda' => 0), array('setting_id' => 1));
+        $this->load->driver('cache', array('adapter' => 'file'));
+        $this->cache->file->delete('app_settings');
+        $this->session->set_flashdata('message', 'Datos del emisor desbloqueados.');
+        redirect('settings#tab-emisor');
     }
 
     function updates()
@@ -887,7 +925,7 @@ class Settings extends MY_Controller
         $this->datatables
             ->select("id, title, type, profile, path, ip_address, port")
             ->from("printers")
-            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_printer/$1') . "' class='tip btn btn-warning btn-xs' title='" . $this->lang->line("edit_printer") . "'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_printer/$1') . "' onClick=\"return confirm('" . $this->lang->line('alert_x_printer') . "')\" class='tip btn btn-danger btn-xs' title='" . $this->lang->line("delete_printer") . "'><i class='fa fa-trash-o'></i></a></div>", "id")
+            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_printer/$1') . "' class='tip btn btn-warning btn-xs' title='" . $this->lang->line("edit_printer") . "'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_printer/$1') . "' data-confirm=\"" . $this->lang->line('alert_x_printer') . "\" class='tip btn btn-danger btn-xs' title='" . $this->lang->line("delete_printer") . "'><i class='fa fa-trash-o'></i></a></div>", "id")
             ->unset_column('id');
         echo $this->datatables->generate();
     }
@@ -1135,7 +1173,7 @@ class Settings extends MY_Controller
         $this->datatables->select("waiting_tables.id_waiting_tables, waiting_tables.name, waiting_tables.status, users.username as entry_by", FALSE);
         $this->datatables->from('waiting_tables')->group_by('waiting_tables.id_waiting_tables')
         ->join('users', 'users.id = waiting_tables.entry_by', 'left')
-        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('settings/edit_table/$1') . "' class='tip btn btn-warning btn-xs' title='Editar mesa'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_table/$1') . "' onClick=\"return confirm('¿Seguro de eliminar mesa?')\" class='tip btn btn-danger btn-xs' title='Mesa eliminada exitosamente'><i class='fa fa-trash-o'></i></a></div></div>", "id_waiting_tables");
+        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('settings/edit_table/$1') . "' class='tip btn btn-warning btn-xs' title='Editar mesa'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_table/$1') . "' data-confirm=\"¿Seguro de eliminar mesa?\" class='tip btn btn-danger btn-xs' title='Mesa eliminada exitosamente'><i class='fa fa-trash-o'></i></a></div></div>", "id_waiting_tables");
         echo $this->datatables->generate();
     }
 

@@ -21,9 +21,8 @@
             delay: 200,
             response: function (event, ui) {
                 if ($(this).val().length >= 16 && ui.content[0].id == 0) {
-                    bootbox.alert(lang.no_match_found, function () {
-                        $('#add_item').focus();
-                    });
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: lang.no_match_found, showConfirmButton: false, timer: 3000 })
+                        .then(function() { $('#add_item').focus(); });
                     $(this).val('');
                 }
                 else if (ui.content.length == 1 && ui.content[0].id != 0) {
@@ -32,9 +31,8 @@
                     $(this).autocomplete('close');
                 }
                 else if (ui.content.length == 1 && ui.content[0].id == 0) {
-                    bootbox.alert(lang.no_match_found, function () {
-                        $('#add_item').focus();
-                    });
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: lang.no_match_found, showConfirmButton: false, timer: 3000 })
+                        .then(function() { $('#add_item').focus(); });
                     $(this).val('');
                 }
             },
@@ -45,7 +43,7 @@
                     if (row)
                         $(this).val('');
                 } else {
-                    bootbox.alert(lang.no_match_found);
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: lang.no_match_found, showConfirmButton: false, timer: 3000 });
                 }
             }
         });
@@ -59,12 +57,14 @@
 
         $('#add_item').focus();
         $('#reset').click(function (e) {
-            bootbox.confirm(lang.r_u_sure, function (result) {
-                if (result) {
-                    if (get('spoitems')) {
-                        remove('spoitems');
-                    }
-
+            Swal.fire({
+                title: lang.r_u_sure, icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí', cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#0369a1', cancelButtonColor: '#6b7280'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    if (get('spoitems')) { remove('spoitems'); }
                     window.location.reload();
                 }
             });

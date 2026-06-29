@@ -251,7 +251,7 @@ class Ion_auth
     public function logout() {
         $this->auth_model->trigger_events('logout');
 
-        if ($this->Settings->mmode) {
+        if (!empty($this->Settings->mmode)) {
             if (!$this->ion_auth->in_group('owner')) {
                 $this->set_message('site_is_offline_plz_try_later');
             } else {

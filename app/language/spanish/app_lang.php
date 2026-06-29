@@ -80,7 +80,7 @@ $lang['credit_notes'] = "Notas de Credito";
 $lang['unit_of_measurement'] = "Unidad de Medida";
 $lang['pos'] = "POS";
 $lang['home'] = "Principal";
-$lang['dashboard'] = "panel";
+$lang['dashboard'] = "Inicio";
 $lang['users'] = "Usuarios";
 $lang['list_users'] = "Lista de Usuarios";
 $lang['add_user'] = "Agregar Usuario";
@@ -720,6 +720,16 @@ $lang['web_browser_print'] = "Navegador web";
 $lang['php_pos_print_app'] = "Servidor de impresión POS PHP";
 $lang['print_recommandations'] = "En la instalación local <strong> Servidor PHP </strong> será la mejor opción y para el servidor en vivo, puede instalar localmente <strong> Servidor de impresión PHP Pos </strong>";
 $lang['merchant_copy'] = "Copia de comerciante";
+
+// Hacienda - estados de comprobante
+$lang['Aceptado']   = 'Aceptado';
+$lang['Recibido']   = 'Recibido';
+$lang['Procesando'] = 'Procesando';
+$lang['Rechazado']  = 'Rechazado';
+$lang['Error']      = 'Error';
+
+// Columnas de productos
+$lang['Ubicación']  = 'Ubicación';
 $lang['pos_print_error'] = "Desabilitada la coneccion al socket, por favor asegurese de que el servidor este activo.";
 $lang['other_sale'] = "Otros";
 $lang['use_local_printers'] = "Impresoras de uso local";

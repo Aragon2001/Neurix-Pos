@@ -10,7 +10,11 @@ use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 
-class Pos extends MY_Controller {
+if (!class_exists('PosPrint')) {
+    require_once APPPATH . 'controllers/PosPrint.php';
+}
+
+class Pos extends PosPrint {
 
     function __construct() {
         parent::__construct();
@@ -708,7 +712,7 @@ class Pos extends MY_Controller {
                 if ($idQuote = $this->pos_model->quoteSale($data, $products, $quo, $otrostextos)) {
                     $msg = "Proforma Agregada correctamente";
 
-                    if ($printer->type == "web") {
+                    if ($printer && $printer->type == "web") {
                         try {
                             $this->print_receipt($idQuote, true, '21');
                         } catch (Exception $e) {
@@ -753,7 +757,7 @@ class Pos extends MY_Controller {
                 if ($sale = $this->pos_model->addSaleApartado($data, $products, $payment, $did, $otrostextos)) {
                     $msg = lang("apartado_added");
 
-                    if ($printer->type == "web") {
+                    if ($printer && $printer->type == "web") {
                         $this->print_receipt($sale['apartado_id'], true, '20');
                     } else {
                         try {
@@ -889,7 +893,7 @@ class Pos extends MY_Controller {
 
                         $this->session->set_flashdata('message', $msg);
                         // $redirect_to = $this->Settings->after_sale_page ? "pos" : "pos/view/" . $sale['sale_id'];
-                        if ($printer->type == "web") {
+                        if ($printer && $printer->type == "web") {
                             $this->print_receipt($sale['sale_id'], true);
                         } else {
                             if ($this->Settings->prt_invo_after) {

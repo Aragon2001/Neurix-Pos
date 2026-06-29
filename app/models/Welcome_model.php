@@ -35,12 +35,19 @@ class Welcome_model extends CI_Model
     }
 
     public function costAndPriceInv(){
-        // $this->db->save_queries = TRUE;
-        $this->db->select("TRUNCATE(SUM(".$this->db->dbprefix('products').".cost * ".$this->db->dbprefix('products').".quantity),2) as cost,
-                           TRUNCATE(SUM(".$this->db->dbprefix('products').".price * ".$this->db->dbprefix('products').".quantity),2) as price")
-                           ->where("type  NOT IN('combo','service')", NULL, FALSE);
-        $q = $this->db->get('products');
-        // dd($this->db->last_query());
+        $pp = $this->db->dbprefix('products');
+        $ps = $this->db->dbprefix('product_store_qty');
+        $sql = "SELECT
+                    TRUNCATE(SUM({$pp}.cost  * COALESCE(psq.qty, 0)), 2) as cost,
+                    TRUNCATE(SUM({$pp}.price * COALESCE(psq.qty, 0)), 2) as price
+                FROM {$pp}
+                LEFT JOIN (
+                    SELECT product_id, SUM(quantity) as qty
+                    FROM {$ps}
+                    GROUP BY product_id
+                ) psq ON {$pp}.id = psq.product_id
+                WHERE {$pp}.type NOT IN('combo','service')";
+        $q = $this->db->query($sql);
         if($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
                 $data[] = $row;
@@ -54,12 +61,12 @@ class Welcome_model extends CI_Model
             $user_id = $this->session->userdata('user_id');
         }
         if ($this->db->dbdriver == 'sqlite3') {
-            $this->db->select("strftime('%Y-%m', date) as month, SUM(total) as total, SUM(total_tax) as tax, SUM(total_discount) as discount")
+            $this->db->select("strftime('%Y-%m', date) as month, SUM(total) as total, SUM(COALESCE(total_tax,0)+COALESCE(item_tax,0)+COALESCE(order_tax,0)) as tax, SUM(COALESCE(total_discount,0)+COALESCE(item_discount,0)+COALESCE(order_discount,0)) as discount")
             ->where("date >= datetime('now','-6 month')", NULL, FALSE)
             // ->order_by("strftime('%Y-%m', date)", 'asc')
             ->group_by("strftime('%Y-%m', date)");
         } else {
-            $this->db->select("date_format(date, '%Y-%m') as month, SUM(total) as total, SUM(total_tax) as tax, SUM(total_discount) as discount")
+            $this->db->select("date_format(date, '%Y-%m') as month, SUM(total) as total, SUM(COALESCE(total_tax,0)+COALESCE(item_tax,0)+COALESCE(order_tax,0)) as tax, SUM(COALESCE(total_discount,0)+COALESCE(item_discount,0)+COALESCE(order_discount,0)) as discount")
             ->where("date >= date_sub( now() , INTERVAL 6 MONTH)", NULL, FALSE)
             // ->order_by("date_format(date, '%Y-%m')", 'asc')
             ->group_by("date_format(date, '%Y-%m')");

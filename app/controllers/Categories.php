@@ -31,7 +31,7 @@ class Categories extends MY_Controller
         $this->load->library('datatables');
         $this->datatables->select("id, image, code, name,");
         $this->datatables->from('categories');
-        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a class='tip image btn btn-primary btn-xs' id='$4 ($3)' href='" . base_url('uploads/$2') . "' title='" . lang("view_image") . "'><i class='fa fa-picture-o'></i></a> <a href='" . site_url('categories/edit/$1') . "' title='" . lang("edit_category") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('categories/delete/$1') . "' onClick=\"return confirm('" . lang('alert_x_category') . "')\" title='" . lang("delete_category") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id, image, code, name");
+        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a class='tip image btn btn-primary btn-xs' id='$4 ($3)' href='" . base_url('uploads/$2') . "' title='" . lang("view_image") . "'><i class='fa fa-picture-o'></i></a> <a href='" . site_url('categories/edit/$1') . "' title='" . lang("edit_category") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('categories/delete/$1') . "' data-confirm=\"" . lang('alert_x_category') . "\" title='" . lang("delete_category") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id, image, code, name");
         $this->datatables->unset_column('id');
         echo $this->datatables->generate();
 

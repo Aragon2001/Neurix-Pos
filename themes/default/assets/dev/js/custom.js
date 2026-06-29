@@ -161,7 +161,7 @@ function get(name) {
     if (typeof (Storage) !== "undefined") {
         return localStorage.getItem(name);
     } else {
-        alert('Please use a modern browser as this site needs localstroage!');
+        Swal.fire({ icon: 'error', title: 'Navegador incompatible', text: 'Por favor use un navegador moderno que soporte localStorage.' });
     }
 }
 
@@ -169,7 +169,7 @@ function store(name, val) {
     if (typeof (Storage) !== "undefined") {
         localStorage.setItem(name, val);
     } else {
-        alert('Please use a modern browser as this site needs localstroage!');
+        Swal.fire({ icon: 'error', title: 'Navegador incompatible', text: 'Por favor use un navegador moderno que soporte localStorage.' });
     }
 }
 
@@ -177,7 +177,7 @@ function remove(name) {
     if (typeof (Storage) !== "undefined") {
         localStorage.removeItem(name);
     } else {
-        alert('Please use a modern browser as this site needs localstroage!');
+        Swal.fire({ icon: 'error', title: 'Navegador incompatible', text: 'Por favor use un navegador moderno que soporte localStorage.' });
     }
 }
 

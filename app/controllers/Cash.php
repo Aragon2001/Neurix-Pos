@@ -159,7 +159,7 @@ class Cash extends MY_Controller
         );
         $store = $this->site->getStoreByID($this->session->userdata('store_id'));
         $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        if ($printer->type != "web") {
+        if ($printer && $printer->type != "web") {
             $this->load->library('escpos');
             $this->escpos->load($printer);
             $this->escpos->print_data($data, $store);

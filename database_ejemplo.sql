@@ -24,7 +24,7 @@
 -- de estas tablas secundarias.
 --
 -- Prefijo de tablas: tec_  (igual que app/config/database.php)
--- Base de datos esperada: posv (igual que app/config/database.php)
+-- Base de datos esperada: NeurixBD (igual que app/config/database.php)
 -- versionPOS se deja en 43 (la última que usa el código) para que el
 -- sistema NO intente volver a ejecutar todas las migraciones en el
 -- primer request.
@@ -34,8 +34,8 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
 
-CREATE DATABASE IF NOT EXISTS `posv` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `posv`;
+CREATE DATABASE IF NOT EXISTS `NeurixBD` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `NeurixBD`;
 
 -- =====================================================================
 -- SECCIÓN A — AUTENTICACIÓN (Ion Auth)  [núcleo confirmado]
@@ -91,10 +91,21 @@ DROP TABLE IF EXISTS `tec_login_attempts`;
 CREATE TABLE `tec_login_attempts` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ip_address` VARCHAR(45) NOT NULL,
-  `identity` VARCHAR(100) NOT NULL,
+  `login` VARCHAR(100) NOT NULL,            -- debe llamarse "login", no "identity": Auth_model.php (líneas 630,650,664,673) consulta esta columna como "login"
   `time` INT(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `tec_user_logins`;
+CREATE TABLE `tec_user_logins` (
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) UNSIGNED NOT NULL,
+  `ip_address` VARCHAR(45) NOT NULL,
+  `login` VARCHAR(100) NOT NULL,
+  `time` INT(11) DEFAULT NULL,              -- Auth_model.php:587 no envía "time"; no puede ser NOT NULL (INT no admite DEFAULT CURRENT_TIMESTAMP)
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;          -- tabla totalmente ausente: Auth_model.php:587 hace INSERT aquí en TODO login exitoso
 
 -- =====================================================================
 -- SECCIÓN B — CONFIGURACIÓN GLOBAL  [núcleo confirmado]
@@ -466,7 +477,7 @@ CREATE TABLE `tec_sales` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `customer_id` INT(11) DEFAULT 1,
-  `customer_name` VARCHAR(150) DEFAULT 'Cliente de Paso',
+  `customer_name` VARCHAR(150) DEFAULT 'Cliente de Contado',
   `register_id` INT(11) DEFAULT NULL,
   `comment` TEXT,
   `created_by` INT(11) DEFAULT NULL,
@@ -491,6 +502,9 @@ CREATE TABLE `tec_sales` (
   `token_post` VARCHAR(60) DEFAULT NULL,
   `id_shipping_method` INT(11) DEFAULT NULL,
   `condicion` TINYINT(1) DEFAULT 1,
+  `is_return` TINYINT(1) NOT NULL DEFAULT 0,
+  `total_tax` DECIMAL(25,4) DEFAULT 0.0000,
+  `total_discount` DECIMAL(25,4) DEFAULT 0.0000,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token_post` (`token_post`),
   KEY `customer_id` (`customer_id`),
@@ -978,12 +992,12 @@ CREATE TABLE `tec_deposit` (  -- [núcleo confirmado] MY_Controller.php:1326-133
 
 DROP TABLE IF EXISTS `tec_sessions`;
 CREATE TABLE `tec_sessions` (  -- requerida por config.php: sess_driver='database'
-  `id` VARCHAR(40) NOT NULL,
+  `id` VARCHAR(128) NOT NULL,            -- CI3 genera IDs de 128 chars (hex de 64 bytes)
   `ip_address` VARCHAR(45) NOT NULL,
   `timestamp` INT(10) UNSIGNED NOT NULL DEFAULT 0,
   `data` BLOB NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `timestamp` (`timestamp`)
+  KEY `ci_sessions_timestamp` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
@@ -1030,9 +1044,9 @@ VALUES
  'Autorizado mediante resolución N° DGT-R-033-2019. Versión 4.4',
  'Autorizado mediante resolución N° DGT-R-033-2019. Versión 4.4');
 
--- --- Cliente de paso (usado por defecto en ventas de mostrador) ---
+-- --- Cliente de Contado (usado por defecto en tiquetes electrónicos de mostrador) ---
 INSERT INTO `tec_customers` (`id`,`name`,`cf1`,`cf2`,`limitcredit`) VALUES
-(1,'Cliente de Paso',NULL,NULL,0);
+(1,'Cliente de Contado',NULL,NULL,0);
 
 INSERT INTO `tec_customers` (`id`,`name`,`business_name`,`email`,`phone`,`cf1`,`cf2`,`limitcredit`,`codigo_actividad`) VALUES
 (2,'Juan Pérez Mora',NULL,'juan.perez@example.com','8888-1234','01','110100000',0,NULL),

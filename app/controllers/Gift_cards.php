@@ -34,7 +34,7 @@ class Gift_cards extends MY_Controller
         }
         $this->datatables->join('users', 'users.id=gift_cards.created_by', 'left')
             ->from("gift_cards");
-        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('gift_cards/view/$1') . "' title='".lang("view_gift_card")."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-eye'></i></a> <a href='" . site_url('gift_cards/edit/$1') . "' title='" . lang("edit_gift_card") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('gift_cards/delete/$1') . "' onClick=\"return confirm('" . lang('alert_x_gift_card') . "')\" title='" . lang("delete_gift_card") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
+        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('gift_cards/view/$1') . "' title='".lang("view_gift_card")."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-eye'></i></a> <a href='" . site_url('gift_cards/edit/$1') . "' title='" . lang("edit_gift_card") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('gift_cards/delete/$1') . "' data-confirm=\"" . lang('alert_x_gift_card') . "\" title='" . lang("delete_gift_card") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
         ->unset_column('id');
 
         echo $this->datatables->generate();

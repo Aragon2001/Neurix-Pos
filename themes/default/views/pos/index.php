@@ -45,12 +45,12 @@
                     <ul class="nav navbar-nav">
                         <li><a href="#" class="clock"></a></li>
 
-                        <? if ($Settings->theme_style == "purple") { ?>
+                        <?php if ($Settings->theme_style == "purple") { ?>
                             <li><a target="_blank" title="Clientes" href="<?= site_url('customers'); ?>"><i class="fa fa-users"></i></a></li>
-                        <? } ?>
-                        <? if ($Settings->theme_style == "purple") { ?>
+                        <?php } ?>
+                        <?php if ($Settings->theme_style == "purple") { ?>
                             <li><a target="_blank" title="Lista de Ventas" href="<?= site_url('sales'); ?>"><i class="fa fa-shopping-cart"></i></a></li>
-                        <? } ?>
+                        <?php } ?>
                         <?php if ($Admin) { ?>
                             <li><a href="<?= site_url('settings'); ?>"><i class="fa fa-cogs"></i></a></li>
                         <?php } ?>
@@ -120,11 +120,11 @@
                                 </li>
                             </ul>
                         </li>
-                        <? if (!isset($Settings->show_categories) || $Settings->show_categories != "0") { ?>
+                        <?php if (!isset($Settings->show_categories) || $Settings->show_categories != "0") { ?>
                             <li>
                                 <a href="#" data-toggle="control-sidebar" class="sidebar-icon"><i class="fa fa-folder sidebar-icon"></i></a>
                             </li>
-                        <? } ?>
+                        <?php } ?>
                     </ul>
                 </div>
             </nav>
@@ -359,24 +359,6 @@
 
         <div class="<?= $Settings->theme_style == "purple" ? "content_wrapper_" . $Settings->theme_style : "content-wrapper" ?>">
 
-            <div class="col-lg-12 alerts">
-                <?php if ($error) { ?>
-                    <div class="alert alert-danger alert-dismissable">
-                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-                        <h4><i class="icon fa fa-ban"></i> <?= lang('error'); ?></h4>
-                        <?= $error; ?>
-                    </div>
-                <?php
-                }
-                if ($message) {
-                ?>
-                    <div class="alert alert-success alert-dismissable">
-                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-                        <h4><i class="icon fa fa-check"></i> <?= lang('Success'); ?></h4>
-                        <?= $message; ?>
-                    </div>
-                <?php } ?>
-            </div>
 
             <table style="width:100%;" class="layout-table">
                 <tr>
@@ -466,7 +448,7 @@
                                     <?php } ?>
 
                                     <input type="hidden" name="token_post" value="<?= md5(date('Y-m-d H:i:s')) ?>" />
-                                    <? if ($Settings->enable_parquimetro == "0") { ?>
+                                    <?php if ($Settings->enable_parquimetro == "0") { ?>
                                         <?php if (!$t_nc && !$apa) { ?>
                                             <div class="form-group" style="margin-bottom:5px; overflow: hidden;">
                                                 <select id="tipo_precio" style="float: left; width: 15%;" class="form-control ">
@@ -1231,9 +1213,9 @@
                                         }
                                      if (!$mesaExists && $reference_note == null || $reference_note == $item->id_waiting_tables) { ?>
                                         <option value="<?=  $item->id_waiting_tables ?>"><?= $item->name ?></option>
-                                        <? } ?>
-                                    <? } ?>
-                                <? } ?>
+                                        <?php } ?>
+                                    <?php } ?>
+                                <?php } ?>
 
                             </select>
                             <?php if($is_exist){?>
@@ -1243,10 +1225,10 @@
                                         <option value=""> Seleeccione una.. </option>
                                         <?php foreach ($waiting_tables as $item) {?>
                                             <option value="<?=  $item->id_waiting_tables ?>"><?= $item->name ?></option>
-                                        <? } ?>   
+                                        <?php } ?>   
                                     </select>
                                 </div>
-                            <? } ?>
+                            <?php } ?>
                             <div id="inputllevar">
 
                             </div>
@@ -1695,7 +1677,7 @@
                                 <label class="control-label" for="cf1">
                                     <?php echo lang("cf1"); ?><span style="color:red">*</span>
                                 </label>
-                                <!--                            --><? //= form_input('cf1', '', 'class="form-control input-sm kb-text" id="cf1"');  
+                                <!--                            --><?php //= form_input('cf1', '', 'class="form-control input-sm kb-text" id="cf1"');  
                                                                     ?>
                                 <select name="cf1" class="form-control input-sm selct2" id="cf1" required="required">
                                     <option <?php @$customer->cf1 == '01' ? ' selected selected="selected"' : '' ?> value="01">Cedula de Identidad
@@ -1799,8 +1781,8 @@
                                 <label class="control-label" for="business_name">
                                     <?= lang("FechaEmisionE"); ?><span style="color:red">*</span>
                                 </label>
-                                <? $dateE = date('Y-m-d') . 'T' . date('H:i:s'); ?>
-                                <input type="text" name="FechaEmisionE" id="FechaEmisionE" readonly="" value="<? echo $dateE; ?>" class="form-control input-sm kb-text">
+                                <?php $dateE = date('Y-m-d') . 'T' . date('H:i:s'); ?>
+                                <input type="text" name="FechaEmisionE" id="FechaEmisionE" readonly="" value="<?php echo $dateE; ?>" class="form-control input-sm kb-text">
                             </div>
                         </div>
 
@@ -1901,7 +1883,7 @@
             protect_changeprice = 1,
             protect_opendrawer = 1,
             protect_creditnote = 1,
-            type_printer = "<?= $printer_default->type ?>";
+            type_printer = "<?= ($printer_default ? $printer_default->type : '') ?>";
         var order_data = {},
             bill_data = {};
         var csrf_hash = '<?= $this->security->get_csrf_hash(); ?>';

@@ -34,7 +34,7 @@ class Sales extends MY_Controller {
 
         $this->load->library('datatables');
         
-        $this->datatables->select("id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, total, total_tax, total_discount, grand_total, paid, ht.estatus_hacienda,ht.consecutivo, status");
+        $this->datatables->select("sales.id as id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, total, total_tax, total_discount, grand_total, paid, ht.estatus_hacienda,ht.consecutivo, status");
         $this->datatables->from('sales');
         $this->datatables->join('hacienda_tiketes ht', 'ht.sale_id = sales.id', 'left');
         $this->db->order_by("date","desc");
@@ -70,12 +70,11 @@ class Sales extends MY_Controller {
         }
         $this->datatables->where('store_id', $this->session->userdata('store_id'));
 
-        $confi = 'return confirm("Esta seguro que desea anular este apartado??");';
-        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('pos/?aparta=$1') . "' title='" . lang("click_to_add") . "' class='tip btn btn-info btn-xs' id='aparta$1'><i class='fa fa-th-large'></i></a> 
-        
-        <a href='" . site_url('sales/payments_apartado/$1') . "' title='" . lang("view_payments") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-money'></i></a> 
+        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('pos/?aparta=$1') . "' title='" . lang("click_to_add") . "' class='tip btn btn-info btn-xs' id='aparta$1'><i class='fa fa-th-large'></i></a>
+
+        <a href='" . site_url('sales/payments_apartado/$1') . "' title='" . lang("view_payments") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-money'></i></a>
         <a href='" . site_url('sales/add_payment_apartado/$1') . "' title='" . lang("add_payment") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-briefcase'></i></a>
-         <a href='" . site_url('sales/apartadoAnular/?anular=$1') . "' onclick='" . $confi . "' title='Anular Apartado' class='tip btn btn-danger btn-xs' id='aparta$1'><i class='fa fa-ban'></i></a> </div></div>", "id");
+         <a href='" . site_url('sales/apartadoAnular/?anular=$1') . "' data-confirm='¿Seguro que desea anular este apartado?' title='Anular Apartado' class='tip btn btn-danger btn-xs' id='aparta$1'><i class='fa fa-ban'></i></a> </div></div>", "id");
         
         echo $this->datatables->generate();
     }
@@ -163,7 +162,7 @@ class Sales extends MY_Controller {
         }
         $this->datatables->where('store_id', $this->session->userdata('store_id'));
         $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('pos/?hold=$1') . "' title='" . lang("click_to_add") . "' class='tip btn btn-info btn-xs'><i class='fa fa-th-large'></i></a>
-            <a href='" . site_url('sales/delete_holded/$1') . "' onClick=\"return confirm('" . lang('alert_x_holded') . "')\" title='" . lang("delete_sale") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
+            <a href='" . site_url('sales/delete_holded/$1') . "' data-confirm=\"" . lang('alert_x_holded') . "\" title='" . lang("delete_sale") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
                 ->unset_column('id');
 
         echo $this->datatables->generate();
@@ -701,6 +700,7 @@ class Sales extends MY_Controller {
     }
 
     public function abort($id = NULL){
+        $this->load->model('hacienda_model');
         $salesItems = $this->sales_model->getAllSaleItems($id);
         $data = $this->hacienda_model->getInvoice($id);
         if($data->estatus_hacienda != "anulado"){

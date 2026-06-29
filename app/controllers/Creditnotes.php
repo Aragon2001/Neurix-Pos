@@ -13,6 +13,7 @@ class CreditNotes extends MY_Controller
         }
         $this->load->helper('pos');
         $this->load->model('pos_model');
+        $this->load->model('hacienda_model');
         $this->load->library('form_validation');
     }
 
@@ -31,7 +32,7 @@ class CreditNotes extends MY_Controller
         if ($this->db->dbdriver == 'sqlite3') {
             $this->datatables->select("id, strftime('%Y-%m-%d %H:%M', date) as date, customer_name, total, total_tax, total_discount, grand_total, paid, estatus_hacienda as status,cn.consecutivo as consecutivo");
         } else {
-            $this->datatables->select("id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, total, total_tax, total_discount, grand_total, paid, estatus_hacienda as status,cn.consecutivo as consecutivo ");
+            $this->datatables->select("note_credits.id as id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, total, total_tax, total_discount, grand_total, paid, note_credits.estatus_hacienda as status, cn.consecutivo as consecutivo");
         }
         $this->datatables->from('note_credits');
         $this->datatables->join('hacienda_cn cn', 'cn.id_cn = note_credits.id', 'left');
@@ -92,6 +93,7 @@ class CreditNotes extends MY_Controller
     function open_drawer()
     {
         $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
+        if (!$printer) { redirect($_SERVER['HTTP_REFERER']); return; }
         $printer->ip = $this->Settings->ip_printer;
         $printer->nombrecompartido = $this->Settings->nombrecompartido;
         $this->load->library('escpos');
