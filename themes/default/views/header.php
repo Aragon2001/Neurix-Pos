@@ -6,8 +6,8 @@
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <!-- CSS compilado por Vite: Bootstrap 5 + AdminLTE 4 + Neurix -->
-    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet">
-    <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
+    <link href="<?= base_url('themes/default/assets/dist/css/www.min.css'); ?>" rel="stylesheet">
+    <?= $Settings->rtl ? '<link href="' . base_url('themes/default/assets/dist/css/rtl.css') . '" rel="stylesheet">' : ''; ?>
     <script>
     /* Anti-FOUC: aplicar tema antes de renderizar (AdminLTE 4 con data-bs-theme) */
     (function(){
@@ -17,7 +17,7 @@
     })();
     </script>
     <!-- Bundle Vite: Bootstrap 5 + AdminLTE 4 + librerías modernas (sin jQuery) -->
-    <script src="<?= $assets ?>dist/js/main.min.js" defer></script>
+    <script src="<?= base_url('themes/default/assets/dist/js/main.min.js'); ?>" defer></script>
 </head>
 <body>
 <div class="wrapper">
