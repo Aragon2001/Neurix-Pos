@@ -3,7 +3,7 @@
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
             <h4 class="modal-title" id="myModalLabel"><?php echo lang('edit_payment'); ?></h4>
         </div>
         <?= form_open_multipart("sales/edit_payment/" . $payment->id ."/".$payment->sale_id); ?>
@@ -13,14 +13,14 @@
             <div class="row">
                 <?php if ($Admin) { ?>
                     <div class="col-sm-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= lang("date", "date"); ?>
                             <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : $payment->date), 'class="form-control datetimepicker" id="date" required="required"'); ?>
                         </div>
                     </div>
                 <?php } ?>
                 <div class="col-sm-6">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("reference", "reference"); ?>
                         <?= form_input('reference', (isset($_POST['reference']) ? $_POST['reference'] : $payment->reference), 'class="form-control tip" id="reference"'); ?>
                     </div>
@@ -36,7 +36,7 @@
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="payment">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang("amount", "amount"); ?>
                                         <input name="amount-paid"
                                                value="<?= $this->tec->formatDecimal($payment->amount); ?>" type="text"
@@ -45,7 +45,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang("paying_by", "paid_by"); ?>
                                     <select name="paid_by" id="paid_by" class="form-control paid_by select2" style="width:100%;">
                                         <option  value="cash"<?= $payment->paid_by == 'cash' ? ' checked="checcked"' : '' ?>><?= lang("cash"); ?></option>
@@ -61,13 +61,13 @@
 
             </div>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <?= lang("attachment", "attachment") ?>
                 <input id="attachment" type="file" name="userfile" data-show-upload="false" data-show-preview="false"
                        class="form-control file">
             </div>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <?= lang("note", "note"); ?>
                 <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : $payment->note), 'class="form-control redactor" id="note"'); ?>
             </div>

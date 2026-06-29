@@ -3,7 +3,7 @@
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
             </button>
             <h4 class="modal-title" id="myModalLabel"><?php echo lang('add_payment'); ?></h4>
         </div>
@@ -14,14 +14,14 @@
             <div class="row">
                 <?php if ($Admin) { ?>
                     <div class="col-sm-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= lang("date", "date"); ?>
                             <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : date('Y-m-d H:i')), 'class="form-control datetimepicker" id="date" required="required"'); ?>
                         </div>
                     </div>
                 <?php } ?>
                 <div class="col-sm-6">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("reference", "reference"); ?>
                         <?= form_input('reference', set_value('reference'), 'class="form-control tip" id="reference"'); ?>
                     </div>
@@ -37,7 +37,7 @@
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="payment">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang("amount", "amount"); ?>
                                         <input name="amount-paid" type="text" id="amount"
                                                value="<?= ($inv->grand_total - $inv->paid) > 0 ? $this->tec->formatDecimal($inv->grand_total - $inv->paid) : 0; ?>"
@@ -46,7 +46,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang("paying_by", "paid_by"); ?>
                                     <select name="paid_by" id="paid_by" class="form-control paid_by select2"
                                             style="width:100%"
@@ -65,7 +65,7 @@
 
                         </div>
                         <div class="clearfix"></div>
-                        <div class="form-group gc" style="display: none;">
+                        <div class="mb-3 gc" style="display: none;">
                             <?= lang("gift_card_no", "gift_card_no"); ?>
                             <input name="gift_card_no" type="text" id="gift_card_no" class="pa form-control kb-pad"/>
 
@@ -84,7 +84,7 @@
                                        placeholder="<?= lang('cc_holder') ?>"/>
 
                                 <div class="col-sm-6">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <select name="pcc_type" id="pcc_type" class="form-control pcc_type select2"
                                                 style="width:100%"
                                                 placeholder="<?= lang('card_type') ?>">
@@ -106,7 +106,7 @@
                             </div>
                         </div>
                         <div class="pcheque" style="display:none;">
-                            <div class="form-group"><?= lang("cheque_no", "cheque_no"); ?>
+                            <div class="mb-3"><?= lang("cheque_no", "cheque_no"); ?>
                                 <input name="cheque_no" type="text" id="cheque_no" class="form-control cheque_no"/>
                             </div>
                         </div>
@@ -116,12 +116,12 @@
 
             </div>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <?= lang("attachment", "attachment") ?>
                 <input id="attachment" type="file" name="userfile" class="form-control file">
             </div>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <?= lang("note", "note"); ?>
                 <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control redactor" id="note"'); ?>
             </div>

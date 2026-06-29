@@ -15,12 +15,12 @@
         <div class="login-box-body">
             <?php if ($error)  { ?>
             <div class="alert alert-danger alert-dismissable">
-                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                <button aria-hidden="true" data-bs-dismiss="alert" class="close" type="button">×</button>
                 <?= $error; ?>
             </div>
             <?php } if ($message) { ?>
             <div class="alert alert-success alert-dismissable">
-                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                <button aria-hidden="true" data-bs-dismiss="alert" class="close" type="button">×</button>
                 <?= $message; ?>
             </div>
             <?php } ?>

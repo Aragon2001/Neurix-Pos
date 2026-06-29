@@ -5,30 +5,30 @@
         <div class="col-lg-12">
             <div class="nav-tabs-custom">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a data-toggle="tab" href="#edit_profile"><?= lang('edit'); ?></a></li>
-                    <li><a data-toggle="tab" href="#avatar"><?= lang('avatar'); ?></a></li>
-                    <li><a data-toggle="tab" href="#horario">Horario</a></li>
-                    <li><a data-toggle="tab" href="#auth_open">Apertura de caja</a></li>
-                    <li><a data-toggle="tab" href="#cpassword"><?= lang('change_password'); ?></a></li>
+                    <li class="active"><a data-bs-toggle="tab" href="#edit_profile"><?= lang('edit'); ?></a></li>
+                    <li><a data-bs-toggle="tab" href="#avatar"><?= lang('avatar'); ?></a></li>
+                    <li><a data-bs-toggle="tab" href="#horario">Horario</a></li>
+                    <li><a data-bs-toggle="tab" href="#auth_open">Apertura de caja</a></li>
+                    <li><a data-bs-toggle="tab" href="#cpassword"><?= lang('change_password'); ?></a></li>
                 </ul>
                 <div class="tab-content">
                     <div id="edit_profile" class="tab-pane active">
                         <div class="col-lg-6">
                             <p><?= lang('update_info'); ?></p>
                             <?=form_open('auth/edit_user/' . $user->id);?>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('first_name', 'first_name'); ?>
                                 <?= form_input('first_name', $user->first_name, 'class="form-control tip" id="first_name"  required="required"'); ?>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('last_name', 'last_name'); ?>
                                 <?= form_input('last_name', $user->last_name, 'class="form-control tip" id="last_name"  required="required"'); ?>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('phone', 'phone'); ?>
                                 <?= form_input('phone', $user->phone, 'class="form-control tip" id="phone"  required="required"'); ?>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('gender', 'gender'); ?>
                                 <?php $gnders = array('male' => lang('male'), 'female' => lang('female')); ?>
                                 <?= form_dropdown('gender', $gnders, $user->gender, 'class="form-control tip select2" style="width:100%;" id="gender"  required="required"'); ?>
@@ -36,7 +36,7 @@
 
                             <?php if ($Admin && $id != $this->session->userdata('user_id')) { ?>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang("group", "group"); ?>
                                     <?php
                                     $gp[""] = "";
@@ -47,27 +47,27 @@
                                     ?>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('username', 'username'); ?>
                                     <?= form_input('username', $user->username, 'class="form-control tip" id="username"  required="required"'); ?>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('email', 'email'); ?>
                                     <?= form_input('email', $user->email, 'class="form-control tip" id="email"  required="required"'); ?>
                                 </div>
 
-                                <div class="panel panel-warning">
-                                    <div class="panel-heading"><?= lang('if_you_need_to_rest_password_for_user') ?></div>
-                                    <div class="panel-body" style="padding: 5px;">
+                                <div class="card border-warning">
+                                    <div class="card-header"><?= lang('if_you_need_to_rest_password_for_user') ?></div>
+                                    <div class="card-body" style="padding: 5px;">
 
                                             <div class="col-md-6">
-                                                <div class="form-group">
+                                                <div class="mb-3">
                                                     <?php echo lang('password', 'password'); ?>
                                                     <?php echo form_input($password); ?>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <div class="form-group">
+                                                <div class="mb-3">
                                                     <?php echo lang('confirm_password', 'password_confirm'); ?>
                                                     <?php echo form_input($password_confirm); ?>
                                                 </div>
@@ -76,14 +76,14 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('status', 'status'); ?>
                                     <?php
                                     $opt = array('' => '', 1 => lang('active'), 0 => lang('inactive'));
                                     echo form_dropdown('status', $opt, $user->active, 'id="status" data-placeholder="' . lang("select") . ' ' . lang("status") . '" class="form-control input-tip select2" style="width:100%;"');
                                     ?>
                                 </div>
-                                <div class="form-group store-con">
+                                <div class="mb-3 store-con">
                                     <?= lang("store", "store_id"); ?>
                                     <?php
                                     $st[""] = "";
@@ -97,7 +97,7 @@
 
                             <?php echo form_hidden('id', $id); ?>
                             <?php echo form_hidden($csrf); ?>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= form_submit('update_user', lang('update'), 'class="btn btn-primary"'); ?>
                             </div>
                             <?= form_close(); ?>
@@ -115,13 +115,13 @@
                                     ?>
 
                                     <?php echo form_open_multipart("auth/update_avatar"); ?>
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang("change_avatar", "change_avatar"); ?>
                                         <input type="file" data-browse-label="<?= lang('browse'); ?>" name="avatar" id="product_image" required="required"
                                         data-show-upload="false" data-show-preview="false" accept="image/*"
                                         class="form-control file"/>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?php echo form_hidden('id', $id); ?>
                                         <?php echo form_hidden($csrf); ?>
                                         <?php echo form_submit('update_avatar', lang('update_avatar'), 'class="btn btn-primary"'); ?>
@@ -142,8 +142,8 @@
                                 Hora de Entrada    
                                 <div class='input-group date' id='appointment_start_datetime'>
                                     <input type='text' value="<?= $user->hora_inicio ?>" name="hora_inicio" class="form-control" />
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    <span class="input-group-text">
+                                        <span class="fa fa-calendar"></span>
                                     </span>
                                 </div>
                             </div>
@@ -151,15 +151,15 @@
                                 Hora de Salida    
                                 <div class='input-group date' id='appointment_end_datetime'>
                                     <input type='text' value="<?= $user->hora_fin ?>" name="hora_fin" class="form-control" />
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    <span class="input-group-text">
+                                        <span class="fa fa-calendar"></span>
                                     </span>
                                 </div>
                             </div>
                             <?php echo form_hidden('id', $id); ?>
                             <?php echo form_hidden($csrf); ?>
                                 <div class="clearfix"></div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <br/>
                                 <?= form_submit('update_user', lang('update'), 'class="btn btn-primary"'); ?>
                             </div>
@@ -174,7 +174,7 @@
                             <div class="white-panel">
                                 <?=form_open('auth/auth_open_cash/' . $user->id);?>
                             <div class="col-lg-12">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     ¿Desea habilitar la apertura de caja para este Usuario?    
                                     <?php $auth_open_options = array('1' => "Si, Habilitar", '0' => "No permitir"); ?>
                                     <?= form_dropdown('auth_open', $auth_open_options, $user->auth_open, 'class="form-control tip select2" style="width:100%;" id="auth_open"  required="required"'); ?>
@@ -183,7 +183,7 @@
                             <?php echo form_hidden('id', $id); ?>
                             <?php echo form_hidden($csrf); ?>
                                 <div class="clearfix"></div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <br/>
                                 <?= form_submit('update_user', lang('update'), 'class="btn btn-primary"'); ?>
                             </div>
@@ -200,25 +200,25 @@
                                 <?php echo form_open("auth/change_password"); ?>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?php echo lang('old_password', 'curr_password'); ?> <br/>
                                             <?php echo form_password('old_password', '', 'class="form-control" id="curr_password"'); ?>
                                         </div>
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <label
                                                 for="new_password"><?php echo sprintf(lang('new_password'), $min_password_length); ?></label>
                                             <br/>
                                             <?php echo form_password('new_password', '', 'class="form-control" id="new_password" pattern=".{8,}"'); ?>
                                         </div>
 
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?php echo lang('confirm_password', 'new_password_confirm'); ?> <br/>
                                             <?php echo form_password('new_password_confirm', '', 'class="form-control" id="new_password_confirm" pattern=".{8,}"'); ?>
 
                                         </div>
 
                                         <?php echo form_input($user_id); ?>
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?php echo form_submit('change_password', lang('change_password'), 'class="btn btn-primary"'); ?>
                                         </div>
                                     </div>

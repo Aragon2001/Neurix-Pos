@@ -3,7 +3,7 @@
 <div class="modal-dialog modal-success">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
             <button type="button" class="close mr10" onclick="window.print();"><i class="fa fa-print"></i></button>
             <h4 class="modal-title" id="myModalLabel"><?= lang('today_sale').' ('.date($Settings->dateformat).')'; ?></h4>
         </div>

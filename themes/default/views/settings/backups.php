@@ -2,7 +2,7 @@
 
 <section class="content" style="min-height: auto;">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <a href="<?= site_url('settings/backup_database'); ?>" class="pull-right btn btn-primary"><i class="icon fa fa-database"></i> <?= lang('backup_database'); ?></a>
@@ -37,7 +37,7 @@
 </section>
 <!-- <section class="content" style="min-height: auto;">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <a href="<?= site_url('settings/backup_xml'); ?>" class="pull-right btn btn-primary"><i class="icon fa fa-database"></i> <?= lang('backup_xml'); ?></a>
@@ -77,7 +77,7 @@
 </section> -->
 <!-- <section class="content" style="min-height: auto;">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <a href="#" id="backup_files" class="pull-right btn btn-primary"><i class="icon fa fa-file-zip-o"></i> <?= lang('backup_files'); ?></a>

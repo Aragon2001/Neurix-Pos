@@ -8,7 +8,7 @@ if ($modal) {
     <div class="modal-content">
         <div class="modal-body">
 
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
             </button>
             <?php
             } else {
@@ -100,7 +100,7 @@ if ($modal) {
                     <div class="no-print">
                         <?php if ($message) { ?>
                             <div class="alert alert-success">
-                                <button data-dismiss="alert" class="close" type="button">×</button>
+                                <button data-bs-dismiss="alert" class="close" type="button">×</button>
                                 <?= is_array($message) ? print_r($message, true) : $message; ?>
                             </div>
                         <?php } ?>
@@ -269,11 +269,11 @@ if ($modal) {
                                 </div>
                                 <div class="btn-group" role="group">
                                     <button type="button" class="btn btn-default"
-                                            data-dismiss="modal"><?= lang('close'); ?></button>
+                                            data-bs-dismiss="modal"><?= lang('close'); ?></button>
                                 </div>
                             </div>
                         <?php } else { ?>
-                            <span class="pull-right col-xs-12">
+                            <span class="pull-right col-12">
                                 <?php
                                 if (!$Settings->remote_printing) {
                                     echo '<a href="' . site_url('creditnotes/print_receipt/' . $inv->id . '/null') . '" id="print" class="btn btn-block btn-primary">' . lang("print") . '</a>';
@@ -286,9 +286,9 @@ if ($modal) {
                                 }
                                 ?>
                             </span>
-                            <span class="pull-left col-xs-12"><a class="btn btn-block btn-success" href="#"
+                            <span class="pull-left col-12"><a class="btn btn-block btn-success" href="#"
                                                                  id="email"><?= lang("email"); ?></a></span>
-                            <span class="col-xs-12">
+                            <span class="col-12">
                                 <a class="btn btn-block btn-warning"
                                    href="<?= site_url('pos'); ?>"><?= lang("back_to_pos"); ?></a>
                             </span>

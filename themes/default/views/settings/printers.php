@@ -41,7 +41,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -52,12 +52,12 @@
                             <thead>
                                 <tr>
                                     <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-xs-2"><?= lang("title"); ?></th>
-                                    <th class="col-xs-1"><?= lang("type"); ?></th>
-                                    <th class="col-xs-2"><?= lang("profile"); ?></th>
-                                    <th class="col-xs-3"><?= lang("path"); ?></th>
-                                    <th class="col-xs-2"><?= lang("ip_address"); ?></th>
-                                    <th class="col-xs-1"><?= lang("port"); ?></th>
+                                    <th class="col-2"><?= lang("title"); ?></th>
+                                    <th class="col-1"><?= lang("type"); ?></th>
+                                    <th class="col-2"><?= lang("profile"); ?></th>
+                                    <th class="col-3"><?= lang("path"); ?></th>
+                                    <th class="col-2"><?= lang("ip_address"); ?></th>
+                                    <th class="col-1"><?= lang("port"); ?></th>
                                     <th style="width:65px;"><?= lang("actions"); ?></th>
                                 </tr>
                             </thead>

@@ -142,7 +142,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('top_products_heading'); ?></h3>
@@ -151,18 +151,18 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="panel panel-default">
-                                <div class="panel-heading"><?= $this->lang->line("this_month").' ('.date('F Y').')'; ?></div>
-                                <div class="panel-body">
+                            <div class="card">
+                                <div class="card-header"><?= $this->lang->line("this_month").' ('.date('F Y').')'; ?></div>
+                                <div class="card-body">
                                     <div id="thisMonth" style="height:400px;"></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <div class="panel panel-default">
-                                <div class="panel-heading"><?= $this->lang->line("last_month").' ('.date('F Y', strtotime('last month')).')'; ?></div>
-                                <div class="panel-body">
+                            <div class="card">
+                                <div class="card-header"><?= $this->lang->line("last_month").' ('.date('F Y', strtotime('last month')).')'; ?></div>
+                                <div class="card-body">
                                     <div id="lastMonth" style="height:400px;"></div>
                                 </div>
                             </div>
@@ -173,18 +173,18 @@
                     <div class="row">
 
                         <div class="col-md-6">
-                            <div class="panel panel-default" style="margin-bottom:0;">
-                                <div class="panel-heading"><?= $this->lang->line("last_3_months").' ('.$this->lang->line("from").' '.date('F Y', strtotime('-3 month')).')'; ?></div>
-                                <div class="panel-body">
+                            <div class="card" style="margin-bottom:0;">
+                                <div class="card-header"><?= $this->lang->line("last_3_months").' ('.$this->lang->line("from").' '.date('F Y', strtotime('-3 month')).')'; ?></div>
+                                <div class="card-body">
                                     <div id="lastQ" style="height:400px;"></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <div class="panel panel-default" style="margin-bottom:0;">
-                                <div class="panel-heading"><?= $this->lang->line("last_12_months").' ('.$this->lang->line("from").' '.date('F Y', strtotime('-12 month')).')'; ?></div>
-                                <div class="panel-body">
+                            <div class="card" style="margin-bottom:0;">
+                                <div class="card-header"><?= $this->lang->line("last_12_months").' ('.$this->lang->line("from").' '.date('F Y', strtotime('-12 month')).')'; ?></div>
+                                <div class="card-body">
                                     <div id="thisYear" style="height:400px;"></div>
                                 </div>
                             </div>

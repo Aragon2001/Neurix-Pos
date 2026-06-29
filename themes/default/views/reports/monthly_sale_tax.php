@@ -158,13 +158,13 @@ if ($this->input->post('end_date')) {
                     <h3 class="box-title"><?= lang('customize_report'); ?></h3>
                 </div>
                 <div class="box-body">
-                    <div id="form" class="panel panel-warning ">
-                        <div class="panel-body">
+                    <div id="form" class="card border-warning ">
+                        <div class="card-body">
                             <?= form_open("reports/monthly_sale_tax"); ?>
                             <div class="row">
                             <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="customer"><?= lang("customer"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="customer"><?= lang("customer"); ?></label>
                                         <?php
                                         $cu[0] = lang("select") . " " . lang("customer");
                                         foreach ($customers as $customer) {
@@ -174,14 +174,14 @@ if ($this->input->post('end_date')) {
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="start_date"><?= lang("start_date"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="start_date"><?= lang("start_date"); ?></label>
                                         <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="end_date"><?= lang("end_date"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="end_date"><?= lang("end_date"); ?></label>
                                         <?= form_input('end_date', set_value('end_date'), 'class="form-control datetimepicker" id="end_date"'); ?>
                                     </div>
                                 </div>

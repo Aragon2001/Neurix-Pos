@@ -2,7 +2,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('update_info'); ?></h3>
@@ -12,11 +12,11 @@
                     <div class="col-md-6">
 
 
-                        <div class="form-group">
-                            <label class="control-label" for="name"><?= $this->lang->line("name"); ?></label>
+                        <div class="mb-3">
+                            <label class="form-label" for="name"><?= $this->lang->line("name"); ?></label>
                             <?= form_input('name', set_value('name', $shipping->name), 'class="form-control input-sm" id="name"'); ?>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?php echo form_submit('edit_shipping', $this->lang->line("edit_shipping"), 'class="btn btn-primary"');?>
                         </div>
 

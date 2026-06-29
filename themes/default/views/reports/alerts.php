@@ -100,7 +100,7 @@
 </style>
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -112,16 +112,16 @@
                             <tr class="active">
                                 <th style="max-width:30px;"><?= lang("id"); ?></th>
                                 <th style="max-width:30px;"><?= lang("image"); ?></th>
-                                <th class="col-xs-1"><?= lang("code"); ?></th>
+                                <th class="col-1"><?= lang("code"); ?></th>
                                 <th><?= lang("name"); ?></th>
-                                <th class="col-xs-1"><?= lang("type"); ?></th>
-                                <th class="col-xs-1"><?= lang("category"); ?></th>
-                                <th class="col-xs-1"><?= lang("quantity"); ?></th>
-                                <th class="col-xs-1"><?= lang("alert_quanity"); ?></th>
-                                <th class="col-xs-1"><?= lang("tax"); ?></th>
-                                <th class="col-xs-1"><?= lang("method"); ?></th>
-                                <th class="col-xs-1"><?= lang("cost"); ?></th>
-                                <th class="col-xs-1"><?= lang("price"); ?></th>
+                                <th class="col-1"><?= lang("type"); ?></th>
+                                <th class="col-1"><?= lang("category"); ?></th>
+                                <th class="col-1"><?= lang("quantity"); ?></th>
+                                <th class="col-1"><?= lang("alert_quanity"); ?></th>
+                                <th class="col-1"><?= lang("tax"); ?></th>
+                                <th class="col-1"><?= lang("method"); ?></th>
+                                <th class="col-1"><?= lang("cost"); ?></th>
+                                <th class="col-1"><?= lang("price"); ?></th>
                                 <th style="width:35px;"><?= lang("actions"); ?></th>
                             </tr>
                             </thead>

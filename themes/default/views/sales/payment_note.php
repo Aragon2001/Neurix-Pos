@@ -10,7 +10,7 @@
 <div class="modal-dialog modal-lg no-modal-header">
     <div class="modal-content">
         <div class="modal-body print">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
             </button>
             <?php if ($logo) { ?>
                 <!--<div class="text-center" style="margin-bottom:20px;">-->
@@ -20,7 +20,7 @@
             <?php } ?>
             <div class="clearfix"></div>
             <div class="row padding10">
-                <div class="col-xs-5">
+                <div class="col-5">
                     <h2 class=""><?= $biller->company != '-' ? $biller->company : $biller->name; ?></h2>
                     <?= $biller->company ? "" : "Attn: " . $biller->name ?>
                     <?php
@@ -49,7 +49,7 @@
                     ?>
                     <div class="clearfix"></div>
                 </div>
-                <div class="col-xs-5">
+                <div class="col-5">
                     <h2 class=""><?= $customer->company ? $customer->company : $customer->name; ?></h2>
                     <?= $customer->company ? "" : "Attn: " . $customer->name ?>
                     <?php
@@ -87,7 +87,7 @@
                     <p style="font-weight:bold;"><?= lang("payment_reference"); ?>: <?= $payment->reference_no; ?></p>
                 </div>
             </div>
-            <div class="well">
+            <div class="card">
                 <table class="table table-borderless" style="margin-bottom:0;">
                     <tbody>
                     <tr>

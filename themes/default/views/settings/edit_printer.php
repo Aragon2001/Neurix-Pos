@@ -2,7 +2,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('update_info'); ?></h3>
@@ -11,12 +11,12 @@
                     <?php echo form_open_multipart("settings/edit_printer/" . $printer->id); ?>
 
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="control-label" for="title"><?= $this->lang->line("title"); ?></label>
+                        <div class="mb-3">
+                            <label class="form-label" for="title"><?= $this->lang->line("title"); ?></label>
                             <?= form_input('title', set_value('title', $printer->title), 'class="form-control input-sm" id="title"'); ?>
                         </div>
 
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= lang('type', 'type'); ?>
                             <?php
                             $topts = array('windows' => lang('windows'), 'web' => 'web');
@@ -25,7 +25,7 @@
                         </div>
 
                         <div class="path">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('profile', 'profile'); ?>
                                 <?php
                                 $popts = array('default' => lang('default'), 'simple' => lang('simple'), 'SP2000' => lang('star_branded'), 'TEP-200M' => lang('epson_tep'), 'P822D' => lang('P822D'));
@@ -33,18 +33,18 @@
                                 <?= form_dropdown('profile', $popts, set_value('profile', $printer->profile), 'class="form-control select2" id="profile" required="required" style="width:100%;"'); ?>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('char_per_line', 'char_per_line'); ?>
                                 <?= form_input('char_per_line', $printer->char_per_line, 'class="form-control" id="char_per_line" required="required"'); ?>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('ip_address', 'ip_address'); ?>
                                 <?= form_input('ip_address', $printer->ip_address, 'class="form-control" id="ip_address"'); ?>
                             </div>
 
                             <div class="path" style="display:none;">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('path', 'path'); ?>
                                     <?= form_input('path', $printer->path, 'class="form-control" id="path"'); ?>
                                     <span class="help-block">
@@ -55,7 +55,7 @@
                             </div>
 
                             <div class="network"  style="display:none;">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('port', 'port'); ?>
                                     <?= form_input('port', set_value('port', $printer->port), 'class="form-control" id="port"'); ?>
                                     <span class="help-block">Most printers are open on port <strong>9100</strong></span>
@@ -63,7 +63,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?php echo form_submit('update_printer', $this->lang->line("update_printer"), 'class="btn btn-primary"'); ?>
                         </div>
                     </div>

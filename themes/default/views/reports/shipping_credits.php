@@ -205,15 +205,15 @@ if ($this->input->post('shipping_method')) {
                     <h3 class="box-title"><?= lang('customize_report'); ?></h3>
                 </div>
                 <div class="box-body">
-                    <div id="form" class="panel panel-warning ">
-                        <div class="panel-body">
+                    <div id="form" class="card border-warning ">
+                        <div class="card-body">
                             <?= form_open("reports/credit_shipping"); ?>
 
                             <div class="row">
 
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="shipping_method"><?= lang("shipping_method"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="shipping_method"><?= lang("shipping_method"); ?></label>
                                         <?php
                                         $sh[''] = lang("select") . " " . lang("shipping_method");
                                         foreach ($shipping as $ship) {
@@ -227,14 +227,14 @@ if ($this->input->post('shipping_method')) {
 
 
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="start_date"><?= lang("start_date"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="start_date"><?= lang("start_date"); ?></label>
                                         <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="end_date"><?= lang("end_date"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="end_date"><?= lang("end_date"); ?></label>
                                         <?= form_input('end_date', set_value('end_date'), 'class="form-control datetimepicker" id="end_date"'); ?>
                                     </div>
                                 </div>
@@ -338,8 +338,8 @@ if ($this->input->post('shipping_method')) {
                         <div class="box-header">
                             <h3 class="box-title">Puede realizar el pago de deuda en el siguiente formulario</h3>
                         </div>
-                        <div id="form" class="panel panel-warning ">
-                            <div class="panel-body">
+                        <div id="form" class="card border-warning ">
+                            <div class="card-body">
                                 <?= form_open("reports/credit_shipping/"); ?>
 
 
@@ -354,14 +354,14 @@ if ($this->input->post('shipping_method')) {
                                             <div class="row">
                                                 <div class="col-sm-6">
                                                     <div class="payment">
-                                                        <div class="form-group">
+                                                        <div class="mb-3">
                                                             <?= lang("amount", "amount"); ?>
                                                             <input name="amount-paid" type="text" id="amount" value="<?= $total_sales->amount - $total_sales->paid ?>" class="pa form-control kb-pad amount" required="required" />
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-6">
-                                                    <div class="form-group">
+                                                    <div class="mb-3">
                                                         <?= lang("paying_by", "paid_by"); ?>
                                                         <select name="paid_by" id="paid_by" class="form-control paid_by select2" style="width:100%" required="required">
                                                             <option value="cash"><?= lang("cash"); ?></option>
@@ -374,7 +374,7 @@ if ($this->input->post('shipping_method')) {
 
                                             </div>
                                             <div class="clearfix"></div>
-                                            <div class="form-group gc" style="display: none;">
+                                            <div class="mb-3 gc" style="display: none;">
                                                 <?= lang("gift_card_no", "gift_card_no"); ?>
                                                 <input name="gift_card_no" type="text" id="gift_card_no" class="pa form-control kb-pad" />
 
@@ -390,7 +390,7 @@ if ($this->input->post('shipping_method')) {
                                                     <input name="pcc_holder" type="hidden" id="pcc_holder" class="form-control" placeholder="<?= lang('cc_holder') ?>" />
 
                                                     <div class="col-sm-6">
-                                                        <div class="form-group">
+                                                        <div class="mb-3">
                                                             <select name="pcc_type" id="pcc_type" class="form-control pcc_type select2" style="width:100%" placeholder="<?= lang('card_type') ?>">
                                                                 <option value="Debito">Debito</option>
                                                                 <option value="Visa"><?= lang("Visa"); ?></option>
@@ -399,7 +399,7 @@ if ($this->input->post('shipping_method')) {
                                                         </div>
                                                     </div>
                                                     <div class="col-sm-6" >
-                                                        <div class="form-group">
+                                                        <div class="mb-3">
                                                             <input name="reference_note" placeholder="<?= lang("type_reference_note");?>" type="text" id="reference_note" class="form-control reference_note" />
                                                         </div>
                                                     </div>
@@ -411,12 +411,12 @@ if ($this->input->post('shipping_method')) {
                                                 </div>
                                             </div>
                                             <div class="pcheque" style="display:none;">
-                                                <div class="form-group"><?= lang("cheque_no", "cheque_no"); ?>
+                                                <div class="mb-3"><?= lang("cheque_no", "cheque_no"); ?>
                                                     <input name="cheque_no" type="text" id="cheque_no" class="form-control cheque_no" />
                                                 </div>
                                             </div>
                                             <div class="pdeposito" style="display:none;">
-                                                <div class="form-group"><?= lang("type_reference_note");?>
+                                                <div class="mb-3"><?= lang("type_reference_note");?>
                                                     <input name="deposito_ref" type="text" id="deposito_ref" class="form-control deposito_ref" />
                                                 </div>
                                             </div>

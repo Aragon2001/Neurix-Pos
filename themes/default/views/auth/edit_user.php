@@ -14,28 +14,28 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="col-md-5">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?php echo lang('edit_user_fname_label', 'first_name'); ?>
                                 <div class="controls">
                                     <?php echo form_input($first_name); ?>
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?php echo lang('edit_user_lname_label', 'last_name'); ?>
                                 <div class="controls">
                                     <?php echo form_input($last_name); ?>
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?php echo lang('edit_user_company_label', 'company'); ?>
                                 <div class="controls">
                                     <?php echo form_input($company); ?>
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?php echo lang('edit_user_phone_label', 'phone'); ?>
                                 <div class="controls">
                                     <?php echo form_input($phone); ?>
@@ -43,14 +43,14 @@
                             </div>
                         </div>
                         <div class="col-md-5 col-md-offset-1">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?php echo lang('edit_user_password_label', 'password'); ?>
                                 <div class="controls">
                                     <?php echo form_input($password); ?>
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?php echo lang('edit_user_password_confirm_label', 'password_confirm'); ?>
                                 <div class="controls">
                                     <?php echo form_input($password_confirm); ?>

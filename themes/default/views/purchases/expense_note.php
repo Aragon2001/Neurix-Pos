@@ -3,7 +3,7 @@
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header modal-primary">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
             <button type="button" class="close mr10" onclick="window.print();"><i class="fa fa-print"></i></button>
             <h4 class="modal-title" id="myModalLabel">
                 <?= lang('expense').' # '.$expense->id; ?>
@@ -12,7 +12,7 @@
         <div class="modal-body">
             <div class="row">
                 <div class="col-md-12">
-                <div class="well" style="margin-bottom:0;">
+                <div class="card" style="margin-bottom:0;">
                         <div class="table-responsive">
                             <table class="table table-borderless" style="margin-bottom:0;">
                                 <tbody>

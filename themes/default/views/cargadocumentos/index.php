@@ -125,9 +125,9 @@
 </style>
 <section class="content">
     <div class="row">
-        <div style="col-xs-12">
-            <div class="panel panel-default" style="margin-bottom: 0;">
-                <div class="panel-body">
+        <div style="col-12">
+            <div class="card" style="margin-bottom: 0;">
+                <div class="card-body">
 
                     <!-- Standar Form -->
                     <h4 style="    text-align: center; width: 100%;">Select XML files from your computer</h4>
@@ -136,7 +136,7 @@
                         <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>"
                                value="<?php echo $this->security->get_csrf_hash(); ?>">
                         <div class="form-inline">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <input type="file" name="userfiles[]" id="js-upload-files" multiple>
                             </div>
                             <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upload files
@@ -154,7 +154,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -165,17 +165,17 @@
                             <thead>
                             <tr class="active">
                                 <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                <th class="col-xs-1"><?= lang("document_type"); ?></th>
-                                <th class="col-xs-1"><?= lang("consecutive"); ?></th>
-                                <th class="col-xs-2"><?= lang("date"); ?></th>
-                                <th class="col-xs-2"><?= lang("customer"); ?></th>
+                                <th class="col-1"><?= lang("document_type"); ?></th>
+                                <th class="col-1"><?= lang("consecutive"); ?></th>
+                                <th class="col-2"><?= lang("date"); ?></th>
+                                <th class="col-2"><?= lang("customer"); ?></th>
                                 <th><?= lang("ccf2"); ?></th>
                                 <th><?= lang("Moneda"); ?></th>
                                 <th><?= lang("Tipo Cambio"); ?></th>
                                 <th><?= lang("tax"); ?></th>
-                                <th class="col-xs-1"><?= lang("grand_total"); ?></th>
-                                <th class="col-xs-1"><?= lang("status"); ?> de Hacienda</th>
-                                <th class="col-xs-1">Respuesta Hacienda</th>
+                                <th class="col-1"><?= lang("grand_total"); ?></th>
+                                <th class="col-1"><?= lang("status"); ?> de Hacienda</th>
+                                <th class="col-1">Respuesta Hacienda</th>
                                 <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
                             </tr>
                             </thead>
@@ -221,7 +221,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="exampleModalLabel">Resultado de la carga de documentos</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
@@ -231,7 +231,7 @@
                                 </ol>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             </div>
                         </div>
                     </div>

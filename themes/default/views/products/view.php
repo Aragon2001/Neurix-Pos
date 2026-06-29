@@ -3,24 +3,24 @@
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
             <button type="button" class="close mr10" onclick="window.print();"><i class="fa fa-print"></i></button>
             </button>
             <h4 class="modal-title" id="myModalLabel"><?= $product->name; ?></h4>
         </div>
         <div class="modal-body">
             <div class="row">
-                <div class="col-xs-4">
+                <div class="col-4">
                     <img id="pr-image" src="<?= base_url() ?>uploads/<?= $product->image ?>"
                     alt="<?= $product->name ?>" class="img-responsive img-thumbnail"/>
                 </div>
-                <div class="col-xs-8">
+                <div class="col-8">
                     <div class="table-responsive">
                         <table class="table table-borderless table-striped dfTable table-right-left">
                             <tbody>
                                 <tr>
-                                    <td class="col-xs-5"><?= lang("product_type"); ?></td>
-                                    <td class="col-xs-7"><?= lang($product->type); ?></td>
+                                    <td class="col-5"><?= lang("product_type"); ?></td>
+                                    <td class="col-7"><?= lang($product->type); ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= lang("product_name"); ?></td>
@@ -82,8 +82,8 @@
                 <?php } ?>
             </div>
 
-            <div class="col-xs-12">
-                <?= $product->details ? '<div class="panel panel-primary"><div class="panel-heading">' . lang('product_details') . '</div><div class="panel-body">' . $product->details . '</div></div>' : ''; ?>
+            <div class="col-12">
+                <?= $product->details ? '<div class="card border-primary"><div class="card-header">' . lang('product_details') . '</div><div class="card-body">' . $product->details . '</div></div>' : ''; ?>
             </div>
         </div>
 

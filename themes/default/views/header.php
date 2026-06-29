@@ -40,7 +40,7 @@
 
     <!-- Navbar -->
     <nav class="navbar navbar-static-top" role="navigation">
-        <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+        <a href="#" class="sidebar-toggle" data-bs-toggle="offcanvas" role="button">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -58,7 +58,7 @@
                 <!-- Alerta inventario -->
                 <?php if ($Admin && $qty_alert_num && $this->session->userdata('store_id')): ?>
                 <li>
-                    <a href="<?= site_url('reports/alerts'); ?>" data-toggle="tooltip" data-placement="bottom" title="<?= lang('alerts'); ?>">
+                    <a href="<?= site_url('reports/alerts'); ?>" data-bs-toggle="tooltip" data-placement="bottom" title="<?= lang('alerts'); ?>">
                         <i class="fa fa-bell" style="color:#eab308;"></i>
                         <span class="label label-warning"><?= $qty_alert_num; ?></span>
                     </a>
@@ -68,7 +68,7 @@
                 <!-- Ventas suspendidas -->
                 <?php if ($suspended_sales && $this->session->userdata('store_id')): ?>
                 <li class="dropdown notifications-menu">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
                         <i class="fa fa-shopping-cart"></i>
                         <span class="label label-warning"><?= count($suspended_sales); ?></span>
                     </a>
@@ -94,7 +94,7 @@
                 <!-- Destienda (multi-store) -->
                 <?php if ($Settings->multi_store && !$this->session->userdata('has_store_id') && $this->session->userdata('store_id')): ?>
                 <li>
-                    <a href="<?= site_url('stores/deselect_store'); ?>" data-toggle="tooltip" data-placement="bottom" title="<?= lang('deselect_store'); ?>">
+                    <a href="<?= site_url('stores/deselect_store'); ?>" data-bs-toggle="tooltip" data-placement="bottom" title="<?= lang('deselect_store'); ?>">
                         <i class="fa fa-sign-out"></i>
                     </a>
                 </li>
@@ -109,7 +109,7 @@
 
                 <!-- Menú usuario -->
                 <li class="dropdown user user-menu">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
                         <img src="<?= base_url('uploads/avatars/thumbs/' . ($this->session->userdata('avatar') ? $this->session->userdata('avatar') : $this->session->userdata('gender') . '.png')); ?>"
                              class="user-image" alt="Avatar" style="border-radius:50%;object-fit:cover;">
                         <span class="hidden-xs" style="font-weight:600;font-size:13px;">
@@ -141,7 +141,7 @@
                         <?php endif; ?>
                         <!-- Selector de idioma -->
                         <li>
-                            <a href="#" class="nx-user-menu-link dropdown-toggle" data-toggle="dropdown" style="border-bottom:none;">
+                            <a href="#" class="nx-user-menu-link dropdown-toggle" data-bs-toggle="dropdown" style="border-bottom:none;">
                                 <i class="fa fa-globe"></i> Idioma
                                 <img src="<?= $assets; ?>images/<?= $Settings->selected_language; ?>.png" style="width:18px;margin-left:4px;" alt="">
                             </a>
@@ -231,8 +231,8 @@
                     <?php endif; ?>
                     <li id="products_ajuste"><a href="<?= site_url('products/ajuste'); ?>"><i class="fa fa-balance-scale"></i>Ajuste Inventario</a></li>
                     <li id="products_import"><a href="<?= site_url('products/import'); ?>"><i class="fa fa-upload"></i><?= lang('import_products'); ?></a></li>
-                    <li id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" data-toggle="ajax"><i class="fa fa-barcode"></i><?= lang('print_barcodes'); ?></a></li>
-                    <li id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" data-toggle="ajax"><i class="fa fa-tag"></i><?= lang('print_labels'); ?></a></li>
+                    <li id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" data-bs-toggle="ajax"><i class="fa fa-barcode"></i><?= lang('print_barcodes'); ?></a></li>
+                    <li id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" data-bs-toggle="ajax"><i class="fa fa-tag"></i><?= lang('print_labels'); ?></a></li>
                     <?php if ($this->Settings->multiprice_enabled == 1): ?>
                     <li id="products_prices"><a href="<?= site_url('products/listprices'); ?>"><i class="fa fa-dollar"></i>Lista de Precios</a></li>
                     <li id="products_addprices"><a href="<?= site_url('products/addprices'); ?>"><i class="fa fa-plus-circle"></i>Agregar Precios</a></li>

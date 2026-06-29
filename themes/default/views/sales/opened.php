@@ -61,7 +61,7 @@
 <style type="text/css">.table td:nth-child(4), .table td:nth-child(5) { text-align: right; }</style>
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -72,11 +72,11 @@
                             <thead>
                                 <tr class="active">
                                     <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-xs-2"><?= lang("date"); ?></th>
-                                    <th class="col-xs-2"><?= lang("customer"); ?></th>
+                                    <th class="col-2"><?= lang("date"); ?></th>
+                                    <th class="col-2"><?= lang("customer"); ?></th>
                                     <th><?= lang("reference_note"); ?></th>
-                                    <th class="col-xs-1"><?= lang("total_items"); ?></th>
-                                    <th class="col-xs-1"><?= lang("grand_total"); ?></th>
+                                    <th class="col-1"><?= lang("total_items"); ?></th>
+                                    <th class="col-1"><?= lang("grand_total"); ?></th>
                                     <th style="width:85px; text-align:center;"><?= lang("actions"); ?></th>
                                 </tr>
                             </thead>
@@ -92,7 +92,7 @@
                                     <th class="col-sm-2"><input type="text" class="text_filter" placeholder="[<?= lang('customer'); ?>]"></th>
                                     <th><input type="text" class="text_filter" placeholder="[<?= lang('reference_note'); ?>]"></th>
                                     <th><input type="text" class="text_filter" placeholder="[<?= lang('total_items'); ?>]"></th>
-                                    <th class="col-xs-1"><?= lang("grand_total"); ?></th>
+                                    <th class="col-1"><?= lang("grand_total"); ?></th>
                                     <th style="width:85px; text-align:center;"><?= lang("actions"); ?></th>
                                 </tr>
                                 <tr>

@@ -2,7 +2,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('update_info'); ?></h3>
@@ -12,12 +12,12 @@
                         <?= form_open_multipart("products/edit/" . $product->id, 'class="validation"'); ?>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('type', 'type'); ?>
                                     <?php $opts = array('standard' => lang('standard'), 'combo' => lang('combo'), 'service' => lang('service')); ?>
                                     <?= form_dropdown('type', $opts, set_value('type', $product->type), 'class="form-control tip select2" id="type"  required="required" style="width:100%;"'); ?>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('unit_of_measurement', 'unit_of_measurement'); ?>
                                     <?php
                                     $opts = array(
@@ -50,15 +50,15 @@
                                     ?>
                                     <?= form_dropdown('unit_of_measurement', $opts, $product->unit_of_measurement, 'class="form-control tip select2" id = "unit_of_measurement"  required = "required" style = "width:100%;"'); ?>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('name', 'name'); ?>
                                     <?= form_input('name', $product->name, 'class="form-control tip" id="name"  required="required"'); ?>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('code', 'code'); ?> <?= lang('can_use_barcode'); ?>
                                     <?= form_input('code', $product->code, 'class="form-control tip" id="code"  required="required"'); ?>
                                 </div>
-                                <div class="form-group all">
+                                <div class="mb-3 all">
                                     <?= lang("barcode_symbology", "barcode_symbology") ?>
                                     <?php
                                     $bs = array('code25' => 'Code25', 'code39' => 'Code39', 'code128' => 'Code128', 'ean8' => 'EAN8', 'ean13' => 'EAN13', 'upca ' => 'UPC-A', 'upce' => 'UPC-E');
@@ -66,7 +66,7 @@
                                     ?>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('category', 'category'); ?>
                                     <?php
                                     $cat[''] = lang("select") . " " . lang("category");
@@ -77,18 +77,18 @@
                                     <?= form_dropdown('category', $cat, $product->category_id, 'class="form-control select2 tip" id="category"  required="required"'); ?>
                                 </div>
 
-                                <div class="form-group st">
+                                <div class="mb-3 st">
                                     <?= lang('cost', 'cost'); ?>
                                     <?= form_input('cost', $product->cost, 'class="form-control tip" id="cost"  required="required"'); ?>
                                 </div>
-                                <div class="form-group st">
+                                <div class="mb-3 st">
                                     <b>Margen de ganancia</b> <i>indique el porcentaje sin el simbolo %</i>
                                     <?= form_input('margen', $product->margen, 'class="form-control tip" id = "margen"'); ?>
                                 </div>
 
 
                                 <?php if ($Settings->enable_fractions == 1) { ?> 
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <b>Presentacion de venta del Articulo</b><br/>
 
                                         <b>Caja</b>
@@ -98,33 +98,33 @@
                                         <input type="checkbox" name="present_fraccion" <?= $product->present_fraccion == "1" ? "checked='checked'" : '' ?> checked value="<?= $product->present_fraccion ?>" class="form-control tip" id="present_fraccion" />
 
                                     </div>
-                                    <div class="form-group" <?= $product->present_fraccion == "1" ? '' : 'style="display: none;"' ?> id="div_fracciones">
+                                    <div class="mb-3" <?= $product->present_fraccion == "1" ? '' : 'style="display: none;"' ?> id="div_fracciones">
                                         <b>Cantidad de fracciones en la caja</b>
                                         <?= form_input('caja_fraccionada', $product->caja_fraccionada, 'class="form-control tip" id = "caja_fraccionada" '); ?>
                                     </div>
                                 <?php } ?>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('price', 'price') . " <b>(Con Impuesto) </b>"; ?>
                                     <?= form_input('', number_format($product->price + ( $product->price * $product->tax / 100 ), 2, '.', ''), 'class="form-control tip" id="price_conimp"  required="required"'); ?>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('price', 'price') . " <b>(Sin Impuesto) </b>"; ?>
                                     <?= form_input('price', $product->price, 'class="form-control tip" id="price" readonly="readonly"  required="required"'); ?>
                                 </div>
                                 <?php if($this->Settings->multiprice_enabled != 1){ ?>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('price_rate', 'price_rate'); ?>
                                     <?= form_input('price_rate', $product->price_rate, 'class="form-control tip" id = "price_rate" '); ?>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('offer_price', 'offer_price'); ?>
                                     <?= form_input('offer_price', $product->offer_price, 'class="form-control tip" id = "offer_price" '); ?>
                                 </div>
                                 <?php } ?>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('product_tax', 'product_tax'); ?>
                                     <?php
                                     $optiones='';
@@ -172,18 +172,18 @@
                                     });
                                 </script>
 
-                                <div style="display: none !important;" class="form-group">
+                                <div style="display: none !important;" class="mb-3">
                                     <?= lang('tax_method', 'tax_method'); ?>
                                     <?php $tm = array(0 => lang('inclusive'), 1 => lang('exclusive')); ?>
                                     <?= form_dropdown('tax_method', $tm, set_value('tax_method', $product->tax_method), 'class="form-control tip select2" id="tax_method"  required="required" style="width:100%;"'); ?>
                                 </div>
 
-                                <div class="form-group st">
+                                <div class="mb-3 st">
                                     <?= lang('alert_quantity', 'alert_quantity'); ?>
                                     <?= form_input('alert_quantity', set_value('alert_quantity', $product->alert_quantity), 'class="form-control tip" id="alert_quantity"  required="required"'); ?>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="cabys">Código CABYS <small>(Clasificador Hacienda — 13 dígitos)</small></label>
                                     <input type="text" id="cabys-buscar" class="form-control tip" placeholder="Buscar por descripción (mín. 3 caracteres)..." autocomplete="off" style="margin-bottom:4px;">
                                     <?= form_input('cabys', set_value('cabys', @$product->cabys), 'class="form-control tip" id="cabys" maxlength="13" placeholder="Ej: 8101102000000"'); ?>
@@ -191,7 +191,7 @@
                                     <span class="help-block">Busque por descripción o escriba el código de 13 dígitos directamente.</span>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('image', 'image'); ?>
 									<p>Tiene que tener un peso máximo de 500 MB y tamaño máximo de 1000 px</p>
                                     <input type="file" name="userfile" id="image">
@@ -199,7 +199,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div id="ct" style="display:none;">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang("add_product", "add_item"); ?>
                                         <?php echo form_input('add_item', '', 'class="form-control ttip" id="add_item" data-placement="top" data-trigger="focus" data-bv-notEmpty-message="' . lang('please_add_items_below') . '" placeholder="' . $this->lang->line("add_item") . '"'); ?>
                                     </div>
@@ -211,9 +211,9 @@
                                                    class="table items table-striped table-bordered table-condensed table-hover">
                                                 <thead>
                                                     <tr>
-                                                        <th class="col-xs-9"><?= lang("product_name") . " (" . $this->lang->line("product_code") . ")"; ?></th>
-                                                        <th class="col-xs-2"><?= lang("quantity"); ?></th>
-                                                        <th class=" col-xs-1 text-center"><i
+                                                        <th class="col-9"><?= lang("product_name") . " (" . $this->lang->line("product_code") . ")"; ?></th>
+                                                        <th class="col-2"><?= lang("quantity"); ?></th>
+                                                        <th class=" col-1 text-center"><i
                                                                 class="fa fa-trash-o trash-opacity-50"></i></th>
                                                     </tr>
                                                 </thead>
@@ -230,7 +230,7 @@
                                         <div class="">
                                             <div class="well well-sm">
                                                 <h3><?= $store->name . ' (' . $store->code . ')'; ?></h3>
-                                                <div class="form-group st">
+                                                <div class="mb-3 st">
                                                     <?php
                                                     $quantity = 0;
                                                     foreach ($stores_quantities as $sq) {
@@ -245,12 +245,12 @@
                                                 <?= form_input('quantity' . $store->id, set_value('quantity', $this->tec->formatDecimal($quantity)), 'class="form-control tip" id="quantity' . $store->id . '"'); ?>
                                                 </div>
                                                     <?php if ($Settings->enable_fractions == 1) { ?> 
-                                                    <div class="form-group st">
+                                                    <div class="mb-3 st">
                                                         <?= lang('Cantidad de fracciones' . $store->id); ?>
                                                     <?= form_input('qty_fracc' . $store->id, set_value('qty_fracc' . $this->tec->formatDecimal($qty_fracc)), 'class="form-control tip" id = "qty_fracc' . $store->id . '"'); ?>
                                                     </div>
                                                     <?php } ?>
-                                                <div class="form-group" style="margin-bottom:0;">
+                                                <div class="mb-3" style="margin-bottom:0;">
                                                     <?= lang('price', 'price' . $store->id); ?>
         <?= form_input('price' . $store->id, set_value('price' . $store->id, $price), 'class="form-control tip" id="price' . $store->id . '" placeholder="' . lang('optional') . '"'); ?>
                                                 </div>
@@ -261,12 +261,12 @@
                                 } else {
                                     ?>
                                     <div class="st">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                         <?= lang('quantity', 'quantity'); ?>
                                         <?= form_input('quantity', set_value('quantity', $this->tec->formatDecimal(@$stores_quantities->quantity ? @$stores_quantities->quantity : 0)), 'class="form-control tip" id="quantity"'); ?>
                                         </div>
                                              <?php if ($Settings->enable_fractions == 1) { ?> 
-                                            <div class="form-group"
+                                            <div class="mb-3"
                                                 <?php if (!@$product->present_fraccion) { ?>style="display: none;"<?php } ?>
                                                  id="div_qty_fracc">
                                                 <b>Cantidad de Fracciones </b>
@@ -277,7 +277,7 @@
 <?php } ?>
 
 <div class="st">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang('Ubicacion', 'Ubicacion'); ?>
                                         <input id="seccion" class="form-control" placeholder="Seccion">
                                         <input id="tramo" class="form-control" placeholder="Tramo">
@@ -394,11 +394,11 @@
                             </div>
                         </div>
                         <?php endif; ?>
-                        <div class="form-group">
+                        <div class="mb-3">
 <?= lang('details', 'details'); ?>
                             <?= form_textarea('details', $product->details, 'class="form-control tip redactor" id="details"'); ?>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                         <?= form_submit('edit_product', lang('edit_product'), 'class="btn btn-primary"'); ?>
                         </div>
 <?= form_close(); ?>

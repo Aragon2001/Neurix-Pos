@@ -2,7 +2,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('enter_info'); ?></h3>
@@ -16,7 +16,7 @@
                                     $attrib = array('data-toggle' => 'validator', 'role' => 'form', 'id' => 'open-register-form');
                                     echo form_open_multipart("pos/open_register", $attrib);
                                     ?>
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang('cash_in_hand', 'cash_in_hand') ?>
                                         <?= form_input('cash_in_hand', '', 'id="cash_in_hand" class="form-control"'); ?>
                                     </div>

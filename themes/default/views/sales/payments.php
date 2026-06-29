@@ -3,7 +3,7 @@
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
             <button type="button" class="close mr10" onclick="window.print();"><i class="fa fa-print"></i></button>
             <h4 class="modal-title" id="myModalLabel"><?php echo lang('view_payments'); ?></h4>
         </div>
@@ -31,7 +31,7 @@
                                 <td>
                                     <div class="text-center">
                                         <!-- <a href="<?= site_url('sales/payment_note/' . $payment->id) ?>"><i class="fa fa-file-text-o"></i></a> -->
-                                        <a class="tip" href="<?= site_url('sales/edit_payment/' . $payment->id) ?>" data-toggle="ajax"><i class="fa fa-edit"></i></a>
+                                        <a class="tip" href="<?= site_url('sales/edit_payment/' . $payment->id) ?>" data-bs-toggle="ajax"><i class="fa fa-edit"></i></a>
                                         <a class="tip" title="<?= lang("delete_payment") ?>" href="<?= site_url('sales/delete_payment/' . $payment->id) ?>" onclick="return confirm('<?= lang('alert_x_payment') ?>')"><i class="fa fa-trash-o"></i></a>
                                     </div>
                                 </td>

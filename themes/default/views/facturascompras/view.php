@@ -2,7 +2,7 @@
 <section class="content" >
 <div class="btn-group  pull-left" role="group" aria-label="...">
     <div class="btn-group" role="group2">
-        <button type="button" class="btn  btn-success btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fa fa-file-pdf-o"></i>
+        <button type="button" class="btn  btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-file-pdf-o"></i>
         PDF <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" role="menu2">

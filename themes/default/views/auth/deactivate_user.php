@@ -3,7 +3,7 @@
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-2x">&times;</i>
             </button>
             <h4 class="modal-title" id="myModalLabel"><?php echo lang('deactivate'); ?></h4>
         </div>
@@ -12,7 +12,7 @@
         <div class="modal-body">
             <p><?php echo sprintf(lang('deactivate_heading'), $user->username); ?></p>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <label class="checkbox" for="confirm"><input type="checkbox" name="confirm" value="yes"
                                                              checked="checked" id="confirm"/> <?= lang('yes') ?></label>
             </div>

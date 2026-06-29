@@ -87,7 +87,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -98,14 +98,14 @@
                             <thead>
                             <tr class="active">
                                 <th style="max-width:30px;">Numero de Apartado</th>
-                                <th class="col-xs-2"><?= lang("date"); ?></th>
+                                <th class="col-2"><?= lang("date"); ?></th>
                                 <th><?= lang("customer"); ?></th>
-                                <th class="col-xs-1"><?= lang("total"); ?></th>
-                                <th class="col-xs-1"><?= lang("tax"); ?></th>
-                                <th class="col-xs-1"><?= lang("discount"); ?></th>
-                                <th class="col-xs-1"><?= lang("grand_total"); ?></th>
-                                <th class="col-xs-1"><?= lang("paid"); ?></th>
-                                <th class="col-xs-1"><?= lang("status"); ?></th>
+                                <th class="col-1"><?= lang("total"); ?></th>
+                                <th class="col-1"><?= lang("tax"); ?></th>
+                                <th class="col-1"><?= lang("discount"); ?></th>
+                                <th class="col-1"><?= lang("grand_total"); ?></th>
+                                <th class="col-1"><?= lang("paid"); ?></th>
+                                <th class="col-1"><?= lang("status"); ?></th>
                                 <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
                             </tr>
                             </thead>
@@ -146,20 +146,20 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"><i class="fa fa-times"></i></span></button>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true"><i class="fa fa-times"></i></span></button>
                     <h4 class="modal-title" id="stModalLabel"><?= lang('update_status'); ?> <span id="status-id"></span></h4>
                 </div>
                 <?= form_open('sales/status'); ?>
                 <div class="modal-body">
                     <input type="hidden" value="" id="sale_id" name="sale_id" />
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang('status', 'status'); ?>
                         <?php $opts = array('paid' => lang('paid'), 'partial' => lang('partial'), 'due' => lang('due'))  ?>
                         <?= form_dropdown('status', $opts, set_value('status'), 'class="form-control select2 tip" id="status" required="required" style="width:100%;"'); ?>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal"><?= lang('close'); ?></button>
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal"><?= lang('close'); ?></button>
                     <button type="submit" class="btn btn-primary"><?= lang('update'); ?></button>
                 </div>
                 <?= form_close(); ?>

@@ -3,7 +3,7 @@
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
             <button type="button" class="close mr10 imprimirALL" id="<?= $id_apartado ?>" ><i class="fa fa-print"></i></button>
             <h4 class="modal-title" id="myModalLabel"><?php echo lang('view_payments'); ?></h4>
         </div>

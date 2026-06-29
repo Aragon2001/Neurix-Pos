@@ -84,7 +84,7 @@
 <style type="text/css">.table td:nth-child(3) { text-align: right; }</style>
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -95,9 +95,9 @@
                             <thead>
                                 <tr class="active">
                                     <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-xs-2"><?= lang('date'); ?></th>
-                                    <th class="col-xs-2"><?= lang('reference'); ?></th>
-                                    <th class="col-xs-1"><?= lang('total'); ?></th>
+                                    <th class="col-2"><?= lang('date'); ?></th>
+                                    <th class="col-2"><?= lang('reference'); ?></th>
+                                    <th class="col-1"><?= lang('total'); ?></th>
                                     <th><?= lang('note'); ?></th>
                                     <th style="width:25px; padding-right:5px;"><i class="fa fa-chain"></i></th>
                                     <th style="width:75px;"><?= lang('actions'); ?></th>
@@ -113,7 +113,7 @@
                                     <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
                                     <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('date'); ?>]"></span></th>
                                     <th class="col-sm-2"><input type="text" class="text_filter" placeholder="[<?= lang('reference'); ?>]"></th>
-                                    <th class="col-xs-1"><?= lang('total'); ?></th>
+                                    <th class="col-1"><?= lang('total'); ?></th>
                                     <th><input type="text" class="text_filter" placeholder="[<?= lang('note'); ?>]"></th>
                                     <th style="width:25px; padding-right:5px;"><i class="fa fa-chain"></i></th>
                                     <th style="width:75px;"><?= lang('actions'); ?></th>

@@ -114,7 +114,7 @@ if ($this->input->post('end_date')) {
 </style>
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <a href="#" class="btn btn-default btn-sm toggle_form pull-right"><?= lang("show_hide"); ?></a>
@@ -125,15 +125,15 @@ if ($this->input->post('end_date')) {
                         ?></h3>
                     </div>
                     <div class="box-body">
-                        <div id="form" class="panel panel-warning">
-                            <div class="panel-body">
+                        <div id="form" class="card border-warning">
+                            <div class="card-body">
 
                                 <?= form_open("reports/registers"); ?>
                                 <div class="row">
 
                                     <div class="col-sm-4">
-                                        <div class="form-group">
-                                            <label class="control-label" for="user"><?= lang("user"); ?></label>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="user"><?= lang("user"); ?></label>
                                             <?php
                                             $us[""] = "";
                                             foreach ($users as $user) {
@@ -144,13 +144,13 @@ if ($this->input->post('end_date')) {
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?= lang("start_date", "start_date"); ?>
                                             <?= form_input('start_date', set_value('start_date'), 'class="form-control datetime datetimepicker" id="start_date"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?= lang("end_date", "end_date"); ?>
                                             <?= form_input('end_date', set_value('end_date', date('Y-m-d H:i')), 'class="form-control datetime datetimepicker" id="end_date"'); ?>
                                         </div>
@@ -172,14 +172,14 @@ if ($this->input->post('end_date')) {
                             <thead>
                                 <tr>
                                     <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-xs-2"><?= lang('open_time'); ?></th>
-                                    <th class="col-xs-2"><?= lang('close_time'); ?></th>
-                                    <th class="col-xs-1"><?= lang('user'); ?></th>
-                                    <th class="col-xs-1"><?= lang('cash_in_hand'); ?></th>
-                                    <th class="col-xs-1"><?= lang('cc_slips'); ?></th>
-                                    <th class="col-xs-1"><?= lang('cheques'); ?></th>
-                                    <th class="col-xs-1"><?= lang('total_cash'); ?></th>
-                                    <th class="col-xs-3"><?= lang('note'); ?></th>
+                                    <th class="col-2"><?= lang('open_time'); ?></th>
+                                    <th class="col-2"><?= lang('close_time'); ?></th>
+                                    <th class="col-1"><?= lang('user'); ?></th>
+                                    <th class="col-1"><?= lang('cash_in_hand'); ?></th>
+                                    <th class="col-1"><?= lang('cc_slips'); ?></th>
+                                    <th class="col-1"><?= lang('cheques'); ?></th>
+                                    <th class="col-1"><?= lang('total_cash'); ?></th>
+                                    <th class="col-3"><?= lang('note'); ?></th>
                                     <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
                                 </tr>
                             </thead>
@@ -194,11 +194,11 @@ if ($this->input->post('end_date')) {
                                     <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('open_time'); ?>]"></span></th>
                                     <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('closed_at'); ?>]"></span></th>
                                     <th class="col-sm-1"><input type="text" class="text_filter" placeholder="[<?= lang('user'); ?>]"></th>
-                                    <th class="col-xs-1"><?= lang('cash_in_hand'); ?></th>
-                                    <th class="col-xs-1"><?= lang('cc_slips'); ?></th>
-                                    <th class="col-xs-1"><?= lang('cheques'); ?></th>
-                                    <th class="col-xs-1"><?= lang('total_cash'); ?></th>
-                                    <th class="col-xs-3"><?= lang('note'); ?></th>
+                                    <th class="col-1"><?= lang('cash_in_hand'); ?></th>
+                                    <th class="col-1"><?= lang('cc_slips'); ?></th>
+                                    <th class="col-1"><?= lang('cheques'); ?></th>
+                                    <th class="col-1"><?= lang('total_cash'); ?></th>
+                                    <th class="col-3"><?= lang('note'); ?></th>
 
                                 </tr>
                                 <tr>

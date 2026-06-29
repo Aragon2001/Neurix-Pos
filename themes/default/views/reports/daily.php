@@ -108,14 +108,14 @@ if ($this->input->post('end_date')) {
                                 si desea puede usar el siguiente formulario para realizar busquedas personalizadas</i></small></h3>
                 </div>
                 <div class="box-body">
-                    <div id="form" class="panel panel-warning">
-                        <div class="panel-body">
+                    <div id="form" class="card border-warning">
+                        <div class="card-body">
                             <?= form_open("reports/daily_sales");?>
 
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="user">Vendedor</label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="user">Vendedor</label>
                                         <?php
                                         $us[""] = "";
                                         foreach ($users as $user) {
@@ -127,8 +127,8 @@ if ($this->input->post('end_date')) {
                                 </div>
 
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="start_date"><?= lang("Dia"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="start_date"><?= lang("Dia"); ?></label>
                                         <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"');?>
                                     </div>
                                 </div>

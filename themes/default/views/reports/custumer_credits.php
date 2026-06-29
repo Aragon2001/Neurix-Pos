@@ -133,14 +133,14 @@ if ($this->input->post('end_date')) {
                     <h3 class="box-title"><?= lang('customize_report'); ?></h3>
                 </div>
                 <div class="box-body">
-                    <div id="form" class="panel panel-warning ">
-                        <div class="panel-body">
+                    <div id="form" class="card border-warning ">
+                        <div class="card-body">
                             <?= form_open("reports/credit_customers"); ?>
 
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="customer"><?= lang("customer"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="customer"><?= lang("customer"); ?></label>
                                         <?php
                                         $cu[0] = lang("select") . " " . lang("customer");
                                         foreach ($customers as $customer) {
@@ -150,8 +150,8 @@ if ($this->input->post('end_date')) {
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="user"><?= lang("user"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="user"><?= lang("user"); ?></label>
                                         <?php
                                         $us[""] = "";
                                         foreach ($users as $user) {
@@ -163,14 +163,14 @@ if ($this->input->post('end_date')) {
                                 </div>
 
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="start_date"><?= lang("start_date"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="start_date"><?= lang("start_date"); ?></label>
                                         <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="end_date"><?= lang("end_date"); ?></label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="end_date"><?= lang("end_date"); ?></label>
                                         <?= form_input('end_date', set_value('end_date'), 'class="form-control datetimepicker" id="end_date"'); ?>
                                     </div>
                                 </div>
@@ -277,8 +277,8 @@ if ($this->input->post('end_date')) {
                         <div class="box-header">
                             <h3 class="box-title">Puede realizar el pago de deuda en el siguiente formulario</h3>
                         </div>
-                        <div id="form" class="panel panel-warning ">
-                            <div class="panel-body">
+                        <div id="form" class="card border-warning ">
+                            <div class="card-body">
                                 <?= form_open("reports/credit_customers/"); ?>
 
                                 <?= form_hidden("customer", $this->input->post('customer')) ?>
@@ -290,7 +290,7 @@ if ($this->input->post('end_date')) {
                                             <div class="row">
                                                 <div class="col-sm-6">
                                                     <div class="payment">
-                                                        <div class="form-group">
+                                                        <div class="mb-3">
                                                             <?= lang("amount", "amount"); ?>
                                                             <input name="amount-paid" type="text" id="amount"
                                                                    value="<?= $total_sales->amount - $total_sales->paid ?>"
@@ -299,7 +299,7 @@ if ($this->input->post('end_date')) {
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-6">
-                                                    <div class="form-group">
+                                                    <div class="mb-3">
                                                         <?= lang("paying_by", "paid_by"); ?>
                                                         <select name="paid_by" id="paid_by" class="form-control paid_by select2"
                                                                 style="width:100%"
@@ -313,7 +313,7 @@ if ($this->input->post('end_date')) {
 
                                             </div>
                                             <div class="clearfix"></div>
-                                            <div class="form-group gc" style="display: none;">
+                                            <div class="mb-3 gc" style="display: none;">
                                                 <?= lang("gift_card_no", "gift_card_no"); ?>
                                                 <input name="gift_card_no" type="text" id="gift_card_no" class="pa form-control kb-pad"/>
 
@@ -332,7 +332,7 @@ if ($this->input->post('end_date')) {
                                                            placeholder="<?= lang('cc_holder') ?>"/>
 
                                                     <div class="col-sm-6">
-                                                        <div class="form-group">
+                                                        <div class="mb-3">
                                                             <select name="pcc_type" id="pcc_type" class="form-control pcc_type select2"
                                                                     style="width:100%"
                                                                     placeholder="<?= lang('card_type') ?>">
@@ -354,7 +354,7 @@ if ($this->input->post('end_date')) {
                                                 </div>
                                             </div>
                                             <div class="pcheque" style="display:none;">
-                                                <div class="form-group"><?= lang("cheque_no", "cheque_no"); ?>
+                                                <div class="mb-3"><?= lang("cheque_no", "cheque_no"); ?>
                                                     <input name="cheque_no" type="text" id="cheque_no" class="form-control cheque_no"/>
                                                 </div>
                                             </div>

@@ -68,7 +68,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -79,12 +79,12 @@
                             <thead>
                             <tr class="active">
                                 <th style="max-width:30px;">Numero de Proforma</th>
-                                <th class="col-xs-2"><?= lang("date"); ?></th>
+                                <th class="col-2"><?= lang("date"); ?></th>
                                 <th><?= lang("customer"); ?></th>
-                                <th class="col-xs-1"><?= lang("total"); ?></th>
-                                <th class="col-xs-1"><?= lang("tax"); ?></th>
-                                <th class="col-xs-1"><?= lang("discount"); ?></th>
-                                <th class="col-xs-1"><?= lang("grand_total"); ?></th>
+                                <th class="col-1"><?= lang("total"); ?></th>
+                                <th class="col-1"><?= lang("tax"); ?></th>
+                                <th class="col-1"><?= lang("discount"); ?></th>
+                                <th class="col-1"><?= lang("grand_total"); ?></th>
                                 <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
                             </tr>
                             </thead>

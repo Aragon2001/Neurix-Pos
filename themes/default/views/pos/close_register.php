@@ -3,7 +3,7 @@
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
             </button>
             <span type="button" class="close mr10  imprimeweb" ><i class="fa fa-print"></i></span>
 
@@ -55,7 +55,7 @@
                     </div>
                     <?php if(!isset($is_report)){?>
                     <div class="col-sm-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?php echo lang("total_cash_submitted"); ?>
                             <?php echo form_hidden('total_cash', $total_cash); ?>
                             <?php
@@ -66,7 +66,7 @@
                            
                     </div>
                     <div class="col-sm-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?php echo lang("total_cc_slips"); ?>
                             <?php echo form_hidden('total_cc', $ccsales->total); ?>
                             <?php

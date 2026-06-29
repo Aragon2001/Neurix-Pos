@@ -125,12 +125,12 @@
 </style>
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <?php if (!$this->session->userdata('has_store_id')) { ?>
                     <div class="dropdown pull-right">
-                      <button class="btn btn-primary" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <button class="btn btn-primary" id="dLabel" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <?= $store->name.' ('.$store->code.')'; ?>
                         <span class="caret"></span>
                     </button>
@@ -158,19 +158,19 @@
                             <tr class="active">
                                 <th style="max-width:30px;"><?= lang("id"); ?></th>
                                 <th style="max-width:30px;"><?= lang("image"); ?></th>
-                                <th class="col-xs-1"><?= lang("code"); ?></th>
+                                <th class="col-1"><?= lang("code"); ?></th>
                                 <th><?= lang("name"); ?></th>
-                                <th class="col-xs-1"><?= lang("type"); ?></th>
-                                <th class="col-xs-1"><?= lang("category"); ?></th>
-                                <th class="col-xs-1"><?= lang("quantity"); ?></th>
-                                <th class="col-xs-1"><?= lang("tax"); ?></th>
-                                <th class="col-xs-1"><?= lang("method"); ?></th>
+                                <th class="col-1"><?= lang("type"); ?></th>
+                                <th class="col-1"><?= lang("category"); ?></th>
+                                <th class="col-1"><?= lang("quantity"); ?></th>
+                                <th class="col-1"><?= lang("tax"); ?></th>
+                                <th class="col-1"><?= lang("method"); ?></th>
                                 <?php if ($Admin) { ?>
-                                    <th class="col-xs-1"><?= lang("cost"); ?></th>
+                                    <th class="col-1"><?= lang("cost"); ?></th>
                                 <?php } ?>
-                                <th class="col-xs-1"><?= lang("price"); ?></th>
-                                <th class="col-xs-1"><?= lang("offer_price"); ?></th>
-                                <th class="col-xs-1"><?= lang("Ubicación"); ?></th>
+                                <th class="col-1"><?= lang("price"); ?></th>
+                                <th class="col-1"><?= lang("offer_price"); ?></th>
+                                <th class="col-1"><?= lang("Ubicación"); ?></th>
                                 <th style="width:165px;"><?= lang("actions"); ?></th>
                             </tr>
 
@@ -184,19 +184,19 @@
                             <tr>
                                 <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
                                 <th style="max-width:30px;"><?= lang("image"); ?></th>
-                                <th class="col-xs-1"><input type="text" class="text_filter" placeholder="[<?= lang('code'); ?>]"></th>
+                                <th class="col-1"><input type="text" class="text_filter" placeholder="[<?= lang('code'); ?>]"></th>
                                 <th><input type="text" class="text_filter" placeholder="[<?= lang('name'); ?>]"></th>
-                                <th class="col-xs-1"><input type="text" class="text_filter" placeholder="[<?= lang('type'); ?>]"></th>
-                                <th class="col-xs-1"><input type="text" class="text_filter" placeholder="[<?= lang('category'); ?>]"></th>
-                                <th class="col-xs-1"><input type="text" class="text_filter" placeholder="[<?= lang('quantity'); ?>]"></th>
-                                <th class="col-xs-1"><input type="text" class="text_filter" placeholder="[<?= lang('tax'); ?>]"></th>
-                                <th class="col-xs-1">
+                                <th class="col-1"><input type="text" class="text_filter" placeholder="[<?= lang('type'); ?>]"></th>
+                                <th class="col-1"><input type="text" class="text_filter" placeholder="[<?= lang('category'); ?>]"></th>
+                                <th class="col-1"><input type="text" class="text_filter" placeholder="[<?= lang('quantity'); ?>]"></th>
+                                <th class="col-1"><input type="text" class="text_filter" placeholder="[<?= lang('tax'); ?>]"></th>
+                                <th class="col-1">
                                     <select class="select2 select_filter"><option value=""><?= lang("all"); ?></option><option value="0"><?= lang("inclusive"); ?></option><option value="1"><?= lang("exclusive"); ?></option></select>
                                 </th>
                                 <?php if ($Admin) { ?>
-                                <th class="col-xs-1"><?= lang("cost"); ?></th>
+                                <th class="col-1"><?= lang("cost"); ?></th>
                                 <?php } ?>
-                                <th class="col-xs-1"><?= lang("price"); ?></th>
+                                <th class="col-1"><?= lang("price"); ?></th>
                                 <th style="width:165px;"><?= lang("actions"); ?></th>
                             </tr>
                         </tfoot>
@@ -207,7 +207,7 @@
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+                                <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
                                 <button type="button" class="close mr10" onclick="window.print();"><i class="fa fa-print"></i></button>
                                 <h4 class="modal-title" id="myModalLabel">title</h4>
                             </div>

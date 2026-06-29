@@ -1,7 +1,7 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 <section class="content">
   <div class="row">
-    <div class="col-xs-12">
+    <div class="col-12">
       <div class="box">
         <div class="box-header">
           <h3 class="box-title">Notas de Débito Electrónicas</h3>

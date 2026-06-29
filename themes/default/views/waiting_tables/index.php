@@ -97,7 +97,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -108,9 +108,9 @@
                             <thead>
                             <tr class="active">
                                 <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                <th class="col-xs-1 text-center"><?= lang("name"); ?></th>
+                                <th class="col-1 text-center"><?= lang("name"); ?></th>
                                 <th><?= lang("user"); ?></th>
-                                <th class="col-xs-1"><?= lang("status"); ?></th>
+                                <th class="col-1"><?= lang("status"); ?></th>
                                 <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
                             </tr>
                             </thead>
@@ -122,8 +122,8 @@
                             <tfoot>
                             <tr class="active">
                                 <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
-                                <th class="col-xs-2"><?= lang("name"); ?></th>
-                                <th class="col-xs-2"><?= lang("user"); ?></th>
+                                <th class="col-2"><?= lang("name"); ?></th>
+                                <th class="col-2"><?= lang("user"); ?></th>
                                 <th class="col-sm-1">
                                     <select class="select2 select_filter">
                                         <option value="0">Activado</option>

@@ -34,12 +34,12 @@
 <section class="content">
     <div class="row">
 
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
 			<div class="col-md-6">
 				<legend> Proveedor con regimen Simplificado</legend>
-				<div class="form-group  ">
-					<label for="Cliente" class=" control-label col-md-4 text-left"> Proveedor <span
+				<div class="mb-3  ">
+					<label for="Cliente" class=" form-label col-md-4 text-left"> Proveedor <span
 					class="asterix"> * </span></label>
 					<div class="col-md-5">
 						<select name='userid' rows='5' id='userid' class='form-control' required>
@@ -52,7 +52,7 @@
 						</select>
 					</div>
 					<div class="col-md-1">
-						<a class="btn btn-xs btn-info" data-toggle="modal"
+						<a class="btn btn-xs btn-info" data-bs-toggle="modal"
 						data-target="#modalAgregarCliente">
 						<i class="fa fa-plus"></i>
 						</a>
@@ -65,8 +65,8 @@
 			</div>
 			<!-- <div class="col-md-4">
 				<legend> Datos de la Factura</legend>
-				<div class="form-group  ">
-					<label for="id_moneda" class=" control-label col-md-4 text-left"> Moneda <span
+				<div class="mb-3  ">
+					<label for="id_moneda" class=" form-label col-md-4 text-left"> Moneda <span
 					class="asterix"> * </span></label>
 					<div class="col-md-6">
 						<select name='id_moneda' rows='5' id='id_moneda' class='form-control ' required>
@@ -78,8 +78,8 @@
 					<div class="col-md-2">
 					</div>
 				</div> -->
-				<div class="form-group hidden " hidden style="display: none;">
-					<label for="Fecha" class=" control-label col-md-4 text-left"> Fecha <span
+				<div class="mb-3 hidden " hidden style="display: none;">
+					<label for="Fecha" class=" form-label col-md-4 text-left"> Fecha <span
 					class="asterix"> * </span></label>
 					<div class="col-md-6">
 						<div class="input-group m-b hidden" hidden style="width:150px !important;">
@@ -87,7 +87,7 @@
 							class="form-control date"/>
 							<input hidden value="{{date('Y-m-d')}}" name="date" type="hidden"
 							class="form-control date"/>
-							<span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+							<span class="input-group-text"><i class="fa fa-calendar"></i></span>
 						</div>
 					</div>
 					<div class="col-md-2">
@@ -96,7 +96,7 @@
 			</div>
 			<div class="col-md-6">
 				<legend> Exoneracion de la Factura</legend>
-				<div class="form-group  ">
+				<div class="mb-3  ">
 					<div class="col-md-6 add_exo">
 						<span class="btn btn-success add_exo">Agregar Exoneracion</span>
 					</div>
@@ -106,7 +106,7 @@
 				</div>
 					<div id="divexoneracion" style="display: none;">
 						<div class="row"></div>
-						<div class="form-group">
+						<div class="mb-3">
 							<label for="exo_t_doc" >Tipo de Documento</label>
 
 								<select name='ExoTipoDocumento' id='exo_t_doc' class='form-control ' required>
@@ -124,27 +124,27 @@
 							
 						</div>
 
-						<div class="form-group">
+						<div class="mb-3">
 							<label for="exo_numero_documento" >Número de documento de exoneración o autorización </label>
 							<input name="ExoNumeroDocumento" id="exo_numero_documento" class="form-control" required/>
 						</div>
 
-						<div class="form-group">
+						<div class="mb-3">
 							<label for="exo_nombre_institucion" > Nombre de la institución o dependencia que emitió la exoneración </label>
 							<input name="ExoNombreInstitucion" id="exo_nombre_institucion" class="form-control" required/>
 						</div>
 
-						<div class="form-group">
+						<div class="mb-3">
 							<label for="exo_fecha_emision" > Fecha y hora de la emisión del documento de exoneración o autorización. (Formato: 2019-07-31 13:53:00)</label>
 							<input name="ExoFechaEmision" placeholder="Formato: 2019-07-31 13:53:00" id="exo_fecha_emision" class="form-control" required/>
 						</div>
 
-						<div class="form-group">
+						<div class="mb-3">
 							<label for="exo_porcentaje" > Porcentaje de la exoneración </label>
 							<input type="text"  style="text-align: right;"name="ExoPorcentajeExoneracion" id="exo_porcentaje" class="form-control" required/>
 						</div>
 
-						<div class="form-group">
+						<div class="mb-3">
 							<label for="aplicaExo"></label>
 							<span  id="aplicaExo" class="btn btn-warning text-center" >Aplicar exoneracion</span>
 						</div>
@@ -208,7 +208,7 @@
 											<div class="col-md-12">
 
 												<div class="col-sm-6">
-													<div class="form-group">
+													<div class="mb-3">
 														Estado del pago
 														<select name="payment_status" class=" input-tip" required="required"
 																id="slpayment_status">
@@ -222,7 +222,7 @@
 												<input type="hidden" name="token_post" id="token_post" value="<?= md5(date('Y-m-d H:i:s')) ?>"/>
 		
 												<div class="col-sm-6" id="credit_time">
-													<div class="form-group">
+													<div class="mb-3">
 														Seleccione el Tiempo del Credito
 														<?php
 														// $paymentmethod = explode(',', $row['paymentmethod']);
@@ -258,7 +258,7 @@
 		
 												<div id="payments" class="col-sm-6" style="display: none;">
 		
-													<div class="form-group">
+													<div class="mb-3">
 														Pagar por
 														<select required name="paid_by_1" id="paid_by_1" class="paid_by">
 															<option value="cash">Efectivo</option>
@@ -373,7 +373,7 @@
 								<input name="TotalImpuesto" id="inp_TotalImpuesto" type="hidden"/>
 								<input name="TotalComprobante" id="inp_TotalComprobante" type="hidden"/>
 		
-								<div class="form-group">
+								<div class="mb-3">
 								<label class="col-sm-4 text-right">&nbsp;</label>
 								<div class="col-sm-8">
 
@@ -401,18 +401,18 @@
 			<div class="modal-content">
 			<!-- <form> -->
 					<div class="col-md-12"> 
-								<div class="form-group">
-									<label for="mname" class="col-sm-4 control-label">Codigo Act. economica *</label>
+								<div class="mb-3">
+									<label for="mname" class="col-sm-4 form-label">Codigo Act. economica *</label>
 									<div class="col-sm-8">
 											<!-- <input required type="text" class="form-control" name="txtCodActEco" id="txtCodActEco" /> -->
-											<select required type="text" class="form-control" id="txtCodActEco" name="txtCodActEco" data-toggle="tooltip" data-placement="left">
+											<select required type="text" class="form-control" id="txtCodActEco" name="txtCodActEco" data-bs-toggle="tooltip" data-placement="left">
 												
 											</select>
 											<input  type="hidden" class="form-control" name="formFC" id="formFC" value="FEC" />
 									</div>
 								</div>
-								<div class="form-group">
-									<label for="tcedula" class="col-sm-4 control-label">Identificacion *</label>
+								<div class="mb-3">
+									<label for="tcedula" class="col-sm-4 form-label">Identificacion *</label>
 									<div class="col-sm-8">
 									<?php
 								    // $pre_id_number = explode(',', $row['pre_id_number']);
@@ -428,14 +428,14 @@
 									</select>
 									</div>
 								</div>
-								<div class="form-group">
-									<label for="mname" class="col-sm-4 control-label">N° identificacion *</label>
+								<div class="mb-3">
+									<label for="mname" class="col-sm-4 form-label">N° identificacion *</label>
 									<div class="col-sm-8">
 											<input required  onkeyup="obtenerActividades(this.value , '#txtCodActEco','#txtNombre','#tcedula')"  type="text" class="form-control" id="txtIdentificacion" name="txtIdentificacion"/>
 									</div>
 								</div>
-								<div class="form-group">
-									<label for="mname" class="col-sm-4 control-label">Nombre *</label>
+								<div class="mb-3">
+									<label for="mname" class="col-sm-4 form-label">Nombre *</label>
 									<div class="col-sm-8">
 											<input required type="text" class="form-control" id="txtNombre" name="txtNombre" />
 									</div>
@@ -443,8 +443,8 @@
 								<div class="clearfix"></div>
 								<hr/>
 								<legend> Direccion</legend>
-								<div class="form-group">
-									<label for="tipo_persona" class="col-sm-4 control-label">Provincia</label>
+								<div class="mb-3">
+									<label for="tipo_persona" class="col-sm-4 form-label">Provincia</label>
 									<div class="col-sm-8">
 										<select required name='codigo_provincia' id='codigo_provincia' class='form-control' onchange="obtenerCanton(this.value)">
 										<?php
@@ -456,36 +456,36 @@
 										</select>
 									</div>
 								</div>
-								<div class="form-group">
-									<label for="Canton" class="col-sm-4 control-label">Canton</label>
+								<div class="mb-3">
+									<label for="Canton" class="col-sm-4 form-label">Canton</label>
 									<div class="col-sm-8">
 									<select required name='codigo_canton' id='codigo_canton'
 									class='form-control' onchange="obtenerDistrito(this.value)"></select>
 									</div>
 								</div>
-								<div class="form-group">
-									<label for="Distrito" class="col-sm-4 control-label">Distrito</label>
+								<div class="mb-3">
+									<label for="Distrito" class="col-sm-4 form-label">Distrito</label>
 									<div class="col-sm-8">
 									<select required name='codigo_distrito' id='codigo_distrito'
 									class='form-control' onchange="obtenerBarrio(this.value)"></select>
 									</div>
 								</div>
-								<div class="form-group">
-									<label for="Barrio" class="col-sm-4 control-label">Barrio</label>
+								<div class="mb-3">
+									<label for="Barrio" class="col-sm-4 form-label">Barrio</label>
 									<div class="col-sm-8">
 									<select required name='codigo_barrio' id='codigo_barrio'
 									class='form-control'></select>
 									</div>
 								</div>
-								<div class="form-group">
-									<label for="Barrio" class="col-sm-4 control-label">Otras se&ntilde;as</label>
+								<div class="mb-3">
+									<label for="Barrio" class="col-sm-4 form-label">Otras se&ntilde;as</label>
 									<div class="col-sm-8">
 											<input required type="text" class="form-control" id="txtOtraSe" name="txtOtraSe" />
 									</div>
 								</div>
 								<legend> Datos de contacto</legend>
-								<div class="form-group  ">
-									<label for="Telefonos" class=" control-label col-md-4 text-left"> Telefono  <span
+								<div class="mb-3  ">
+									<label for="Telefonos" class=" form-label col-md-4 text-left"> Telefono  <span
 									class="asterix"> * </span></label>
 									<div class="col-md-6">
 										<input required type="text" class="form-control" id="txtTel" name="txtTel" />
@@ -493,8 +493,8 @@
 									<div class="col-md-2">
 									</div>
 								</div>
-								<div class="form-group  ">
-									<label for="Email" class=" control-label col-md-4 text-left"> Email <span
+								<div class="mb-3  ">
+									<label for="Email" class=" form-label col-md-4 text-left"> Email <span
 									class="asterix"> * </span></label>
 									<div class="col-md-6">
 											<input type="text" class="form-control" id="txtEmail" name="txtEmail" />
@@ -509,7 +509,7 @@
 					<label class="text-right">&nbsp;</label>
 					<div class="text-center">
 						<?php echo form_submit('add_supplier', $this->lang->line("add_supplier"), 'class="btn btn-primary btn-sm"');?>
-						<button type="button" data-dismiss="modal"
+						<button type="button" data-bs-dismiss="modal"
 						class="btn btn-warning btn-sm "><i
 						class="icon-cancel-circle2 "></i>Cancelar </button>
 					</div>
@@ -523,15 +523,15 @@
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"><i
+						<button type="button" class="close" data-bs-dismiss="modal"><span aria-hidden="true"><i
 										class="fa fa-2x">&times;</i></span><span class="sr-only">Cerrar</span></button>
 						<h4 class="modal-title" id="prModalLabel"></h4>
 					</div>
 					<div class="modal-body needs-validation" id="pr_popover_content" novalidate>
 						<form class="form-horizontal" role="form">
 	
-							<div class="form-group">
-								<label class="col-sm-4 control-label">Impuesto</label>
+							<div class="mb-3">
+								<label class="col-sm-4 form-label">Impuesto</label>
 								<div class="col-sm-8">
 	
 									<select style="padding: 0;" name="ptax" id="ptax" class="form-control"
@@ -548,23 +548,23 @@
 							</div>
 	
 	
-							<div class="form-group">
-								<label for="pserial" class="col-sm-4 control-label">Serial</label>
+							<div class="mb-3">
+								<label for="pserial" class="col-sm-4 form-label">Serial</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="pserial" >
 								</div>
 							</div>
 	
-							<div class="form-group">
-								<label for="pquantity" class="col-sm-4 control-label">Cantidad</label>
+							<div class="mb-3">
+								<label for="pquantity" class="col-sm-4 form-label">Cantidad</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="pquantity" required>
 								</div>
 							</div>
-							<div class="form-group">
-								<label for="punit" class="col-sm-4 control-label">Unidad</label>
+							<div class="mb-3">
+								<label for="punit" class="col-sm-4 form-label">Unidad</label>
 								<div class="col-sm-8">
 									<select style="padding: 0;" name="punit" id="punit"
 											class="col-md-12  form-control input-tip select" tabindex="-1"
@@ -586,17 +586,17 @@
 								</div>
 							</div>
 	
-							<div class="form-group">
+							<div class="mb-3">
 								<label for="pdiscount"
-									   class="col-sm-4 control-label">Descuento</label>
+									   class="col-sm-4 form-label">Descuento</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="pdiscount">
 								</div>
 							</div>
 	
-							<div class="form-group">
-								<label for="pprice" class="col-sm-4 control-label">Precio</label>
+							<div class="mb-3">
+								<label for="pprice" class="col-sm-4 form-label">Precio</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="pprice" required>
@@ -630,14 +630,14 @@
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" tabindex="-1"><span aria-hidden="true"><i
+						<button type="button" class="close" data-bs-dismiss="modal" tabindex="-1"><span aria-hidden="true"><i
 										class="fa fa-2x">×</i></span><span class="sr-only">Cerrar</span></button>
 						<h4 class="modal-title" id="mModalLabel">Agregar Producto manualmente</h4>
 					</div>
 					<div class="modal-body needs-validation" id="pr_popover_content2" novalidate>
 						<form class="form-horizontal" role="form">
-							<div class="form-group">
-								<label for="mitem_type" class="col-sm-4 control-label">Tipo de Producto </label>
+							<div class="mb-3">
+								<label for="mitem_type" class="col-sm-4 form-label">Tipo de Producto </label>
 	
 								<div class="col-sm-8">
 	
@@ -649,22 +649,22 @@
 									</select>
 								</div>
 							</div>
-							<div class="form-group">
-								<label for="mcode" class="col-sm-4 control-label">Código de producto *</label>
+							<div class="mb-3">
+								<label for="mcode" class="col-sm-4 form-label">Código de producto *</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="mcode" value="" required="required">
 								</div>
 							</div>
-							<div class="form-group">
-								<label for="mname" class="col-sm-4 control-label">Nombre *</label>
+							<div class="mb-3">
+								<label for="mname" class="col-sm-4 form-label">Nombre *</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="mname" value="" required="required">
 								</div>
 							</div>
-							<div class="form-group">
-								<label for="mtax" class="col-sm-4 control-label">Tipo de Impuesto *</label>
+							<div class="mb-3">
+								<label for="mtax" class="col-sm-4 form-label">Tipo de Impuesto *</label>
 	
 								<div class="col-sm-8">
 	
@@ -682,15 +682,15 @@
 							</div>
 	
 	
-							<div class="form-group">
-								<label for="mquantity" class="col-sm-4 control-label">Cantidad *</label>
+							<div class="mb-3">
+								<label for="mquantity" class="col-sm-4 form-label">Cantidad *</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="mquantity" value="1" required="required">
 								</div>
 							</div>
-							<div class="form-group">
-								<label for="munit" class="col-sm-4 control-label">Unidad *</label>
+							<div class="mb-3">
+								<label for="munit" class="col-sm-4 form-label">Unidad *</label>
 	
 								<div class="col-sm-8">
 	
@@ -712,15 +712,15 @@
 									</select>
 								</div>
 							</div>
-							<div class="form-group">
-								<label for="mdiscount" class="col-sm-4 control-label">Descuento del producto</label>
+							<div class="mb-3">
+								<label for="mdiscount" class="col-sm-4 form-label">Descuento del producto</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="mdiscount" >
 								</div>
 							</div>
-							<div class="form-group">
-								<label for="mprice" class="col-sm-4 control-label">Precio Unitario *</label>
+							<div class="mb-3">
+								<label for="mprice" class="col-sm-4 form-label">Precio Unitario *</label>
 	
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="mprice" value="" required>

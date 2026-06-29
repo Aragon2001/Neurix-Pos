@@ -3,12 +3,12 @@
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-body">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 
             <div class="no-print">
                 <?php if ($message) { ?>
                 <div class="alert alert-success">
-                    <button data-dismiss="alert" class="close" type="button">×</button>
+                    <button data-bs-dismiss="alert" class="close" type="button">×</button>
                     <?= is_array($message) ? print_r($message, true) : $message; ?>
                 </div>
                 <?php } ?>
@@ -167,7 +167,7 @@
                         <a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a>
                     </div>
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-default" data-dismiss="modal"><?= lang('close'); ?></button>
+                        <button type="button" class="btn btn-default" data-bs-dismiss="modal"><?= lang('close'); ?></button>
                     </div>
                 </div>
 

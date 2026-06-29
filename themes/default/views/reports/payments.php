@@ -126,13 +126,13 @@ if ($this->input->post('end_date')) {
                         ?></h3>
                     </div>
                     <div class="box-body">
-                        <div id="form" class="panel panel-warning">
-                            <div class="panel-body">
+                        <div id="form" class="card border-warning">
+                            <div class="card-body">
 
                                 <?= form_open("reports/payments"); ?>
                                 <div class="row">
                                     <div class="col-sm-4">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?= lang("payment_ref", "payment_ref"); ?>
                                             <?= form_input('payment_ref', (isset($_POST['payment_ref']) ? $_POST['payment_ref'] : ""), 'class="form-control tip" id="payment_ref"'); ?>
 
@@ -140,7 +140,7 @@ if ($this->input->post('end_date')) {
                                     </div>
 
                                     <div class="col-sm-4">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?= lang("sale_no", "sale_no"); ?>
                                             <?= form_input('sale_no', (isset($_POST['sale_no']) ? $_POST['sale_no'] : ""), 'class="form-control tip" id="sale_no"'); ?>
 
@@ -148,8 +148,8 @@ if ($this->input->post('end_date')) {
                                     </div>
 
                                     <div class="col-sm-4">
-                                        <div class="form-group">
-                                            <label class="control-label" for="customer"><?= lang("customer"); ?></label>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="customer"><?= lang("customer"); ?></label>
                                             <?php
                                             $cu[0] = lang("select")." ".lang("customer");
                                             foreach($customers as $customer){
@@ -159,8 +159,8 @@ if ($this->input->post('end_date')) {
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
-                                        <div class="form-group">
-                                            <label class="control-label" for="user"><?= lang("created_by"); ?></label>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="user"><?= lang("created_by"); ?></label>
                                             <?php
                                             $us[""] = "";
                                             foreach ($users as $user) {
@@ -171,7 +171,7 @@ if ($this->input->post('end_date')) {
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <?= lang("paid_by", "paid_by"); ?>
                                             <select name="paid_by" id="paid_by" class="form-control paid_by select2" style="width:100%"
                                             required="required">
@@ -185,13 +185,13 @@ if ($this->input->post('end_date')) {
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang("start_date", "start_date"); ?>
                                         <?= form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetimepicker" id="start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <?= lang("end_date", "end_date"); ?>
                                         <?= form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetimepicker" id="end_date"'); ?>
                                     </div>
@@ -212,11 +212,11 @@ if ($this->input->post('end_date')) {
                             <thead>
                                 <tr>
                                     <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-xs-3"><?= lang("date"); ?></th>
-                                    <th class="col-xs-3"><?= lang("payment_ref"); ?></th>
-                                    <th class="col-xs-2"><?= lang("sale_no"); ?></th>
-                                    <th class="col-xs-2"><?= lang("paid_by"); ?></th>
-                                    <th class="col-xs-2"><?= lang("amount"); ?></th>
+                                    <th class="col-3"><?= lang("date"); ?></th>
+                                    <th class="col-3"><?= lang("payment_ref"); ?></th>
+                                    <th class="col-2"><?= lang("sale_no"); ?></th>
+                                    <th class="col-2"><?= lang("paid_by"); ?></th>
+                                    <th class="col-2"><?= lang("amount"); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -229,9 +229,9 @@ if ($this->input->post('end_date')) {
                                     <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
                                     <th class="col-sm-3"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('date'); ?>]"></span></th>
                                     <th class="col-sm-3"><input type="text" class="text_filter" placeholder="[<?= lang('payment_ref'); ?>]"></th>
-                                    <th class="col-xs-2"><?= lang("sale_no"); ?></th>
-                                    <th class="col-xs-2"><?= lang("paid_by"); ?></th>
-                                    <th class="col-xs-2"><?= lang("amount"); ?></th>
+                                    <th class="col-2"><?= lang("sale_no"); ?></th>
+                                    <th class="col-2"><?= lang("paid_by"); ?></th>
+                                    <th class="col-2"><?= lang("amount"); ?></th>
                                 </tr>
                                 <tr>
                                     <td colspan="6" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>

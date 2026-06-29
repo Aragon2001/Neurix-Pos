@@ -28,7 +28,7 @@
             <nav class="navbar navbar-static-top" role="navigation">
                 <ul class="nav navbar-nav pull-left">
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><img src="<?= $assets; ?>images/<?= $Settings->selected_language; ?>.png" alt="<?= $Settings->selected_language; ?>"></a>
+                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown"><img src="<?= $assets; ?>images/<?= $Settings->selected_language; ?>.png" alt="<?= $Settings->selected_language; ?>"></a>
                         <ul class="dropdown-menu">
                             <?php
                             $scanned_lang_dir = array_map(function ($path) {
@@ -59,16 +59,16 @@
                         <?php } ?>
 
 
-                        <li><a href="" data-toggle="ajax" id="btnCloseregister"><?= lang('close_register'); ?></a></li>
+                        <li><a href="" data-bs-toggle="ajax" id="btnCloseregister"><?= lang('close_register'); ?></a></li>
 
 
-                        <li><a href="" data-toggle="ajax" id="btnCreditNote">Notas de Credito</a></li>
+                        <li><a href="" data-bs-toggle="ajax" id="btnCreditNote">Notas de Credito</a></li>
 
 
 
                         <?php if ($suspended_sales) { ?>
                             <li class="dropdown notifications-menu" id="suspended_sales">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
                                     <i class="fa fa-bell-o"></i>
                                     <span class="label label-warning"><?= sizeof($suspended_sales); ?></span>
                                 </a>
@@ -98,7 +98,7 @@
                             </li>
                         <?php } ?>
                         <li class="dropdown user user-menu">
-                            <a style="height: 50px;" href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <a style="height: 50px;" href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
                                 <img src="<?= base_url('uploads/avatars/thumbs/' . ($this->session->userdata('avatar') ? $this->session->userdata('avatar') : $this->session->userdata('gender') . '.png')) ?>" class="user-image" alt="Avatar" />
 
                             </a>
@@ -122,7 +122,7 @@
                         </li>
                         <?php if (!isset($Settings->show_categories) || $Settings->show_categories != "0") { ?>
                             <li>
-                                <a href="#" data-toggle="control-sidebar" class="sidebar-icon"><i class="fa fa-folder sidebar-icon"></i></a>
+                                <a href="#" data-bs-toggle="control-sidebar" class="sidebar-icon"><i class="fa fa-folder sidebar-icon"></i></a>
                             </li>
                         <?php } ?>
                     </ul>
@@ -373,34 +373,34 @@
                             <?php } ?>
                             <div class="well well-sm" id="leftdiv">
                                 <div id="lefttop" style="margin-bottom:5px;">
-                                    <div class="form-group" style="margin-bottom:5px;">
+                                    <div class="mb-3" style="margin-bottom:5px;">
                                         <?php if ($Settings->propina_enable == '1') { ?>
                                             <button type="button" class="btn btn-warning  btn-block btn-flat external add_tips" id="add_tips">Servicio (<?php echo $Settings->propina_rate ?>%)
                                             </button>
                                         <?php } ?>
-                                        <button type="button" class="btn btn-success  btn-block btn-flat external boton_nuevo_cliente" id="add-customer" data-toggle="modal" data-target="#myModal">Nuevo Cliente
+                                        <button type="button" class="btn btn-success  btn-block btn-flat external boton_nuevo_cliente" id="add-customer" data-bs-toggle="modal" data-target="#myModal">Nuevo Cliente
                                         </button>
-                                        <button type="button" class="btn btn-info btn-block btn-flat boton_agregar_notas" data-toggle="modal" data-target="#ModalNotes">Agregar Notas
+                                        <button type="button" class="btn btn-info btn-block btn-flat boton_agregar_notas" data-bs-toggle="modal" data-target="#ModalNotes">Agregar Notas
                                         </button>
 
-                                        <button type="button" class="" style="visibility: hidden;" data-toggle="modal" data-target="#exoneracionModal" id="boiniciomodal">Exoneracion
+                                        <button type="button" class="" style="visibility: hidden;" data-bs-toggle="modal" data-target="#exoneracionModal" id="boiniciomodal">Exoneracion
                                         </button>
 
                                         <?php if ($Settings->enablebtn_retiro) { ?>
-                                            <button type="button" class="btn btn-danger btn-block btn-flat add_retiro" id="retiro" data-toggle="modal" data-target="#exampleModal" data-whatever="@Retiro">
+                                            <button type="button" class="btn btn-danger btn-block btn-flat add_retiro" id="retiro" data-bs-toggle="modal" data-target="#exampleModal" data-whatever="@Retiro">
                                                 Retiro
                                             </button>
                                         <?php } ?>
                                         <?php if ($Settings->enablebtn_deposito) { ?>
-                                            <button type="button" class="btn btn-warning  btn-block btn-flat add_deposito" id="deposito" data-toggle="modal" data-target="#exampleModal" data-whatever="@Deposito">
+                                            <button type="button" class="btn btn-warning  btn-block btn-flat add_deposito" id="deposito" data-bs-toggle="modal" data-target="#exampleModal" data-whatever="@Deposito">
                                                 Deposito
                                             </button>
                                         <?php } ?>
-                                        <!--<button type="button" style="width: 15%; height: 34px; float: left; margin-top: 5px;" class="btn btn-warning  btn-block btn-flat" data-toggle="modal" data-target="#ModalNotes">Agregar Exoneracion</button>-->
+                                        <!--<button type="button" style="width: 15%; height: 34px; float: left; margin-top: 5px;" class="btn btn-warning  btn-block btn-flat" data-bs-toggle="modal" data-target="#ModalNotes">Agregar Exoneracion</button>-->
 
                                         <div style="clear:both;"></div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom:5px;">
+                                    <div class="mb-3" style="margin-bottom:5px;">
                                         <input type="hidden" name="total_tax" id="total_tax" value="<?= $total_tax; ?>">
                                         <input type="hidden" name="ETipoDocumento" id="ETipoDocumento">
                                         <input type="hidden" name="ENombreInstitucion" id="ENombreInstitucion">
@@ -421,7 +421,7 @@
                                         <?= form_dropdown('actividad_id', $cuss, set_value('actividad_id', $Settings->default_actividad), 'id="actividad_id" required="required" class="form-control select2" style="display:block;width:100%;float: left;"'); ?>
                                         <div style="clear:both;"></div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom:5px;">
+                                    <div class="mb-3" style="margin-bottom:5px;">
                                         <?php
                                         $cus = array();
                                         foreach ($customers as $customer) {
@@ -437,12 +437,12 @@
                                     </div>
                                         <input type="hidden" name ="input_transfer_table" id="input_transfer_table">
                                     <?php if ($eid && $Admin) { ?>
-                                        <div class="form-group" style="margin-bottom:5px;">
+                                        <div class="mb-3" style="margin-bottom:5px;">
                                             <?= form_input('date', set_value('date', $sale->date), 'id="date" required="required" readonly="readonly" class="form-control"'); ?>
                                         </div>
                                     <?php } ?>
                                     <?php if ($t_nc) { ?>
-                                        <div class="form-group" style="margin-bottom:5px;">
+                                        <div class="mb-3" style="margin-bottom:5px;">
                                             <input type="text" name="hold_ref" required="required" value="" id="hold_ref" class="form-control kb-text" placeholder="<?= lang("reason_credit_note") ?>" />
                                         </div>
                                     <?php } ?>
@@ -450,7 +450,7 @@
                                     <input type="hidden" name="token_post" value="<?= md5(date('Y-m-d H:i:s')) ?>" />
                                     <?php if ($Settings->enable_parquimetro == "0") { ?>
                                         <?php if (!$t_nc && !$apa) { ?>
-                                            <div class="form-group" style="margin-bottom:5px; overflow: hidden;">
+                                            <div class="mb-3" style="margin-bottom:5px; overflow: hidden;">
                                                 <select id="tipo_precio" style="float: left; width: 15%;" class="form-control ">
                                                     <option value="price"><?= lang('price') ?></option>
                                                     <option value="offer_price"><?= lang('offer_price') ?></option>
@@ -529,7 +529,7 @@
                                                 <tr class="success">
                                                     <td colspan="2" style="font-weight:bold;">
                                                         <?= lang('total_payable') ?>
-                                                        <a role="button" data-toggle="modal" data-target="#noteModal">
+                                                        <a role="button" data-bs-toggle="modal" data-target="#noteModal">
                                                             <i class="fa fa-comment"></i>
                                                         </a>
                                                     </td>
@@ -539,13 +539,13 @@
                                         </table>
                                     </div>
                                 </div>
-                                <div id="botbuttons" class="col-xs-12 text-center">
+                                <div id="botbuttons" class="col-12 text-center">
                                     <div class="row">
                                         <div class="
                                                  <?php if ($Admin) { ?>
-                                                     col-xs-4
+                                                     col-4
                                                  <?php } else { ?>
-                                                     col-xs-4
+                                                     col-4
                                                  <?php } ?>
 
                                                  " style="padding: 0;">
@@ -598,7 +598,7 @@
                                                     <?php if ($is_suspender != 'N') { ?>
                                                         <input id="id_cuenta_suspendida" type="hidden" value="<?= $is_suspender ?>" />
                                                         <span style="max-height: 30px;" class="btn btn-info btn-block btn-flat" id="print_suspend">Imprimir</span>
-                                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#cuentasModal" onclick="cargarComboFac();">Dividir cuentas</button>
+                                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-target="#cuentasModal" onclick="cargarComboFac();">Dividir cuentas</button>
                                                     <?php } ?>
                                                     <?php if (!$apa) { ?>
                                                         <button type="button" class="btn btn-danger btn-block btn-flat" id="reset" style="    margin-top: -1px; height: 47px; width: 50%; float: left; <?php if ($t_nc) { ?> height: 67px;<?php } ?>"><?= lang('cancel'); ?></button>
@@ -617,7 +617,7 @@
 
                                                 </div>
                                             <?php } else { ?>
-                                                <div class="col-xs-12" style="padding: 0;">
+                                                <div class="col-12" style="padding: 0;">
                                                     <div class="btn-group-vertical btn-block">
                                                         <?php if (!$t_nc) { ?>
                                                             <?php
@@ -640,7 +640,7 @@
 
                                         </div>
                                         <?php if (!$t_nc) { ?>
-                                            <div class="col-xs-4" style="padding: 0 5px;">
+                                            <div class="col-4" style="padding: 0 5px;">
                                                 <div class="btn-group-vertical btn-block">
                                                     <button type="button" class="btn bg-purple btn-block btn-flat" id="print_order"><?= lang('print_order'); ?></button>
 
@@ -650,7 +650,7 @@
                                         <?php } ?>
 
                                         <?php if ($Admin || $Settings->enable_btn_pay == 1) { ?>
-                                            <div <?php if (!$t_nc) { ?> class="col-xs-4" <?php } else { ?> class="col-xs-8" style="width: 50%" <?php } ?> style="padding: 0;">
+                                            <div <?php if (!$t_nc) { ?> class="col-4" <?php } else { ?> class="col-8" style="width: 50%" <?php } ?> style="padding: 0;">
                                                 <?php if (!$apa) { ?>
                                                     <button type="button" class="btn btn-success btn-block btn-flat" id="<?= $eid ? 'submit-sale' : 'payment'; ?>" style="height:67px;">
                                                         <?php if ($t_nc) { ?>
@@ -722,7 +722,7 @@
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="exampleModalLongTitle">Notas y otros textos</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                                                 <span aria-hidden="true">&times;</span>
                                             </button>
                                         </div>
@@ -771,7 +771,7 @@
                                         </div>
 
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar
+                                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar
                                             </button>
                                         </div>
                                     </div>
@@ -848,7 +848,7 @@
         <div class="tab-content sb">
             <div class="tab-pane active sb" id="control-sidebar-home-tab">
                 <div id="filter-categories-con">
-                    <input type="text" autocomplete="off" data-list=".control-sidebar-menu" name="filter-categories" id="filter-categories" class="form-control sb col-xs-12 kb-text" placeholder="<?= lang('filter_categories'); ?>" style="margin-bottom: 20px;">
+                    <input type="text" autocomplete="off" data-list=".control-sidebar-menu" name="filter-categories" id="filter-categories" class="form-control sb col-12 kb-text" placeholder="<?= lang('filter_categories'); ?>" style="margin-bottom: 20px;">
                 </div>
                 <div class="clearfix sb"></div>
                 <div id="category-sidebar-menu">
@@ -938,7 +938,7 @@
             <div class="modal-content">
             <?= form_open('pos/save_receivable', 'id="pos-receivable-form"'); ?>
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="myModalLabel">Dividir cuentas</h4>
                 </div>
@@ -974,7 +974,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary pull-center" id="add_receivable"><?= lang('save') ?></button>  
-                    <button type="button" class="btn btn-default pull-center" data-dismiss="modal"><?= lang('close') ?></button>
+                    <button type="button" class="btn btn-default pull-center" data-bs-dismiss="modal"><?= lang('close') ?></button>
 
                 </div>
                 <?= form_close(); ?>
@@ -996,7 +996,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="myModalLabel"><?= lang('sell_gift_card'); ?></h4>
                 </div>
@@ -1004,34 +1004,34 @@
                     <p><?= lang('enter_info'); ?></p>
 
                     <div class="alert alert-danger gcerror-con" style="display: none;">
-                        <button data-dismiss="alert" class="close" type="button">×</button>
+                        <button data-bs-dismiss="alert" class="close" type="button">×</button>
                         <span id="gcerror"></span>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("card_no", "gccard_no"); ?> *
                         <div class="input-group">
                             <?php echo form_input('gccard_no', '', 'class="form-control" id="gccard_no"'); ?>
-                            <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;"><a href="#">
+                            <div class="input-group-text" style="padding-left: 10px; padding-right: 10px;"><a href="#">
                             </div>
                         </div>
                     </div>
                     <input type="hidden" name="gcname" value="<?= lang('gift_card') ?>" id="gcname" />
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("value", "gcvalue"); ?> *
                         <?php echo form_input('gcvalue', '', 'class="form-control" id="gcvalue"'); ?>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("price", "gcprice"); ?> *
                         <?php echo form_input('gcprice', '', 'class="form-control" id="gcprice"'); ?>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("expiry_date", "gcexpiry"); ?>
                         <?php echo form_input('gcexpiry', '', 'class="form-control" id="gcexpiry"'); ?>
                     </div>
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><?= lang('close') ?></button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"><?= lang('close') ?></button>
                     <button type="button" id="addGiftCard" class="btn btn-primary"><?= lang('sell_gift_card') ?></button>
                 </div>
             </div>
@@ -1042,7 +1042,7 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="dsModalLabel"><?= lang('discount_title'); ?></h4>
                 </div>
@@ -1059,7 +1059,7 @@
                     </label>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-sm pull-left" data-dismiss="modal"><?= lang('close') ?></button>
+                    <button type="button" class="btn btn-default btn-sm pull-left" data-bs-dismiss="modal"><?= lang('close') ?></button>
                     <button type="button" id="updateDiscount" class="btn btn-primary btn-sm"><?= lang('update') ?></button>
                 </div>
             </div>
@@ -1070,7 +1070,7 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="tsModalLabel"><?= lang('tax_title'); ?></h4>
                 </div>
@@ -1078,7 +1078,7 @@
                     <input type='text' class='form-control input-sm kb-pad' id='get_ts' onClick='this.select();' value=''>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-sm pull-left" data-dismiss="modal"><?= lang('close') ?></button>
+                    <button type="button" class="btn btn-default btn-sm pull-left" data-bs-dismiss="modal"><?= lang('close') ?></button>
                     <button type="button" id="updateTax" class="btn btn-primary btn-sm"><?= lang('update') ?></button>
                 </div>
             </div>
@@ -1089,7 +1089,7 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="noteModalLabel"><?= lang('note'); ?></h4>
                 </div>
@@ -1097,7 +1097,7 @@
                     <textarea name="snote" id="snote" class="pa form-control kb-text"></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-sm pull-left" data-dismiss="modal"><?= lang('close') ?></button>
+                    <button type="button" class="btn btn-default btn-sm pull-left" data-bs-dismiss="modal"><?= lang('close') ?></button>
                     <button type="button" id="update-note" class="btn btn-primary btn-sm"><?= lang('update') ?></button>
                 </div>
             </div>
@@ -1108,7 +1108,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header modal-primary">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="proModalLabel">
                         <?= lang('payment') ?>
@@ -1130,30 +1130,30 @@
                     <div class="row">
                         <?php if ($Settings->enable_fractions == 1) { ?>
                             <div class="col-sm-12" id="price_frac">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <b>Seleccione aqui si el precio es fraccionado <input type="checkbox" class="fraccionado" /></b>
                                 </div>
                             </div>
                         <?php } ?>
                         <div class="col-sm-6">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('new_price', 'new_price') ?>
 
                                 <input type="text" class="form-control input-sm kb-pad" id="nPriceConimp" onClick="this.select();" placeholder="<?= lang('new_price') ?>">
                             </div>
-                            <div style="display: none;" class="form-group">
+                            <div style="display: none;" class="mb-3">
                                 <?= lang('new_price', 'new_price') ?>
 
                                 <input type="text" class="form-control input-sm kb-pad" id="nPrice" onClick="this.select();" placeholder="<?= lang('new_price') ?>">
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('discount', 'nDiscount') ?>
                                 <input type="text" class="form-control input-sm kb-pad" readonly="readonly" id="nDiscount" onClick="this.select();" placeholder="<?= lang('discount') ?>">
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <?= lang('quantity', 'nQuantity') ?>
                                 <input type="text" class="form-control input-sm kb-pad" id="nQuantity" onClick="this.select();" placeholder="<?= lang('current_quantity') ?>">
                             </div>
@@ -1163,7 +1163,7 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><?= lang('close') ?></button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"><?= lang('close') ?></button>
                     <button class="btn btn-success" id="editItem"><?= lang('update') ?></button>
                 </div>
             </div>
@@ -1175,7 +1175,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <?php
                     if ($Settings->enable_parquimetro == "1") {
@@ -1197,7 +1197,7 @@
                     <p><?= $titulo2 ?></p>
 
                     <?php $is_exist = false; if ($Settings->propina_enable == "1") { ?>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <select name="reference_note" class="form-control kb-text" id="reference_note">
                                 <option value=""> Seleeccione una.. </option>
                                 <?php foreach ($waiting_tables as $item) {
@@ -1220,7 +1220,7 @@
                             </select>
                             <?php if($is_exist){?>
                                 <p>Mesa transferir</p>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <select name="transfer_table" class="form-control kb-text" id="transfer_table">
                                         <option value=""> Seleeccione una.. </option>
                                         <?php foreach ($waiting_tables as $item) {?>
@@ -1259,7 +1259,7 @@
                             </script>
                         </div>
                     <?php } else { ?>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= $Settings->enable_parquimetro == "0" ? lang('reference_note') : "Placa del Vehiculo" ?>
                             <?php echo form_input('reference_note', $reference_note, 'class="form-control kb-text" id="reference_note"'); ?>
                         </div>
@@ -1267,7 +1267,7 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"> <?= lang('close') ?> </button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"> <?= lang('close') ?> </button>
                     <button type="button" id="suspend_sale" class="btn btn-primary"><?= lang('save') ?></button>
                 </div>
             </div>
@@ -1278,21 +1278,21 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="ProforModalLabel"><?= lang('qoutes_sale'); ?></h4>
                 </div>
                 <div class="modal-body">
                     <p><?= lang('type_reference_note'); ?></p>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("reference_note", "reference_note"); ?>
                         <?php echo form_input('reference_note2', $reference_note, 'class="form-control kb-text" id="reference_note2"'); ?>
                     </div>
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"> <?= lang('close') ?> </button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"> <?= lang('close') ?> </button>
                     <button type="button" id="qoutes_sale" class="btn btn-primary"><?= lang('submit') ?></button>
                 </div>
             </div>
@@ -1303,14 +1303,14 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="ApartadoModalLabel"><?= lang('apartado_sale'); ?></h4>
                 </div>
                 <div class="modal-body">
                     <p><?= lang('type_reference_note'); ?></p>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("reference_note", "reference_note"); ?>
                         <?php echo form_input('reference_note3', $reference_note, 'class="form-control kb-text" id="reference_note3"'); ?>
 
@@ -1330,7 +1330,7 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"> <?= lang('close') ?> </button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"> <?= lang('close') ?> </button>
                     <button type="button" id="apartado_sale" class="btn btn-primary"><?= lang('submit') ?></button>
                 </div>
             </div>
@@ -1347,7 +1347,7 @@
         <div class="modal-dialog modal-success" style="width:1000px !important; margin: 200px auto;">
             <div style="width:1000px;" class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="payModalLabel">
                         <?= lang('payment') ?>
@@ -1355,7 +1355,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-xs-12">
+                        <div class="col-12">
                             <div class="font16">
                                 <table class="table table-bordered table-condensed" style="width:100%; margin-bottom: 0; font-size:40px;">
                                     <tbody>
@@ -1478,8 +1478,8 @@
                                 <div class="clearfix"></div>
                             </div>
                             <div class="row" style="display:none;">
-                                <div class="col-xs-12">
-                                    <div class="form-group gc" style="display: none;">
+                                <div class="col-12">
+                                    <div class="mb-3 gc" style="display: none;">
                                         <?= lang("gift_card_no", "gift_card_no"); ?>
                                         <input type="text" id="gift_card_no" class="pa form-control kb-pad gift_card_no gift_card_input" />
 
@@ -1496,8 +1496,8 @@
 
                                             <input type="hidden" id="pcc_holder" class="form-control kb-text" placeholder="<?= lang('cc_holder') ?>" />
 
-                                            <div class="col-xs-6">
-                                                <div class="form-group">
+                                            <div class="col-6">
+                                                <div class="mb-3">
 
                                                 </div>
                                             </div>
@@ -1512,19 +1512,19 @@
                                         </div>
                                     </div>
                                     <div class="pcheque" style="display:none;">
-                                        <div class="form-group"><?= lang("cheque_no", "cheque_no"); ?>
+                                        <div class="mb-3"><?= lang("cheque_no", "cheque_no"); ?>
                                             <input type="text" id="cheque_no" class="form-control cheque_no kb-text" />
                                         </div>
                                     </div>
                                     <div class="pcash">
-                                        <div class="form-group"><?= lang("payment_note", "payment_note"); ?>
+                                        <div class="mb-3"><?= lang("payment_note", "payment_note"); ?>
                                             <input type="text" id="payment_note" class="form-control payment_note kb-text" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xs-3 text-center" style="display:none;">
+                        <div class="col-3 text-center" style="display:none;">
                             <!-- <span style="font-size: 1.2em; font-weight: bold;"><?= lang('quick_cash'); ?></span> -->
 
                             <div class="btn-group btn-group-vertical" style="width:100%;">
@@ -1541,7 +1541,7 @@
                     </div>
                 </div>
                 <div class="modal-footer" id="botdeenvioapago">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"> <?= lang('close') ?> </button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"> <?= lang('close') ?> </button>
                     <button class="btn btn-primary" id="<?= $eid ? '' : 'submit-sale'; ?>"><?= lang('submit') ?></button>
                 </div>
             </div>
@@ -1554,7 +1554,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">New message</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -1565,28 +1565,28 @@
                     <?= form_open_multipart("cash", $attributes); ?>
 
                     <?php if ($Admin) { ?>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= lang("date", "date"); ?>
                             <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : date('Y-m-d h:i:s')), ' readonly="readonly" class="form-control datetimepicker" id="date" required="required"'); ?>
                         </div>
                     <?php } ?>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("reference", "reference"); ?>
                         <?= form_input('reference', (isset($_POST['reference']) ? $_POST['reference'] : ''), 'class="form-control tip" id="reference"'); ?>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("amount", "amount"); ?>
                         <input name="amount" type="text" value="" class="pa form-control kb-pad " required="required" />
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?= lang("note", "note"); ?>
                         <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control redactor" id="note"'); ?>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <?php echo form_submit('botonSubmit', '', 'class="btn btn-primary"'); ?>
                     </div>
 
@@ -1607,7 +1607,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header modal-primary">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="cModalLabel">
                         <?= lang('add_customer') ?>
@@ -1620,9 +1620,9 @@
 
                     <?php if ($Settings->enable_credit) { ?>
                         <div class="row">
-                            <div class="col-xs-12">
-                                <div class="form-group">
-                                    <label class="control-label" for="limitcredit">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label" for="limitcredit">
                                         <?= lang("limitcredit"); ?>
                                     </label>
                                     <?= form_input('limitcredit', '', 'class="form-control input-sm kb-text" id="limitcredit" placeholder="Formato ejemplo: 5000.00   ó   0.00 " required="required"'); ?>
@@ -1633,18 +1633,18 @@
 
 
                     <div class="row">
-                        <div class="col-xs-12">
-                            <div class="form-group">
-                                <label class="control-label" for="name">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label" for="name">
                                     <?= lang("name"); ?><span style="color:red">*</span>
                                 </label>
                                 <?= form_input('name', '', 'class="form-control input-sm kb-text" id="cname" required="required"'); ?>
                             </div>
                         </div>
 
-                        <div class="col-xs-12">
-                            <div class="form-group">
-                                <label class="control-label" for="business_name">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label" for="business_name">
                                     Nombre Comercial
                                 </label>
                                 <?= form_input('business_name', '', 'class="form-control input-sm kb-text" id="business_name"'); ?>
@@ -1652,18 +1652,18 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="cemail">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="cemail">
                                     <?= lang("email_address"); ?>
                                 </label>
                                 <?= form_input('email', '', 'class="form-control input-sm kb-text" id="cemail"'); ?>
                                 <span id="emailspan"></span>
                             </div>
                         </div>
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="phone">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="phone">
                                     <?= lang("phone"); ?>
                                 </label>
                                 <?= form_input('phone', '', 'class="form-control input-sm kb-pad" id="cphone" '); ?>
@@ -1672,9 +1672,9 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="cf1">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="cf1">
                                     <?php echo lang("cf1"); ?><span style="color:red">*</span>
                                 </label>
                                 <!--                            --><?php //= form_input('cf1', '', 'class="form-control input-sm kb-text" id="cf1"');  
@@ -1695,9 +1695,9 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="cf2">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="cf2">
                                     <?php echo lang("cf2"); ?><span style="color:red">*</span>
                                 </label>
                                 <?php echo form_input('cf2', '', 'class="form-control input-sm kb-text" id="cf2"  required="required"'); ?>
@@ -1708,7 +1708,7 @@
 
                 </div>
                 <div class="modal-footer" style="margin-top:0;">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"> <?= lang('close') ?> </button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"> <?= lang('close') ?> </button>
                     <button type="submit" class="btn btn-primary" id="add_customer"> <?= lang('add_customer') ?> </button>
                 </div>
 
@@ -1722,7 +1722,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header modal-primary">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
                     </button>
                     <h4 class="modal-title" id="cModalLabel">
                         <?= lang('add_exoneracion') ?>
@@ -1732,9 +1732,9 @@
                     <div id="c-alert" class="alert alert-danger" style="display:none;"></div>
 
                     <div class="row">
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="name">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="name">
                                     <?= lang("TipoDocumentoE"); ?><span style="color:red">*</span>
                                 </label>
                                 <?php
@@ -1758,27 +1758,27 @@
                             </div>
                         </div>
 
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="business_name">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="business_name">
                                     <?= lang("NumeroDocumentoE"); ?><span style="color:red">*</span>
                                 </label>
                                 <?= form_input('NumeroDocumentoE', '', 'class="form-control input-sm kb-text" id="NumeroDocumentoE"'); ?>
                             </div>
                         </div>
 
-                        <div class="col-xs-12">
-                            <div class="form-group">
-                                <label class="control-label" for="business_name">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label" for="business_name">
                                     <?= lang("NombreInstitucionE"); ?><span style="color:red">*</span>
                                 </label>
                                 <?= form_input('NombreInstitucionE', '', 'class="form-control input-sm kb-text" id="NombreInstitucionE"'); ?>
                             </div>
                         </div>
 
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="business_name">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="business_name">
                                     <?= lang("FechaEmisionE"); ?><span style="color:red">*</span>
                                 </label>
                                 <?php $dateE = date('Y-m-d') . 'T' . date('H:i:s'); ?>
@@ -1786,9 +1786,9 @@
                             </div>
                         </div>
 
-                        <div class="col-xs-6">
-                            <div class="form-group">
-                                <label class="control-label" for="business_name">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="business_name">
                                     <?= lang("PorcentajeExoneracionE"); ?>
                                 </label>
                                 <select name="PorcentajeExoneracionE" class="form-control input-sm selct2" id="PorcentajeExoneracionE" required="required">
@@ -1815,7 +1815,7 @@
 
                 </div>
                 <div class="modal-footer" style="margin-top:0;">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal"> <?= lang('close') ?> </button>
+                    <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"> <?= lang('close') ?> </button>
 
                     <button type="button" class="btn btn-primary" id="add_exoneracion" name="add_exoneracion"> <?= lang('add_exoneracion') ?> </button>
                 </div>

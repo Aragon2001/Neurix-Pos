@@ -186,14 +186,14 @@ if ($this->input->post('end_date')) {
                     </h3>
                 </div>
                 <div class="box-body">
-                    <div id="form" class="panel panel-warning">
-                        <div class="panel-body">
+                    <div id="form" class="card border-warning">
+                        <div class="card-body">
                             <?= form_open("reports/compras_electronicas"); ?>
 
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="user">Vendedor</label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="user">Vendedor</label>
                                         <?php
                                         $us[""] = "";
                                         foreach ($users as $user) {
@@ -205,8 +205,8 @@ if ($this->input->post('end_date')) {
                                 </div>
 
                                 <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="start_date">Mes</label>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="start_date">Mes</label>
                                         <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"'); ?>
                                     </div>
                                 </div>
@@ -231,24 +231,24 @@ if ($this->input->post('end_date')) {
                                                                            style="width:100%;"></td>
                                     </tr>
                                     <tr class="active">
-                                        <th class="col-xs-2"><?= lang("date"); ?></th>
-                                        <th class="col-xs-1"><?= lang("status"); ?> de Hacienda</th>
-                                        <th class="col-xs-1"><?= lang("document_type"); ?></th>
-                                        <th class="col-xs-1"><?= lang("consecutive"); ?></th>
-                                        <th class="col-xs-2">Proveedor</th>
-                                        <th class="col-xs-2">T. Doc</th>
-                                        <th class="col-xs-2">N° Doc</th>
-                                        <th class="col-xs-2">Correo</th>
-                                        <th class="col-xs-2">Total Serv. Gravados</th>
-                                        <th class="col-xs-2">Total Serv. Exentos</th>
-                                        <th class="col-xs-2">Total Merc. Gravados</th>
-                                        <th class="col-xs-2">Total Merc. Exentos</th>
-                                        <th class="col-xs-2">Total Gravados</th>
-                                        <th class="col-xs-2">Total Exentos</th>
+                                        <th class="col-2"><?= lang("date"); ?></th>
+                                        <th class="col-1"><?= lang("status"); ?> de Hacienda</th>
+                                        <th class="col-1"><?= lang("document_type"); ?></th>
+                                        <th class="col-1"><?= lang("consecutive"); ?></th>
+                                        <th class="col-2">Proveedor</th>
+                                        <th class="col-2">T. Doc</th>
+                                        <th class="col-2">N° Doc</th>
+                                        <th class="col-2">Correo</th>
+                                        <th class="col-2">Total Serv. Gravados</th>
+                                        <th class="col-2">Total Serv. Exentos</th>
+                                        <th class="col-2">Total Merc. Gravados</th>
+                                        <th class="col-2">Total Merc. Exentos</th>
+                                        <th class="col-2">Total Gravados</th>
+                                        <th class="col-2">Total Exentos</th>
                                         <th>Monto Total Impuesto</th>
-                                        <th class="col-xs-2">Total Compra</th>
-                                        <th class="col-xs-2">Total Compra Neta</th>
-                                        <th class="col-xs-2">Total Comprobante</th>
+                                        <th class="col-2">Total Compra</th>
+                                        <th class="col-2">Total Compra Neta</th>
+                                        <th class="col-2">Total Comprobante</th>
                                     </tr>
                                     </thead>
                                     <tbody>

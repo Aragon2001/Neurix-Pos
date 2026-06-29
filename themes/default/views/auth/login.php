@@ -402,12 +402,12 @@
 
             <?php if ($error): ?>
             <div class="nlx-alert alert alert-danger alert-dismissable">
-                <button data-dismiss="alert" class="close" type="button">&times;</button>
+                <button data-bs-dismiss="alert" class="close" type="button">&times;</button>
                 <?= $error; ?>
             </div>
             <?php endif; if ($message): ?>
             <div class="nlx-alert alert alert-success alert-dismissable">
-                <button data-dismiss="alert" class="close" type="button">&times;</button>
+                <button data-bs-dismiss="alert" class="close" type="button">&times;</button>
                 <?= $message; ?>
             </div>
             <?php endif; ?>
@@ -445,7 +445,7 @@
             </div>
 
             <div class="nlx-row">
-                <a class="nlx-fgot" href="#" data-toggle="modal" data-target="#myModal"><?= lang('forgot_password'); ?></a>
+                <a class="nlx-fgot" href="#" data-bs-toggle="modal" data-target="#myModal"><?= lang('forgot_password'); ?></a>
             </div>
 
             <button type="submit" class="nlx-btn">
@@ -467,7 +467,7 @@
         <div class="modal-content">
             <?= form_open("auth/forgot_password"); ?>
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
                 <h4 class="modal-title" id="fwdTitle"><?= lang('forgot_password'); ?></h4>
             </div>
             <div class="modal-body">
@@ -476,7 +476,7 @@
                        class="form-control" autocomplete="off">
             </div>
             <div class="modal-footer">
-                <button data-dismiss="modal" class="btn btn-default pull-left" type="button"><?= lang('close'); ?></button>
+                <button data-bs-dismiss="modal" class="btn btn-default pull-left" type="button"><?= lang('close'); ?></button>
                 <button class="btn btn-primary" type="submit"><?= lang('submit'); ?></button>
             </div>
             <?= form_close(); ?>

@@ -2,7 +2,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('enter_info'); ?></h3>
@@ -13,24 +13,24 @@
                         echo form_open("gift_cards/add", $attrib); ?>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang("card_no", "card_no"); ?>
                                     <div class="input-group">
                                         <?php echo form_input('card_no', '', 'class="form-control" id="card_no" required="required"'); ?>
-                                        <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;"><a href="#"
+                                        <div class="input-group-text" style="padding-left: 10px; padding-right: 10px;"><a href="#"
                                            id="genNo"><i
                                            class="fa fa-cogs"></i></a></div>
                                        </div>
                                    </div>
-                                   <div class="form-group">
+                                   <div class="mb-3">
                                     <?= lang("value", "value"); ?>
                                     <?php echo form_input('value', '', 'class="form-control" id="value" required="required"'); ?>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang("expiry_date", "expiry"); ?>
                                     <?php echo form_input('expiry', '', 'class="form-control date" id="expiry"'); ?>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= form_submit('add_gift_Card', lang('add_gift_Card'), 'class="btn btn-primary"'); ?>
                                 </div>
                             </div>

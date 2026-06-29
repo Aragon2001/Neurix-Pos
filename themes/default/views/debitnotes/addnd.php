@@ -11,7 +11,7 @@
           <?= form_hidden('sale_id', $sale->id) ?>
           <div class="row">
             <div class="col-md-4">
-              <div class="form-group">
+              <div class="mb-3">
                 <label>Tipo Documento Referencia</label>
                 <select name="type_nd" class="form-control">
                   <option value="01">01 — Factura Electrónica</option>
@@ -21,7 +21,7 @@
               </div>
             </div>
             <div class="col-md-4">
-              <div class="form-group">
+              <div class="mb-3">
                 <label>Código de Razón (Motivo ND)</label>
                 <select name="motivo_nd" class="form-control">
                   <option value="01">01 — Error de monto</option>
@@ -31,7 +31,7 @@
               </div>
             </div>
             <div class="col-md-4">
-              <div class="form-group">
+              <div class="mb-3">
                 <label>Razón (texto libre)</label>
                 <input type="text" name="hold_ref" class="form-control" placeholder="Descripción del ajuste" maxlength="255">
               </div>

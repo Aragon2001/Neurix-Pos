@@ -8,7 +8,7 @@ if ($modal) {
     <div class="modal-content">
         <div class="modal-body">
 
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
             </button>
             <?php
             } else {
@@ -98,7 +98,7 @@ if ($modal) {
                 <div class="row">
                     <div class="col-md-12">
                         <h2 style="text-align: center; width: 100%; color: green;"><i>Consulta de Articulos</i> </h2>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <legend style="text-align: center">Busca por codigo del Producto *</legend>
                             <input id="search_code" class="form-control"/>
                         </div>

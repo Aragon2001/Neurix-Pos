@@ -102,21 +102,21 @@ if ($this->input->post('end_date')) {
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <a href="#" class="btn btn-default btn-sm toggle_form pull-right"><?= lang("show_hide"); ?></a>
                     <h3 class="box-title"><?= lang('customize_report'); ?></h3>
                 </div>
                 <div class="box-body">
-                    <div id="form" class="panel panel-warning">
-                        <div class="panel-body">
+                    <div id="form" class="card border-warning">
+                        <div class="card-body">
                             <?= form_open("reports/products");?>
 
                             <div class="row">
-                                <div class="col-xs-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="product"><?= lang("product"); ?></label>
+                                <div class="col-4">
+                                    <div class="mb-3">
+                                        <label class="form-label" for="product"><?= lang("product"); ?></label>
                                         <?php
                                         $pr[0] = lang("select")." ".lang("product");
                                         foreach($products as $product){
@@ -126,19 +126,19 @@ if ($this->input->post('end_date')) {
                                         ?>
                                     </div>
                                 </div>
-                                <div class="col-xs-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="start_date"><?= lang("start_date"); ?></label>
+                                <div class="col-4">
+                                    <div class="mb-3">
+                                        <label class="form-label" for="start_date"><?= lang("start_date"); ?></label>
                                         <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"');?>
                                     </div>
                                 </div>
-                                <div class="col-xs-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="end_date"><?= lang("end_date"); ?></label>
+                                <div class="col-4">
+                                    <div class="mb-3">
+                                        <label class="form-label" for="end_date"><?= lang("end_date"); ?></label>
                                         <?= form_input('end_date', set_value('end_date'), 'class="form-control datetimepicker" id="end_date"');?>
                                     </div>
                                 </div>
-                                <div class="col-xs-12">
+                                <div class="col-12">
                                     <button type="submit" class="btn btn-primary"><?= lang("submit"); ?></button>
                                 </div>
                             </div>
@@ -148,20 +148,20 @@ if ($this->input->post('end_date')) {
                     <div class="clearfix"></div>
 
                     <div class="row">
-                        <div class="col-xs-12">
+                        <div class="col-12">
                             <div class="table-responsive">
                                 <table id="PrRData" class="table table-striped table-bordered table-hover" style="margin-bottom:5px;">
                                     <thead>
                                         <tr class="active">
                                             <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                            <th class="col-xs-2"><?= lang("code"); ?></th>
+                                            <th class="col-2"><?= lang("code"); ?></th>
                                             <th><?= lang("name"); ?></th>
-                                            <th class="col-xs-1"><?= lang("sold"); ?></th>
-                                            <th class="col-xs-1"><?= lang("quantity"); ?></th>
-                                            <th class="col-xs-1"><?= lang("tax"); ?></th>
-                                            <th class="col-xs-1"><?= lang("cost"); ?></th>
-                                            <th class="col-xs-1"><?= lang("income"); ?></th>
-                                            <th class="col-xs-1"><?= lang("profit"); ?></th>
+                                            <th class="col-1"><?= lang("sold"); ?></th>
+                                            <th class="col-1"><?= lang("quantity"); ?></th>
+                                            <th class="col-1"><?= lang("tax"); ?></th>
+                                            <th class="col-1"><?= lang("cost"); ?></th>
+                                            <th class="col-1"><?= lang("income"); ?></th>
+                                            <th class="col-1"><?= lang("profit"); ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -174,12 +174,12 @@ if ($this->input->post('end_date')) {
                                             <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
                                             <th class="col-sm-2"><input type="text" class="text_filter" placeholder="[<?= lang('code'); ?>]"></th>
                                             <th><input type="text" class="text_filter" placeholder="[<?= lang('name'); ?>]"></th>
-                                            <th class="col-xs-1"><?= lang("sold"); ?></th>
-                                            <th class="col-xs-1"><?= lang("quantity"); ?></th>
-                                            <th class="col-xs-1"><?= lang("tax"); ?></th>
-                                            <th class="col-xs-1"><?= lang("cost"); ?></th>
-                                            <th class="col-xs-1"><?= lang("income"); ?></th>
-                                            <th class="col-xs-1"><?= lang("profit"); ?></th>
+                                            <th class="col-1"><?= lang("sold"); ?></th>
+                                            <th class="col-1"><?= lang("quantity"); ?></th>
+                                            <th class="col-1"><?= lang("tax"); ?></th>
+                                            <th class="col-1"><?= lang("cost"); ?></th>
+                                            <th class="col-1"><?= lang("income"); ?></th>
+                                            <th class="col-1"><?= lang("profit"); ?></th>
                                         </tr>
                                         <tr>
                                             <td colspan="9" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>

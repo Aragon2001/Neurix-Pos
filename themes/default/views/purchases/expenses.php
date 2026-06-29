@@ -68,7 +68,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('list_results'); ?></h3>
@@ -79,11 +79,11 @@
                             <thead>
                                 <tr class="active">
                                     <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-xs-2"><?= lang("date"); ?></th>
-                                    <th class="col-xs-2"><?= lang("reference"); ?></th>
-                                    <th class="col-xs-1"><?= lang("amount"); ?></th>
-                                    <th class="col-xs-4"><?= lang("note"); ?></th>
-                                    <th class="col-xs-2"><?= lang("created_by"); ?></th>
+                                    <th class="col-2"><?= lang("date"); ?></th>
+                                    <th class="col-2"><?= lang("reference"); ?></th>
+                                    <th class="col-1"><?= lang("amount"); ?></th>
+                                    <th class="col-4"><?= lang("note"); ?></th>
+                                    <th class="col-2"><?= lang("created_by"); ?></th>
                                     <th style="min-width:30px; width: 30px; text-align: center;"><i class="fa fa-chain"></i></th>
                                     <th style="width:100px;"><?= lang("actions"); ?></th>
                                 </tr>
@@ -98,7 +98,7 @@
                                     <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
                                     <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('date'); ?>]"></span></th>
                                     <th class="col-sm-2"><input type="text" class="text_filter" placeholder="[<?= lang('reference'); ?>]"></th>
-                                    <th class="col-xs-1"><?= lang('amount'); ?></th>
+                                    <th class="col-1"><?= lang('amount'); ?></th>
                                     <th><input type="text" class="text_filter" placeholder="[<?= lang('note'); ?>]"></th>
                                     <th><input type="text" class="text_filter" placeholder="[<?= lang('created_by'); ?>]"></th>
                                     <th style="width:25px; padding-right:5px;"><i class="fa fa-chain"></i></th>

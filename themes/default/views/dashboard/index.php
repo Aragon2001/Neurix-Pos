@@ -344,7 +344,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 <div class="row">
 
     <!-- ① Total ventas -->
-    <div class="col-xs-12 col-sm-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-lg-3">
         <div class="nx-kpi" style="border-top:3px solid var(--nx-a1);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
@@ -381,7 +381,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     </div>
 
     <!-- ② Proyección de ventas -->
-    <div class="col-xs-12 col-sm-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-lg-3">
         <div class="nx-kpi" style="border-top:3px solid var(--nx-a2);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
@@ -413,7 +413,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     </div>
 
     <!-- ③ Total por pagar (compras) -->
-    <div class="col-xs-12 col-sm-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-lg-3">
         <div class="nx-kpi" style="border-top:3px solid var(--nx-warn);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
@@ -445,7 +445,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     </div>
 
     <!-- ④ Total por cobrar -->
-    <div class="col-xs-12 col-sm-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-lg-3">
         <div class="nx-kpi" style="border-top:3px solid var(--nx-err);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
@@ -692,7 +692,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 ═════════════════════════════════════════════ -->
 <div class="row" style="margin-bottom:18px;">
 
-    <div class="col-xs-12 col-md-6">
+    <div class="col-12 col-md-6">
         <div class="box box-success" style="margin-bottom:0;">
             <div class="box-header">
                 <i class="fa fa-calendar-check-o" style="color:var(--nx-ok);margin-right:8px;"></i>
@@ -704,7 +704,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         </div>
     </div>
 
-    <div class="col-xs-12 col-md-6">
+    <div class="col-12 col-md-6">
         <div class="box box-primary" style="margin-bottom:0;">
             <div class="box-header">
                 <i class="fa fa-trophy" style="color:var(--nx-a1);margin-right:8px;"></i>
@@ -727,7 +727,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 <div class="row">
 
     <!-- Métodos de pago -->
-    <div class="col-xs-12 col-md-3">
+    <div class="col-12 col-md-3">
         <div class="box box-warning">
             <div class="box-header">
                 <i class="fa fa-credit-card" style="color:var(--nx-warn);margin-right:8px;"></i>
@@ -754,7 +754,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     </div>
 
     <!-- Top clientes -->
-    <div class="col-xs-12 col-md-4">
+    <div class="col-12 col-md-4">
         <div class="box box-info">
             <div class="box-header">
                 <i class="fa fa-users" style="color:var(--nx-a3);margin-right:8px;"></i>
@@ -785,7 +785,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     </div>
 
     <!-- Últimas ventas -->
-    <div class="col-xs-12 col-md-5">
+    <div class="col-12 col-md-5">
         <div class="box box-primary">
             <div class="box-header">
                 <i class="fa fa-list-alt" style="color:var(--nx-a1);margin-right:8px;"></i>

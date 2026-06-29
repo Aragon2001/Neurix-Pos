@@ -2,7 +2,7 @@
 
 <section class="content">
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
                     <h3 class="box-title"><?= lang('enter_info'); ?></h3>
@@ -12,19 +12,19 @@
                         <?php echo form_open_multipart("purchases/add", 'class="validation"'); ?>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('date', 'date'); ?>
                                     <?= form_input('date', set_value('date', date('Y-m-d H:i')), 'class="form-control tip" id="date"  required="required"'); ?>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('reference', 'reference'); ?>
                                     <?= form_input('reference', set_value('reference'), 'class="form-control tip" id="reference"'); ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <input type="text" placeholder="<?= lang('search_product_by_name_code'); ?>" id="add_item"
                                    class="form-control">
                         </div>
@@ -36,11 +36,11 @@
                                         <thead>
                                         <tr class="active">
                                             <th><?= lang('product'); ?></th>
-                                            <th class="col-xs-2"><?= lang('quantity'); ?></th>
-                                            <th class="col-xs-2"><?= lang('unit_cost'); ?></th>
-                                            <th class="col-xs-2">Margen</th>
-                                            <th class="col-xs-2"><?= lang('price'); ?></th>
-                                            <th class="col-xs-2"><?= lang('subtotal'); ?></th>
+                                            <th class="col-2"><?= lang('quantity'); ?></th>
+                                            <th class="col-2"><?= lang('unit_cost'); ?></th>
+                                            <th class="col-2">Margen</th>
+                                            <th class="col-2"><?= lang('price'); ?></th>
+                                            <th class="col-2"><?= lang('subtotal'); ?></th>
                                             <th style="width:25px;"><i class="fa fa-trash-o"></i></th>
                                         </tr>
                                         </thead>
@@ -52,11 +52,11 @@
                                         <tfoot>
                                         <tr class="active">
                                             <th><?= lang('total'); ?></th>
-                                            <th class="col-xs-2"></th>
-                                            <th class="col-xs-2"></th>
-                                            <th class="col-xs-2"></th>
-                                            <th class="col-xs-2"></th>
-                                            <th class="col-xs-2 text-right"><span id="gtotal">0.00</span></th>
+                                            <th class="col-2"></th>
+                                            <th class="col-2"></th>
+                                            <th class="col-2"></th>
+                                            <th class="col-2"></th>
+                                            <th class="col-2 text-right"><span id="gtotal">0.00</span></th>
                                             <th style="width:25px;"></th>
                                         </tr>
                                         </tfoot>
@@ -66,7 +66,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('supplier', 'supplier'); ?>
                                     <?php
                                     $sp[''] = lang("select") . " " . lang("supplier");
@@ -80,22 +80,22 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <?= lang('received', 'received'); ?>
                                     <?php $sts = array(1 => lang('received'), 0 => lang('not_received_yet')); ?>
                                     <?= form_dropdown('received', $sts, set_value('received'), 'class="form-control select2 tip" id="received"  required="required" style="width:100%;"'); ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= lang('attachment', 'attachment'); ?>
                             <input type="file" name="userfile" class="form-control tip" id="attachment">
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= lang("note", 'note'); ?>
                             <?= form_textarea('note', set_value('note'), 'class="form-control redactor" id="note"'); ?>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <?= form_submit('add_purchase', lang('add_purchase'), 'class="btn btn-primary"'); ?>
                             <button type="button" id="reset" class="btn btn-danger"><?= lang('reset'); ?></button>
                         </div>

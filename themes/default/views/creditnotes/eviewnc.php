@@ -20,7 +20,7 @@ if ($modal) {
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
                 <?php
             } else {
                 ?><!doctype html>
@@ -59,7 +59,7 @@ if ($modal) {
                         <div class="no-print">
                             <?php if ($message) { ?>
                             <div class="alert alert-success">
-                                <button data-dismiss="alert" class="close" type="button">×</button>
+                                <button data-bs-dismiss="alert" class="close" type="button">×</button>
                                 <?= is_array($message) ? print_r($message, true) : $message; ?>
                             </div>
                             <?php } ?>
@@ -215,11 +215,11 @@ if ($modal) {
                                     <a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a>
                                 </div>
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal"><?= lang('close'); ?></button>
+                                    <button type="button" class="btn btn-default" data-bs-dismiss="modal"><?= lang('close'); ?></button>
                                 </div>
                             </div>
                             <?php } else { ?>
-                            <span class="pull-right col-xs-12">
+                            <span class="pull-right col-12">
                                 <?php
                                 if ( ! $Settings->remote_printing) {
                                     echo '<button data-receipt="'.$inv->id.'" onclick="return print_receipt(1)" class="btn btn-block btn-primary">'.lang("print").'</button>';
@@ -232,8 +232,8 @@ if ($modal) {
                                 }
                                 ?>
                             </span>
-                            <span class="pull-left col-xs-12"><a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a></span>
-                            <span class="col-xs-12">
+                            <span class="pull-left col-12"><a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a></span>
+                            <span class="col-12">
                                 <a class="btn btn-block btn-warning" href="<?= site_url('pos'); ?>"><?= lang("back_to_pos"); ?></a>
                             </span>
                             <?php } ?>
