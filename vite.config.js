@@ -5,6 +5,7 @@ export default defineConfig({
     outDir: 'themes/default/assets/dist',
     lib: {
       entry: 'themes/default/assets/src/main.js',
+      name: 'NeurixApp',
       formats: ['iife']
     },
     minify: 'terser',
