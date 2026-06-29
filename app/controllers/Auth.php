@@ -146,7 +146,6 @@ class Auth extends MY_Controller {
                         redirect('auth/logout');
                     }
                 }
-                $this->session->set_flashdata('message', $this->ion_auth->messages());
                 redirect($this->session->userdata('store_id') ? 'pos' : 'welcome');
             } else {
                 $this->session->set_flashdata('error', $this->ion_auth->errors());

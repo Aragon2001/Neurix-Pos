@@ -206,7 +206,7 @@ if (!function_exists('fmtMoney')) { function fmtMoney($val) {
                         <span>Ventas Diarias</span>
                     </a>
                     <a class="nx-q-item" href="<?= site_url('reports/monthly_sale_tax'); ?>">
-                        <i class="fa fa-percent nx-ico-yellow"></i>
+                        <i class="fa fa-percent nx-ico-amber"></i>
                         <span>Ventas c/ IVA</span>
                     </a>
                     <a class="nx-q-item" href="<?= site_url('reports/registers'); ?>">

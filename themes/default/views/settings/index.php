@@ -55,6 +55,17 @@
             .nx-settings-nav .nav-pills > li > a .nx-nav-label { display: flex; flex-direction: column; }
             .nx-settings-nav .nav-pills > li > a .nx-nav-sub { font-size: 10px; font-weight: 400; color: #999; margin-top: 1px; }
             .nx-settings-nav .nav-pills > li.active > a .nx-nav-sub { color: #3c8dbc; }
+
+            /* ── File inputs modernos ── */
+            input[type="file"] { display: block; }
+            input[type="file"]::file-selector-button {
+                background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+                color: white; padding: 8px 16px; border: none; border-radius: 4px;
+                cursor: pointer; font-weight: 600; font-size: 13px; transition: all .2s;
+            }
+            input[type="file"]::file-selector-button:hover {
+                background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); transform: translateY(-1px);
+            }
             </style>
 
             <!-- NAV SETTINGS -->
@@ -170,8 +181,8 @@
                                 <?php endif; ?>
                                 <div class="form-group">
                                     <label><i class="fa fa-image"></i> <?php echo lang('login_logo'); ?></label>
-                                    <input type="file" name="userfile" id="logo" class="form-control">
-                                    <span class="help-block">GIF/JPG/PNG, máx 300x80px, 300KB</span>
+                                    <input type="file" name="userfile" id="logo" class="form-control" accept="image/gif,image/jpeg,image/png">
+                                    <span class="help-block"><i class="fa fa-info-circle"></i> GIF/JPG/PNG, máx 300x80px, 300KB</span>
                                 </div>
                                 <div class="form-group">
                                     <label><i class="fa fa-th-large"></i> Panel de categorías en POS</label>
