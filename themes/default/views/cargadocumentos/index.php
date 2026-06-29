@@ -111,16 +111,16 @@
 
     /* skin.css Style*/
     .upload-drop-zone {
-        color: #ccc;
+        color: var(--nx-txt3);
         border-style: dashed;
-        border-color: #ccc;
+        border-color: var(--nx-border);
         line-height: 100px;
         text-align: center
     }
 
     .upload-drop-zone.drop {
-        color: #222;
-        border-color: #222;
+        color: var(--nx-a1);
+        border-color: var(--nx-a1);
     }
 </style>
 <section class="content">
