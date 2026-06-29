@@ -191,8 +191,8 @@
 
             </ul>
         </div>
-    </nav>
-</header>
+    </div>
+</nav>
 
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="main-sidebar">
@@ -239,8 +239,8 @@
                     <?php endif; ?>
                     <li id="products_ajuste"><a href="<?= site_url('products/ajuste'); ?>"><i class="fa fa-balance-scale"></i>Ajuste Inventario</a></li>
                     <li id="products_import"><a href="<?= site_url('products/import'); ?>"><i class="fa fa-upload"></i><?= lang('import_products'); ?></a></li>
-                    <li id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" data-bs-toggle="ajax"><i class="fa fa-barcode"></i><?= lang('print_barcodes'); ?></a></li>
-                    <li id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" data-bs-toggle="ajax"><i class="fa fa-tag"></i><?= lang('print_labels'); ?></a></li>
+                    <li id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" data-toggle="ajax"><i class="fa fa-barcode"></i><?= lang('print_barcodes'); ?></a></li>
+                    <li id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" data-toggle="ajax"><i class="fa fa-tag"></i><?= lang('print_labels'); ?></a></li>
                     <?php if ($this->Settings->multiprice_enabled == 1): ?>
                     <li id="products_prices"><a href="<?= site_url('products/listprices'); ?>"><i class="fa fa-dollar"></i>Lista de Precios</a></li>
                     <li id="products_addprices"><a href="<?= site_url('products/addprices'); ?>"><i class="fa fa-plus-circle"></i>Agregar Precios</a></li>
