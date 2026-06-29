@@ -20,29 +20,34 @@
     <script src="<?= $assets ?>dist/js/main.min.js"></script>
     <link rel="stylesheet" href="<?= $assets ?>dist/css/www.min.css">
 </head>
-<body class="skin-blue fixed sidebar-mini">
-<div class="wrapper rtl rtl-inv">
+<body>
+<div class="wrapper">
 
 <!-- ═══════════════ HEADER ═══════════════ -->
-<header class="main-header">
+<nav class="main-header navbar navbar-expand-md navbar-light bg-white border-bottom">
 
     <!-- Logo -->
-    <a href="<?= site_url(); ?>" class="logo" style="display:flex;align-items:center;gap:9px;padding:0 14px;">
-        <span class="logo-mini" style="
+    <a href="<?= site_url(); ?>" class="navbar-brand ps-0 pe-3">
+        <span class="brand-image elevation-3" style="
             display:inline-flex;align-items:center;justify-content:center;
-            width:32px;height:32px;border-radius:8px;flex-shrink:0;
+            width:40px;height:40px;border-radius:8px;
             background:linear-gradient(135deg,#0369a1,#38bdf8);
-            color:#fff;font-size:15px;font-weight:800;
+            color:#fff;font-size:16px;font-weight:800;
             box-shadow:0 2px 10px rgba(56,189,248,.4);">
             <?= mb_strtoupper(mb_substr($Settings->site_name, 0, 1)); ?>
         </span>
-        <span class="logo-lg">
+        <span class="brand-text">
             <?= $store ? $store->name : $Settings->site_name; ?>
         </span>
     </a>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-static-top" role="navigation">
+    <!-- Navbar Toggle -->
+    <button class="navbar-toggler order-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navbar Links -->
+    <div class="collapse navbar-collapse order-3" id="navbarCollapse">
         <a href="#" class="sidebar-toggle" data-bs-toggle="offcanvas" role="button">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
