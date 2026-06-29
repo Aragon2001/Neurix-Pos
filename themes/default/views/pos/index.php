@@ -166,18 +166,16 @@
                                 <div class="fw-bold" id="total">₡0.00</div>
                             </div>
                         </div>
-                        <?php if ($Settings->enable_discount) { ?>
-                            <div class="row g-2 mb-2">
-                                <div class="col">
-                                    <a href="#" class="link-secondary text-decoration-none" id="add_discount" style="font-size: 0.875rem;">
-                                        <i class="fa fa-minus-circle"></i> <?= lang('discount'); ?>
-                                    </a>
-                                </div>
-                                <div class="col text-end">
-                                    <small id="ds_con" class="fw-bold">₡0.00</small>
-                                </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col">
+                                <a href="#" class="link-secondary text-decoration-none" id="add_discount" style="font-size: 0.875rem;">
+                                    <i class="fa fa-minus-circle"></i> <?= lang('discount'); ?>
+                                </a>
                             </div>
-                        <?php } ?>
+                            <div class="col text-end">
+                                <small id="ds_con" class="fw-bold">₡0.00</small>
+                            </div>
+                        </div>
                         <div class="row g-2 border-top pt-2">
                             <div class="col">
                                 <small class="text-muted"><?= lang('total_payable'); ?>:</small>
