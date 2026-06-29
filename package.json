@@ -1,0 +1,35 @@
+{
+  "name": "www",
+  "version": "1.0.0",
+  "description": "Sistema de Punto de Venta con integración de Facturación Electrónica para Costa Rica, cumpliendo las especificaciones v4.4 del Ministerio de Hacienda (obligatorio desde septiembre 2025).",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aragon2001/Neurix-Pos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Aragon2001/Neurix-Pos/issues"
+  },
+  "homepage": "https://github.com/Aragon2001/Neurix-Pos#readme",
+  "devDependencies": {
+    "vite": "^8.1.0"
+  },
+  "dependencies": {
+    "@eonasdan/tempus-dominus": "^6.10.4",
+    "@fortawesome/fontawesome-free": "^7.3.0",
+    "bootstrap": "^5.3.8",
+    "sweetalert2": "^11.26.25",
+    "tabulator-tables": "^6.5.2",
+    "tom-select": "^2.6.1"
+  }
+}
