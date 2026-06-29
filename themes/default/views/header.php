@@ -53,8 +53,7 @@
 
     <!-- Navbar Right Items -->
     <div class="collapse navbar-collapse ms-auto" id="navbarNavRight">
-        <ul class="navbar-nav ms-auto"
-
+        <ul class="navbar-nav ms-auto">
 
             <!-- Reloj (oculto en móvil) -->
             <li class="nav-item d-none d-sm-inline-block">
@@ -184,7 +183,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <nav class="offcanvas-body ps-0 pe-0">
-        <ul class="nav nav-pills nav-sidebar flex-column"
+        <ul class="nav nav-pills nav-sidebar flex-column">
 
             <li class="nav-item mm_welcome">
                 <a href="<?= site_url(); ?>" class="nav-link">

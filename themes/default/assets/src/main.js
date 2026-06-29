@@ -1,5 +1,10 @@
 // Importar Bootstrap 5 y AdminLTE 4
+// NOTA: los paquetes npm "bootstrap" y "admin-lte" solo exponen su JS por defecto
+// (ver "main" en su package.json); el CSS hay que importarlo explícitamente o
+// nunca queda incluido en el bundle final (esto es lo que rompió toda la app).
+import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
+import 'admin-lte/dist/css/adminlte.min.css'
 import 'admin-lte'
 import '@fortawesome/fontawesome-free/css/all.css'
 
