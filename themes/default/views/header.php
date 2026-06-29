@@ -5,6 +5,7 @@
     <title><?= $page_title . ' | ' . $Settings->site_name; ?></title>
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- CSS compilado por Vite: Bootstrap 5 + AdminLTE 4 + Neurix -->
     <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet">
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <script>
@@ -52,7 +53,8 @@
 
     <!-- Navbar Right Items -->
     <div class="collapse navbar-collapse ms-auto" id="navbarNavRight">
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav ms-auto"
+
 
             <!-- Reloj (oculto en móvil) -->
             <li class="nav-item d-none d-sm-inline-block">

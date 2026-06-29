@@ -12,6 +12,9 @@ import { Tabulator } from 'tabulator-tables'
 import { TempusDominus } from '@eonasdan/tempus-dominus'
 import Swal from 'sweetalert2'
 
+// Importar mejoras del POS
+import { POSEnhanced } from './pos-enhanced'
+
 // ═════════════════ TEMA OSCURO/CLARO (AdminLTE 4) ═════════════════
 const initTheme = () => {
   const theme = localStorage.getItem('nx-theme') || 'dark'
@@ -73,7 +76,6 @@ const initTreeview = () => {
 
         if (isOpen) {
           treeview.style.display = 'block'
-          // Pequeña animación
           treeview.style.opacity = '0'
           setTimeout(() => {
             treeview.style.transition = 'opacity 0.3s ease'
@@ -114,7 +116,6 @@ const initActiveMenu = () => {
     const href = link.getAttribute('href')
     if (href && currentUrl.includes(href.replace(/^[^/]*\//, ''))) {
       link.classList.add('active')
-      // Abrir padre si es submenu
       const parent = link.closest('.has-treeview')
       if (parent) {
         parent.classList.add('menu-open')
@@ -146,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const offcanvasInstance = bootstrap.Offcanvas.getOrCreateInstance(sidebar)
     document.querySelectorAll('#mainSidebar .nav-link').forEach(link => {
       link.addEventListener('click', () => {
-        // Solo cerrar si no es un treeview parent
         if (!link.parentElement.classList.contains('has-treeview')) {
           offcanvasInstance.hide()
         }

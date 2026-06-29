@@ -140,14 +140,14 @@
                     </div>
 
                     <!-- Items Table -->
-                    <div class="table-responsive mb-3" style="max-height: 250px; overflow-y: auto;">
-                        <table class="table table-sm table-hover mb-0">
+                    <div class="table-responsive mb-3" style="max-height: 250px; overflow-y: auto;" role="region" aria-label="Detalle del carrito">
+                        <table class="table table-sm table-hover mb-0" id="posTable" role="grid" aria-label="Productos en el carrito">
                             <thead class="table-light">
-                                <tr>
-                                    <th class="w-50"><?= lang('product'); ?></th>
-                                    <th class="text-center"><?= lang('qty'); ?></th>
-                                    <th class="text-end w-25"><?= lang('total'); ?></th>
-                                    <th class="text-center" style="width: 30px;"><i class="fa fa-trash"></i></th>
+                                <tr role="row">
+                                    <th class="w-50" role="columnheader"><?= lang('product'); ?></th>
+                                    <th class="text-center" role="columnheader" aria-label="Cantidad"><?= lang('qty'); ?></th>
+                                    <th class="text-end w-25" role="columnheader" aria-label="Total por producto"><?= lang('total'); ?></th>
+                                    <th class="text-center" style="width: 30px;" role="columnheader" aria-label="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="posTable"></tbody>
@@ -263,12 +263,12 @@
     <!-- Modals -->
 
     <!-- Customer Modal -->
-    <div class="modal fade" id="customerModal" tabindex="-1">
+    <div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><?= lang('add_customer'); ?></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="customerModalLabel"><?= lang('add_customer'); ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <?= form_open('pos/add_customer', 'id="customer-form"'); ?>
                 <div class="modal-body">
