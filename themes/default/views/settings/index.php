@@ -26,11 +26,11 @@
             <?php echo form_hidden('bill_footer', $settings->footer ?? ''); ?>
 
             <style>
-            .nx-settings-nav { border-right: 3px solid #e0e0e0; padding-right: 0; }
+            .nx-settings-nav { border-right: 3px solid var(--nx-border); padding-right: 0; }
             .nx-settings-nav .nav-pills > li > a {
                 border-radius: 0;
                 padding: 14px 16px;
-                color: #555;
+                color: var(--nx-txt2);
                 font-size: 13px;
                 font-weight: 600;
                 border-left: 3px solid transparent;
@@ -45,26 +45,26 @@
                 text-align: center;
                 flex-shrink: 0;
             }
-            .nx-settings-nav .nav-pills > li > a:hover { background: #f5f5f5; color: #3c8dbc; }
+            .nx-settings-nav .nav-pills > li > a:hover { background: rgba(56,189,248,.07); color: var(--nx-a1); }
             .nx-settings-nav .nav-pills > li.active > a,
             .nx-settings-nav .nav-pills > li.active > a:hover {
-                background: #eaf4fb;
-                color: #3c8dbc;
-                border-left: 3px solid #3c8dbc;
+                background: rgba(56,189,248,.12);
+                color: var(--nx-a1);
+                border-left: 3px solid var(--nx-a1);
             }
             .nx-settings-nav .nav-pills > li > a .nx-nav-label { display: flex; flex-direction: column; }
-            .nx-settings-nav .nav-pills > li > a .nx-nav-sub { font-size: 10px; font-weight: 400; color: #999; margin-top: 1px; }
-            .nx-settings-nav .nav-pills > li.active > a .nx-nav-sub { color: #3c8dbc; }
+            .nx-settings-nav .nav-pills > li > a .nx-nav-sub { font-size: 10px; font-weight: 400; color: var(--nx-txt3); margin-top: 1px; }
+            .nx-settings-nav .nav-pills > li.active > a .nx-nav-sub { color: var(--nx-a1); }
 
             /* ── File inputs modernos ── */
             input[type="file"] { display: block; }
             input[type="file"]::file-selector-button {
-                background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
-                color: white; padding: 8px 16px; border: none; border-radius: 4px;
+                background: linear-gradient(135deg, var(--nx-a1) 0%, var(--nx-a2) 100%);
+                color: var(--nx-bg, #06091a); padding: 8px 16px; border: none; border-radius: 4px;
                 cursor: pointer; font-weight: 600; font-size: 13px; transition: all .2s;
             }
             input[type="file"]::file-selector-button:hover {
-                background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); transform: translateY(-1px);
+                background: linear-gradient(135deg, var(--nx-a2) 0%, var(--nx-a1) 100%); transform: translateY(-1px);
             }
             </style>
 
@@ -1132,7 +1132,7 @@
             </div><!-- /.row settings nav -->
 
             <!-- STICKY SAVE BUTTON -->
-            <div class="box-footer" style="background:#fff;border-top:2px solid #d2d6de;padding:15px 20px;position:sticky;bottom:0;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.1);">
+            <div class="box-footer" style="background:var(--nx-card-bg);border-top:2px solid var(--nx-border);padding:15px 20px;position:sticky;bottom:0;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.3);">
                 <button type="submit" name="update" class="btn btn-primary btn-lg">
                     <i class="fa fa-save"></i> Guardar configuracion
                 </button>

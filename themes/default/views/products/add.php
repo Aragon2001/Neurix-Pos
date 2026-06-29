@@ -166,7 +166,7 @@
 
                                 <div class="form-group">
                                     <?= lang('image', 'image'); ?>
-                                    <p>Tiene que tener un peso máximo de 500 MB y tamaño máximo de 1000 px</p>
+                                    <p class="help-block">Peso máximo: 500 KB · Dimensiones máximas: 1000 × 1000 px</p>
                                     <input type="file" name="userfile" id="image">
                                 </div>
                             </div>
@@ -268,12 +268,12 @@
                                         });
                                     </script>
 
-                                    <table class="table">
+                                    <table class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <td style="text-align: center;background: #51b8f5;color: white;font-weight: bold;"></td>
-                                                <td style="text-align: center;background: #51b8f5;color: white;font-weight: bold;">SECCION</td>
-                                                <td style="text-align: center;background: #51b8f5;color: white;font-weight: bold;">TRAMO</td>
+                                                <th></th>
+                                                <th>SECCIÓN</th>
+                                                <th>TRAMO</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tbodyubicacion">
@@ -284,57 +284,37 @@
                             </div>
                         </div>
                         <?php if($this->Settings->multiprice_enabled == 1){ ?>
-                        <div style=" 
-                                     margin: 20px auto;
-                                     display: block;
-                                     float: none;
-                                     border: 1px solid #9c9c9c;
-                                     overflow: hidden;
-                                     padding: 21px;
-                                     ">
-
-                            <h4>Configure los Precios</h4>
-                            <table style="width: 100%">
+                        <div class="box box-info" style="margin-top:16px;">
+                            <div class="box-header">
+                                <h3 class="box-title"><i class="fa fa-dollar" style="color:var(--nx-a3);margin-right:6px;"></i>Lista de Precios</h3>
+                            </div>
+                            <div class="box-body" style="padding:0;">
+                            <table class="table table-bordered" style="margin:0;">
                                 <thead>
                                     <tr>
-                                        <td style="background-color: cadetblue; background-color: #164c4e;
-                                                    color: white;
-                                                    text-align: center;
-                                                    padding: 6px; ">Lista de Precio</td>
-                                        <td style="background-color: cadetblue; background-color: #164c4e;
-                                                    color: white;
-                                                    text-align: center;
-                                                    padding: 6px; ">Margen de ganancia en base al costo</td>
-                                        <td style="background-color: cadetblue; background-color: #164c4e;
-                                                    color: white;
-                                                    text-align: center;
-                                                    padding: 6px; ">Precio</td>
+                                        <th>Lista de Precio</th>
+                                        <th>Margen de ganancia (%)</th>
+                                        <th>Precio</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
-                                    <?php 
-                                    if($prices){ foreach($prices as $item){?>
+                                    <?php if ($prices): foreach ($prices as $item): ?>
                                     <tr>
-                                        <td style="    background-color: cadetblue; background-color: cadetblue;
-                                                color: white;
-                                                text-align: center;
-                                                padding: 6px; ">
-                                            <?php echo $item->nombre_l_precio ?>
-                                            <input type="hidden" value="<?php echo $item->id_lista_precios ?>" name="id_lista_precio[]">
+                                        <td class="text-center" style="font-weight:600;">
+                                            <?= $item->nombre_l_precio; ?>
+                                            <input type="hidden" value="<?= $item->id_lista_precios; ?>" name="id_lista_precio[]">
                                         </td>
                                         <td>
-                                            <input type="text" style="text-align: center" name="listmargen[]" value="0" class="form-control margen_ganancia" required="required" data-bv-field="margen">
+                                            <input type="text" class="form-control margen_ganancia text-center" name="listmargen[]" value="0" required="required" data-bv-field="margen">
                                         </td>
                                         <td>
-
-                                            <input type="text" name="listprice[]" value="0" class="form-control precio_item" required="required" data-bv-field="price">
+                                            <input type="text" class="form-control precio_item" name="listprice[]" value="0" required="required" data-bv-field="price">
                                         </td>
                                     </tr>
-                                    <?php }}?>
+                                    <?php endforeach; endif; ?>
                                 </tbody>
                             </table>
-
+                            </div>
                         </div>
                         <?php }?>
                         <div class="form-group">
