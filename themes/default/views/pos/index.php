@@ -394,6 +394,5 @@
         var Settings = <?= json_encode($Settings); ?>;
         var username = '<?= $this->session->userdata('username'); ?>';
     </script>
-    <script src="<?= $assets ?>pos/pos.min.js"></script>
 </body>
 </html>
