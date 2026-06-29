@@ -5,10 +5,8 @@
     <title><?= $page_title . ' | ' . $Settings->site_name; ?></title>
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet">
-    <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet">
-    <link href="<?= $assets ?>dist/css/neurix-theme.css" rel="stylesheet">
+    <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <script>
     /* Anti-FOUC: aplicar tema antes de renderizar (AdminLTE 4 con data-bs-theme) */
     (function(){
@@ -54,8 +52,7 @@
 
     <!-- Navbar Right Items -->
     <div class="collapse navbar-collapse ms-auto" id="navbarNavRight">
-        <ul class="navbar-nav ms-auto"
-
+        <ul class="navbar-nav ms-auto">
 
             <!-- Reloj (oculto en móvil) -->
             <li class="nav-item d-none d-sm-inline-block">

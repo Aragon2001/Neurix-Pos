@@ -6,9 +6,6 @@ import '@fortawesome/fontawesome-free/css/all.css'
 // Importar CSS personalizado de Neurix para AdminLTE 4
 import './neurix-adminlte4.css'
 
-// Importar CSS del POS redesigned
-import './pos-redesign.css'
-
 // Importar librerías modernas
 import TomSelect from 'tom-select'
 import { Tabulator } from 'tabulator-tables'
