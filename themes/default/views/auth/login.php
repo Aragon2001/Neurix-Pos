@@ -8,7 +8,7 @@
     <script>if (parent.frames.length !== 0) { top.location = '<?= site_url('login') ?>'; }</script>
     <?php } ?>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet">
+    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet">
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

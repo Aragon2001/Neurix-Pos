@@ -5,7 +5,7 @@
     <title><?= $page_title.' | '.$Settings->site_name; ?></title>
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" name="viewport">
-    <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
+    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css" />
 </head>
 <body class="login-page">
     <div class="login-box">

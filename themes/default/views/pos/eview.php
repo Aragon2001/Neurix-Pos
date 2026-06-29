@@ -34,7 +34,7 @@ if ($modal) {
                     <meta http-equiv="expires" content="0"/>
                     <meta http-equiv="pragma" content="no-cache"/>
                     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
-                    <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
+                    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css" />
                     <style type="text/css" media="all">
                         body { color: #000; }
                         #wrapper { max-width: 500px; margin: 0 auto; padding-top: 20px; font-size: 28px; }

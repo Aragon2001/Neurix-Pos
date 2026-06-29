@@ -8,7 +8,7 @@
     <meta http-equiv="cache-control" content="no-cache"/>
     <meta http-equiv="expires" content="0"/>
     <meta http-equiv="pragma" content="no-cache"/>
-    <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
+    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         html, body {
             background: #F9F9F9;
