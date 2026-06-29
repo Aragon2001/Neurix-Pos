@@ -132,7 +132,7 @@
                                         'chinese' => 'Chino (Simplificado)',
                                         'english' => 'English'
                                     );
-                                    echo form_dropdown('language', $available_langs, $settings->language ?? 'spanish', 'class="form-control select2" id="language" required="required" style="width:100%;"');
+                                    echo form_dropdown('language', $available_langs, $settings->language ?? 'spanish', 'class="form-control tom-select" id="language" required="required" style="width:100%;"');
                                     ?>
                                 </div>
                                 <div class="mb-3">
@@ -149,7 +149,7 @@
                                     <label for="rows_per_page"><i class="fa fa-list"></i> <?php echo lang('row_per_page'); ?></label>
                                     <?php
                                     $rw = array('10' => '10', '25' => '25', '50' => '50', '100' => '100');
-                                    echo form_dropdown('rows_per_page', $rw, $settings->rows_per_page ?? '25', 'class="form-control select2" id="rows_per_page" style="width:100%;" required="required"');
+                                    echo form_dropdown('rows_per_page', $rw, $settings->rows_per_page ?? '25', 'class="form-control tom-select" id="rows_per_page" style="width:100%;" required="required"');
                                     ?>
                                 </div>
                                 <div class="mb-3">
@@ -175,7 +175,7 @@
                                         'green'        => 'Green',
                                         'purple'       => 'Purple',
                                     );
-                                    echo form_dropdown('theme_style', $ths, $settings->theme_style ?? 'black', 'class="form-control select2" id="theme_style" required="required" style="width:100%;"');
+                                    echo form_dropdown('theme_style', $ths, $settings->theme_style ?? 'black', 'class="form-control tom-select" id="theme_style" required="required" style="width:100%;"');
                                     ?>
                                 </div>
                                 <?php endif; ?>
@@ -186,7 +186,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label><i class="fa fa-th-large"></i> Panel de categorías en POS</label>
-                                    <select name="show_categories" id="show_categories" class="form-control select2" style="width:100%;">
+                                    <select name="show_categories" id="show_categories" class="form-control tom-select" style="width:100%;">
                                         <option value="1" <?= (($settings->show_categories ?? '1') == '1') ? 'selected' : ''; ?>>Mostrar categorías</option>
                                         <option value="0" <?= (($settings->show_categories ?? '1') == '0') ? 'selected' : ''; ?>>Ocultar categorías</option>
                                     </select>
@@ -222,7 +222,7 @@
                                             <?php
                                             $amb_opts = ['test' => 'Pruebas (Sandbox)', 'prod' => 'Produccion'];
                                             $amb_actual = $settings->ambiente ?? 'test';
-                                            echo form_dropdown('ambiente', $amb_opts, $amb_actual, 'class="form-control select2" id="ambiente" style="width:100%;"');
+                                            echo form_dropdown('ambiente', $amb_opts, $amb_actual, 'class="form-control tom-select" id="ambiente" style="width:100%;"');
                                             ?>
                                             <?php if ($amb_actual == 'prod'): ?>
                                             <span class="label label-success" style="font-size:13px;padding:5px 10px;display:inline-block;margin-top:5px;"><i class="fa fa-check"></i> PRODUCCION activa</span>
@@ -246,7 +246,7 @@
                                             <label for="tipo_doc_emisor"><i class="fa fa-id-badge"></i> Tipo de Cedula / Documento</label>
                                             <?php
                                             $tipo_doc_emisor = array("01" => "Cedula de Identidad", "02" => "Cedula Juridica", "03" => "DIMEX", "04" => "NITE");
-                                            echo form_dropdown('tipo_doc_emisor', $tipo_doc_emisor, $settings->tipo_doc_emisor ?? '02', 'class="form-control select2" id="tipo_doc_emisor" style="width:100%;"');
+                                            echo form_dropdown('tipo_doc_emisor', $tipo_doc_emisor, $settings->tipo_doc_emisor ?? '02', 'class="form-control tom-select" id="tipo_doc_emisor" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -351,7 +351,7 @@
                                             foreach ($actividadeconomica as $actividad) {
                                                 $act_opts[$actividad->id_actividad] = $actividad->id_actividad . ' - ' . $actividad->descripcion;
                                             }
-                                            echo form_dropdown('default_actividad', $act_opts, $settings->default_actividad ?? '', 'class="form-control select2" style="width:100%;" id="default_actividad" required="required"');
+                                            echo form_dropdown('default_actividad', $act_opts, $settings->default_actividad ?? '', 'class="form-control tom-select" style="width:100%;" id="default_actividad" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -509,7 +509,7 @@
                                         <div class="mb-3">
                                             <?php
                                             $block_opts = array(0 => "No bloqueada", 1 => "Bloquear Configuracion");
-                                            echo form_dropdown('block_hacienda', $block_opts, $settings->block_hacienda ?? 0, 'class="form-control select2" id="block_hacienda" style="width:100%;"');
+                                            echo form_dropdown('block_hacienda', $block_opts, $settings->block_hacienda ?? 0, 'class="form-control tom-select" id="block_hacienda" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -532,7 +532,7 @@
                                     <label for="protocol"><i class="fa fa-cogs"></i> <?php echo lang('email_protocol'); ?></label>
                                     <?php
                                     $popt = array('mail' => 'PHP Mail Function', 'sendmail' => 'Send Mail', 'smtp' => 'SMTP');
-                                    echo form_dropdown('protocol', $popt, $settings->protocol ?? 'mail', 'class="form-control select2" id="protocol" style="width:100%;" required="required"');
+                                    echo form_dropdown('protocol', $popt, $settings->protocol ?? 'mail', 'class="form-control tom-select" id="protocol" style="width:100%;" required="required"');
                                     ?>
                                 </div>
                             </div>
@@ -596,7 +596,7 @@
                                                 <label for="smtp_crypto"><i class="fa fa-shield"></i> <?php echo lang('smtp_crypto'); ?></label>
                                                 <?php
                                                 $crypto_opt = array('' => lang('none'), 'tls' => 'TLS', 'ssl' => 'SSL');
-                                                echo form_dropdown('smtp_crypto', $crypto_opt, $settings->smtp_crypto ?? 'tls', 'class="form-control select2" id="smtp_crypto" style="width:100%;"');
+                                                echo form_dropdown('smtp_crypto', $crypto_opt, $settings->smtp_crypto ?? 'tls', 'class="form-control tom-select" id="smtp_crypto" style="width:100%;"');
                                                 ?>
                                             </div>
                                         </div>
@@ -620,7 +620,7 @@
                                             <label for="after_sale_page"><i class="fa fa-arrow-right"></i> <?php echo lang('after_sale_page'); ?></label>
                                             <?php
                                             $asp = array(0 => lang('receipt'), 1 => lang('pos'));
-                                            echo form_dropdown('after_sale_page', $asp, $settings->after_sale_page ?? 0, 'class="form-control select2" id="after_sale_page" required="required" style="width:100%;"');
+                                            echo form_dropdown('after_sale_page', $asp, $settings->after_sale_page ?? 0, 'class="form-control tom-select" id="after_sale_page" required="required" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -629,7 +629,7 @@
                                             <label for="auto_print"><i class="fa fa-print"></i> <?php echo lang('auto_print'); ?></label>
                                             <?php
                                             $yn2 = array(0 => lang('disable'), 1 => lang('enable'));
-                                            echo form_dropdown('auto_print', $yn2, $settings->auto_print ?? 0, 'class="form-control select2" id="auto_print" required="required" style="width:100%;"');
+                                            echo form_dropdown('auto_print', $yn2, $settings->auto_print ?? 0, 'class="form-control tom-select" id="auto_print" required="required" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -638,7 +638,7 @@
                                             <label for="display_product"><i class="fa fa-th"></i> <?php echo lang('display_product'); ?></label>
                                             <?php
                                             $dprv = array('1' => 'Nombre', '2' => 'Foto', '3' => 'Ambos');
-                                            echo form_dropdown('display_product', $dprv, $settings->bsty ?? '1', 'class="form-control select2" id="display_product" style="width:100%;" required="required"');
+                                            echo form_dropdown('display_product', $dprv, $settings->bsty ?? '1', 'class="form-control tom-select" id="display_product" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -653,7 +653,7 @@
                                             <label for="display_kb"><i class="fa fa-keyboard-o"></i> <?php echo lang('display_kb'); ?></label>
                                             <?php
                                             $dtime = array('1' => lang('yes'), '0' => lang('no'));
-                                            echo form_dropdown('display_kb', $dtime, $settings->display_kb ?? '0', 'class="form-control select2" id="display_kb" style="width:100%;" required="required"');
+                                            echo form_dropdown('display_kb', $dtime, $settings->display_kb ?? '0', 'class="form-control tom-select" id="display_kb" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -752,7 +752,7 @@
                                             <label for="overselling"><i class="fa fa-exclamation-triangle"></i> <?php echo lang('overselling'); ?></label>
                                             <?php
                                             $enodis = array(0 => lang('disable'), 1 => lang('enable'));
-                                            echo form_dropdown('overselling', $enodis, $settings->overselling ?? 0, 'class="form-control select2" id="overselling" required="required" style="width:100%;"');
+                                            echo form_dropdown('overselling', $enodis, $settings->overselling ?? 0, 'class="form-control tom-select" id="overselling" required="required" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -761,7 +761,7 @@
                                             <label for="enable_fractions"><i class="fa fa-percent"></i> Ventas en fracciones</label>
                                             <?php
                                             $frac = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('enable_fractions', $frac, $settings->enable_fractions ?? '0', 'class="form-control select2" id="enable_fractions" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_fractions', $frac, $settings->enable_fractions ?? '0', 'class="form-control tom-select" id="enable_fractions" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -770,7 +770,7 @@
                                             <label for="enable_credit"><i class="fa fa-credit-card"></i> <?php echo lang('question_enable_credit'); ?></label>
                                             <?php
                                             $cr_opts = array(0 => lang('disable'), 1 => lang('enable'));
-                                            echo form_dropdown('enable_credit', $cr_opts, $settings->enable_credit ?? 0, 'class="form-control select2" id="enable_credit" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_credit', $cr_opts, $settings->enable_credit ?? 0, 'class="form-control tom-select" id="enable_credit" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -779,7 +779,7 @@
                                             <label for="enable_fastedition"><i class="fa fa-pencil-square-o"></i> Edicion rapida de productos</label>
                                             <?php
                                             $fe_opts = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('enable_fastedition', $fe_opts, $settings->enable_fastedition ?? '0', 'class="form-control select2" id="enable_fastedition" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_fastedition', $fe_opts, $settings->enable_fastedition ?? '0', 'class="form-control tom-select" id="enable_fastedition" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -802,7 +802,7 @@
                                                     $printer_opts[$printer->id] = $printer->title;
                                                 }
                                             }
-                                            echo form_dropdown('receipt_printer', $printer_opts, $settings->printer ?? '', 'class="form-control select2" id="receipt_printer" style="width:100%;"');
+                                            echo form_dropdown('receipt_printer', $printer_opts, $settings->printer ?? '', 'class="form-control tom-select" id="receipt_printer" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -829,7 +829,7 @@
                                             <label for="prt_invo_after"><i class="fa fa-file-text"></i> <?php echo lang('question_print_inoice'); ?></label>
                                             <?php
                                             $prtopt = array(0 => lang('disable'), 1 => lang('enable'));
-                                            echo form_dropdown('prt_invo_after', $prtopt, $settings->prt_invo_after ?? 0, 'class="form-control select2" id="prt_invo_after" style="width:100%;" required="required"');
+                                            echo form_dropdown('prt_invo_after', $prtopt, $settings->prt_invo_after ?? 0, 'class="form-control tom-select" id="prt_invo_after" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -838,7 +838,7 @@
                                             <label for="barcode_symbology"><i class="fa fa-barcode"></i> Simbologia de codigos de barra</label>
                                             <?php
                                             $bsyms = array('C128' => 'Code 128', 'C39' => 'Code 39', 'EAN13' => 'EAN-13', 'EAN8' => 'EAN-8', 'UPCA' => 'UPC-A', 'UPCE' => 'UPC-E');
-                                            echo form_dropdown('barcode_symbology', $bsyms, $settings->barcode_symbology ?? 'C128', 'class="form-control select2" id="barcode_symbology" style="width:100%;"');
+                                            echo form_dropdown('barcode_symbology', $bsyms, $settings->barcode_symbology ?? 'C128', 'class="form-control tom-select" id="barcode_symbology" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -854,7 +854,7 @@
                                                     $printer_opts2[$printer->id] = $printer->title;
                                                 }
                                             }
-                                            echo form_dropdown('order_printers[]', $printer_opts2, '', 'multiple class="form-control select2" id="order_printers" style="width:100%;"');
+                                            echo form_dropdown('order_printers[]', $printer_opts2, '', 'multiple class="form-control tom-select" id="order_printers" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -872,7 +872,7 @@
                                             <label for="enable_layaway"><i class="fa fa-bookmark-o"></i> Apartados</label>
                                             <?php
                                             $layw = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('enable_layaway', $layw, $settings->enable_layaway ?? '0', 'class="form-control select2" id="enable_layaway" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_layaway', $layw, $settings->enable_layaway ?? '0', 'class="form-control tom-select" id="enable_layaway" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -887,7 +887,7 @@
                                             <label for="enable_quote"><i class="fa fa-file-o"></i> Cotizaciones / Proformas</label>
                                             <?php
                                             $qt_opts = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('enable_quote', $qt_opts, $settings->enable_quote ?? '0', 'class="form-control select2" id="enable_quote" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_quote', $qt_opts, $settings->enable_quote ?? '0', 'class="form-control tom-select" id="enable_quote" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -896,7 +896,7 @@
                                             <label for="is_shipping"><i class="fa fa-truck"></i> Metodo de Envio</label>
                                             <?php
                                             $ship_opts = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('is_shipping', $ship_opts, $settings->is_shipping ?? '0', 'class="form-control select2" id="is_shipping" style="width:100%;" required="required"');
+                                            echo form_dropdown('is_shipping', $ship_opts, $settings->is_shipping ?? '0', 'class="form-control tom-select" id="is_shipping" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -914,7 +914,7 @@
                                             <label for="decimals"><i class="fa fa-calculator"></i> <?php echo lang('decimals'); ?></label>
                                             <?php
                                             $dec_opts = array(0 => lang('disable'), 1 => '1', 2 => '2', 3 => '3', 4 => '4');
-                                            echo form_dropdown('decimals', $dec_opts, $settings->decimals ?? 0, 'class="form-control select2" id="decimals" style="width:100%;" required="required"');
+                                            echo form_dropdown('decimals', $dec_opts, $settings->decimals ?? 0, 'class="form-control tom-select" id="decimals" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -923,7 +923,7 @@
                                             <label for="qty_decimals"><i class="fa fa-sort-numeric-asc"></i> <?php echo lang('qty_decimals'); ?></label>
                                             <?php
                                             $qdec = array(0 => lang('disable'), 1 => '1', 2 => '2');
-                                            echo form_dropdown('qty_decimals', $qdec, $settings->qty_decimals ?? 0, 'class="form-control select2" id="qty_decimals" style="width:100%;" required="required"');
+                                            echo form_dropdown('qty_decimals', $qdec, $settings->qty_decimals ?? 0, 'class="form-control tom-select" id="qty_decimals" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -932,7 +932,7 @@
                                             <label for="decimals_sep"><i class="fa fa-minus"></i> <?php echo lang('decimals_sep'); ?></label>
                                             <?php
                                             $dec_point = array('.' => lang('dot'), ',' => lang('comma'));
-                                            echo form_dropdown('decimals_sep', $dec_point, $settings->decimals_sep ?? '.', 'class="form-control select2" id="decimals_sep" style="width:100%;" required="required"');
+                                            echo form_dropdown('decimals_sep', $dec_point, $settings->decimals_sep ?? '.', 'class="form-control tom-select" id="decimals_sep" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -941,7 +941,7 @@
                                             <label for="thousands_sep"><i class="fa fa-ellipsis-h"></i> <?php echo lang('thousands_sep'); ?></label>
                                             <?php
                                             $th_sep = array('.' => lang('dot'), ',' => lang('comma'), '0' => lang('space'));
-                                            echo form_dropdown('thousands_sep', $th_sep, $settings->thousands_sep ?? ',', 'class="form-control select2" id="thousands_sep" style="width:100%;" required="required"');
+                                            echo form_dropdown('thousands_sep', $th_sep, $settings->thousands_sep ?? ',', 'class="form-control tom-select" id="thousands_sep" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -950,7 +950,7 @@
                                             <label for="sac"><i class="fa fa-exchange"></i> <?php echo lang('sac'); ?></label>
                                             <?php
                                             $sac_opts = array('0' => lang('disable'), '1' => lang('enable'));
-                                            echo form_dropdown('sac', $sac_opts, set_value('sac', $settings->sac ?? '0'), 'class="form-control select2" id="sac" required="required"');
+                                            echo form_dropdown('sac', $sac_opts, set_value('sac', $settings->sac ?? '0'), 'class="form-control tom-select" id="sac" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -959,7 +959,7 @@
                                             <label for="display_symbol"><i class="fa fa-dollar"></i> <?php echo lang('display_currency_symbol'); ?></label>
                                             <?php
                                             $ds_opts = array(0 => lang('disable'), 1 => lang('before'), 2 => lang('after'));
-                                            echo form_dropdown('display_symbol', $ds_opts, $settings->display_symbol ?? 0, 'class="form-control select2" id="display_symbol" style="width:100%;" required="required"');
+                                            echo form_dropdown('display_symbol', $ds_opts, $settings->display_symbol ?? 0, 'class="form-control tom-select" id="display_symbol" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -974,7 +974,7 @@
                                             <label for="rounding"><i class="fa fa-circle-o-notch"></i> <?php echo lang('rounding'); ?></label>
                                             <?php
                                             $rnd = array('0' => lang('disable'), '1' => lang('to_nearest_005'), '2' => lang('to_nearest_050'), '3' => lang('to_nearest_number'), '4' => lang('to_next_number'));
-                                            echo form_dropdown('rounding', $rnd, $settings->rounding ?? '0', 'class="form-control select2" id="rounding" required="required" style="width:100%;"');
+                                            echo form_dropdown('rounding', $rnd, $settings->rounding ?? '0', 'class="form-control tom-select" id="rounding" required="required" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -997,7 +997,7 @@
                                             <label for="sensibility_search"><i class="fa fa-sliders"></i> <?php echo lang('search_sensibility'); ?></label>
                                             <?php
                                             $sensibility = array(0 => lang('0_search'), 1 => lang('1_search'), 2 => lang('2_search'), 3 => lang('3_search'));
-                                            echo form_dropdown('sensibility_search', $sensibility, $settings->sensibility_search ?? 0, 'class="form-control select2" id="sensibility_search" style="width:100%;" required="required"');
+                                            echo form_dropdown('sensibility_search', $sensibility, $settings->sensibility_search ?? 0, 'class="form-control tom-select" id="sensibility_search" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -1006,7 +1006,7 @@
                                             <label for="quantity_suggest"><i class="fa fa-list-ol"></i> Sugerencias a mostrar</label>
                                             <?php
                                             $qsug = array('10' => '10', '25' => '25', '50' => '50', '100' => '100');
-                                            echo form_dropdown('quantity_suggest', $qsug, $settings->quantity_suggest ?? '10', 'class="form-control select2" id="quantity_suggest" style="width:100%;" required="required"');
+                                            echo form_dropdown('quantity_suggest', $qsug, $settings->quantity_suggest ?? '10', 'class="form-control tom-select" id="quantity_suggest" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -1015,7 +1015,7 @@
                                             <label for="item_addition"><i class="fa fa-plus-circle"></i> <?php echo lang('item_addition'); ?></label>
                                             <?php
                                             $ia = array(0 => lang('add_new_item'), 1 => lang('increase_quantity_if_item_exist'));
-                                            echo form_dropdown('item_addition', $ia, $settings->item_addition ?? 0, 'id="item_addition" class="form-control select2" required="required" style="width:100%;"');
+                                            echo form_dropdown('item_addition', $ia, $settings->item_addition ?? 0, 'id="item_addition" class="form-control tom-select" required="required" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -1036,7 +1036,7 @@
                                             foreach ($categories as $catrgory) {
                                                 $ct[$catrgory->id] = $catrgory->name;
                                             }
-                                            echo form_dropdown('default_category', $ct, $settings->default_category ?? 0, 'class="form-control select2" style="width:100%;" id="default_category"');
+                                            echo form_dropdown('default_category', $ct, $settings->default_category ?? 0, 'class="form-control tom-select" style="width:100%;" id="default_category"');
                                             ?>
                                         </div>
                                     </div>
@@ -1048,7 +1048,7 @@
                                             foreach ($customers as $customer) {
                                                 $cu[$customer->id] = $customer->name;
                                             }
-                                            echo form_dropdown('default_customer', $cu, $settings->default_customer ?? '', 'class="form-control select2" style="width:100%;" id="default_customer" required="required"');
+                                            echo form_dropdown('default_customer', $cu, $settings->default_customer ?? '', 'class="form-control tom-select" style="width:100%;" id="default_customer" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -1066,7 +1066,7 @@
                                             <label for="enable_detail_register"><i class="fa fa-list-alt"></i> Detalles del cierre de caja</label>
                                             <?php
                                             $dreg = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('enable_detail_register', $dreg, $settings->enable_detail_register ?? '0', 'class="form-control select2" id="enable_detail_register" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_detail_register', $dreg, $settings->enable_detail_register ?? '0', 'class="form-control tom-select" id="enable_detail_register" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -1075,7 +1075,7 @@
                                             <label for="enable_detail_caschier"><i class="fa fa-user-circle-o"></i> Detalles al cajero</label>
                                             <?php
                                             $dcash = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('enable_detail_caschier', $dcash, $settings->enable_detail_caschier ?? '0', 'class="form-control select2" id="enable_detail_caschier" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_detail_caschier', $dcash, $settings->enable_detail_caschier ?? '0', 'class="form-control tom-select" id="enable_detail_caschier" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -1084,7 +1084,7 @@
                                             <label for="enable_auth_open"><i class="fa fa-key"></i> Cierre unico de caja</label>
                                             <?php
                                             $authop = array('1' => 'Habilitada', '0' => 'Deshabilitada');
-                                            echo form_dropdown('enable_auth_open', $authop, $settings->enable_auth_open ?? '0', 'class="form-control select2" id="enable_auth_open" style="width:100%;" required="required"');
+                                            echo form_dropdown('enable_auth_open', $authop, $settings->enable_auth_open ?? '0', 'class="form-control tom-select" id="enable_auth_open" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
@@ -1102,7 +1102,7 @@
                                             <label for="enable_show_tax"><i class="fa fa-percent"></i> Mostrar impuesto en recibo como</label>
                                             <?php
                                             $stax = array('' => 'No mostrar', 'IVI' => 'IVI', 'IVA' => 'IVA', 'Impuesto' => 'Impuesto');
-                                            echo form_dropdown('enable_show_tax', $stax, $settings->enable_show_tax ?? '', 'class="form-control select2" id="enable_show_tax" style="width:100%;"');
+                                            echo form_dropdown('enable_show_tax', $stax, $settings->enable_show_tax ?? '', 'class="form-control tom-select" id="enable_show_tax" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -1111,7 +1111,7 @@
                                             <label for="propina_enable"><i class="fa fa-thumbs-up"></i> Propina</label>
                                             <?php
                                             $prop = array('0' => 'Deshabilitada', '1' => 'Habilitada');
-                                            echo form_dropdown('propina_enable', $prop, $settings->propina_enable ?? '0', 'class="form-control select2" id="propina_enable" style="width:100%;"');
+                                            echo form_dropdown('propina_enable', $prop, $settings->propina_enable ?? '0', 'class="form-control tom-select" id="propina_enable" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -1153,7 +1153,7 @@ $(document).ready(function () {
     // Inicializar order_printers
     var orderPrintersVal = <?php echo (!empty($settings->order_printers) ? $settings->order_printers : '[]'); ?>;
     if (orderPrintersVal && orderPrintersVal.length > 0) {
-        $("#order_printers").select2().val(orderPrintersVal).trigger("change");
+        $("#order_printers")new TomSelect(this).val(orderPrintersVal).trigger("change");
     }
 
     // Toggle protocolo email

@@ -3,7 +3,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
 
-        var table = $('#CuData').DataTable({
+        var table = new Tabulator('#CuData', {
 
             'ajax' : { url: '<?=site_url('customers/get_customers');?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";

@@ -20,7 +20,7 @@
 </section>
 <script>
 $(function() {
-  $('#nd_table').DataTable({
+  new Tabulator('#nd_table', {
     processing: true, serverSide: true,
     ajax: { url: '<?= site_url('debitnotes/get_debitnotes') ?>', type: 'POST' },
     columns: [

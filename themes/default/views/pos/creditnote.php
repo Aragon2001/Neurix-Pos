@@ -17,7 +17,7 @@
                     '3' => 'Devolucion de Mercancia',
                     '1' => 'Anular Factura'
                 ); ?>
-                <?= form_dropdown('tipo_nc', $opts, set_value('tipo_nc', '3'), 'class="form-control tip select2" id = "tipo_nc"  required = "required" style = "width:100%;"'); ?>
+                <?= form_dropdown('tipo_nc', $opts, set_value('tipo_nc', '3'), 'class="form-control tip tom-select" id = "tipo_nc"  required = "required" style = "width:100%;"'); ?>
             </div>
             <div class="mb-3">
                 <?= lang('invnum_invcode') ?>

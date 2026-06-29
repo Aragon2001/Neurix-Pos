@@ -29,7 +29,7 @@
         function method(n) {
             return (n == 0) ? '<span class="label label-primary"><?= lang('inclusive'); ?></span>' : '<span class="label label-warning"><?= lang('exclusive'); ?></span>';
         }
-        var table = $('#fileData').DataTable({
+        var table = new Tabulator('#fileData', {
 
             'ajax' : { url: '<?=site_url('reports/get_alerts');?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";

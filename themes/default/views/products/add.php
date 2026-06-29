@@ -15,7 +15,7 @@
                                 <div class="mb-3">
                                     <?= lang('type', 'type'); ?>
                                     <?php $opts = array('standard' => lang('standard'), 'combo' => lang('combo'), 'service' => lang('service')); ?>
-                                    <?= form_dropdown('type', $opts, set_value('type', 'standard'), 'class="form-control tip select2" id="type"  required="required" style="width:100%;"'); ?>
+                                    <?= form_dropdown('type', $opts, set_value('type', 'standard'), 'class="form-control tip tom-select" id="type"  required="required" style="width:100%;"'); ?>
                                 </div>
                                 <div class="mb-3">
                                     <?= lang('unit_of_measurement', 'unit_of_measurement'); ?>
@@ -53,7 +53,7 @@
                                         'V' => 'Volt',
                                         'Ω' => 'Ohm',
                                     ); ?>
-                                    <?= form_dropdown('unit_of_measurement', $opts, set_value('unit_of_measurement', 'Unid'), 'class="form-control tip select2" id = "unit_of_measurement"  required = "required" style = "width:100%;"'); ?>
+                                    <?= form_dropdown('unit_of_measurement', $opts, set_value('unit_of_measurement', 'Unid'), 'class="form-control tip tom-select" id = "unit_of_measurement"  required = "required" style = "width:100%;"'); ?>
                                 </div>
                                 <div class="mb-3">
                                     <?= lang('name', 'name'); ?>
@@ -68,7 +68,7 @@
                                     <?= lang("barcode_symbology", "barcode_symbology") ?>
                                     <?php
                                     $bs = array('code25' => 'Code25', 'code39' => 'Code39', 'code128' => 'Code128', 'ean8' => 'EAN8', 'ean13' => 'EAN13', 'upca ' => 'UPC - A', 'upce' => 'UPC - E');
-                                    echo form_dropdown('barcode_symbology', $bs, set_value('barcode_symbology', 'code128'), 'class="form-control select2" id = "barcode_symbology" required = "required" style = "width:100%;"');
+                                    echo form_dropdown('barcode_symbology', $bs, set_value('barcode_symbology', 'code128'), 'class="form-control tom-select" id = "barcode_symbology" required = "required" style = "width:100%;"');
                                     ?>
                                 </div>
 
@@ -149,7 +149,7 @@
                                 <div class="mb-3">
                                     <?= lang('tax_method', 'tax_method'); ?>
                                     <?php $tm = array(0 => lang('inclusive'), 1 => lang('exclusive')); ?>
-                                    <?= form_dropdown('tax_method', $tm, set_value('tax_method'), 'class="form-control tip select2" id = "tax_method"  required = "required" style = "width:100%;"'); ?>
+                                    <?= form_dropdown('tax_method', $tm, set_value('tax_method'), 'class="form-control tip tom-select" id = "tax_method"  required = "required" style = "width:100%;"'); ?>
                                 </div>
                                 <div class="mb-3 st">
                                     <?= lang('alert_quantity', 'alert_quantity'); ?>

@@ -31,7 +31,7 @@
                             <div class="mb-3">
                                 <?= lang('gender', 'gender'); ?>
                                 <?php $gnders = array('male' => lang('male'), 'female' => lang('female')); ?>
-                                <?= form_dropdown('gender', $gnders, $user->gender, 'class="form-control tip select2" style="width:100%;" id="gender"  required="required"'); ?>
+                                <?= form_dropdown('gender', $gnders, $user->gender, 'class="form-control tip tom-select" style="width:100%;" id="gender"  required="required"'); ?>
                             </div>
 
                             <?php if ($Admin && $id != $this->session->userdata('user_id')) { ?>
@@ -43,7 +43,7 @@
                                     foreach ($groups as $group) {
                                         $gp[$group['id']] = $group['name'];
                                     }
-                                    echo form_dropdown('group', $gp, $user->group_id, 'id="group" data-placeholder="' . lang("select") . ' ' . lang("group") . '" class="form-control input-tip select2" style="width:100%;"');
+                                    echo form_dropdown('group', $gp, $user->group_id, 'id="group" data-placeholder="' . lang("select") . ' ' . lang("group") . '" class="form-control input-tip tom-select" style="width:100%;"');
                                     ?>
                                 </div>
 
@@ -80,7 +80,7 @@
                                     <?= lang('status', 'status'); ?>
                                     <?php
                                     $opt = array('' => '', 1 => lang('active'), 0 => lang('inactive'));
-                                    echo form_dropdown('status', $opt, $user->active, 'id="status" data-placeholder="' . lang("select") . ' ' . lang("status") . '" class="form-control input-tip select2" style="width:100%;"');
+                                    echo form_dropdown('status', $opt, $user->active, 'id="status" data-placeholder="' . lang("select") . ' ' . lang("status") . '" class="form-control input-tip tom-select" style="width:100%;"');
                                     ?>
                                 </div>
                                 <div class="mb-3 store-con">
@@ -90,7 +90,7 @@
                                     foreach ($stores as $store) {
                                         $st[$store->id] = $store->name;
                                     }
-                                    echo form_dropdown('store_id', $st, $user->store_id, 'id="store_id" data-placeholder="' . lang("select") . ' ' . lang("store") . '" class="form-control input-tip select2" style="width:100%;"');
+                                    echo form_dropdown('store_id', $st, $user->store_id, 'id="store_id" data-placeholder="' . lang("select") . ' ' . lang("store") . '" class="form-control input-tip tom-select" style="width:100%;"');
                                     ?>
                                 </div>
                             <?php } ?>
@@ -177,7 +177,7 @@
                                 <div class="mb-3">
                                     ¿Desea habilitar la apertura de caja para este Usuario?    
                                     <?php $auth_open_options = array('1' => "Si, Habilitar", '0' => "No permitir"); ?>
-                                    <?= form_dropdown('auth_open', $auth_open_options, $user->auth_open, 'class="form-control tip select2" style="width:100%;" id="auth_open"  required="required"'); ?>
+                                    <?= form_dropdown('auth_open', $auth_open_options, $user->auth_open, 'class="form-control tip tom-select" style="width:100%;" id="auth_open"  required="required"'); ?>
                                 </div>
                             </div>
                             <?php echo form_hidden('id', $id); ?>
@@ -238,11 +238,11 @@
 
 
 
-<script src="<?= $assets ?>dist/js/moment.min.js"></script>
-<script src="<?= $assets ?>dist/js/bootstrap-datetimepicker.min.js"></script>
+
+
 <script>
     $(function () {
-        $('#appointment_start_datetime').datetimepicker({
+        $('#appointment_start_datetime').tempusDominus = new TempusDominus({
             useCurrent: false,
             format: "H:ss",
             sideBySide: true,
@@ -254,7 +254,7 @@
                 $('#appointment_end_datetime').data('DateTimePicker').date(e.date.format("H:00"));
             }
         });
-        $('#appointment_end_datetime').datetimepicker({
+        $('#appointment_end_datetime').tempusDominus = new TempusDominus({
             useCurrent: false,
             format: "H:ss",
             sideBySide: true,

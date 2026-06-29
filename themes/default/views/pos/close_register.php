@@ -550,7 +550,7 @@ if ($Settings->remote_printing == 2) {
 ?>
 <script type="text/javascript">
     $(document).ready(function () {
-        $(".select2").select2({minimumResultsForSearch: 6});
+        $(".select2")new TomSelect(this, {minItems: 6});
     });
 
     $('.imprimeweb').on('click', function () {

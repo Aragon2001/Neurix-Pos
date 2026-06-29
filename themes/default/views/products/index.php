@@ -26,7 +26,7 @@
             return (n == 0) ? '<span class="label label-primary"><?= lang('inclusive'); ?></span>' : '<span class="label label-warning"><?= lang('exclusive'); ?></span>';
         }
 
-        var table = $('#prTables').DataTable({
+        var table = new Tabulator('#prTables', {
 
             // 'ajax': '<?=site_url('products/get_products/'.$store->id);?>',
             'ajax' : { url: '<?=site_url('products/get_products/'.$store->id);?>', type: 'POST', "data": function ( d ) {

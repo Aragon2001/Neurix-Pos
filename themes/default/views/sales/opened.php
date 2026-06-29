@@ -3,7 +3,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
 
-        var table = $('#OBData').DataTable({
+        var table = new Tabulator('#OBData', {
 
             'ajax' : { url: '<?=site_url('sales/get_opened_list');?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
@@ -108,10 +108,10 @@
     </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+
 <script type="text/javascript">
     $(document).ready(function() {
-        $('.datepicker').datetimepicker({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
+        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
     });
 </script>

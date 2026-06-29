@@ -47,7 +47,7 @@ if ($this->input->post('end_date')) {
             }
         }
 
-        var table = $('#PayRData').DataTable({
+        var table = new Tabulator('#PayRData', {
 
             'ajax' : { url: '<?=site_url('reports/get_payments/'. $v);?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
@@ -155,7 +155,7 @@ if ($this->input->post('end_date')) {
                                             foreach($customers as $customer){
                                                 $cu[$customer->id] = $customer->name;
                                             }
-                                            echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-control select2" style="width:100%" id="customer"'); ?>
+                                            echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-control tom-select" style="width:100%" id="customer"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
@@ -166,14 +166,14 @@ if ($this->input->post('end_date')) {
                                             foreach ($users as $user) {
                                                 $us[$user->id] = $user->first_name . " " . $user->last_name;
                                             }
-                                            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control select2" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
+                                            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control tom-select" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-sm-4">
                                         <div class="mb-3">
                                             <?= lang("paid_by", "paid_by"); ?>
-                                            <select name="paid_by" id="paid_by" class="form-control paid_by select2" style="width:100%"
+                                            <select name="paid_by" id="paid_by" class="form-control paid_by tom-select" style="width:100%"
                                             required="required">
                                             <option value="cash"><?= lang("cash"); ?></option>
                                             <option value="CC"><?= lang("cc"); ?></option>
@@ -275,13 +275,13 @@ if ($this->input->post('end_date')) {
 </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
-        $('.datepicker').datetimepicker({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
+        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
     });
 </script>

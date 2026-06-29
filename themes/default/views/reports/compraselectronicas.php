@@ -44,7 +44,7 @@ if ($this->input->post('end_date')) {
             }
         }
 
-        var table = $('#SLData').DataTable({
+        var table = new Tabulator('#SLData', {
 
             'ajax': {
                 url: '<?=site_url('reports/get_compras_electronicas' . $v);?>', type: 'POST', "data": function (d) {
@@ -199,7 +199,7 @@ if ($this->input->post('end_date')) {
                                         foreach ($users as $user) {
                                             $us[$user->id] = $user->first_name . " " . $user->last_name;
                                         }
-                                        echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control select2" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
+                                        echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control tom-select" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
                                         ?>
                                     </div>
                                 </div>
@@ -319,15 +319,15 @@ if ($this->input->post('end_date')) {
     </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
+
 <script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
         type="text/javascript"></script>
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM'
         });
-        $('.datepicker').datetimepicker({
+        $('.datepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM',
             showClear: true,
             showClose: true,

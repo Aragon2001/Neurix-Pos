@@ -29,7 +29,7 @@ if ($this->input->post('end_date')) {
             return (n == 0) ? '<span class="label label-primary"><?= lang('inclusive'); ?></span>' : '<span class="label label-warning"><?= lang('exclusive'); ?></span>';
         }
 
-        var table = $('#PrRData').DataTable({
+        var table = new Tabulator('#PrRData', {
             'ajax' : { url: '<?=site_url('reports/get_products/'. $v);?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
             }},
@@ -122,7 +122,7 @@ if ($this->input->post('end_date')) {
                                         foreach($products as $product){
                                             $pr[$product->id] = $product->name;
                                         }
-                                        echo form_dropdown('product', $pr, set_value('product'), 'class="form-control select2" style="width:100%" id="product"');
+                                        echo form_dropdown('product', $pr, set_value('product'), 'class="form-control tom-select" style="width:100%" id="product"');
                                         ?>
                                     </div>
                                 </div>
@@ -196,13 +196,13 @@ if ($this->input->post('end_date')) {
     </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
-        $('.datepicker').datetimepicker({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
+        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
     });
 </script>

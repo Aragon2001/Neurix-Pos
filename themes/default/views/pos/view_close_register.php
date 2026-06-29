@@ -122,7 +122,7 @@
                                 }
                                 ?>
                                 <div class="clearfix"></div>
-                                <?= form_dropdown('transfer_opened_bills', $usrs, (isset($_POST['transfer_opened_bills']) ? $_POST['transfer_opened_bills'] : 0), 'class="form-control input-tip select2" id="transfer_opened_bills" required="required" style="width:100%;"'); ?>
+                                <?= form_dropdown('transfer_opened_bills', $usrs, (isset($_POST['transfer_opened_bills']) ? $_POST['transfer_opened_bills'] : 0), 'class="form-control input-tip tom-select" id="transfer_opened_bills" required="required" style="width:100%;"'); ?>
                             </div>
                         <?php } ?>
                         <div class="mb-3">

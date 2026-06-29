@@ -95,10 +95,25 @@ Checklist por módulo (orden de menor a mayor riesgo):
 
 ## Fase 2 — AdminLTE 2 → AdminLTE 4 (esqueleto)
 
+### ✅ Parcialmente completada (2026-06-29)
+
+**Completado**:
+- [x] Instalar AdminLTE 4.0.2 vía npm
+- [x] Crear themes/default/assets/src/main.js como entry point Vite
+- [x] Importar AdminLTE 4, Bootstrap 5.3.8, Tempus Dominus, Tom Select, Tabulator, SweetAlert2, Font Awesome
+- [x] Configurar vite.config.js con salida en themes/default/assets/dist/
+- [x] Compilar bundles exitosamente (CSS 1.1MB + JS 443KB)
+- [x] Crear sistema de tema oscuro/claro con `window.switchTheme()`
+
+**Pendiente**:
 - [ ] Reemplazar `header.php`: clases de `<body>` (`skin-blue fixed sidebar-mini` → sintaxis de layout AdminLTE4), estructura del `<nav>` y `.main-sidebar`.
 - [ ] Adaptar el sidebar (`.sidebar-menu`, `.treeview`, `.treeview-menu`) a los componentes equivalentes de AdminLTE4.
-- [ ] Revisar el script anti-FOUC de tema oscuro (`localStorage.getItem('nx-theme')`) — AdminLTE4 ya trae su propio sistema de modo oscuro vía `data-bs-theme`; decidir si se usa el nativo de AdminLTE4 o se mantiene el de Neurix superpuesto (recomendado: migrar las variables `--nx-*` para que extiendan las variables de AdminLTE4 en vez de duplicar el mecanismo).
+- [ ] Migrar variables `--nx-*` para heredar de `--bs-*` de Bootstrap 5 / AdminLTE 4
 - [ ] Unificar `<meta name="viewport">` en todas las vistas (hoy `header.php`/`login.php` usan `user-scalable=no` y `auth/reset_password.php` usa `user-scalable=yes` — dejar un solo valor consistente).
+
+**Notas**:
+- Los bundles Vite están listos. El siguiente paso es cargar `themes/default/assets/dist/js/main.min.js` en header.php
+- AdminLTE 4 necesita estructura HTML específica; cambios adicionales requieren actualizar header.php (trabajo de riesgo alto)
 
 ## Fase 3 — Reemplazo de plugins JS/jQuery
 

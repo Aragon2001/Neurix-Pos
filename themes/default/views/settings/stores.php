@@ -3,7 +3,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
 
-        var table = $('#StData').DataTable({
+        var table = new Tabulator('#StData', {
 
             'ajax' : { url: '<?=site_url('settings/get_stores');?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";

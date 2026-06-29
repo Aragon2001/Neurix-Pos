@@ -52,11 +52,11 @@
         </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
     });

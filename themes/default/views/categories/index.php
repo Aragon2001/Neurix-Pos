@@ -10,7 +10,7 @@
             return '';
         }
 
-        var table = $('#catData').DataTable({
+        var table = new Tabulator('#catData', {
 
             'ajax' : { url: '<?=site_url('categories/get_categories');?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";

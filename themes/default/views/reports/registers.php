@@ -41,7 +41,7 @@ if ($this->input->post('end_date')) {
             return (x !== null) ? hrld(x) : '';
         }
 
-        var table = $('#registerTable').DataTable({
+        var table = new Tabulator('#registerTable', {
 
             'ajax' : { url: '<?=site_url('reports/get_register_logs/'. $v);?>', type: 'POST', "data": function ( d ) {
                 d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
@@ -139,7 +139,7 @@ if ($this->input->post('end_date')) {
                                             foreach ($users as $user) {
                                                 $us[$user->id] = $user->first_name . " " . $user->last_name;
                                             }
-                                            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control select2" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
+                                            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control tom-select" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
@@ -214,13 +214,13 @@ if ($this->input->post('end_date')) {
     </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
-        $('.datepicker').datetimepicker({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable')});
+        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable')});
     });
 </script>

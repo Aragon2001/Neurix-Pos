@@ -2,7 +2,7 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#UTable').DataTable({
+        new Tabulator('#UTable', {
             "dom": '<"row"r>t<"row"<"col-md-6"i><"col-md-6"p>><"clear">',
             "order": [[ 0, "desc" ]],
             "pageLength": Settings.rows_per_page,

@@ -20,7 +20,7 @@ if ($this->input->post('end_date')) {
 
 <script type="text/javascript">
     $(document).ready(function () {
-        var table = $('#SLRData').DataTable({
+        var table = new Tabulator('#SLRData', {
 
             'ajax': {
                 url: '<?=site_url('reports/get_missing_inventory/' . $v);?>', type: 'POST', "data": function (d) {
@@ -176,15 +176,15 @@ if ($this->input->post('end_date')) {
     </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
+
 <script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
         type="text/javascript"></script>
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
-        $('.datepicker').datetimepicker({
+        $('.datepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD',
             showClear: true,
             showClose: true,

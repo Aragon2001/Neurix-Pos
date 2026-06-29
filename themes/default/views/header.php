@@ -9,13 +9,16 @@
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <link href="<?= $assets ?>dist/css/neurix-theme.css" rel="stylesheet">
     <script>
-    /* Anti-FOUC: aplicar tema antes de renderizar */
+    /* Anti-FOUC: aplicar tema antes de renderizar (Bootstrap 5 / AdminLTE 4) */
     (function(){
         var t = localStorage.getItem('nx-theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.setAttribute('data-bs-theme', t);
+        document.documentElement.setAttribute('data-theme', t); /* Compatibilidad Neurix */
     })();
     </script>
-    <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
+    <!-- Bundle Vite: Bootstrap 5 + AdminLTE 4 + librerías modernas -->
+    <script src="<?= $assets ?>dist/js/main.min.js"></script>
+    <link rel="stylesheet" href="<?= $assets ?>dist/css/www.min.css">
 </head>
 <body class="skin-blue fixed sidebar-mini">
 <div class="wrapper rtl rtl-inv">

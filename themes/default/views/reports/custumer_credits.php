@@ -36,7 +36,7 @@ if ($this->input->post('end_date')) {
             }
         }
 
-        var table = $('#SLRData').DataTable({
+        var table = new Tabulator('#SLRData', {
 
             'ajax': {
                 url: '<?=site_url('reports/get_credit_customers/' . $v);?>', type: 'POST', "data": function (d) {
@@ -146,7 +146,7 @@ if ($this->input->post('end_date')) {
                                         foreach ($customers as $customer) {
                                             $cu[$customer->id] = $customer->name;
                                         }
-                                        echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-control select2" style="width:100%" id="customer"'); ?>
+                                        echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-control tom-select" style="width:100%" id="customer"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
@@ -157,7 +157,7 @@ if ($this->input->post('end_date')) {
                                         foreach ($users as $user) {
                                             $us[$user->id] = $user->first_name . " " . $user->last_name;
                                         }
-                                        echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control select2" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
+                                        echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control tom-select" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
                                         ?>
                                     </div>
                                 </div>
@@ -301,7 +301,7 @@ if ($this->input->post('end_date')) {
                                                 <div class="col-sm-6">
                                                     <div class="mb-3">
                                                         <?= lang("paying_by", "paid_by"); ?>
-                                                        <select name="paid_by" id="paid_by" class="form-control paid_by select2"
+                                                        <select name="paid_by" id="paid_by" class="form-control paid_by tom-select"
                                                                 style="width:100%"
                                                                 required="required">
                                                             <option value="cash"><?= lang("cash"); ?></option>
@@ -333,7 +333,7 @@ if ($this->input->post('end_date')) {
 
                                                     <div class="col-sm-6">
                                                         <div class="mb-3">
-                                                            <select name="pcc_type" id="pcc_type" class="form-control pcc_type select2"
+                                                            <select name="pcc_type" id="pcc_type" class="form-control pcc_type tom-select"
                                                                     style="width:100%"
                                                                     placeholder="<?= lang('card_type') ?>">
                                                                 <option value="Debito">Debito</option>
@@ -380,15 +380,15 @@ if ($this->input->post('end_date')) {
     </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
+
 <script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
         type="text/javascript"></script>
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
-        $('.datepicker').datetimepicker({
+        $('.datepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD',
             showClear: true,
             showClose: true,
@@ -463,7 +463,7 @@ if ($this->input->post('end_date')) {
             else
                 CardType = 'Visa';
 
-            $('#pcc_type').select2('val', CardType);
+            $('#pcc_type').setValue(CardType);
         });
 
     });

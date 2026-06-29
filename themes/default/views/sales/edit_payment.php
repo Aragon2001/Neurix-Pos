@@ -47,7 +47,7 @@
                             <div class="col-sm-6">
                                 <div class="mb-3">
                                     <?= lang("paying_by", "paid_by"); ?>
-                                    <select name="paid_by" id="paid_by" class="form-control paid_by select2" style="width:100%;">
+                                    <select name="paid_by" id="paid_by" class="form-control paid_by tom-select" style="width:100%;">
                                         <option  value="cash"<?= $payment->paid_by == 'cash' ? ' checked="checcked"' : '' ?>><?= lang("cash"); ?></option>
                                     </select>
                                 </div>
@@ -80,11 +80,11 @@
     <?php echo form_close(); ?>
 </div>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
     });

@@ -418,7 +418,7 @@
                                             }
                                         }
                                         ?>
-                                        <?= form_dropdown('actividad_id', $cuss, set_value('actividad_id', $Settings->default_actividad), 'id="actividad_id" required="required" class="form-control select2" style="display:block;width:100%;float: left;"'); ?>
+                                        <?= form_dropdown('actividad_id', $cuss, set_value('actividad_id', $Settings->default_actividad), 'id="actividad_id" required="required" class="form-control tom-select" style="display:block;width:100%;float: left;"'); ?>
                                         <div style="clear:both;"></div>
                                     </div>
                                     <div class="mb-3" style="margin-bottom:5px;">
@@ -432,7 +432,7 @@
 
 
 
-                                        <?= form_dropdown('customer_id', $cus, set_value('customer_id', $Settings->default_customer), 'id="spos_customer" data-placeholder="' . lang("select") . ' ' . lang("customer") . '" required="required" class="form-control select2" style="display:block;width:100%;float: left;"'); ?>
+                                        <?= form_dropdown('customer_id', $cus, set_value('customer_id', $Settings->default_customer), 'id="spos_customer" data-placeholder="' . lang("select") . ' ' . lang("customer") . '" required="required" class="form-control tom-select" style="display:block;width:100%;float: left;"'); ?>
                                         <div style="clear:both;"></div>
                                     </div>
                                         <input type="hidden" name ="input_transfer_table" id="input_transfer_table">
@@ -897,11 +897,11 @@
 
     </div>
 
-    <script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-    <script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+    
+    
     <script type="text/javascript">
         $(function() {
-            $('.datetimepicker').datetimepicker({
+            $('.datetimepicker').tempusDominus = new TempusDominus({
                 format: 'YYYY-MM-DD HH:mm'
             });
         });
@@ -2042,7 +2042,7 @@
                 store('spos_discount', '<?= $suspend_sale->order_discount_id; ?>');
                 store('spos_tax', '<?= $suspend_sale->order_tax_id; ?>');
                 store('spos_customer', '<?= $suspend_sale->customer_id; ?>');
-                $('#spos_customer').select2().select2('val', '<?= $suspend_sale->customer_id; ?>');
+                $('#spos_customer')new TomSelect(this).setValue('<?= $suspend_sale->customer_id; ?>');
                 store('rmspos', '1');
                 $('#tax_val').val('<?= $suspend_sale->order_tax_id; ?>');
                 $('#discount_val').val('<?= $suspend_sale->order_discount_id; ?>');
@@ -2051,7 +2051,7 @@
                 store('spos_discount', '<?= $quotes_sale->order_discount_id; ?>');
                 store('spos_tax', '<?= $quotes_sale->order_tax_id; ?>');
                 store('spos_customer', '<?= $quotes_sale->customer_id; ?>');
-                $('#spos_customer').select2().select2('val', '<?= $quotes_sale->customer_id; ?>');
+                $('#spos_customer')new TomSelect(this).setValue('<?= $quotes_sale->customer_id; ?>');
                 store('rmspos', '1');
                 $('#tax_val').val('<?= $quotes_sale->order_tax_id; ?>');
                 $('#discount_val').val('<?= $quotes_sale->order_discount_id; ?>');
@@ -2065,7 +2065,7 @@
                 store('spos_discount', '<?= $apa_sale->order_discount_id; ?>');
                 store('spos_tax', '<?= $apa_sale->order_tax_id; ?>');
                 store('spos_customer', '<?= $apa_sale->customer_id; ?>');
-                $('#spos_customer').select2().select2('val', '<?= $apa_sale->customer_id; ?>');
+                $('#spos_customer')new TomSelect(this).setValue('<?= $apa_sale->customer_id; ?>');
                 store('rmspos', '1');
                 $('#tax_val').val('<?= $apa_sale->order_tax_id; ?>');
                 $('#discount_val').val('<?= $apa_sale->order_discount_id; ?>');
@@ -2081,7 +2081,7 @@
                 store('spos_tax', '<?= $sale->order_tax_id; ?>');
                 store('spos_customer', '<?= $sale->customer_id; ?>');
                 store('sale_date', '<?= $sale->date; ?>');
-                $('#spos_customer').select2().select2('val', '<?= $sale->customer_id; ?>');
+                $('#spos_customer')new TomSelect(this).setValue('<?= $sale->customer_id; ?>');
                 $('#date').val('<?= $sale->date; ?>');
                 store('rmspos', '1');
                 $('#tax_val').val('<?= $sale->order_tax_id; ?>');
@@ -2095,7 +2095,7 @@
                 store('spos_discount', '<?= $redo_sale->order_discount_id; ?>');
                 store('spos_tax', '<?= $redo_sale->order_tax_id; ?>');
                 store('spos_customer', '<?= $redo_sale->customer_id; ?>');
-                $('#spos_customer').select2().select2('val', '<?= $redo_sale->customer_id; ?>');
+                $('#spos_customer')new TomSelect(this).setValue('<?= $redo_sale->customer_id; ?>');
                 store('rmspos', '1');
                 $('#tax_val').val('<?= $redo_sale->order_tax_id; ?>');
                 $('#discount_val').val('<?= $redo_sale->order_discount_id; ?>');

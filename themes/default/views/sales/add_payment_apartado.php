@@ -48,7 +48,7 @@
                             <div class="col-sm-6">
                                 <div class="mb-3">
                                     <?= lang("paying_by", "paid_by"); ?>
-                                    <select name="paid_by" id="paid_by" class="form-control paid_by select2"
+                                    <select name="paid_by" id="paid_by" class="form-control paid_by tom-select"
                                             style="width:100%"
                                             required="required">
                                         <option value="cash"><?= lang("cash"); ?></option>
@@ -85,7 +85,7 @@
 
                                 <div class="col-sm-6">
                                     <div class="mb-3">
-                                        <select name="pcc_type" id="pcc_type" class="form-control pcc_type select2"
+                                        <select name="pcc_type" id="pcc_type" class="form-control pcc_type tom-select"
                                                 style="width:100%"
                                                 placeholder="<?= lang('card_type') ?>">
                                             <option value="Debito">Debito</option>
@@ -229,7 +229,7 @@
                         $('#pcc_month').val(p.exp_month).change();
                         $('#pcc_year').val(p.exp_year).change();
                         $('#pcc_cvv2').val('');
-                        $('#pcc_type').select2('val', CardType);
+                        $('#pcc_type').setValue(CardType);
 
                     } else {
                         $('#pcc_no').val('').change();
@@ -264,18 +264,18 @@
             else
                 CardType = 'Visa';
 
-            $('#pcc_type').select2('val', CardType);
+            $('#pcc_type').setValue(CardType);
         });
 
     });
 </script>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
+
 <script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
         type="text/javascript"></script>
 <script type="text/javascript">
     $(function () {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD HH:mm'
         });
     });

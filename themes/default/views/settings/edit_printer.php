@@ -21,7 +21,7 @@
                             <?php
                             $topts = array('windows' => lang('windows'), 'web' => 'web');
                             ?>
-                            <?= form_dropdown('type', $topts, set_value('type', $printer->type), 'class="form-control select2" id="type" required="required" style="width:100%;"'); ?>
+                            <?= form_dropdown('type', $topts, set_value('type', $printer->type), 'class="form-control tom-select" id="type" required="required" style="width:100%;"'); ?>
                         </div>
 
                         <div class="path">
@@ -30,7 +30,7 @@
                                 <?php
                                 $popts = array('default' => lang('default'), 'simple' => lang('simple'), 'SP2000' => lang('star_branded'), 'TEP-200M' => lang('epson_tep'), 'P822D' => lang('P822D'));
                                 ?>
-                                <?= form_dropdown('profile', $popts, set_value('profile', $printer->profile), 'class="form-control select2" id="profile" required="required" style="width:100%;"'); ?>
+                                <?= form_dropdown('profile', $popts, set_value('profile', $printer->profile), 'class="form-control tom-select" id="profile" required="required" style="width:100%;"'); ?>
                             </div>
 
                             <div class="mb-3">

@@ -35,7 +35,7 @@ if ($this->input->post('shipping_method')) {
             }
         }
 
-        var table = $('#SLRData').DataTable({
+        var table = new Tabulator('#SLRData', {
 
             'ajax': {
                 url: '<?= site_url('reports/get_credit_shipping/' . $v); ?>',
@@ -219,7 +219,7 @@ if ($this->input->post('shipping_method')) {
                                         foreach ($shipping as $ship) {
                                             $sh[$ship->id_shipping_method] = $ship->name;
                                         }
-                                        echo form_dropdown('shipping_method', $sh, set_value('shipping_method'), 'class="form-control select2" style="width:100%" id="shipping_method"'); ?>
+                                        echo form_dropdown('shipping_method', $sh, set_value('shipping_method'), 'class="form-control tom-select" style="width:100%" id="shipping_method"'); ?>
                                     </div>
                                 </div>
 
@@ -363,7 +363,7 @@ if ($this->input->post('shipping_method')) {
                                                 <div class="col-sm-6">
                                                     <div class="mb-3">
                                                         <?= lang("paying_by", "paid_by"); ?>
-                                                        <select name="paid_by" id="paid_by" class="form-control paid_by select2" style="width:100%" required="required">
+                                                        <select name="paid_by" id="paid_by" class="form-control paid_by tom-select" style="width:100%" required="required">
                                                             <option value="cash"><?= lang("cash"); ?></option>
                                                             <option value="CC">Tarjeta</option>
                                                             <option value="Cheque"><?= lang("cheque"); ?></option>
@@ -391,7 +391,7 @@ if ($this->input->post('shipping_method')) {
 
                                                     <div class="col-sm-6">
                                                         <div class="mb-3">
-                                                            <select name="pcc_type" id="pcc_type" class="form-control pcc_type select2" style="width:100%" placeholder="<?= lang('card_type') ?>">
+                                                            <select name="pcc_type" id="pcc_type" class="form-control pcc_type tom-select" style="width:100%" placeholder="<?= lang('card_type') ?>">
                                                                 <option value="Debito">Debito</option>
                                                                 <option value="Visa"><?= lang("Visa"); ?></option>
                                                                 <option value="MasterCard"><?= lang("MasterCard"); ?></option>
@@ -442,14 +442,14 @@ if ($this->input->post('shipping_method')) {
     </div>
 </section>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+
 <script type="text/javascript">
     $(function() {
-        $('.datetimepicker').datetimepicker({
+        $('.datetimepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD'
         });
-        $('.datepicker').datetimepicker({
+        $('.datepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD',
             showClear: true,
             showClose: true,
@@ -551,7 +551,7 @@ if ($this->input->post('shipping_method')) {
             else
                 CardType = 'Visa';
 
-            $('#pcc_type').select2('val', CardType);
+            $('#pcc_type').setValue(CardType);
         });
 
 

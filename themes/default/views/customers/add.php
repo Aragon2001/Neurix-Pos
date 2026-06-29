@@ -32,7 +32,7 @@
 
                         <div class="mb-3">
                             <label class="form-label" for="cf1"><?= $this->lang->line("ccf1"); ?></label>
-                            <select name="cf1" class="form-control select2" id="cf1" style="width:100%;">
+                            <select name="cf1" class="form-control tom-select" id="cf1" style="width:100%;">
                                 <option <?= (isset($customer->cf1) && $customer->cf1 == '01') ? 'selected="selected"' : ''; ?> value="01">Cédula de Identidad</option>
                                 <option <?= (isset($customer->cf1) && $customer->cf1 == '02') ? 'selected="selected"' : ''; ?> value="02">Cédula Jurídica</option>
                                 <option <?= (isset($customer->cf1) && $customer->cf1 == '03') ? 'selected="selected"' : ''; ?> value="03">DIMEX</option>

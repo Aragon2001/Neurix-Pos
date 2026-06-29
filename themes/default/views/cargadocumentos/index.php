@@ -28,7 +28,7 @@
             }
         }
 
-        var table = $('#SLData').DataTable({
+        var table = new Tabulator('#SLData', {
 
             'ajax': {
                 url: '<?=site_url('cargadocumentos/get_purchases_h');?>', type: 'POST', "data": function (d) {
@@ -238,12 +238,12 @@
                 </div>
                     
 </section>
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/moment.min.js" type="text/javascript"></script>
+
 <script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
         type="text/javascript"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        $('.datepicker').datetimepicker({
+        $('.datepicker').tempusDominus = new TempusDominus({
             format: 'YYYY-MM-DD',
             showClear: true,
             showClose: true,
@@ -282,7 +282,7 @@
                 success: function(data) {
                     $('#resultadoslist').html(data);
                     $('#exampleModal').modal('show');
-                    $('#SLData').DataTable().ajax.reload();
+                    new Tabulator('#SLData', ).ajax.reload();
                 },
                 xhrFields: { //
                     onprogress: function (e) {

@@ -17,7 +17,7 @@
                             foreach ($groups as $group) {
                                 $gp[$group['id']] = $group['description'];
                             }
-                            echo form_dropdown('group', $gp, set_value('group'), 'id="group" data-placeholder="' . lang("select") . ' ' . lang("group") . '" class="form-control input-tip select2" style="width:100%;"');
+                            echo form_dropdown('group', $gp, set_value('group'), 'id="group" data-placeholder="' . lang("select") . ' ' . lang("group") . '" class="form-control input-tip tom-select" style="width:100%;"');
                             ?>
                         </div>
                         <div class="mb-3">
@@ -40,7 +40,7 @@
                             <?= lang('status', 'status'); ?>
                             <?php
                             $opt = array('' => '', 1 => lang('active'), 0 => lang('inactive'));
-                            echo form_dropdown('status', $opt, (isset($_POST['status']) ? $_POST['status'] : ''), 'id="status" data-placeholder="' . lang("select") . ' ' . lang("status") . '" class="form-control input-tip select2" style="width:100%;"');
+                            echo form_dropdown('status', $opt, (isset($_POST['status']) ? $_POST['status'] : ''), 'id="status" data-placeholder="' . lang("select") . ' ' . lang("status") . '" class="form-control input-tip tom-select" style="width:100%;"');
                             ?>
                         </div>
                         <div class="mb-3 store-con">
@@ -50,7 +50,7 @@
                             foreach ($stores as $store) {
                                 $st[$store->id] = $store->name;
                             }
-                            echo form_dropdown('store_id', $st, set_value('store_id'), 'id="store_id" data-placeholder="' . lang("select") . ' ' . lang("store") . '" class="form-control input-tip select2" style="width:100%;"');
+                            echo form_dropdown('store_id', $st, set_value('store_id'), 'id="store_id" data-placeholder="' . lang("select") . ' ' . lang("store") . '" class="form-control input-tip tom-select" style="width:100%;"');
                             ?>
                         </div>
                         <div class="mb-3">
@@ -90,11 +90,11 @@
     </div>
 </section>
 
-<script src="<?= $assets ?>dist/js/moment.min.js"></script>
-<script src="<?= $assets ?>dist/js/bootstrap-datetimepicker.min.js"></script>
+
+
 <script>
     $(function () {
-        $('#appointment_start_datetime').datetimepicker({
+        $('#appointment_start_datetime').tempusDominus = new TempusDominus({
             useCurrent: false,
             format: "H:ss",
             sideBySide: true,
@@ -106,7 +106,7 @@
                 $('#appointment_end_datetime').data('DateTimePicker').date(e.date.format("H:00"));
             }
         });
-        $('#appointment_end_datetime').datetimepicker({
+        $('#appointment_end_datetime').tempusDominus = new TempusDominus({
             useCurrent: false,
             format: "H:ss",
             sideBySide: true,
