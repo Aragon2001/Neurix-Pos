@@ -1,0 +1,456 @@
+/* POS Redesign - Modern Bootstrap 5 + AdminLTE 4 */
+
+:root {
+    --pos-sidebar-bg: #f8f9fa;
+    --pos-border: #e9ecef;
+    --pos-hover: #e7f3ff;
+}
+
+/* Dark mode support */
+[data-bs-theme="dark"] {
+    --pos-sidebar-bg: #2b2d31;
+    --pos-border: #3d3f42;
+    --pos-hover: #1a3a4a;
+}
+
+.pos-page {
+    background: var(--bs-body-bg);
+}
+
+.pos-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bs-body-bg);
+}
+
+.pos-header {
+    background: var(--bs-body-bg);
+    border-bottom: 1px solid var(--pos-border);
+    padding: 0.75rem 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+}
+
+.pos-header h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.pos-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    gap: 0;
+}
+
+/* Left Panel: Shopping Cart */
+.pos-cart {
+    width: 100%;
+    max-width: 450px;
+    background: var(--pos-sidebar-bg);
+    border-right: 1px solid var(--pos-border);
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-cart > div {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pos-cart .form-control,
+.pos-cart .form-select,
+.pos-cart .btn-group {
+    border-color: var(--pos-border);
+}
+
+.pos-cart .btn-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.pos-cart .btn-group .btn {
+    flex: 1;
+    font-size: 0.875rem;
+    padding: 0.4rem 0.6rem;
+}
+
+/* Cart Items Table */
+.pos-cart .table {
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+.pos-cart .table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.pos-cart .table th,
+.pos-cart .table td {
+    padding: 0.5rem 0.25rem;
+    vertical-align: middle;
+    border-color: var(--pos-border);
+}
+
+.pos-cart .table-light {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Cart Totals */
+.cart-totals {
+    position: sticky;
+    bottom: 0;
+    background: var(--bs-body-bg);
+    border-top: 2px solid var(--bs-primary);
+    padding: 1rem;
+    z-index: 20;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cart-totals .row {
+    margin-bottom: 0;
+}
+
+.cart-totals small {
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.cart-totals .fw-bold {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.cart-totals .h5 {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+/* Action Buttons */
+.pos-cart .btn-group.mt-3 {
+    margin-bottom: 0.5rem;
+}
+
+.pos-cart .btn {
+    font-size: 0.875rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+}
+
+.pos-cart .btn i {
+    margin-right: 0.4rem;
+}
+
+/* Right Panel: Products */
+.pos-products {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--bs-body-bg);
+}
+
+.pos-products > .pos-header {
+    border-bottom: 1px solid var(--pos-border);
+    flex-shrink: 0;
+    padding: 0.75rem 1rem;
+}
+
+/* Product Grid */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.product-card {
+    cursor: pointer;
+    padding: 0.75rem;
+    border: 1px solid var(--pos-border);
+    border-radius: 0.375rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 150px;
+}
+
+.product-card:hover {
+    background: var(--pos-hover);
+    border-color: var(--bs-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-card:active {
+    transform: translateY(0);
+}
+
+.product-card-image {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    border-radius: 0.25rem;
+}
+
+.product-card-image img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.product-card-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 0.4rem;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-card-price {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--bs-primary);
+}
+
+.product-card-code {
+    font-size: 0.7rem;
+    color: var(--bs-secondary);
+    margin-top: 0.25rem;
+}
+
+/* Modal Improvements */
+.modal-content {
+    border-color: var(--pos-border);
+}
+
+.modal-header {
+    border-color: var(--pos-border);
+    background: var(--pos-sidebar-bg);
+    padding: 1rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-color: var(--pos-border);
+    background: var(--pos-sidebar-bg);
+}
+
+/* Form Styling */
+.form-control,
+.form-select {
+    border-color: var(--pos-border);
+    font-size: 0.95rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--bs-body-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .pos-cart {
+        max-width: 400px;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .pos-content {
+        flex-direction: column;
+    }
+
+    .pos-cart {
+        width: 100%;
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--pos-border);
+        height: 40vh;
+        max-height: 40vh;
+    }
+
+    .pos-products {
+        height: 60vh;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .product-card {
+        min-height: 120px;
+        padding: 0.5rem;
+    }
+
+    .product-card-image {
+        height: 60px;
+        margin-bottom: 0.25rem;
+    }
+
+    .product-card-name {
+        font-size: 0.75rem;
+    }
+
+    .product-card-price {
+        font-size: 0.85rem;
+    }
+
+    .pos-cart .table {
+        font-size: 0.8rem;
+    }
+
+    .pos-cart .table th,
+    .pos-cart .table td {
+        padding: 0.35rem 0.15rem;
+    }
+
+    .cart-totals {
+        padding: 0.75rem;
+    }
+
+    .cart-totals small {
+        font-size: 0.75rem;
+    }
+
+    .cart-totals .fw-bold {
+        font-size: 0.9rem;
+    }
+
+    .cart-totals .h5 {
+        font-size: 1.1rem;
+    }
+
+    .pos-cart .btn {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.6rem;
+    }
+
+    .pos-header {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .pos-header h6 {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 0.35rem;
+        padding: 0.35rem;
+    }
+
+    .product-card {
+        min-height: 100px;
+        padding: 0.35rem;
+    }
+
+    .product-card-image {
+        height: 50px;
+    }
+
+    .product-card-name {
+        font-size: 0.65rem;
+    }
+
+    .pos-cart {
+        height: 35vh;
+    }
+
+    .pos-products {
+        height: 65vh;
+    }
+}
+
+/* Utility Classes */
+.text-muted-light {
+    color: rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-bs-theme="dark"] .text-muted-light {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Scrollbar Styling */
+.pos-cart::-webkit-scrollbar,
+.product-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.pos-cart::-webkit-scrollbar-track,
+.product-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.pos-cart::-webkit-scrollbar-thumb,
+.product-grid::-webkit-scrollbar-thumb {
+    background: var(--pos-border);
+    border-radius: 4px;
+}
+
+.pos-cart::-webkit-scrollbar-thumb:hover,
+.product-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .pos-cart::-webkit-scrollbar-thumb:hover,
+[data-bs-theme="dark"] .product-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Print Styles */
+@media print {
+    .pos-header,
+    .pos-cart,
+    .product-grid {
+        display: none;
+    }
+
+    .pos-container {
+        height: auto;
+    }
+
+    .pos-content {
+        display: block;
+    }
+}
