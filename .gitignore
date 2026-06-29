@@ -57,3 +57,6 @@ desktop.ini
 # Word temp files
 ~$*.docx
 ~$*.xlsx
+node_modules/
+.npm
+dist/
