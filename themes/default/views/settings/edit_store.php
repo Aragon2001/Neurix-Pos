@@ -10,7 +10,7 @@
                 <div class="box-body">
                     <?php echo form_open_multipart("settings/edit_store/".$store->id);?>
                     <?php if ( ! empty($store->logo)) { ?>
-                    <img src="<?= base_url('uploads/'.$store->logo); ?>" class="img-thumbnail pull-right" style="margin-bottom: 10px;">
+                    <img src="<?= base_url('uploads/'.$store->logo); ?>" class="img-thumbnail float-end" style="margin-bottom: 10px;">
                     <?php } ?>
                     <div class="col-md-6">
                         <div class="mb-3" style="display:block;">

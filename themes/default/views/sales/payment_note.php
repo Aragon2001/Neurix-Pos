@@ -118,7 +118,7 @@
             </div>
             <div style="clear: both;"></div>
             <div class="row">
-                <div class="col-sm-4 pull-left">
+                <div class="col-sm-4 float-start">
                     <p>&nbsp;</p>
 
                     <p>&nbsp;</p>

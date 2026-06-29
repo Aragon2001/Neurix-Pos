@@ -129,7 +129,7 @@
             <div class="box box-primary">
                 <div class="box-header">
                     <?php if (!$this->session->userdata('has_store_id')) { ?>
-                    <div class="dropdown pull-right">
+                    <div class="dropdown float-end">
                       <button class="btn btn-primary" id="dLabel" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <?= $store->name.' ('.$store->code.')'; ?>
                         <span class="caret"></span>

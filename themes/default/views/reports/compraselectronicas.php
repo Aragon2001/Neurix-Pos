@@ -176,7 +176,7 @@ if ($this->input->post('end_date')) {
             <div class="box box-primary">
                 <div class="box-header">
                     <a href="#" style="display: block; overflow: hidden; margin-bottom: 5px;"
-                       class="btn btn-default btn-sm toggle_form pull-right"><?= lang("show_hide"); ?></a>
+                       class="btn btn-default btn-sm toggle_form float-end"><?= lang("show_hide"); ?></a>
                     <hr style="display: block;overflow: hidden;clear: both;"/>
                     <h3 class="box-title"><b>Informe de Compras Mensuales</b> -
                         <small style="font-size: 15px;"><i>cuando se abre este reporte se presentan las ventas diarias

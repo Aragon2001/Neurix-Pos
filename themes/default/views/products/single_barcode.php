@@ -21,7 +21,7 @@
 			</div>
 		</div>
 		<div class="modal-footer no-print">
-			<button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"><?= lang('close'); ?></button>
+			<button type="button" class="btn btn-default float-start" data-bs-dismiss="modal"><?= lang('close'); ?></button>
 			<button class="btn btn-primary" href="javascript:void();" onclick="window.print();"><i class="fa fa-print"></i> <?= lang('print'); ?></button>
 		</div>
 	</div>

@@ -10,7 +10,7 @@
                 <div class="box-body">
 
                     <div class="well well-sm">
-                        <a href="<?= base_url('uploads/csv/sample_products.csv'); ?>" class="btn btn-info btn-sm pull-right"><i class="fa fa-download"></i> <?= lang("download_sample_file"); ?></a>
+                        <a href="<?= base_url('uploads/csv/sample_products.csv'); ?>" class="btn btn-info btn-sm float-end"><i class="fa fa-download"></i> <?= lang("download_sample_file"); ?></a>
 
                         <p><?= "<span class=\"text-info\">".lang("csv1")."</span><br /><span class=\"text-success\">". lang("csv2")." (<b>".lang("product_code").", ".lang("product_name").", ".lang("purchase_price").", ".lang("product_tax").", ".lang("product_price").", ".lang("category_code")."</b>)</span> <span class=\"text-primary\">".lang("csv3")."</span>"; ?></p>
                     </div>

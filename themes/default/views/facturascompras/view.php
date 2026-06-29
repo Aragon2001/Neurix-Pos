@@ -1,6 +1,6 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 <section class="content" >
-<div class="btn-group  pull-left" role="group" aria-label="...">
+<div class="btn-group  float-start" role="group" aria-label="...">
     <div class="btn-group" role="group2">
         <button type="button" class="btn  btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-file-pdf-o"></i>
         PDF <span class="caret"></span>
@@ -30,15 +30,15 @@
                                                              <?=$hacienda->consecutivo?></h4>
                                                         <i>
                                                             <? if ($inv->status == 'Unpaid') { ?>
-                                                            <h3 class="pluma alert pull-left alert-danger">No
+                                                            <h3 class="pluma alert float-start alert-danger">No
                                                                 Pagada</h3>
                                                             <? }else if ($inv->status == 'Paid') { ?>
-                                                            <h3 class="pluma alert pull-left alert-success">Pagada</h3>
+                                                            <h3 class="pluma alert float-start alert-success">Pagada</h3>
                                                             <? } else if ($inv->status == 'Partially Paid') { ?>
-                                                            <h3 class="pluma alert pull-left alert-info">Parcialmente
+                                                            <h3 class="pluma alert float-start alert-info">Parcialmente
                                                                 Pagada</h3>
                                                             <? } else { ?>
-                                                            <h3 class="pluma alert pull-left alert-info"><?= $inv->status ?></h3>
+                                                            <h3 class="pluma alert float-start alert-info"><?= $inv->status ?></h3>
                                                             <? } ?>
                                                         </i>
                                                         <br/>
@@ -48,7 +48,7 @@
                                                                     style="color: <?=$hacienda->estatus_hacienda != 'aceptado'? 'red' : 'green'?>;">Comprobante Electronico <?=$hacienda->estatus_hacienda?></span>
                                                         </h4>
                                                     </div>
-                                                    <div class="col-sm-6 text-right mt-md mb-md pull-right">
+                                                    <div class="col-sm-6 text-right mt-md mb-md float-end">
                                                         <div class="ib">
                                                                 <div style="text-align: right; width: 100%; font-size: 14px !important;"><b><?= lang('electronic_voucher_key') ?>:<br> <?= $hacienda->clave; ?></b></div>
                                                                 <div style="text-align: right;width: 100%;"><br/><?= lang('internal_id') ?>

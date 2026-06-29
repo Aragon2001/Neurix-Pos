@@ -5,7 +5,7 @@
         <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
-                    <a href="<?= site_url('settings/backup_database'); ?>" class="pull-right btn btn-primary"><i class="icon fa fa-database"></i> <?= lang('backup_database'); ?></a>
+                    <a href="<?= site_url('settings/backup_database'); ?>" class="float-end btn btn-primary"><i class="icon fa fa-database"></i> <?= lang('backup_database'); ?></a>
                     <h3 class="box-title"><strong><?= lang('database_backups'); ?></strong>: <?= lang('restore_heading'); ?></h3>
                 </div>
                 <div class="box-body">
@@ -22,7 +22,7 @@
                                     $time_string = substr($file, 24, 8);
                                     $date = $date_string . ' ' . str_replace('-', ':', $time_string);
                                     $bkdate = $this->tec->hrld($date);
-                                    echo '<strong>' . lang('backup_on') . ' <span class="text-primary">' . $bkdate . '</span><div class="btn-group pull-right" style="margin-top:-7px;">' . anchor('settings/download_database/' . substr($file, 0, -4), '<i class="fa fa-download"></i> ' . lang('download'), 'class="btn btn-primary"') . ' ' . anchor('settings/restore_database/' . substr($file, 0, -4), '<i class="fa fa-database"></i> ' . lang('restore'), 'class="btn btn-warning restore_db"') . ' ' . anchor('settings/delete_database/' . substr($file, 0, -4), '<i class="fa fa-trash-o"></i> ' . lang('delete'), 'class="btn btn-danger delete_file"') . ' </div></strong>';
+                                    echo '<strong>' . lang('backup_on') . ' <span class="text-primary">' . $bkdate . '</span><div class="btn-group float-end" style="margin-top:-7px;">' . anchor('settings/download_database/' . substr($file, 0, -4), '<i class="fa fa-download"></i> ' . lang('download'), 'class="btn btn-primary"') . ' ' . anchor('settings/restore_database/' . substr($file, 0, -4), '<i class="fa fa-database"></i> ' . lang('restore'), 'class="btn btn-warning restore_db"') . ' ' . anchor('settings/delete_database/' . substr($file, 0, -4), '<i class="fa fa-trash-o"></i> ' . lang('delete'), 'class="btn btn-danger delete_file"') . ' </div></strong>';
                                     echo '</li>';
                                 }
                                 echo '</ul>';
@@ -40,7 +40,7 @@
         <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
-                    <a href="<?= site_url('settings/backup_xml'); ?>" class="pull-right btn btn-primary"><i class="icon fa fa-database"></i> <?= lang('backup_xml'); ?></a>
+                    <a href="<?= site_url('settings/backup_xml'); ?>" class="float-end btn btn-primary"><i class="icon fa fa-database"></i> <?= lang('backup_xml'); ?></a>
                     <h3 class="box-title"><strong><?= lang('xml_backups'); ?></strong>: <?= lang('restore_heading'); ?></h3>
                 </div>
                 <div class="box-body">
@@ -58,7 +58,7 @@
                                     $bkdate = $this->tec->hrld($date);
                                     echo '<strong>' . lang('backup_on') .
                                      ' <span class="text-primary">' . $bkdate . 
-                                     '</span><div class="btn-group pull-right" style="margin-top:-7px;">' .
+                                     '</span><div class="btn-group float-end" style="margin-top:-7px;">' .
                                       anchor('settings/backup_xml/' . substr($file, 0, -4), '<i class="fa fa-download"></i> ' .
                                       lang('download'), 'class="btn btn-primary"') . ' ' . anchor('settings/restore_database/' .
                                       substr($file, 0, -4), '<i class="fa fa-trash-o"></i> ' .
@@ -80,7 +80,7 @@
         <div class="col-12">
             <div class="box box-primary">
                 <div class="box-header">
-                    <a href="#" id="backup_files" class="pull-right btn btn-primary"><i class="icon fa fa-file-zip-o"></i> <?= lang('backup_files'); ?></a>
+                    <a href="#" id="backup_files" class="float-end btn btn-primary"><i class="icon fa fa-file-zip-o"></i> <?= lang('backup_files'); ?></a>
                     <h3 class="box-title"><strong><?= lang('file_backups'); ?></strong>: <?= lang('restore_heading'); ?></h3>
                 </div>
                 <div class="box-body">
@@ -97,7 +97,7 @@
                                     $time_string = substr($file, 23, 8);
                                     $date = $date_string . ' ' . str_replace('-', ':', $time_string);
                                     $bkdate = $this->tec->hrld($date);
-                                    echo '<strong>' . lang('backup_on') . ' <span class="text-primary">' . $bkdate . '</span><div class="btn-group pull-right" style="margin-top:-7px;">' . anchor('settings/download_backup/' . substr($file, 0, -4), '<i class="fa fa-download"></i> ' . lang('download'), 'class="btn btn-primary"') . ' ' . anchor('settings/restore_backup/' . substr($file, 0, -4), '<i class="fa fa-database"></i> ' . lang('restore'), 'class="btn btn-warning restore_backup"') . ' ' . anchor('settings/delete_backup/' . substr($file, 0, -4), '<i class="fa fa-trash-o"></i> ' . lang('delete'), 'class="btn btn-danger delete_file"') . ' </div></strong>';
+                                    echo '<strong>' . lang('backup_on') . ' <span class="text-primary">' . $bkdate . '</span><div class="btn-group float-end" style="margin-top:-7px;">' . anchor('settings/download_backup/' . substr($file, 0, -4), '<i class="fa fa-download"></i> ' . lang('download'), 'class="btn btn-primary"') . ' ' . anchor('settings/restore_backup/' . substr($file, 0, -4), '<i class="fa fa-database"></i> ' . lang('restore'), 'class="btn btn-warning restore_backup"') . ' ' . anchor('settings/delete_backup/' . substr($file, 0, -4), '<i class="fa fa-trash-o"></i> ' . lang('delete'), 'class="btn btn-danger delete_file"') . ' </div></strong>';
                                     echo '</li>';
                                 }
                                 echo '</ul>';

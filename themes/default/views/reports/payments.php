@@ -118,7 +118,7 @@ if ($this->input->post('end_date')) {
         <div class="col-sm-12">
             <div class="box box-primary">
                 <div class="box-header">
-                    <a href="#" class="btn btn-default btn-sm toggle_form pull-right"><?= lang("show_hide"); ?></a>
+                    <a href="#" class="btn btn-default btn-sm toggle_form float-end"><?= lang("show_hide"); ?></a>
                     <h3 class="box-title"><?= lang('customize_report'); ?><?php
                         if ($this->input->post('start_date')) {
                             echo "From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');

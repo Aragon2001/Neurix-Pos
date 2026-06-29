@@ -356,7 +356,7 @@ if ($modal) {
                                 </div>
                             </div>
                         <?php } else { ?>
-                            <span class="pull-right col-12">
+                            <span class="float-end col-12">
                                 <?php
                                 if ($printer->type == "windows") {
                                     echo '<a href="' . site_url('pos/print_receipt/' . $inv->id . '/1') . '" id="print" class="btn btn-block btn-primary">' . lang("print") . '</a>';
@@ -369,7 +369,7 @@ if ($modal) {
                                 }
                                 ?>
                             </span>
-                            <span class="pull-left col-12"><a class="btn btn-block btn-success" href="#"
+                            <span class="float-start col-12"><a class="btn btn-block btn-success" href="#"
                                                                  id="email"><?= lang("email"); ?></a></span>
                             <span class="col-12">
                                 <a class="btn btn-block btn-warning"

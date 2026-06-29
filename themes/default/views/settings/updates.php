@@ -35,7 +35,7 @@
                                         echo '<ul class="list-group"><li class="list-group-item">';
                                         echo '<h3><strong>' . lang('version') . ' ' . $update->version . '</strong> ';
                                         if ($c == 1 && !empty($update->filename)) {
-                                            echo anchor('system_settings/install_update/' . substr($update->filename, 0, -4) . '/' . (!empty($update->mversion) ? $update->mversion : 0) . '/' . $update->version, '<i class="fa fa-download"></i> ' . lang('install'), 'class="btn btn-primary pull-right"') . '</h3>';
+                                            echo anchor('system_settings/install_update/' . substr($update->filename, 0, -4) . '/' . (!empty($update->mversion) ? $update->mversion : 0) . '/' . $update->version, '<i class="fa fa-download"></i> ' . lang('install'), 'class="btn btn-primary float-end"') . '</h3>';
                                         }
                                         echo '<h3>' . lang('changelog') . '<h3><pre>' . $update->changelog . '</pre>';
                                         echo '</li></ul>';

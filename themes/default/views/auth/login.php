@@ -476,7 +476,7 @@
                        class="form-control" autocomplete="off">
             </div>
             <div class="modal-footer">
-                <button data-bs-dismiss="modal" class="btn btn-default pull-left" type="button"><?= lang('close'); ?></button>
+                <button data-bs-dismiss="modal" class="btn btn-default float-start" type="button"><?= lang('close'); ?></button>
                 <button class="btn btn-primary" type="submit"><?= lang('submit'); ?></button>
             </div>
             <?= form_close(); ?>

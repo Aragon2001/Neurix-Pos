@@ -221,7 +221,7 @@ if ($modal) {
                                 </div>
                             </div>
                             <?php } else { ?>
-                            <span class="pull-right col-12">
+                            <span class="float-end col-12">
                                 <?php
                                 if ( ! $Settings->remote_printing) {
                                     echo '<button data-receipt="'.$inv->id.'" onclick="return print_receipt(1)" class="btn btn-block btn-primary">'.lang("print").'</button>';
@@ -234,7 +234,7 @@ if ($modal) {
                                 }
                                 ?>
                             </span>
-                            <span class="pull-left col-12"><a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a></span>
+                            <span class="float-start col-12"><a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a></span>
                             <span class="col-12">
                                 <a class="btn btn-block btn-warning" href="<?= site_url('pos'); ?>"><?= lang("back_to_pos"); ?></a>
                             </span>

@@ -141,7 +141,7 @@
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default pull-left" data-bs-dismiss="modal"><?=lang('close')?></button>
+                <button type="button" class="btn btn-default float-start" data-bs-dismiss="modal"><?=lang('close')?></button>
                 <?php
                 if ( ! $Settings->remote_printing) {
                     echo '<a href="'.site_url('pos/print_register').'" class="btn btn-default" data-bs-toggle="ajax2">'.lang("print").'</a>';

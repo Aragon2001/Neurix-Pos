@@ -713,7 +713,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="box-header">
                 <i class="fa fa-trophy" style="color:var(--nx-a1);margin-right:8px;"></i>
                 <h3 class="box-title">Top productos por ingresos</h3>
-                <div class="box-tools pull-right">
+                <div class="box-tools float-end">
                     <span style="font-size:11px;color:var(--nx-txt3);"><?= date('F Y'); ?></span>
                 </div>
             </div>
@@ -798,7 +798,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="box-header">
                 <i class="fa fa-list-alt" style="color:var(--nx-a1);margin-right:8px;"></i>
                 <h3 class="box-title">Últimas transacciones</h3>
-                <div class="box-tools pull-right">
+                <div class="box-tools float-end">
                     <a href="<?= site_url('sales'); ?>" class="btn btn-xs btn-default">Ver todas</a>
                 </div>
             </div>
