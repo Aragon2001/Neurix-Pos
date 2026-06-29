@@ -20,34 +20,29 @@
     <script src="<?= $assets ?>dist/js/main.min.js"></script>
     <link rel="stylesheet" href="<?= $assets ?>dist/css/www.min.css">
 </head>
-<body>
-<div class="wrapper">
+<body class="skin-blue fixed sidebar-mini">
+<div class="wrapper rtl rtl-inv">
 
 <!-- ═══════════════ HEADER ═══════════════ -->
-<nav class="main-header navbar navbar-expand-md navbar-light bg-white border-bottom">
+<header class="main-header">
 
     <!-- Logo -->
-    <a href="<?= site_url(); ?>" class="navbar-brand ps-0 pe-3">
-        <span class="brand-image elevation-3" style="
+    <a href="<?= site_url(); ?>" class="logo" style="display:flex;align-items:center;gap:9px;padding:0 14px;">
+        <span class="logo-mini" style="
             display:inline-flex;align-items:center;justify-content:center;
-            width:40px;height:40px;border-radius:8px;
+            width:32px;height:32px;border-radius:8px;flex-shrink:0;
             background:linear-gradient(135deg,#0369a1,#38bdf8);
-            color:#fff;font-size:16px;font-weight:800;
+            color:#fff;font-size:15px;font-weight:800;
             box-shadow:0 2px 10px rgba(56,189,248,.4);">
             <?= mb_strtoupper(mb_substr($Settings->site_name, 0, 1)); ?>
         </span>
-        <span class="brand-text">
+        <span class="logo-lg">
             <?= $store ? $store->name : $Settings->site_name; ?>
         </span>
     </a>
 
-    <!-- Navbar Toggle -->
-    <button class="navbar-toggler order-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <!-- Navbar Links -->
-    <div class="collapse navbar-collapse order-3" id="navbarCollapse">
+    <!-- Navbar -->
+    <nav class="navbar navbar-static-top" role="navigation">
         <a href="#" class="sidebar-toggle" data-bs-toggle="offcanvas" role="button">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
@@ -191,8 +186,8 @@
 
             </ul>
         </div>
-    </div>
-</nav>
+    </nav>
+</header>
 
 <!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="main-sidebar">
@@ -239,8 +234,8 @@
                     <?php endif; ?>
                     <li id="products_ajuste"><a href="<?= site_url('products/ajuste'); ?>"><i class="fa fa-balance-scale"></i>Ajuste Inventario</a></li>
                     <li id="products_import"><a href="<?= site_url('products/import'); ?>"><i class="fa fa-upload"></i><?= lang('import_products'); ?></a></li>
-                    <li id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" data-toggle="ajax"><i class="fa fa-barcode"></i><?= lang('print_barcodes'); ?></a></li>
-                    <li id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" data-toggle="ajax"><i class="fa fa-tag"></i><?= lang('print_labels'); ?></a></li>
+                    <li id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" data-bs-toggle="ajax"><i class="fa fa-barcode"></i><?= lang('print_barcodes'); ?></a></li>
+                    <li id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" data-bs-toggle="ajax"><i class="fa fa-tag"></i><?= lang('print_labels'); ?></a></li>
                     <?php if ($this->Settings->multiprice_enabled == 1): ?>
                     <li id="products_prices"><a href="<?= site_url('products/listprices'); ?>"><i class="fa fa-dollar"></i>Lista de Precios</a></li>
                     <li id="products_addprices"><a href="<?= site_url('products/addprices'); ?>"><i class="fa fa-plus-circle"></i>Agregar Precios</a></li>
