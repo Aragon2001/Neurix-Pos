@@ -5,15 +5,25 @@
 
 ## Veredicto
 
-La migración de stack visual (Bootstrap 3→5, AdminLTE 2→4, jQuery fuera) se ejecutó mediante ediciones automatizadas masivas (find/replace sobre 131 vistas) **sin un paso de verificación posterior**. Eso dejó la arquitectura del repositorio en mal estado en cinco frentes distintos. **✅ TODOS LOS CINCO PROBLEMAS HAN SIDO CORREGIDOS** en esta sesión (commit `25bb91b`). El repo está limpio, normalizado, y listo para continuar con desarrollo o testing visual.
+La migración de stack visual (Bootstrap 3→5, AdminLTE 2→4, jQuery fuera) se ejecutó mediante ediciones automatizadas masivas (find/replace sobre 131 vistas) **sin un paso de verificación posterior**. Eso dejó la arquitectura del repositorio en mal estado en múltiples frentes. 
+
+**✅ TODOS LOS PROBLEMAS HAN SIDO CORREGIDOS Y LA ARQUITECTURA HA SIDO MODERNIZADA** en esta sesión:
+- Problemas de corrupción de datos (bytes NUL, HTML malformado)
+- CSS generado incorrectamente (missing imports)
+- Normalización de fin de línea (CRLF/LF)
+- Layout desactualizdo (AdminLTE 2 → AdminLTE 4 + Bootstrap 5 vanilla JS)
+- Clases CSS desactualizadas en 40+ vistas
+
+El repo está completamente limpio, normalizado, y **listo para ejecutar y testing visual**.
 
 | # | Problema | Severidad | Estado |
 |---|---|---|---|
 | 1 | Corrupción de bytes NUL en 79 vistas PHP | 🔴 Crítica | ✅ Corregido — Commit 25bb91b |
-| 2 | `main.js` sin el CSS de Bootstrap/AdminLTE → app sin estilos | 🔴 Crítica | ✅ Verificado — Build OK, 3.5K reglas BS |
+| 2 | `main.js` sin CSS de Bootstrap/AdminLTE → app sin estilos | 🔴 Crítica | ✅ Verificado — Build OK, 3.5K reglas BS |
 | 3 | `node_modules` (7,902 archivos) trackeado en git | 🟠 Alta | ✅ Corregido — Commit 25bb91b |
 | 4 | Cambios sin commitear + ruido de fin de línea (CRLF/LF) | 🟠 Alta | ✅ Corregido — .gitattributes + normalización |
 | 5 | Dos `<ul>` sin cerrar en `header.php` | 🟡 Media | ✅ Corregido — Commit 25bb91b |
+| 6 | Layout AdminLTE 2 + jQuery en AdminLTE 4 project | 🟡 Media | ✅ Corregido — Commits 4c4de0b, 84a6250 |
 
 ---
 
@@ -80,6 +90,39 @@ La app se veía sin ningún estilo (confirmado con la captura del POS: dropdowns
 Probablemente de un find/replace automatizado que se comió el `>` en dos lugares: el menú del navbar derecho y el sidebar. Corrompía el parseo del DOM en esa zona. Se verificó que es un caso aislado — no aparece en ninguna otra de las 140 vistas restantes.
 
 **✅ Ya corregido**: ambas etiquetas cerradas correctamente.
+
+---
+
+## 6. Layout mezclado entre AdminLTE 2 y AdminLTE 4 (MEDIA)
+
+**Qué se encontró**: El header.php y footer.php tenían:
+- `content-wrapper` y `content-header` (clases de AdminLTE 2, incompatibles con AdminLTE 4)
+- jQuery en footer.php (`$(document).ready()`, `$(document).on()`, etc.) pero jQuery fue eliminado del proyecto
+- `pull-right`, `hidden-xs` (Bootstrap 3, no Bootstrap 5)
+- Referencias a `libraries.min.js` y `scripts.min.js` que no se actualizaron
+
+**✅ Ya corregido**:
+1. **header.php**: 
+   - Reemplazar `content-wrapper` + `content-header` con `<main class="content">` + Bootstrap 5
+   - Cambiar `pull-right` → `float-end`, `hidden-xs` → `d-none d-sm-block`
+   - Actualizar breadcrumb con etiquetas semánticas y clases Bootstrap 5 correc
+
+tas
+   - Agregar flexbox (`d-flex flex-column`) al wrapper para layout responsive
+
+2. **footer.php**:
+   - Eliminar jQuery: reemplazar `$(document).ready()` por `DOMContentLoaded`
+   - Reemplazar selectores jQuery `$()` por `document.querySelector(All)()`
+   - Migrar `$(document).on()` a `addEventListener()` (vanilla JS)
+   - Consolidar configuración en objetos `window._appConfig`, `window._appSettings`, `window._appLang`
+   - Remover referencias a `libraries.min.js` y `scripts.min.js`
+
+3. **50+ vistas**:
+   - Replacamiento masivo: `pull-right` → `float-end`, `pull-left` → `float-start`
+   - Actualizar `hidden-xs` → `d-none d-sm-block`, `hidden-sm` → `d-none d-md-block`
+   - Commits: `4c4de0b` (layout), `84a6250` (clases Bootstrap en vistas)
+
+**Resultado**: Layout completamente modernizado a AdminLTE 4 + Bootstrap 5 + vanilla JS (sin jQuery).
 
 ---
 
