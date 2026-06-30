@@ -514,28 +514,32 @@ body.pos-v2 {
   box-shadow: 0 0 0 3px rgba(56,189,248,.13) !important;
 }
 
-/* ── Dropdown de la lista de clientes ──────────── */
-.pcp-cust-search-wrap .ts-dropdown {
+/* ── Dropdown de clientes (renderizado en body via dropdownParent) ── */
+/* El selector es global porque TomSelect mueve el dropdown al <body>  */
+.ts-cust-dropdown.ts-dropdown {
   border: 1px solid var(--nx-border) !important;
   border-radius: 10px !important;
   background: var(--nx-bg2) !important;
-  box-shadow: 0 12px 36px rgba(0,0,0,.45) !important;
-  margin-top: 4px !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,.5) !important;
   overflow: hidden !important;
+  min-width: 240px !important;
 }
-.pcp-cust-search-wrap .ts-dropdown-content { padding: 4px !important; max-height: 220px; }
-/* Opción con avatar + dos líneas */
-.pcp-cust-search-wrap .ts-dropdown .option {
+.ts-cust-dropdown .ts-dropdown-content { padding: 4px !important; max-height: 240px; overflow-y: auto; }
+.ts-cust-dropdown .option {
   padding: 0 !important;
   border-radius: 7px !important;
   margin-bottom: 2px !important;
   transition: background .12s !important;
   cursor: pointer !important;
 }
-.pcp-cust-search-wrap .ts-dropdown .option:hover,
-.pcp-cust-search-wrap .ts-dropdown .option.active {
-  background: rgba(56,189,248,.1) !important;
+.ts-cust-dropdown .option:hover,
+.ts-cust-dropdown .option.active { background: rgba(56,189,248,.1) !important; }
+/* "no results" */
+.ts-cust-dropdown .no-results {
+  padding: .6rem .75rem !important; font-size: .8rem !important;
+  color: var(--nx-txt4) !important; font-style: italic;
 }
+
 /* Layout interno de cada opción */
 .ts-cust-opt {
   display: flex; align-items: center; gap: .55rem;
@@ -561,18 +565,19 @@ body.pos-v2 {
   margin-top: .06rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* Opción activa: destacar nombre */
-.ts-dropdown .option.active .ts-cust-opt-name,
-.ts-dropdown .option:hover .ts-cust-opt-name { color: var(--nx-a1) !important; }
-.ts-dropdown .option.active .ts-cust-opt-av,
-.ts-dropdown .option:hover .ts-cust-opt-av {
-  box-shadow: 0 0 0 2px rgba(56,189,248,.4);
+/* Opción activa */
+.ts-cust-dropdown .option.active .ts-cust-opt-name,
+.ts-cust-dropdown .option:hover  .ts-cust-opt-name { color: var(--nx-a1) !important; }
+.ts-cust-dropdown .option.active .ts-cust-opt-av,
+.ts-cust-dropdown .option:hover  .ts-cust-opt-av   { box-shadow: 0 0 0 2px rgba(56,189,248,.4); }
+
+/* Light mode del dropdown */
+[data-theme="light"] .ts-cust-dropdown.ts-dropdown {
+  background: #fff !important; border-color: #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
 }
-/* "no results" */
-.pcp-cust-search-wrap .ts-dropdown .no-results {
-  padding: .6rem .75rem !important; font-size: .8rem !important;
-  color: var(--nx-txt4) !important; font-style: italic;
-}
+[data-theme="light"] .ts-cust-opt-name { color: #1e293b; }
+[data-theme="light"] .ts-cust-opt-doc  { color: #64748b; }
 
 /* ── Card del cliente (flat, sin caja anidada) ── */
 .pcp-cust-card {
@@ -667,12 +672,6 @@ body.pos-v2 {
   background: #f1f5f9 !important; border-color: #cbd5e1 !important;
 }
 [data-theme="light"] .pcp-cust-search-wrap .ts-control > input { color: #1e293b !important; }
-[data-theme="light"] .pcp-cust-search-wrap .ts-dropdown {
-  background: #fff !important; border-color: #e2e8f0 !important;
-  box-shadow: 0 8px 24px rgba(0,0,0,.1) !important;
-}
-[data-theme="light"] .ts-cust-opt-name { color: #1e293b; }
-[data-theme="light"] .ts-cust-opt-doc  { color: #64748b; }
 [data-theme="light"] .pcp-cust-name { color: #1e293b; }
 [data-theme="light"] .pcp-cust-card.is-default .pcp-cust-name { color: #94a3b8; }
 [data-theme="light"] .pcp-cust-contact-item { color: #64748b; }
