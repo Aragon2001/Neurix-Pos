@@ -445,8 +445,9 @@ body.pos-v2 {
 }
 .pcp-section-label i { color: var(--nx-a1); }
 .pcp-customer-row { display: flex; gap: .4rem; align-items: center; }
-.pcp-customer-row .ts-wrapper,
-.pcp-customer-row select { flex: 1; min-width: 0; }
+/* La <select> original se oculta siempre; TomSelect crea el .ts-wrapper visible */
+.pcp-customer-row select.tom-select { display: none; }
+.pcp-customer-row .ts-wrapper { flex: 1; min-width: 0; }
 .pcp-add-cust-btn {
   width: 34px; height: 34px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;

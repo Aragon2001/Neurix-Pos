@@ -332,7 +332,6 @@
                     <div class="pcp-section-label">
                         <i class="fa fa-user"></i>
                         <?= lang('customer') ?>
-                        <kbd style="margin-left:auto;background:var(--nx-bg3);border:1px solid var(--nx-border);border-radius:3px;padding:.05rem .3rem;font-size:.58rem;color:var(--nx-txt4);">F2</kbd>
                     </div>
                     <div class="pcp-customer-row">
                         <?php

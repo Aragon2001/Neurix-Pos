@@ -57,6 +57,14 @@ const initPopovers = () => {
   })
 }
 
+// Exponer librerías globales SINCRÓNICAMENTE — deben estar disponibles antes de que
+// pos-core.js (cargado al final del <body>) ejecute init(), ya que en ese momento
+// DOMContentLoaded aún no ha disparado y window.TomSelect sería undefined.
+window.TomSelect = TomSelect
+window.Tabulator = Tabulator
+window.TempusDominus = TempusDominus
+window.Swal = Swal
+
 // ═════════════════ MAIN - Ejecutar al cargar ═════════════════
 // Nota: treeview y sidebar toggle los maneja AdminLTE4 JS nativo
 // (data-lte-toggle="treeview" / data-lte-toggle="sidebar") — no duplicar aquí
@@ -65,11 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initTooltips()
   initPopovers()
 
-  // Exportar librerías globales para scripts embebidos en vistas PHP
-  window.TomSelect = TomSelect
-  window.Tabulator = Tabulator
-  window.TempusDominus = TempusDominus
-  window.Swal = Swal
   window.nxToggleTheme = (theme) => switchTheme(theme)
 
   console.log('%c Neurix POS v1.0', 'font-size:14px;color:#38bdf8;font-weight:bold;')
