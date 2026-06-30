@@ -199,7 +199,7 @@
 				</div>
 				<div class="col-md-12">
 						<div class="table-responsive">
-								<table style="width: 100%">
+								<table class="table table-bordered table-condensed" style="width: 100%">
 									<tr>
 										<td rowspan="14" style="padding: 0; margin: 0; border: 1px solid var(--nx-border);">
 											<div class="col-md-12">
