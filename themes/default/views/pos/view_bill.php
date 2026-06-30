@@ -8,28 +8,22 @@
     <meta http-equiv="cache-control" content="no-cache"/>
     <meta http-equiv="expires" content="0"/>
     <meta http-equiv="pragma" content="no-cache"/>
-    <!-- Anti-FOUC: apply saved theme before first paint -->
-    <script>(function(){var t=localStorage.getItem('nx-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="<?= $assets ?>dist/css/neurix-theme.css" rel="stylesheet" type="text/css" />
-    <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
+    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         html, body {
-            background: var(--nx-bg);
+            background: #F9F9F9;
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             min-width: 400px;
-            color: var(--nx-txt1);
+            color: #333;
         }
         a { outline: none; }
         h2 { margin: 20px 0; }
         .bill {
             min-height: 600px;
-            background: var(--nx-card-bg);
+            background: #FFF;
             margin: 20px 20px 0 20px;
         }
         .content { display: none; }
@@ -57,19 +51,18 @@
             display: block;
             overflow: hidden;
             min-height: 486px;
-            border: 1px solid var(--nx-border);
+            border: 1px solid #ddd;
             padding: 20px 20px 0 20px;
         }
-        #totals { border-top: 1px solid var(--nx-border); }
+        #totals { border-top: 1px solid #ddd; }
         .preview_frame { width: 100%; }
         @media print {
-            html, body, .bill { background: #fff !important; color: #000 !important; }
             .wrap { padding: 0; width: 100%; }
             .main { display: none; margin: 0; }
             .bill { width: 90%; margin-left: auto; margin-right: auto; height: auto !important; }
             .bill, #product-list, #billTable { width: 100%; height: auto !important; min-height: 200px; }
-            #billTable td { border-bottom: 1px solid #ccc; }
-            #totals td { border: 1px solid #ccc !important; border-color: #ccc !important; }
+            #billTable td { border-bottom: 1px solid #CCC; }
+            #totals td { border: 1px solid #CCC !important; border-color: #CCC !important; }
         }
     </style>
     <?php if ($Settings->rtl) {?>
@@ -82,13 +75,13 @@
             padding-left: 0 !important;
         }
         #totalTable td:first-child {
-            border-right: 1px solid var(--nx-border) !important;
+            border-right: 1px solid #CCC !important;
         }
         #totalTable td:nth-child(2), #totalTable td:nth-child(4) {
-            border-left: 1px solid var(--nx-border) !important;
+            border-left: 1px solid #CCC !important;
         }
         #totalTable tr:last-child td {
-            border: 1px solid var(--nx-border) !important;
+            border: 1px solid #333 !important;
         }
     </style>
     <?php } ?>
@@ -123,31 +116,31 @@
         </div>
         <div id="totals">
                 <div class="table-responsive">
-            <table style="width:100%; float:right; padding:5px; color:var(--nx-txt1); background: var(--nx-card-bg);" id="totalTable">
+            <table style="width:100%; float:right; padding:5px; color:#000; background: #FFF;" id="totalTable">
                 <tbody>
                 <tr>
-                    <td style="border-left: 1px solid var(--nx-border); padding-left:10px; text-align:left; font-weight:normal;">
+                    <td style="border-left: 1px solid #ddd; padding-left:10px; text-align:left; font-weight:normal;">
                         <?= lang('total_items'); ?>
                     </td>
                     <td style="text-align:right; padding-right:10px; font-weight:bold;"><span id="count">0</span></td>
                     <td style="padding-left:10px; text-align:left;"><?= lang('total'); ?></td>
-                    <td style="border-right: 1px solid var(--nx-border); text-align:right; padding-right:10px; font-weight:bold;">
+                    <td style="border-right: 1px solid #ddd; text-align:right; padding-right:10px; font-weight:bold;">
                         <span id="total">0.00</span></td>
                 </tr>
                 <tr>
-                    <td style="border-left: 1px solid var(--nx-border); padding-left:10px; text-align:left; "><?= lang('discount'); ?></td>
+                    <td style="border-left: 1px solid #ddd; padding-left:10px; text-align:left; "><?= lang('discount'); ?></td>
                     <td style="text-align:right; padding-right:10px; font-weight:bold;">
                         <span id="ds_con">0.00</span></td>
                     <td style="padding-left:10px; text-align:left; font-weight:normal;"><?= lang('order_tax'); ?></td>
-                    <td style="border-right: 1px solid var(--nx-border); text-align:right; padding-right:10px; font-weight:bold;"><span id="ts_con">0.00</span></td>
+                    <td style="border-right: 1px solid #ddd; text-align:right; padding-right:10px; font-weight:bold;"><span id="ts_con">0.00</span></td>
                 </tr>
                 <tr>
                     <td colspan="2"
-                        style="padding: 5px 0px 5px 10px; text-align:left; font-size: 1.4em; border: 1px solid var(--primary); font-weight:bold; background:var(--primary); color:#fff;">
+                        style="padding: 5px 0px 5px 10px; text-align:left; font-size: 1.4em; border: 1px solid #333; font-weight:bold; background:#333; color:#FFF;">
                         <?= lang('total_payable'); ?>
                     </td>
                     <td colspan="2"
-                        style="text-align:right; padding:5px 10px 5px 0px; font-size: 1.4em; border: 1px solid var(--primary); font-weight:bold; background:var(--primary); color:#fff;">
+                        style="text-align:right; padding:5px 10px 5px 0px; font-size: 1.4em; border: 1px solid #333; font-weight:bold; background:#333; color:#FFF;">
                         <span id="total-payable">0.00</span></td>
                 </tr>
                 </tbody>
