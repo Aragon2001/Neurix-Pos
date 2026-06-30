@@ -802,11 +802,18 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.status === 'success') {
-            // Agregar al TomSelect del cliente
-            var sel = $('spos_customer');
+            // Agregar al TomSelect del cliente y actualizar _customers map
+            if (window._customers && res.customer) {
+              window._customers[res.id] = res.customer;
+            }
+            var sel = document.getElementById('spos_customer');
+            var hiddenCust = document.getElementById('pos-customer-hidden');
             if (sel && sel.tomselect) {
-              sel.tomselect.addOption({ value: res.id, text: res.val });
-              sel.tomselect.setValue(res.id);
+              var cust = res.customer || {};
+              var optText = res.val + (cust.cf2 ? ' (' + cust.cf2 + ')' : '');
+              sel.tomselect.addOption({ value: String(res.id), text: optText });
+              sel.tomselect.setValue(String(res.id));
+              if (hiddenCust) hiddenCust.value = String(res.id);
             } else if (sel) {
               var opt = document.createElement('option');
               opt.value = res.id;
@@ -814,6 +821,7 @@
               opt.selected = true;
               sel.appendChild(opt);
             }
+            renderCustomerCard(res.id);
             var modal = document.getElementById('customerModal');
             if (modal && window.bootstrap) {
               window.bootstrap.Modal.getInstance(modal).hide();
@@ -929,16 +937,165 @@
   /* ──────────────────────────────────────────────────────
      TOM SELECT: cliente
   ────────────────────────────────────────────────────── */
+  // Tipos de identificación según Hacienda CR (v4.4)
+  var CF1_LABELS = {
+    '01': 'Cédula Física',
+    '02': 'Cédula Jurídica',
+    '03': 'DIMEX',
+    '04': 'NITE',
+    '05': 'Pasaporte'
+  };
+
+  function getDefaultCustomerId() {
+    return String((window.Settings || {}).default_customer || '');
+  }
+
+  function renderCustomerCard(id) {
+    var searchWrap = document.getElementById('pos-cust-search-wrap');
+    var card       = document.getElementById('pos-cust-card');
+    var lupaBtn    = document.getElementById('pos-cust-lupa');
+    var clearBtn   = document.getElementById('pos-cust-clear');
+    var avatar     = document.getElementById('pos-cust-avatar');
+    var nameEl     = document.getElementById('pos-cust-name');
+    var metaEl     = document.getElementById('pos-cust-doc');
+    var contEl     = document.getElementById('pos-cust-contact');
+    if (!card) return;
+
+    var cmap = window._customers || {};
+    var c    = cmap[id];
+
+    // Sin cliente → mostrar barra, ocultar lupa y X, card en modo "contado"
+    if (!c) {
+      if (searchWrap) searchWrap.style.display = '';
+      if (lupaBtn)    lupaBtn.style.display    = 'none';
+      if (clearBtn)   clearBtn.style.display   = 'none';
+      card.className = 'pcp-cust-card is-default';
+      if (avatar) avatar.textContent = 'C';
+      if (nameEl) nameEl.textContent = 'Cliente de Contado';
+      if (metaEl) metaEl.innerHTML   = '';
+      if (contEl) contEl.innerHTML   = '';
+      return;
+    }
+
+    // Con cliente → ocultar barra, mostrar lupa y X dentro del card
+    if (searchWrap) searchWrap.style.display = 'none';
+    if (lupaBtn)    lupaBtn.style.display    = 'flex';
+    if (clearBtn)   clearBtn.style.display   = 'flex';
+
+    var name     = c.name || '—';
+    var initials = name.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
+
+    card.className = 'pcp-cust-card';
+    if (avatar) avatar.textContent = initials;
+    if (nameEl) nameEl.textContent = name;
+
+    // Badge: tipo + número documento
+    if (metaEl) {
+      var label = CF1_LABELS[c.cf1] || 'Doc.';
+      metaEl.innerHTML = c.cf2
+        ? '<span class="pcp-cust-badge"><i class="fa fa-id-card"></i>' + label + ': ' + c.cf2 + '</span>'
+        : '';
+    }
+
+    // Contacto: email + teléfono
+    if (contEl) {
+      var contact = '';
+      if (c.email) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-envelope"></i>' + c.email + '</span>';
+      if (c.phone) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-phone"></i>' + c.phone + '</span>';
+      contEl.innerHTML = contact;
+    }
+  }
+
   function initCustomerSelect() {
-    var sel = $('spos_customer');
+    var sel = document.getElementById('spos_customer');
     if (!sel || sel.tomselect) return;
-    if (window.TomSelect) {
-      var ts = new window.TomSelect(sel, { maxItems: 1, allowEmptyOption: false });
-      // Restaurar cliente guardado en localStorage
-      var savedCustomer = get('spos_customer');
-      if (savedCustomer) ts.setValue(savedCustomer);
-      // Guardar cambio
-      ts.on('change', function (val) { store('spos_customer', val); });
+    if (!window.TomSelect) return;
+
+    var defaultId = getDefaultCustomerId();
+
+    var hiddenInput = document.getElementById('pos-customer-hidden');
+
+    function setCustomer(val) {
+      store('spos_customer', val || '');
+      renderCustomerCard(val || '');
+      if (hiddenInput) hiddenInput.value = val || defaultId;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    var ts = new window.TomSelect(sel, {
+      maxItems: 1,
+      allowEmptyOption: false,
+      placeholder: 'Buscar cliente…',
+      plugins: [],
+      dropdownParent: 'body',
+      dropdownClass: 'ts-dropdown ts-cust-dropdown',
+      openOnFocus: true,
+      onDropdownOpen: function () {
+        // Cerrar inmediatamente si el input está vacío (clic sin escribir)
+        if (!this.control_input.value.trim()) {
+          var self = this;
+          setTimeout(function () { self.close(); }, 0);
+        }
+      },
+      // Nunca mostrar el ítem seleccionado dentro del control (la info va en la card)
+      render: {
+        item: function () { return '<div style="display:none"></div>'; },
+        option: function (data) {
+          // Separar nombre y documento: "NOMBRE (documento)"
+          var raw  = data.text || '';
+          var m    = raw.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+          var name = m ? m[1].trim() : raw;
+          var doc  = m ? m[2] : '';
+          var initials = name.split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
+          return '<div class="ts-cust-opt">' +
+            '<div class="ts-cust-opt-av">' + escapeHtml(initials) + '</div>' +
+            '<div class="ts-cust-opt-info">' +
+              '<div class="ts-cust-opt-name">' + escapeHtml(name) + '</div>' +
+              (doc ? '<div class="ts-cust-opt-doc"><i class="fa fa-id-card" style="font-size:.58rem;margin-right:.2rem"></i>' + escapeHtml(doc) + '</div>' : '') +
+            '</div>' +
+          '</div>';
+        }
+      },
+      onChange: function (val) { setCustomer(val); }
+    });
+
+    // Restaurar cliente guardado (si sigue existiendo como opción)
+    var savedCustomer = get('spos_customer');
+    if (savedCustomer && savedCustomer !== defaultId && ts.getOption(savedCustomer)) {
+      ts.setValue(savedCustomer, true);
+      renderCustomerCard(savedCustomer);
+      if (hiddenInput) hiddenInput.value = savedCustomer;
+    } else {
+      ts.clear(true);
+      renderCustomerCard('');
+    }
+
+    // Botón X (dentro del card) → limpiar y volver a contado
+    var clearBtn = document.getElementById('pos-cust-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        ts.clear(true);
+        setCustomer('');
+      });
+    }
+
+    // Botón lupa (dentro del card) → volver a mostrar la barra de búsqueda
+    var lupaBtn = document.getElementById('pos-cust-lupa');
+    if (lupaBtn) {
+      lupaBtn.addEventListener('click', function () {
+        // Limpiar selección y mostrar la barra
+        ts.clear(true);
+        setCustomer('');
+        // Abrir el dropdown automáticamente
+        setTimeout(function () {
+          var searchWrap = document.getElementById('pos-cust-search-wrap');
+          if (searchWrap) searchWrap.style.display = '';
+          ts.focus();
+        }, 30);
+      });
     }
   }
 

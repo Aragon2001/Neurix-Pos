@@ -11,7 +11,7 @@ class Pos_model extends CI_Model {
     public function getProductNames($term, $limit = 10, $sensibility = null) {
         $store_id = $this->session->userdata('store_id');
         $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(psq.qty_fracc, 0) as qty_fracc, 0 as esta_fraccionado, COALESCE(imp.id_impuesto, 0) as id_impuesto, COALESCE(imp.codigo_impuesto, 0) as codigo_impuesto, COALESCE(imp.codigo_tarifa, 0) as codigo_tarifa")
-                ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id}) psq", 'products.id=psq.product_id', 'left')
+                ->join("( SELECT product_id, MAX(quantity) as quantity, MAX(price) as price, MAX(qty_fracc) as qty_fracc from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left')
                 ->join("{$this->db->dbprefix('impuestos')} imp", 'products.id_tax=imp.id_impuesto', 'left');
         if ($this->db->dbdriver == 'sqlite3') {
             $this->db->where("(name LIKE '%{$term}%' OR code LIKE '%{$term}%' OR  (name || ' (' || code || ')') LIKE '%{$term}%')");
@@ -49,7 +49,7 @@ class Pos_model extends CI_Model {
     public function getProductPrice($term, $limit = 1) {
         $store_id = $this->session->userdata('store_id');
         $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(imp.id_impuesto, 0) as id_impuesto, COALESCE(imp.codigo_impuesto, 0) as codigo_impuesto, COALESCE(imp.codigo_tarifa, 0) as codigo_tarifa")
-                ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id}) psq", 'products.id=psq.product_id', 'left')
+                ->join("( SELECT product_id, MAX(quantity) as quantity, MAX(price) as price from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left')
                 ->join("{$this->db->dbprefix('impuestos')} imp", 'products.id_tax=imp.id_impuesto', 'left');
         if ($this->db->dbdriver == 'sqlite3') {
             $this->db->where("(name LIKE '%{$term}%' OR code LIKE '%{$term}%' OR  (name || ' (' || code || ')') LIKE '%{$term}%')");
