@@ -203,7 +203,7 @@
                 <div class="table-responsive">
 								<table style="width: 100%">
 									<tr>
-										<td rowspan="14" style="padding: 0; margin: 0; border: 1px solid #9c9c9c;">
+										<td rowspan="14" style="padding: 0; margin: 0; border: 1px solid var(--nx-border);">
 											<div class="col-md-12">
 												<h2>Formulario de Pago</h2>
 											</div>
@@ -276,79 +276,79 @@
 											</div>
 										</td>
 										<td align="right">TotalServGravados</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalServGravados">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalServExentos</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalServExentos">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalServExonerado</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalServExonerado">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalMercanciasGravadas</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalMercanciasGravadas">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalMercanciasExentas</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalMercanciasExentas">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalMercExonerada</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalMercExonerada">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalGravado</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalGravado">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalExento</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalExento">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalExonerado</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalExonerado">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalVenta</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalVenta">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalDescuentos</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalDescuentos">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalVentaNeta</td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalVentaNeta">0.00
 										</td>
 									</tr>
 									<tr>
 										<td align="right">TotalImpuesto</td>
-										<td style="width: 18%;padding: 0px 4% 0; border-bottom: solid 1px #dcdcdc;"
+										<td style="width: 18%;padding: 0px 4% 0; border-bottom: solid 1px var(--nx-border);"
 											align="right" id="TotalImpuesto">0.00
 										</td>
 									</tr>
