@@ -1025,6 +1025,7 @@
       plugins: [],
       dropdownParent: 'body',   // flota sobre la página, no empuja el layout
       dropdownClass: 'ts-dropdown ts-cust-dropdown',
+      openOnFocus: true,        // abre al hacer clic y filtra mientras se escribe
       // Nunca mostrar el ítem seleccionado dentro del control (la info va en la card)
       render: {
         item: function () { return '<div style="display:none"></div>'; },
