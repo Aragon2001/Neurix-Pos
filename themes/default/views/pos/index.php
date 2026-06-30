@@ -329,11 +329,19 @@
 
                 <!-- Customer -->
                 <div class="pcp-customer">
+                    <!-- Label + botón nuevo cliente -->
                     <div class="pcp-section-label">
-                        <i class="fa fa-user"></i>
+                        <i class="fa fa-user-circle"></i>
                         <?= lang('customer') ?>
+                        <button type="button" class="pcp-add-cust-btn ms-auto"
+                                data-bs-toggle="modal" data-bs-target="#customerModal"
+                                title="<?= lang('add_customer') ?>">
+                            <i class="fa fa-user-plus"></i>
+                        </button>
                     </div>
-                    <div class="pcp-customer-row">
+
+                    <!-- Selector TomSelect -->
+                    <div class="pcp-customer-search">
                         <?php
                         $cus = [];
                         foreach ($customers as $customer) {
@@ -342,11 +350,16 @@
                         ?>
                         <?= form_dropdown('customer_id', $cus, set_value('customer_id', $Settings->default_customer),
                             'id="spos_customer" class="form-select form-select-sm tom-select" required'); ?>
-                        <button type="button" class="pcp-add-cust-btn"
-                                data-bs-toggle="modal" data-bs-target="#customerModal"
-                                title="<?= lang('add_customer') ?>">
-                            <i class="fa fa-user-plus"></i>
-                        </button>
+                    </div>
+
+                    <!-- Tarjeta de datos del cliente (aparece al seleccionar) -->
+                    <div class="pcp-cust-card" id="pos-cust-card">
+                        <div class="pcp-cust-avatar" id="pos-cust-avatar">?</div>
+                        <div class="pcp-cust-info">
+                            <div class="pcp-cust-name" id="pos-cust-name">—</div>
+                            <div class="pcp-cust-meta" id="pos-cust-doc"></div>
+                            <div class="pcp-cust-contact" id="pos-cust-contact"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -777,6 +790,12 @@
     window._pos_tcp     = <?= (int)$tcp; ?>;
     window._pos_sid     = <?= (int)$sid; ?>;
     window._impuestos   = <?= json_encode($impuestos_list ?: []); ?>;
+    window._customers   = <?php
+        $cmap = [];
+        if ($customers) foreach ($customers as $c)
+            $cmap[$c->id] = ['name'=>$c->name,'cf1'=>$c->cf1,'cf2'=>$c->cf2,'email'=>$c->email,'phone'=>$c->phone,'company'=>isset($c->company)?$c->company:''];
+        echo json_encode($cmap);
+    ?>;
 
     var lang = {
         no_match_found:      '<?= addslashes(lang('no_match_found')); ?>',

@@ -431,31 +431,142 @@ body.pos-v2 {
 }
 
 /* Customer section */
+/* ─── SECCIÓN CLIENTE ──────────────────────────────────────── */
 .pcp-customer {
-  padding: .75rem .875rem .625rem;
+  padding: .75rem .875rem .6rem;
   border-bottom: 1px solid var(--nx-border);
   background: var(--nx-bg3);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
 }
+
 .pcp-section-label {
   font-size: .65rem; font-weight: 700;
   color: var(--nx-txt4); text-transform: uppercase;
-  letter-spacing: .6px; margin-bottom: .4rem;
+  letter-spacing: .6px;
   display: flex; align-items: center; gap: .35rem;
+  margin-bottom: 0;
 }
 .pcp-section-label i { color: var(--nx-a1); }
-.pcp-customer-row { display: flex; gap: .4rem; align-items: center; }
-/* La <select> original se oculta siempre; TomSelect crea el .ts-wrapper visible */
-.pcp-customer-row select.tom-select { display: none; }
-.pcp-customer-row .ts-wrapper { flex: 1; min-width: 0; }
+
 .pcp-add-cust-btn {
-  width: 34px; height: 34px; flex-shrink: 0;
+  width: 26px; height: 26px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: var(--nx-ok); border: none; border-radius: 8px;
-  color: white; cursor: pointer; font-size: .9rem;
-  transition: all .18s;
+  background: transparent;
+  border: 1px solid var(--nx-border);
+  border-radius: 6px;
+  color: var(--nx-ok); cursor: pointer; font-size: .75rem;
+  transition: all .15s;
 }
-.pcp-add-cust-btn:hover { background: var(--nx-emerald); transform: scale(1.06); }
+.pcp-add-cust-btn:hover {
+  background: var(--nx-ok);
+  border-color: var(--nx-ok);
+  color: white;
+}
+
+/* Selector TomSelect */
+.pcp-customer-search { position: relative; }
+.pcp-customer-search select.tom-select { display: none; }
+.pcp-customer-search .ts-wrapper { width: 100%; }
+.pcp-customer-search .ts-control {
+  background: var(--nx-bg2) !important;
+  border-color: var(--nx-border) !important;
+  border-radius: 8px !important;
+  font-size: .8rem !important;
+  min-height: 32px !important;
+  padding: .2rem .55rem !important;
+}
+.pcp-customer-search .ts-control input { color: var(--nx-txt1) !important; font-size: .8rem !important; }
+.pcp-customer-search .ts-control .item { color: var(--nx-txt1) !important; font-size: .8rem !important; }
+
+/* Tarjeta de datos del cliente */
+.pcp-cust-card {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  background: linear-gradient(135deg, rgba(56,189,248,.07) 0%, rgba(99,102,241,.05) 100%);
+  border: 1px solid rgba(56,189,248,.18);
+  border-radius: 10px;
+  padding: .55rem .7rem;
+  min-height: 52px;
+  transition: opacity .2s;
+}
+.pcp-cust-card.is-default {
+  background: var(--nx-bg2);
+  border-color: var(--nx-border);
+}
+
+.pcp-cust-avatar {
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--nx-a1), var(--nx-a2, #6366f1));
+  display: flex; align-items: center; justify-content: center;
+  font-size: .9rem; font-weight: 700; color: white;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  box-shadow: 0 2px 8px rgba(56,189,248,.3);
+}
+.pcp-cust-card.is-default .pcp-cust-avatar {
+  background: var(--nx-bg3);
+  box-shadow: none;
+  color: var(--nx-txt4);
+}
+
+.pcp-cust-info { flex: 1; min-width: 0; }
+
+.pcp-cust-name {
+  font-size: .82rem; font-weight: 600;
+  color: var(--nx-txt1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.pcp-cust-card.is-default .pcp-cust-name { color: var(--nx-txt3); }
+
+.pcp-cust-meta {
+  display: flex; align-items: center; gap: .3rem;
+  flex-wrap: wrap; margin-top: .18rem;
+}
+.pcp-cust-badge {
+  display: inline-flex; align-items: center; gap: .2rem;
+  font-size: .67rem; font-weight: 600;
+  background: rgba(56,189,248,.12);
+  color: var(--nx-a1);
+  border: 1px solid rgba(56,189,248,.2);
+  border-radius: 4px;
+  padding: .05rem .35rem;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+.pcp-cust-card.is-default .pcp-cust-badge {
+  background: var(--nx-bg3);
+  color: var(--nx-txt4);
+  border-color: var(--nx-border);
+}
+
+.pcp-cust-contact {
+  display: flex; gap: .5rem; flex-wrap: wrap;
+  margin-top: .18rem;
+}
+.pcp-cust-contact-item {
+  display: flex; align-items: center; gap: .22rem;
+  font-size: .68rem; color: var(--nx-txt4);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 140px;
+}
+.pcp-cust-contact-item i { font-size: .6rem; color: var(--nx-txt4); flex-shrink: 0; }
+
+/* Light mode overrides */
+[data-theme="light"] .pcp-cust-card {
+  background: linear-gradient(135deg, rgba(56,189,248,.06) 0%, rgba(99,102,241,.04) 100%);
+}
+[data-theme="light"] .pcp-customer-search .ts-control {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .pcp-cust-name { color: #1e293b; }
+[data-theme="light"] .pcp-cust-contact-item { color: #64748b; }
 
 /* Cart header (item count bar) */
 .pcp-cart-bar {

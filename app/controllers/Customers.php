@@ -59,7 +59,20 @@ class Customers extends MY_Controller
         if ( $this->form_validation->run() == true && $cid = $this->customers_model->addCustomer($data)) {
 
             if($this->input->is_ajax_request()) {
-                echo json_encode(array('status' => 'success', 'msg' =>  $this->lang->line("customer_added"), 'id' => $cid, 'val' => $data['name']));
+                echo json_encode(array(
+                    'status' => 'success',
+                    'msg'    => $this->lang->line("customer_added"),
+                    'id'     => $cid,
+                    'val'    => $data['name'],
+                    'customer' => array(
+                        'name'    => $data['name'],
+                        'cf1'     => $data['cf1'] ?? '',
+                        'cf2'     => $data['cf2'] ?? '',
+                        'email'   => $data['email'] ?? '',
+                        'phone'   => $data['phone'] ?? '',
+                        'company' => $data['company'] ?? '',
+                    ),
+                ));
                 die();
             }
             $this->session->set_flashdata('message', $this->lang->line("customer_added"));

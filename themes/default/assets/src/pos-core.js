@@ -802,7 +802,10 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.status === 'success') {
-            // Agregar al TomSelect del cliente
+            // Agregar al TomSelect del cliente y actualizar _customers map
+            if (window._customers && res.customer) {
+              window._customers[res.id] = res.customer;
+            }
             var sel = $('spos_customer');
             if (sel && sel.tomselect) {
               sel.tomselect.addOption({ value: res.id, text: res.val });
@@ -814,6 +817,7 @@
               opt.selected = true;
               sel.appendChild(opt);
             }
+            renderCustomerCard(res.id);
             var modal = document.getElementById('customerModal');
             if (modal && window.bootstrap) {
               window.bootstrap.Modal.getInstance(modal).hide();
@@ -929,16 +933,70 @@
   /* ──────────────────────────────────────────────────────
      TOM SELECT: cliente
   ────────────────────────────────────────────────────── */
+  var CF1_LABELS = { '01':'Cédula', '02':'Jurídica', '03':'DIMEX', '04':'NITE', '05':'Pasaporte' };
+
+  function renderCustomerCard(id) {
+    var card    = document.getElementById('pos-cust-card');
+    var avatar  = document.getElementById('pos-cust-avatar');
+    var nameEl  = document.getElementById('pos-cust-name');
+    var metaEl  = document.getElementById('pos-cust-doc');
+    var contEl  = document.getElementById('pos-cust-contact');
+    if (!card) return;
+
+    var cmap = window._customers || {};
+    var c    = cmap[id];
+
+    if (!c) {
+      card.className = 'pcp-cust-card is-default';
+      if (avatar) { avatar.textContent = '?'; }
+      if (nameEl) nameEl.textContent = '—';
+      if (metaEl) metaEl.innerHTML = '';
+      if (contEl) contEl.innerHTML = '';
+      return;
+    }
+
+    var name    = c.name || '—';
+    var initials = name.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
+    var isDefault = String(id) === String((window.Settings || {}).default_customer);
+
+    card.className = 'pcp-cust-card' + (isDefault ? ' is-default' : '');
+    if (avatar) avatar.textContent = initials;
+    if (nameEl) nameEl.textContent = name;
+
+    // Badge: tipo + número documento
+    var meta = '';
+    if (c.cf2) {
+      var label = CF1_LABELS[c.cf1] || 'Doc.';
+      meta += '<span class="pcp-cust-badge"><i class="fa fa-id-card"></i>' + label + ': ' + c.cf2 + '</span>';
+    }
+    if (metaEl) metaEl.innerHTML = meta;
+
+    // Contacto: email + teléfono
+    var contact = '';
+    if (c.email) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-envelope"></i>' + c.email + '</span>';
+    if (c.phone) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-phone"></i>' + c.phone + '</span>';
+    if (contEl) contEl.innerHTML = contact;
+  }
+
   function initCustomerSelect() {
     var sel = $('spos_customer');
     if (!sel || sel.tomselect) return;
     if (window.TomSelect) {
-      var ts = new window.TomSelect(sel, { maxItems: 1, allowEmptyOption: false });
+      var ts = new window.TomSelect(sel, {
+        maxItems: 1,
+        allowEmptyOption: false,
+        placeholder: 'Buscar cliente…',
+      });
       // Restaurar cliente guardado en localStorage
       var savedCustomer = get('spos_customer');
-      if (savedCustomer) ts.setValue(savedCustomer);
-      // Guardar cambio
-      ts.on('change', function (val) { store('spos_customer', val); });
+      var initVal = savedCustomer || sel.value;
+      if (initVal) ts.setValue(initVal);
+      renderCustomerCard(initVal || sel.value);
+      // Guardar + actualizar tarjeta al cambiar
+      ts.on('change', function (val) {
+        store('spos_customer', val);
+        renderCustomerCard(val);
+      });
     }
   }
 
