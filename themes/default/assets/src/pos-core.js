@@ -1023,9 +1023,9 @@
       allowEmptyOption: false,
       placeholder: 'Buscar cliente…',
       plugins: [],
-      dropdownParent: 'body',   // flota sobre la página, no empuja el layout
+      dropdownParent: 'body',
       dropdownClass: 'ts-dropdown ts-cust-dropdown',
-      openOnFocus: true,        // abre al hacer clic y filtra mientras se escribe
+      openOnFocus: false,
       // Nunca mostrar el ítem seleccionado dentro del control (la info va en la card)
       render: {
         item: function () { return '<div style="display:none"></div>'; },
@@ -1046,6 +1046,11 @@
         }
       },
       onChange: function (val) { setCustomer(val); }
+    });
+
+    // Solo mostrar el dropdown cuando hay texto escrito
+    ts.on('type', function (str) {
+      if (!str || str.trim().length === 0) ts.close();
     });
 
     // Restaurar cliente guardado (si sigue existiendo como opción)
