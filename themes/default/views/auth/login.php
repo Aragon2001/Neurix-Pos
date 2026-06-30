@@ -8,6 +8,9 @@
     <script>if (parent.frames.length !== 0) { top.location = '<?= site_url('login') ?>'; }</script>
     <?php } ?>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet">
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <style>
@@ -31,7 +34,7 @@
     body.nlx-body {
         margin: 0;
         background: var(--bg);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         display: flex; align-items: center; justify-content: center;
         min-height: 100vh; overflow: hidden; padding: 20px;
     }

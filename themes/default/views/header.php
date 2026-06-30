@@ -35,7 +35,7 @@
         <span class="logo-mini" style="
             display:inline-flex;align-items:center;justify-content:center;
             width:32px;height:32px;border-radius:8px;flex-shrink:0;
-            background:linear-gradient(135deg,#0369a1,#38bdf8);
+            background:linear-gradient(135deg,var(--info),var(--primary));
             color:#fff;font-size:15px;font-weight:800;
             box-shadow:0 2px 10px rgba(56,189,248,.4);">
             <?= mb_strtoupper(mb_substr($Settings->site_name, 0, 1)); ?>
@@ -66,7 +66,7 @@
                 <?php if ($Admin && $qty_alert_num && $this->session->userdata('store_id')): ?>
                 <li>
                     <a href="<?= site_url('reports/alerts'); ?>" data-bs-toggle="tooltip" data-placement="bottom" title="<?= lang('alerts'); ?>">
-                        <i class="fa fa-bell" style="color:#eab308;"></i>
+                        <i class="fa fa-bell" style="color:var(--warning);"></i>
                         <span class="label label-warning"><?= $qty_alert_num; ?></span>
                     </a>
                 </li>

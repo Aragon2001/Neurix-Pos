@@ -39,10 +39,10 @@
                     <table class="table table-striped table-condensed">
                         <thead>
                             <tr>
-                                <th style="text-align:center; width: 50%; border-bottom: 2px solid #ddd;"><?=lang('description');?></th>
-                                <th style="text-align:center; width: 12%; border-bottom: 2px solid #ddd;"><?=lang('quantity');?></th>
-                                <th style="text-align:center; width: 24%; border-bottom: 2px solid #ddd;"><?=lang('price');?></th>
-                                <th style="text-align:center; width: 26%; border-bottom: 2px solid #ddd;"><?=lang('subtotal');?></th>
+                                <th style="text-align:center; width: 50%; border-bottom: 2px solid var(--nx-border);"><?=lang('description');?></th>
+                                <th style="text-align:center; width: 12%; border-bottom: 2px solid var(--nx-border);"><?=lang('quantity');?></th>
+                                <th style="text-align:center; width: 24%; border-bottom: 2px solid var(--nx-border);"><?=lang('price');?></th>
+                                <th style="text-align:center; width: 26%; border-bottom: 2px solid var(--nx-border);"><?=lang('subtotal');?></th>
                             </tr>
                         </thead>
                         <tbody>

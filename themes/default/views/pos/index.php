@@ -7,6 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $page_title . ' | ' . $Settings->site_name; ?></title>
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png" />
+    <!-- Anti-FOUC: apply saved theme before first paint -->
+    <script>
+        (function(){var t=localStorage.getItem('nx-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="<?= $assets ?>dist/css/neurix-theme.css" rel="stylesheet" type="text/css" />
     <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet" />' : ''; ?>
     <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
@@ -739,7 +747,7 @@
                                             <?php } ?>
                                             <input style="width: 49%; float:left;" type="text" name="spos_note" id="spos_note" value="<?= $Settings->enable_parquimetro == "0" ? "" : "Placa numero " . $reference_note ?>" class="form-control kb-text" placeholder="Nota de La factura" <?= $Settings->enable_parquimetro == "0" ? "" : "readonly='readonly'" ?> />
                                             <div class="col-md-12">
-                                                <hr style="border: 1px solid #7d7fb9;" />
+                                                <hr style="border: 1px solid var(--nx-border);" />
                                                 <h4>Otros Textos
                                                     <small>(Agregue otros textos en esta seccion estos apareceran en el xml
                                                         del tiquete electronico)
@@ -749,14 +757,14 @@
                                                     texto
                                                 </button>
                 <div class="table-responsive">
-                                                <table style="width: 100%">
+                                                <table class="table table-bordered table-condensed" style="width: 100%">
                                                     <thead>
-                                                        <tr style="background: #a3d2da;  font-size: 16px;  font-weight: bold;">
+                                                        <tr style="background: var(--table-head-bg); font-size: 16px; font-weight: bold;">
                                                             <td style="width: 25%; text-align: center;">Asunto / Codigo</td>
-                                                            <td style="width: 73%; border-left: 1px solid #9c9c9c; text-align: center;">
+                                                            <td style="width: 73%; border-left: 1px solid var(--nx-border); text-align: center;">
                                                                 Texto
                                                             </td>
-                                                            <td style="width: 2%; border-left: 1px solid #9c9c9c; text-align: center;">
+                                                            <td style="width: 2%; border-left: 1px solid var(--nx-border); text-align: center;">
                                                                 <i class="fa fa-trash-o" style="padding: 0 5px; font-size: 18px;"></i></td>
                                                         </tr>
                                                     </thead>
@@ -892,7 +900,7 @@
                 <div class="table-responsive">
         <table id="bill-total-table" width="100%" class="prT table table-striped table-condensed" style="width:100%;margin-bottom:0;"></table>
     </div>
-    <div style="width:500px;background:#FFF;display:block">
+    <div style="width:500px;background:var(--nx-card-bg);display:block">
         <div id="order-data" style="display:none;" class="text-center">
             <h1><?= html_escape($store->name); ?></h1>
             <h2><?= lang('order'); ?></h2>
@@ -970,7 +978,7 @@
                     <div class="content" style="padding: 0;">
                         <div class="tableFixHead col-lg-5 col-md-5 col-sm-5" style="padding: 0;min-height: 250px;max-height: 250px; ">
                 <div class="table-responsive">
-                            <table class="col-md-12" id="tblReceivable">
+                            <table class="table table-condensed col-md-12" id="tblReceivable">
                                 <thead>
                                     <tr>
                                         <td>Articulo</td>
@@ -1336,13 +1344,13 @@
                                     display: none; visivility:hidden;
                                     font-weight: bold;
                                     padding: 0;
-                                    border: 1px solid #ccc;">
+                                    border: 1px solid var(--nx-border);">
                             <option value="cash"><?= lang("cash"); ?></option>
                             <option value="CC">Tarjeta</option>
                         </select>
 
                         <?= lang("Monto de Apartado", "Monto de Apartado"); ?>
-                        <input name="amount_apartado" style="text-align:right; border:none; font-size:18px;border: 1px solid #ccc; color: black;" type="number" id="amount_apartado" class="pa form-control kb-pad amount" />
+                        <input name="amount_apartado" style="text-align:right; border:none; font-size:18px;border: 1px solid var(--nx-border); color: var(--nx-txt1);" type="number" id="amount_apartado" class="pa form-control kb-pad amount" />
                     </div>
 
                 </div>
@@ -1378,7 +1386,7 @@
                                 <table class="table table-bordered table-condensed" style="width:100%; margin-bottom: 0; font-size:40px;">
                                     <tbody>
                                         <tr>
-                                            <td width="25%" style="border-right-color: #FFF !important;"><?= lang("total_payable"); ?></td>
+                                            <td width="25%" style="border-right-color: var(--nx-border) !important;"><?= lang("total_payable"); ?></td>
                                             <td colspan="2" width="75%" class="text-right"><span id="twt">0.00</span></td>
 
                                         </tr>
@@ -1389,39 +1397,39 @@
                                         </tr>
                                         <tr>
                                             <td class="text-left">
-                                                <input name="paid_by1" style="text-align:left; border:none; font-size:30px; color: black;" type="text" id="paid_by1" class="pa form-control kb-pad paid_by" value="<?= lang("cash"); ?>" readonly />
+                                                <input name="paid_by1" style="text-align:left; border:none; font-size:30px; color: var(--nx-txt1);" type="text" id="paid_by1" class="pa form-control kb-pad paid_by" value="<?= lang("cash"); ?>" readonly />
                                             </td>
                                             <td class="text-right">
                                                 <?php if ($apa_grand_total != 0) { ?>
-                                                    <input name="amount" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="amount" value="<?php echo $apa_grand_total; ?>" class="pa form-control kb-pad amount" />
+                                                    <input name="amount" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="amount" value="<?php echo $apa_grand_total; ?>" class="pa form-control kb-pad amount" />
                                                 <?php } else { ?>
-                                                    <input name="amount" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="amount" class="pa form-control kb-pad amount" />
+                                                    <input name="amount" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="amount" class="pa form-control kb-pad amount" />
                                                 <?php } ?>
                                             </td>
                                             <td class="text-right">
-                                                <input name="fpreferenciaNA" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="fpreferenciaNA" class="pa form-control kb-pad amount" value="N/A" readonly />
+                                                <input name="fpreferenciaNA" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="fpreferenciaNA" class="pa form-control kb-pad amount" value="N/A" readonly />
                                             </td>
                                         </tr>
                                         <tr>
                                             <td class="text-right">
                                                 <select id="pcc_type1" name="pcc_type1" placeholder="Tarjeta" class="form-control paid_by " style="font-size: 30px;
                                                             width: 99%;
-                                                            color: #000;
+                                                            color: var(--nx-txt1);
                                                             font-weight: bold;
                                                             height: 35px;
                                                             padding: 0;
                                                             border: none;
-                                                            background: #EEE;">
+                                                            background: var(--nx-bg2);">
                                                     <option value="Debito" selected="selected">Debito</option>
                                                     <option value="Visa"><?= lang("Visa"); ?></option>
                                                     <option value="MasterCard"><?= lang("MasterCard"); ?></option>
                                                 </select>
                                             </td>
-                                            <td style="border-left: 1px solid #000 !important;">
-                                                <input name="amount2" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="amount2" class="pa form-control kb-pad amount" />
+                                            <td style="border-left: 1px solid var(--nx-border) !important;">
+                                                <input name="amount2" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="amount2" class="pa form-control kb-pad amount" />
                                             </td>
                                             <td class="text-right">
-                                                <input name="fpreferencia1" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="fpreferencia1" class="pa form-control kb-pad amount" value="0" />
+                                                <input name="fpreferencia1" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="fpreferencia1" class="pa form-control kb-pad amount" value="0" />
                                             </td>
                                         </tr>
 
@@ -1429,44 +1437,44 @@
                                             <td class="text-right">
                                                 <select id="pcc_type2" name="pcc_type2" placeholder="Tarjeta" class="form-control paid_by " style="font-size: 30px;
                                                             width: 99%;
-                                                            color: #000;
+                                                            color: var(--nx-txt1);
                                                             font-weight: bold;
                                                             height: 35px;
                                                             padding: 0;
                                                             border: none;
-                                                            background: #EEE;">
+                                                            background: var(--nx-bg2);">
                                                     <option value="Debito">Debito</option>
                                                     <option value="Visa" selected="selected"><?= lang("Visa"); ?></option>
                                                     <option value="MasterCard"><?= lang("MasterCard"); ?></option>
                                                 </select>
                                             </td>
-                                            <td style="border-left: 1px solid #000 !important;">
-                                                <input name="amount3" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="amount3" class="pa form-control kb-pad amount" />
+                                            <td style="border-left: 1px solid var(--nx-border) !important;">
+                                                <input name="amount3" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="amount3" class="pa form-control kb-pad amount" />
                                             </td>
                                             <td class="text-right">
-                                                <input name="fpreferencia2" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="fpreferencia2" class="pa form-control kb-pad amount" value="0" />
+                                                <input name="fpreferencia2" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="fpreferencia2" class="pa form-control kb-pad amount" value="0" />
                                             </td>
                                         </tr>
                                         <tr>
                                             <td class="text-right">
                                                 <select id="pcc_type3" name="pcc_type3" placeholder="Tarjeta" class="form-control paid_by " style="font-size: 30px;
                                                             width: 99%;
-                                                            color: #000;
+                                                            color: var(--nx-txt1);
                                                             font-weight: bold;
                                                             height: 35px;
                                                             padding: 0;
                                                             border: none;
-                                                            background: #EEE;">
+                                                            background: var(--nx-bg2);">
                                                     <option value="Debito">Debito</option>
                                                     <option value="Visa"><?= lang("Visa"); ?></option>
                                                     <option value="MasterCard" selected="selected"><?= lang("MasterCard"); ?></option>
                                                 </select>
                                             </td>
-                                            <td style="border-left: 1px solid #000 !important;">
-                                                <input name="amount4" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="amount4" class="pa form-control kb-pad amount" />
+                                            <td style="border-left: 1px solid var(--nx-border) !important;">
+                                                <input name="amount4" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="amount4" class="pa form-control kb-pad amount" />
                                             </td>
                                             <td class="text-right">
-                                                <input name="fpreferencia3" style="text-align:right; border:none; font-size:30px; color: black; background: #EEE;" type="text" id="fpreferencia3" class="pa form-control kb-pad amount" value="0" />
+                                                <input name="fpreferencia3" style="text-align:right; border:none; font-size:30px; color: var(--nx-txt1); background: var(--nx-bg2);" type="text" id="fpreferencia3" class="pa form-control kb-pad amount" value="0" />
                                             </td>
                                         </tr>
                                         <tr>
@@ -1474,12 +1482,12 @@
                                                 <td>
                                                     <select class="form-control paid_by " style="font-size: 30px;
                                                             width: 99%;
-                                                            color: #000;
+                                                            color: var(--nx-txt1);
                                                             font-weight: bold;
                                                             height: 35px;
                                                             padding: 0;
                                                             border: none;
-                                                            background: #EEE;" id="shipping_method" name="shipping_method">
+                                                            background: var(--nx-bg2);" id="shipping_method" name="shipping_method">
                                                         <option value="">Metodo de envio</option>
                                                         <?php foreach ($shipping as $sh) { ?>
                                                         <?php
@@ -1488,7 +1496,7 @@
                                                     </select>
                                                 </td>
                                             <?php } ?>
-                                            <td style="border-right-color: #FFF !important;">Cambio</td>
+                                            <td style="border-right-color: var(--nx-border) !important;">Cambio</td>
                                             <td colspan="2" class="text-right"><span id="balance">0.00</span></td>
                                         </tr>
                                     </tbody>
@@ -1655,7 +1663,7 @@
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label" for="name">
-                                    <?= lang("name"); ?><span style="color:red">*</span>
+                                    <?= lang("name"); ?><span style="color:var(--danger)">*</span>
                                 </label>
                                 <?= form_input('name', '', 'class="form-control input-sm kb-text" id="cname" required="required"'); ?>
                             </div>
@@ -1694,7 +1702,7 @@
                         <div class="col-6">
                             <div class="mb-3">
                                 <label class="form-label" for="cf1">
-                                    <?php echo lang("cf1"); ?><span style="color:red">*</span>
+                                    <?php echo lang("cf1"); ?><span style="color:var(--danger)">*</span>
                                 </label>
                                 <!--                            --><?php //= form_input('cf1', '', 'class="form-control input-sm kb-text" id="cf1"');  
                                                                     ?>
@@ -1717,7 +1725,7 @@
                         <div class="col-6">
                             <div class="mb-3">
                                 <label class="form-label" for="cf2">
-                                    <?php echo lang("cf2"); ?><span style="color:red">*</span>
+                                    <?php echo lang("cf2"); ?><span style="color:var(--danger)">*</span>
                                 </label>
                                 <?php echo form_input('cf2', '', 'class="form-control input-sm kb-text" id="cf2"  required="required"'); ?>
                                 <span id="identifispan"></span>
@@ -1754,7 +1762,7 @@
                         <div class="col-6">
                             <div class="mb-3">
                                 <label class="form-label" for="name">
-                                    <?= lang("TipoDocumentoE"); ?><span style="color:red">*</span>
+                                    <?= lang("TipoDocumentoE"); ?><span style="color:var(--danger)">*</span>
                                 </label>
                                 <?php
                                 $tipoDocE = [
@@ -1780,7 +1788,7 @@
                         <div class="col-6">
                             <div class="mb-3">
                                 <label class="form-label" for="business_name">
-                                    <?= lang("NumeroDocumentoE"); ?><span style="color:red">*</span>
+                                    <?= lang("NumeroDocumentoE"); ?><span style="color:var(--danger)">*</span>
                                 </label>
                                 <?= form_input('NumeroDocumentoE', '', 'class="form-control input-sm kb-text" id="NumeroDocumentoE"'); ?>
                             </div>
@@ -1789,7 +1797,7 @@
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label" for="business_name">
-                                    <?= lang("NombreInstitucionE"); ?><span style="color:red">*</span>
+                                    <?= lang("NombreInstitucionE"); ?><span style="color:var(--danger)">*</span>
                                 </label>
                                 <?= form_input('NombreInstitucionE', '', 'class="form-control input-sm kb-text" id="NombreInstitucionE"'); ?>
                             </div>
@@ -1798,7 +1806,7 @@
                         <div class="col-6">
                             <div class="mb-3">
                                 <label class="form-label" for="business_name">
-                                    <?= lang("FechaEmisionE"); ?><span style="color:red">*</span>
+                                    <?= lang("FechaEmisionE"); ?><span style="color:var(--danger)">*</span>
                                 </label>
                                 <?php $dateE = date('Y-m-d') . 'T' . date('H:i:s'); ?>
                                 <input type="text" name="FechaEmisionE" id="FechaEmisionE" readonly="" value="<?php echo $dateE; ?>" class="form-control input-sm kb-text">

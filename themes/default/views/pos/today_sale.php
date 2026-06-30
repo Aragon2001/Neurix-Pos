@@ -11,42 +11,42 @@
                 <div class="table-responsive">
             <table width="100%" class="stable">
                 <tr>
-                    <td style="border-bottom: 1px solid #008d4c;"><h4><?= lang('cash_sale'); ?>:</h4></td>
-                    <td style="text-align:right; border-bottom: 1px solid #008d4c;"><h4>
+                    <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('cash_sale'); ?>:</h4></td>
+                    <td style="text-align:right; border-bottom: 1px solid var(--nx-ok);"><h4>
                             <span><?= $this->tec->formatMoney($cashsales->paid ? $cashsales->paid : '0.00') . ' (' . $this->tec->formatMoney($cashsales->total ? $cashsales->total : '0.00') . ')'; ?></span>
                         </h4></td>
                 </tr>
                 <tr>
-                    <td style="border-bottom: 1px solid #008d4c;"><h4><?= lang('ch_sale'); ?>:</h4></td>
-                    <td style="text-align:right;border-bottom: 1px solid #008d4c;"><h4>
+                    <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('ch_sale'); ?>:</h4></td>
+                    <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><h4>
                             <span><?= $this->tec->formatMoney($chsales->paid ? $chsales->paid : '0.00') . ' (' . $this->tec->formatMoney($chsales->total ? $chsales->total : '0.00') . ')'; ?></span>
                         </h4></td>
                 </tr>
                 <tr>
-                    <td style="border-bottom: 1px solid #008d4c;"><h4><?= lang('cc_sale'); ?>:</h4></td>
-                    <td style="text-align:right;border-bottom: 1px solid #008d4c;"><h4>
+                    <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('cc_sale'); ?>:</h4></td>
+                    <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><h4>
                             <span><?= $this->tec->formatMoney($ccsales->paid ? $ccsales->paid : '0.00') . ' (' . $this->tec->formatMoney($ccsales->total ? $ccsales->total : '0.00') . ')'; ?></span>
                         </h4></td>
                 </tr>
                 <tr>
-                    <td style="border-bottom: 1px solid #008d4c;"><h4><?= lang('gc_sale'); ?>:</h4></td>
-                    <td style="text-align:right;border-bottom: 1px solid #008d4c;"><h4>
+                    <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('gc_sale'); ?>:</h4></td>
+                    <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><h4>
                             <span><?= $this->tec->formatMoney($gcsales->paid ? $gcsales->paid : '0.00') . ' (' . $this->tec->formatMoney($gcsales->total ? $gcsales->total : '0.00') . ')'; ?></span>
                         </h4></td>
                 </tr>
 
                 <?php if (isset($Settings->stripe)) { ?>
                     <tr>
-                        <td style="border-bottom: 1px solid #008d4c;"><h4><?= lang('stripe'); ?>:</h4></td>
-                        <td style="text-align:right;border-bottom: 1px solid #008d4c;"><h4>
+                        <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('stripe'); ?>:</h4></td>
+                        <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><h4>
                                 <span><?= $this->tec->formatMoney($stripesales->paid ? $stripesales->paid : '0.00') . ' (' . $this->tec->formatMoney($stripesales->total ? $stripesales->total : '0.00') . ')'; ?></span>
                             </h4></td>
                     </tr>
                 <?php } ?>
 
                 <tr>
-                    <td style="border-bottom: 1px solid #008d4c;"><h4><?= lang('other_sale'); ?>:</h4></td>
-                    <td style="text-align:right;border-bottom: 1px solid #008d4c;"><h4>
+                    <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('other_sale'); ?>:</h4></td>
+                    <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><h4>
                             <span><?= $this->tec->formatMoney($other_sales->paid ? $other_sales->paid : '0.00') . ' (' . $this->tec->formatMoney($other_sales->total ? $other_sales->total : '0.00') . ')'; ?></span>
                         </h4></td>
                 </tr>
