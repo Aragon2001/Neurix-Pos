@@ -7,16 +7,7 @@
 
 La migración de stack visual (Bootstrap 3→5, AdminLTE 2→4, jQuery fuera) se ejecutó mediante ediciones automatizadas masivas (find/replace sobre 131 vistas) **sin un paso de verificación posterior**. Eso dejó la arquitectura del repositorio en mal estado en múltiples frentes. 
 
-**✅ TODOS LOS 7 PROBLEMAS HAN SIDO CORREGIDOS Y LA ARQUITECTURA HA SIDO COMPLETAMENTE MODERNIZADA** en esta sesión:
-1. Corrupción de datos (bytes NUL en 79 vistas)
-2. CSS generado incorrectamente (imports faltantes)
-3. node_modules trackeado en git (7,902 archivos)
-4. Ruido de fin de línea CRLF/LF
-5. HTML malformado (`<ul>` sin cerrar)
-6. Layout desactualizdo (AdminLTE 2 → AdminLTE 4 + Bootstrap 5 vanilla JS)
-7. **Sidebar invisible en desktop + selector CSS muerto** (CRÍTICO)
-
-El repo está completamente limpio, normalizado, compilado, y **listo para testing visual en navegador**.
+**Todos los problemas 1-8 corregidos + fases de restauración completadas.** El sistema de variables CSS `--nx-*` fue restaurado en `neurix-theme-vars.css` e importado en `main.js`. El CSS compilado (1,559 KB) contiene las 19 variables `--nx-*` que resuelven correctamente en todas las vistas. El POS recibe estilos propios (`pos-redesign.css` importado) y su motor vanilla JS (`pos-core.js` copiado a `dist/js/` por plugin Vite). Bug de detección de tema en ApexCharts corregido. `dashboard.php` (código muerto) eliminado del repo. Las 14 variables usadas por `dashboard/index.php` están todas definidas y cobertas.
 
 | # | Problema | Severidad | Estado |
 |---|---|---|---|
@@ -27,6 +18,7 @@ El repo está completamente limpio, normalizado, compilado, y **listo para testi
 | 5 | Dos `<ul>` sin cerrar en `header.php` | 🟡 Media | ✅ Corregido — Commit 25bb91b |
 | 6 | Layout AdminLTE 2 + jQuery en AdminLTE 4 project | 🟡 Media | ✅ Corregido — Commits 4c4de0b, 84a6250 |
 | 7 | Sidebar invisible en desktop (`offcanvas` sin breakpoint) + selector CSS muerto (`.content-wrapper` vs `.content`) | 🔴 Crítica | ✅ Corregido — Commit 5b80564 |
+| 8 | Sistema de variables `--nx-*` huérfano: Dashboard real y 7 vistas más sin estilos reales | 🔴 Crítica | ✅ Corregido — `neurix-theme-vars.css` creado e importado, `pos-redesign.css` importado, bug ApexCharts corregido |
 
 ---
 
@@ -152,6 +144,86 @@ Después de que los problemas 1-6 quedaran corregidos, el usuario reportó que l
 **Estado**: sidebar ahora está visible y fijo en desktop (≥992px), comportamiento de drawer en móvil/tablet.
 
 **Nota sobre bytes NUL**: Al editar `footer.php`, se verificó que NO se introdujeron bytes NUL adicionales (archivos validados con `file` command — ambos son UTF-8 válido sin corrupción). El patrón de corrupción identificado en el Problema #1 pareció limitado al script de migración masiva original.
+
+---
+
+## 8. Sistema de diseño "Neurix" huérfano — causa raíz de que el Dashboard (y 7 vistas más) se vean rotos (CRÍTICO)
+
+### 8.0 Resumen ejecutivo
+
+El Dashboard no se ve "moderno ni funcional" porque **casi todo su CSS depende de variables personalizadas (`--nx-a1`, `--nx-card-bg`, `--nx-txt1`, `--nx-bg3`, etc.) que ya no existen en el CSS que se compila y se sirve al navegador**. No es un problema de Bootstrap/AdminLTE — es que el sistema de diseño propio de Neurix (colores, fondos, texto, glass-morphism) se perdió durante la migración y nadie lo reconectó.
+
+Cuando el navegador encuentra `background: var(--nx-card-bg)` y `--nx-card-bg` no está definida en ningún lado, la propiedad completa se vuelve inválida (no hay fallback) — la tarjeta queda sin fondo, sin color de texto coherente, sin bordes con el color correcto. Multiplicado por ~116 usos solo en el dashboard, el resultado es una página que se ve plana, sin jerarquía visual, "rota" — exactamente el síntoma reportado.
+
+### 8.1 Evidencia
+
+**¿Cuál es el dashboard real que se renderiza?** Hay DOS archivos candidatos:
+- `themes/default/views/dashboard.php` (22 KB, modificado hoy 29-jun) — usa ApexCharts + tarjetas de stats, pero **no está conectado a ningún controlador**.
+- `themes/default/views/dashboard/index.php` (53 KB, 997 líneas, modificado 27-jun) — **este es el que de verdad se muestra**. Confirmado en `app/controllers/Dashboard.php` línea 105: `$this->page_construct('dashboard/index', ...)`, y `page_construct()` en `MY_Controller.php` (línea 2331) hace `$this->load->view($this->theme . $page, $data)` → carga `dashboard/index`.
+
+  **`dashboard.php` es código muerto.** Probablemente un intento de rediseño (tal vez de la sesión local de Claude Code) que nunca se enlazó al controlador — por eso parecía que "no se notaban los cambios": se estaba editando un archivo que el navegador nunca carga.
+
+**¿Qué variables usa el dashboard real (`dashboard/index.php`) y cuáles existen?**
+
+```
+Variables usadas en dashboard/index.php (116 ocurrencias):
+  --nx-txt3 (35), --nx-a1 (20), --nx-warn (9), --nx-border (9), --nx-ok (7),
+  --nx-err (7), --nx-txt1 (6), --nx-bg4 (6), --nx-a2 (5), --nx-border2 (4),
+  --nx-a3 (4), --nx-txt2 (3), --nx-bg3 (3), --nx-bg5 (2)
+
+Variables definidas en el CSS que SÍ se compila (themes/default/assets/src/neurix-adminlte4.css):
+  --nx-accent, --nx-border, --nx-primary, --nx-secondary, --nx-text-muted
+```
+
+De 14 variables distintas que usa el dashboard, **solo 1 (`--nx-border`) existe**, y con un valor distinto al que el diseño original esperaba (`#e5e7eb` gris claro fijo, en vez de `rgba(56,189,248,.13)` — un azul translúcido pensado para tema oscuro).
+
+**¿Dónde está el resto de esas variables?** Sobreviven completas en `themes/default/assets.backup.20260629-140124/dist/css/neurix-theme.css` — un archivo de **respaldo**, fuera de `assets/src/` (donde vive el código fuente que Vite compila) y **nunca importado por `main.js`**. Es decir: el sistema de diseño completo (paleta de 18 colores de acento, 4 tonos de fondo, 4 tonos de texto, 3 tonos de borde, sombras, radios, modo oscuro/claro vía `[data-theme]`) quedó huérfano en un backup cuando se migró a AdminLTE 4 — se reemplazó por `neurix-adminlte4.css`, que es un archivo **mucho más chico y con un propósito distinto**: re-temáticas los componentes nativos de AdminLTE4/Bootstrap5 (sidebar, navbar, tablas), no darle estilo a las páginas custom como el dashboard.
+
+**Esto no es exclusivo del dashboard.** Las mismas variables huérfanas aparecen en:
+
+| Archivo | Impacto |
+|---|---|
+| `views/dashboard/index.php` | Crítico — 116 usos, página completa depende de ellas |
+| `views/cargadocumentos/index.php` | Alto |
+| `views/facturascompras/add.php` | Alto |
+| `views/products/add.php` | Alto |
+| `views/settings/index.php` | Alto |
+| `views/header.php` | Medio — separadores de menú (`background:var(--nx-border)`, sí resuelve pero con color incorrecto) |
+| `views/footer.php` | Bajo — solo el texto de copyright (`var(--nx-a1)`, `var(--nx-a2)`, `var(--nx-txt3)`) |
+| `views/dashboard.php` | N/A — código muerto, no se renderiza, pero igual de raro: usa OTRO subconjunto distinto de las mismas variables huérfanas (`--nx-card-bg`, `--nx-card-bg2`) |
+
+**Bug secundario (menor, mismo archivo):** el script anti-FOUC en `header.php` pone el tema en `document.documentElement` (`data-bs-theme`) y en `document.body` (`data-theme`) — dos atributos en dos elementos distintos. El script inline de gráficas en `dashboard/index.php` lee `document.documentElement.getAttribute('data-theme')`, que **nunca existe ahí** (está en `body`, no en `<html>`), así que `isDark` siempre evalúa `true` sin importar el tema real. Las gráficas de ApexCharts no respetan el modo claro.
+
+**Hallazgo adicional:** `pos-redesign.css` (593 líneas, en `assets/src/`) tampoco está importado en `main.js` — es CSS fuente que existe pero nunca se compila ni se sirve. Si el POS también usa clases de ese archivo, tiene el mismo problema.
+
+### 8.2 Plan de corrección por fases (para ejecutar desde Claude Code)
+
+**Fase 1 — Decidir y fijar la fuente de verdad del dashboard**
+1. Confirmar con el usuario si `dashboard/index.php` (el que SÍ se renderiza) es la versión correcta a mantener.
+2. Borrar o archivar `dashboard.php` (código muerto) fuera de `views/` para que no se siga editando por error — o, si tenía contenido mejor, fusionar lo útil en `dashboard/index.php` y luego borrarlo.
+3. Verificar bytes NUL y balance de tags en `dashboard/index.php` antes de tocarlo (hábito ya establecido en la sección "Cómo evitar que se repita").
+
+**Fase 2 — Restaurar el sistema de variables `--nx-*`**
+1. Copiar el bloque `:root` / `[data-theme="dark"]` / `[data-theme="light"]` completo de `assets.backup.20260629-140124/dist/css/neurix-theme.css` a un archivo nuevo en el código fuente real, ej. `themes/default/assets/src/neurix-theme-vars.css` (o fusionarlo al inicio de `neurix-adminlte4.css` si se prefiere un solo archivo).
+2. Importarlo en `main.js` **antes** de `neurix-adminlte4.css`, para que las variables existan antes de que se usen los overrides de AdminLTE.
+3. Resolver el conflicto de `--nx-border` (dos definiciones con valores distintos): decidir cuál es el valor correcto y dejar una sola definición — lo más simple es que `neurix-adminlte4.css` deje de redefinir variables que ya define el archivo de tema y solo defina las suyas propias (`--nx-accent`, `--nx-primary`, etc., que no chocan).
+4. Unificar el selector de modo oscuro/claro: el tema viejo usa `[data-theme="light"]` en `<body>`, AdminLTE4/Bootstrap5 usa `[data-bs-theme="dark"]` en `<html>`. Ahora mismo conviven los dos atributos (ver bug secundario arriba) — conviene elegir uno solo y que tanto el JS como el CSS lo usen consistentemente (recomendado: quedarse con `data-bs-theme` en `<html>`, que es el estándar de Bootstrap 5, y portar las reglas `[data-theme="light"]` del tema viejo a `[data-bs-theme="light"]`).
+
+**Fase 3 — Corregir el bug de detección de tema en gráficas**
+1. En `dashboard/index.php` (y `dashboard.php` si se conserva) cambiar `document.documentElement.getAttribute('data-theme')` por `document.documentElement.getAttribute('data-bs-theme')` (consistente con la Fase 2.4).
+
+**Fase 4 — Verificación visual real**
+1. `npm run build`.
+2. Abrir el dashboard en navegador real, en modo oscuro y claro, en desktop y móvil.
+3. Confirmar que las tarjetas KPI tienen fondo, borde y texto coherentes (no transparentes/planas), que los badges de color (verde/amarillo/rojo) se ven, y que las gráficas ApexCharts cambian de paleta según el tema.
+
+**Fase 5 — Replicar la corrección en el resto de vistas afectadas**
+1. Repetir la verificación en `cargadocumentos/index.php`, `facturascompras/add.php`, `products/add.php`, `settings/index.php` — deberían arreglarse solas en cuanto exista la Fase 2 (mismas variables, mismo CSS global), pero hay que confirmarlo visualmente uno por uno.
+2. Correr `grep -roP '\-\-nx-[a-z0-9-]+' themes/default/views | sed 's/.*://' | sort -u` contra las variables definidas después de la Fase 2, para confirmar que ninguna vista quedó referenciando una variable inexistente.
+
+**Fase 6 — Limpieza**
+1. Decidir si `pos-redesign.css` se importa en `main.js` (si el POS lo necesita) o se borra (si quedó obsoleto).
+2. Una vez confirmada la Fase 2-5, eliminar la carpeta `assets.backup.20260629-140124/` (o moverla fuera del repo) — ya cumplió su propósito de ser la fuente para recuperar las variables.
 
 ---
 

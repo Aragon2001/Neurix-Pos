@@ -1,444 +1,704 @@
 /**
- * ═════════════════════════════════════════════════════════════════
+ * ═══════════════════════════════════════════════════════════════════════
  * Neurix Theme — AdminLTE 4 + Bootstrap 5 Custom Styles
- * ═════════════════════════════════════════════════════════════════
+ * Selectores alineados con el contrato real de AdminLTE4:
+ *   .app-header, .app-sidebar, .sidebar-brand, .sidebar-wrapper,
+ *   .sidebar-menu, .app-main, .app-content, .app-content-header, .app-footer
+ * ═══════════════════════════════════════════════════════════════════════
  */
 
+/* ── 0. Overrides Bootstrap/AdminLTE CSS Variables ── */
 :root {
-  /* AdminLTE 4 paleta base (overrides) */
   --bs-primary: #0369a1;
   --bs-secondary: #6c757d;
   --bs-success: #20c997;
   --bs-danger: #dc3545;
   --bs-warning: #ffc107;
   --bs-info: #0dcaf0;
-
-  /* Neurix color system */
   --nx-primary: #0369a1;
   --nx-secondary: #0f766e;
   --nx-accent: #38bdf8;
-  --nx-border: #e5e7eb;
   --nx-text-muted: #6b7280;
+  /* --nx-border y colores de tema vienen de neurix-theme-vars.css */
 }
 
 [data-bs-theme="dark"] {
-  --bs-body-bg: #1f2937;
-  --bs-body-color: #f3f4f6;
-  --bs-border-color: #374151;
-  --bs-tertiary-bg: #111827;
-  --bs-tertiary-color: #d1d5db;
-
-  --nx-border: #374151;
-  --nx-text-muted: #9ca3af;
+  --bs-body-bg: #0d1528;
+  --bs-body-color: #e2e8f0;
+  --bs-border-color: #1e2d45;
+  --bs-tertiary-bg: #0a1020;
+  --bs-secondary-bg: #111827;
+  --nx-text-muted: #94a3b8;
 }
 
-/* ═════════════════ NAVBAR (Header) ═════════════════ */
-.main-header {
-  background: linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-[data-bs-theme="dark"] .main-header {
+/* ── 1. APP-HEADER (navbar top) ── */
+.app-header {
   background: linear-gradient(135deg, #0c4a6e 0%, #082f49 100%) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(56,189,248,.15) !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,.4);
 }
 
-.navbar-brand {
-  font-weight: 600;
-  letter-spacing: 0.5px;
+.app-header .nav-link {
+  color: rgba(255,255,255,.85) !important;
+  transition: color .2s, background .2s;
+  border-radius: 6px;
 }
 
-/* ═════════════════ SIDEBAR (Offcanvas) ═════════════════ */
-.main-sidebar {
-  background: #f8fafc !important;
-  border-right: 1px solid var(--nx-border);
-  width: 280px;
-  transition: transform 0.3s ease-in-out;
+.app-header .nav-link:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,.1);
 }
 
-/* A partir de 992px (lg) el sidebar deja de ser un drawer y pasa a ser una
-   columna fija y siempre visible junto al contenido (layout clásico de admin).
-   Bootstrap's ".offcanvas-lg" por sí solo no hace esto -- solo quita el fondo
-   oscuro/backdrop y el header del offcanvas; sin estas reglas, el <aside>
-   queda con "display:flex" por defecto del offcanvas, lo cual pone los items
-   del menú en fila en vez de en columna. */
-@media (min-width: 992px) {
-  .main-sidebar.offcanvas-lg {
-    position: static;
-    flex: 0 0 280px;
-    width: 280px;
-    height: auto;
-    display: block;
-  }
-
-  .main-sidebar.offcanvas-lg .offcanvas-body {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow-y: auto;
-  }
+.app-header .dropdown-toggle::after {
+  display: none; /* Avatar dropdown sin caret */
 }
 
-[data-bs-theme="dark"] .main-sidebar {
-  background: #111827 !important;
+.nx-sidebar-toggle {
+  font-size: 18px;
+  padding: .5rem .75rem !important;
 }
 
-.main-sidebar.sidebar-dark-primary {
-  background: linear-gradient(180deg, #0369a1 0%, #0c4a6e 100%) !important;
-  color: #fff;
-}
-
-[data-bs-theme="dark"] .main-sidebar.sidebar-dark-primary {
-  background: linear-gradient(180deg, #082f49 0%, #0f172a 100%) !important;
-}
-
-/* Nav Pills Sidebar */
-.nav-sidebar {
-  gap: 0;
-}
-
-.nav-sidebar .nav-link {
-  color: #374151;
-  padding: 0.75rem 1rem;
-  border-left: 3px solid transparent;
-  border-radius: 0;
-  margin: 0;
-  transition: all 0.2s ease;
-  font-weight: 500;
+.nx-theme-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(255,255,255,.85) !important;
+  padding: .4rem .75rem;
+  border-radius: 6px;
   font-size: 14px;
+  transition: background .2s;
+}
+.nx-theme-btn:hover {
+  background: rgba(255,255,255,.12);
+  color: #fff !important;
 }
 
-[data-bs-theme="dark"] .nav-sidebar .nav-link {
-  color: #d1d5db;
+/* ── 1b. HEADER AVATAR y USER TOGGLE ── */
+.nx-header-avatar {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,.25);
+  box-shadow: 0 0 8px rgba(56,189,248,.3);
 }
 
-.nav-sidebar .nav-link:hover {
-  background: rgba(3, 105, 161, 0.1);
-  border-left-color: #0369a1;
-  color: #0369a1;
+.nx-user-toggle {
+  padding: .35rem .6rem !important;
+  border-radius: 8px;
+  transition: background .2s;
 }
 
-[data-bs-theme="dark"] .nav-sidebar .nav-link:hover {
-  background: rgba(56, 189, 248, 0.1);
-  border-left-color: #38bdf8;
+.nx-user-toggle:hover {
+  background: rgba(255,255,255,.1) !important;
+}
+
+/* ── 1c. USER CARD (dropdown perfil) ── */
+.nx-user-card {
+  width: 290px;
+  border-radius: 14px !important;
+  overflow: hidden;
+}
+
+.nx-user-card-header {
+  background: linear-gradient(160deg, #0c3a5e 0%, #0a1929 100%);
+  border-bottom: 1px solid rgba(56,189,248,.15);
+}
+
+.nx-user-card-avatar {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border: 3px solid rgba(56,189,248,.5);
+  box-shadow: 0 0 20px rgba(56,189,248,.3);
+}
+
+.nx-user-card-status-dot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 13px;
+  height: 13px;
+  background: #22c55e;
+  border: 2px solid #0a1929;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(34,197,94,.6);
+}
+
+.nx-role-badge {
+  background: linear-gradient(90deg, #0369a1, #38bdf8);
+  color: #fff;
+  font-size: 11px;
+  padding: .25rem .6rem;
+  border-radius: 20px;
+  letter-spacing: .5px;
+}
+
+.nx-user-card-info {
+  border-bottom: 1px solid var(--nx-border, rgba(56,189,248,.1));
+}
+
+.nx-user-info-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .45rem 0;
+  font-size: 12.5px;
+  color: var(--nx-txt3, #94a3b8);
+  border-bottom: 1px solid var(--nx-border2, rgba(56,189,248,.05));
+}
+
+.nx-user-info-row:last-child {
+  border-bottom: none;
+}
+
+.nx-info-icon {
   color: #38bdf8;
-}
-
-.nav-sidebar .nav-link.active {
-  background: rgba(3, 105, 161, 0.2);
-  border-left-color: #0369a1;
-  color: #0369a1;
-}
-
-[data-bs-theme="dark"] .nav-sidebar .nav-link.active {
-  background: rgba(56, 189, 248, 0.15);
-  border-left-color: #38bdf8;
-  color: #38bdf8;
-}
-
-/* Treeview expandable */
-.nav-sidebar .has-treeview > .nav-link::after {
-  content: '\f054';
-  font-family: 'Font Awesome 6 Free';
-  font-weight: 900;
-  float: right;
-  transition: transform 0.3s ease;
-}
-
-.nav-sidebar .has-treeview.menu-open > .nav-link::after {
-  transform: rotate(90deg);
-}
-
-/* Treeview submenu */
-.nav-treeview {
-  padding-left: 0;
-  display: none;
-  background: rgba(0, 0, 0, 0.02);
-  list-style: none;
-}
-
-[data-bs-theme="dark"] .nav-treeview {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.nav-treeview .nav-link {
-  padding-left: 2rem;
   font-size: 13px;
-  font-weight: 400;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
-.nav-treeview .nav-link:hover {
-  background: rgba(3, 105, 161, 0.08);
+.nx-user-card-actions {
+  padding-top: .5rem !important;
 }
 
-/* Iconos personalizados en sidebar */
-.nx-sico {
+/* ── 2. APP-SIDEBAR ── */
+.app-sidebar.nx-sidebar {
+  --lte-sidebar-color: rgba(255,255,255,.75);
+  --lte-sidebar-hover-color: #fff;
+  --lte-sidebar-active-color: #38bdf8;
+  --lte-sidebar-hover-bg: rgba(56,189,248,.08);
+  --lte-sidebar-menu-active-bg: rgba(56,189,248,.12);
+  --lte-sidebar-menu-active-color: #38bdf8;
+  --lte-sidebar-submenu-color: rgba(255,255,255,.55);
+  --lte-sidebar-submenu-hover-color: rgba(255,255,255,.9);
+  --lte-sidebar-submenu-hover-bg: rgba(56,189,248,.06);
+  --lte-sidebar-submenu-active-color: #38bdf8;
+  --lte-sidebar-submenu-active-bg: rgba(56,189,248,.1);
+  background: linear-gradient(180deg, #0a1929 0%, #0d1f35 40%, #0a1929 100%) !important;
+  border-right: 1px solid rgba(56,189,248,.12);
+}
+
+/* Sidebar brand */
+.app-sidebar .sidebar-brand {
+  background: rgba(0,0,0,.25);
+  border-bottom: 1px solid rgba(56,189,248,.15);
+}
+
+.app-sidebar .sidebar-brand .brand-text {
+  color: #f1f5f9 !important;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .3px;
+}
+
+.app-sidebar .sidebar-brand .brand-link:hover .brand-text {
+  color: #38bdf8 !important;
+}
+
+/* ── BLOQUE USUARIO EN SIDEBAR ── */
+.nx-sidebar-userblock {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .85rem 1rem;
+  background: rgba(56,189,248,.04);
+  border-bottom: 1px solid rgba(56,189,248,.12);
+  position: relative;
+}
+
+.nx-sb-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.nx-sb-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(56,189,248,.4);
+  box-shadow: 0 0 10px rgba(56,189,248,.25);
+}
+
+.nx-sb-status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: #22c55e;
+  border: 2px solid #0a1929;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(34,197,94,.6);
+}
+
+.nx-sb-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.nx-sb-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nx-sb-email {
+  font-size: 10.5px;
+  color: rgba(148,163,184,.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.nx-sb-status-row {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: #22c55e;
+}
+
+.nx-sb-dot-green {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(34,197,94,.7);
+  flex-shrink: 0;
+}
+
+.nx-sb-role {
+  margin-left: auto;
+  background: rgba(56,189,248,.15);
+  color: #38bdf8;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+
+.nx-sb-edit-btn {
+  color: rgba(148,163,184,.5);
+  text-decoration: none;
+  padding: .25rem;
+  border-radius: 4px;
+  transition: color .2s, background .2s;
+  flex-shrink: 0;
+}
+
+.nx-sb-edit-btn:hover {
+  color: #38bdf8;
+  background: rgba(56,189,248,.1);
+}
+
+/* ── Brand icon ── */
+.nx-brand-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  margin-right: 10px;
+  background: linear-gradient(135deg, #38bdf8, #0369a1);
   font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(56,189,248,.4);
+}
+
+/* Sidebar wrapper scrollbar styling */
+.app-sidebar .sidebar-wrapper {
+  scrollbar-color: rgba(56,189,248,.2) transparent;
+  padding-top: .25rem;
+}
+
+/* Nav section headers */
+.app-sidebar .nav-header {
+  color: rgba(56,189,248,.45) !important;
+  font-size: 10px !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: .65rem 1rem .2rem !important;
+  margin-top: .1rem;
+}
+
+/* Sidebar nav-link base */
+.app-sidebar .sidebar-wrapper .nav-link {
+  padding: .55rem 1rem;
+  border-left: 3px solid transparent;
+  border-radius: 0 6px 6px 0;
+  margin-right: .5rem;
+  transition: all .18s ease;
+  font-size: 13.5px;
+  font-weight: 500;
+  align-items: center;
+  gap: .65rem;
+}
+
+.app-sidebar .sidebar-wrapper .nav-link p {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-sidebar .sidebar-wrapper .nav-link:hover {
+  border-left-color: rgba(56,189,248,.4);
+  background: rgba(56,189,248,.07);
+  color: rgba(255,255,255,.95) !important;
+}
+
+.app-sidebar .sidebar-wrapper .nav-link.active {
+  border-left-color: #38bdf8 !important;
+  background: rgba(56,189,248,.13) !important;
+  color: #38bdf8 !important;
   font-weight: 600;
-  color: #fff;
 }
 
-.nx-ico-blue { background: linear-gradient(135deg, #0369a1, #38bdf8); }
-.nx-ico-cyan { background: linear-gradient(135deg, #06b6d4, #4ad9d6); }
-.nx-ico-green { background: linear-gradient(135deg, #059669, #10b981); }
-.nx-ico-orange { background: linear-gradient(135deg, #ea580c, #fd7e14); }
-.nx-ico-teal { background: linear-gradient(135deg, #0d9488, #14b8a6); }
-.nx-ico-sky { background: linear-gradient(135deg, #0284c7, #38bdf8); }
-.nx-ico-pink { background: linear-gradient(135deg, #db2777, #ec4899); }
-.nx-ico-amber { background: linear-gradient(135deg, #d97706, #f59e0b); }
+.app-sidebar .sidebar-wrapper .sidebar-menu > .nav-item.menu-open > .nav-link {
+  color: #7dd3fc !important;
+}
+
+/* Sub-items (treeview) — alineados a la izquierda, no centrados */
+.app-sidebar .sidebar-wrapper .nav-treeview .nav-link {
+  padding-left: 1.1rem;
+  padding-top: .38rem;
+  padding-bottom: .38rem;
+  font-size: 12.5px;
+  font-weight: 400;
+  border-radius: 0 6px 6px 0;
+  margin-right: .5rem;
+  gap: .5rem;
+  border-left-color: transparent;
+}
+
+/* Icono del sub-ítem */
+.app-sidebar .sidebar-wrapper .nav-treeview .nav-icon {
+  font-size: 11px;
+  opacity: .65;
+  min-width: 1rem;
+  max-width: 1rem;
+  color: rgba(148,163,184,.8);
+}
+
+.app-sidebar .sidebar-wrapper .nav-treeview .nav-link:hover .nav-icon,
+.app-sidebar .sidebar-wrapper .nav-treeview .nav-link.active .nav-icon {
+  opacity: 1;
+  color: #38bdf8;
+}
+
+/* Nav-arrow rotate on open */
+.app-sidebar .sidebar-wrapper .nav-arrow {
+  font-size: 11px;
+  opacity: .6;
+  transition: transform .25s ease;
+  flex-shrink: 0;
+}
+
+.app-sidebar .sidebar-wrapper .menu-open > .nav-link .nav-arrow {
+  transform: rotate(90deg);
+  opacity: 1;
+}
+
+/* ── 3. NX-SICO: Iconos cuadrados redondeados de colores ── */
+.nx-sico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  transition: transform .2s, box-shadow .2s;
+}
+
+.app-sidebar .sidebar-wrapper .nav-link:hover .nx-sico {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+
+.nx-ico-blue   { background: linear-gradient(135deg, #0369a1, #38bdf8); }
+.nx-ico-cyan   { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+.nx-ico-green  { background: linear-gradient(135deg, #059669, #10b981); }
+.nx-ico-orange { background: linear-gradient(135deg, #ea580c, #f97316); }
+.nx-ico-teal   { background: linear-gradient(135deg, #0d9488, #14b8a6); }
+.nx-ico-sky    { background: linear-gradient(135deg, #0284c7, #38bdf8); }
+.nx-ico-pink   { background: linear-gradient(135deg, #db2777, #ec4899); }
+.nx-ico-amber  { background: linear-gradient(135deg, #d97706, #f59e0b); }
 .nx-ico-violet { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
-.nx-ico-slate { background: linear-gradient(135deg, #475569, #64748b); }
-.nx-ico-rose { background: linear-gradient(135deg, #e11d48, #f43f5e); }
+.nx-ico-slate  { background: linear-gradient(135deg, #475569, #64748b); }
+.nx-ico-rose   { background: linear-gradient(135deg, #e11d48, #f43f5e); }
 
-/* ═════════════════ OFFCANVAS (Mobile) ═════════════════ */
-.offcanvas-header {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #0369a1, #0c4a6e);
-  color: #fff;
+/* ── 4. APP-MAIN y APP-CONTENT ── */
+.app-main {
+  background: var(--bs-body-bg, #0d1528);
+  min-height: 100vh;
 }
 
-.offcanvas-header .btn-close {
-  filter: brightness(0) invert(1);
+.app-content {
+  padding: 1.25rem .75rem;
+  background: var(--bs-body-bg, #0d1528);
 }
 
-/* ═════════════════ CONTENT WRAPPER ═════════════════
-   NOTA: el HTML real (header.php) usa class="content" en el <main>, no
-   "content-wrapper" -- esa regla nunca se aplicaba. Se mantiene
-   ".content-wrapper" por compatibilidad y se agrega ".content" (selector
-   real) con las mismas reglas. */
-.content-wrapper,
-.content {
-  background: #f9fafb;
-  transition: all 0.3s ease;
-  min-width: 0; /* evita que tablas anchas rompan el layout flex */
+/* ── 5. APP-CONTENT-HEADER (breadcrumb bar) ── */
+.app-content-header {
+  background: var(--bs-secondary-bg, #111827);
+  border-bottom: 1px solid var(--nx-border, rgba(56,189,248,.1));
+  padding: .875rem 0;
 }
 
-[data-bs-theme="dark"] .content-wrapper,
-[data-bs-theme="dark"] .content {
-  background: #111827;
+.app-content-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--bs-body-color);
 }
 
-.content-header {
-  background: #fff;
-  border-bottom: 1px solid var(--nx-border);
-  padding: 1.5rem;
+.app-content-header .breadcrumb {
   margin-bottom: 0;
+  background: transparent;
+  font-size: 12px;
 }
 
-[data-bs-theme="dark"] .content-header {
-  background: #1f2937;
+.app-content-header .breadcrumb-item a {
+  color: var(--nx-a1, #38bdf8);
+  text-decoration: none;
 }
 
-/* ═════════════════ CARDS Y PANELS ═════════════════ */
+.app-content-header .breadcrumb-item.active {
+  color: var(--nx-txt3, #94a3b8);
+}
+
+[data-bs-theme="light"] .app-content-header {
+  background: #f8fafc;
+  border-bottom-color: rgba(14,165,233,.12);
+}
+
+/* ── 6. APP-FOOTER ── */
+.app-footer {
+  background: var(--bs-secondary-bg, #111827) !important;
+  border-top: 1px solid var(--nx-border, rgba(56,189,248,.1));
+  color: var(--nx-txt3, #94a3b8);
+  font-size: 13px;
+  padding: .75rem 1rem;
+}
+
+[data-bs-theme="light"] .app-footer {
+  background: #f1f5f9 !important;
+}
+
+/* ── 7. CARDS ── */
 .card {
-  border: 1px solid var(--nx-border);
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  background: var(--nx-card-bg, rgba(11,18,36,.96));
+  border: 1px solid var(--nx-border, rgba(56,189,248,.13));
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,.3);
+  transition: box-shadow .25s ease, transform .25s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 24px rgba(0,0,0,.45);
+  transform: translateY(-1px);
 }
 
-[data-bs-theme="dark"] .card {
-  border-color: #374151;
-  background: #1f2937;
+[data-bs-theme="light"] .card {
+  background: #fff;
+  border-color: rgba(14,165,233,.15);
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
 }
 
 .card-header {
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-  border-bottom: 1px solid var(--nx-border);
+  background: rgba(56,189,248,.05);
+  border-bottom: 1px solid var(--nx-border, rgba(56,189,248,.13));
   font-weight: 600;
+  color: var(--nx-txt1, #f1f5f9);
+  border-radius: 12px 12px 0 0 !important;
+}
+
+[data-bs-theme="light"] .card-header {
+  background: #f8fafc;
+  border-bottom-color: rgba(14,165,233,.12);
   color: #0f172a;
 }
 
-[data-bs-theme="dark"] .card-header {
-  background: linear-gradient(135deg, #374151, #4b5563);
-  border-bottom-color: #4b5563;
-  color: #f3f4f6;
-}
-
-/* ═════════════════ TABLAS ═════════════════ */
+/* ── 8. TABLAS ── */
 .table {
-  font-size: 14px;
+  font-size: 13.5px;
+  color: var(--bs-body-color);
 }
 
 .table thead th {
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-  color: #1f2937;
+  background: rgba(56,189,248,.07);
+  color: var(--nx-txt2, #cbd5e1);
   font-weight: 600;
-  border-bottom: 2px solid #d1d5db;
+  border-bottom: 1px solid var(--nx-border, rgba(56,189,248,.13));
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
 }
 
-[data-bs-theme="dark"] .table thead th {
-  background: linear-gradient(135deg, #374151, #4b5563);
-  color: #f3f4f6;
-  border-bottom-color: #6b7280;
+[data-bs-theme="light"] .table thead th {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-bottom-color: rgba(14,165,233,.12);
 }
 
 .table tbody tr {
-  transition: all 0.2s ease;
+  transition: background .15s ease;
+  border-bottom: 1px solid var(--nx-border2, rgba(56,189,248,.06));
 }
 
 .table tbody tr:hover {
-  background: rgba(3, 105, 161, 0.05);
+  background: rgba(56,189,248,.05);
 }
 
-[data-bs-theme="dark"] .table tbody tr:hover {
-  background: rgba(56, 189, 248, 0.08);
+[data-bs-theme="light"] .table tbody tr:hover {
+  background: rgba(2,132,199,.04);
 }
 
-/* ═════════════════ BUTTONS ═════════════════ */
+/* ── 9. BOTONES ── */
 .btn-primary {
   background: linear-gradient(135deg, #0369a1, #0284c7);
   border: none;
-  box-shadow: 0 2px 8px rgba(3, 105, 161, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(3,105,161,.4);
+  font-weight: 500;
 }
 
 .btn-primary:hover {
   background: linear-gradient(135deg, #0284c7, #0369a1);
-  box-shadow: 0 4px 12px rgba(3, 105, 161, 0.4);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(3,105,161,.5);
+  transform: translateY(-1px);
 }
 
-/* ═════════════════ BADGES ═════════════════ */
-.badge {
-  border-radius: 6px;
-  font-weight: 500;
-  padding: 0.35em 0.65em;
-  font-size: 0.8em;
-}
-
-/* ═════════════════ ALERTS ═════════════════ */
-.alert {
-  border-radius: 10px;
-  border: 1px solid;
-}
-
-/* ═════════════════ FORM CONTROLS ═════════════════ */
+/* ── 10. FORMULARIOS ── */
 .form-control, .form-select {
+  background: var(--nx-input-bg, rgba(56,189,248,.04));
+  border: 1px solid var(--nx-border, rgba(56,189,248,.13));
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-[data-bs-theme="dark"] .form-control,
-[data-bs-theme="dark"] .form-select {
-  border-color: #4b5563;
-  background: #1f2937;
-  color: #f3f4f6;
+  color: var(--bs-body-color);
+  font-size: 13.5px;
+  transition: border-color .2s, box-shadow .2s;
 }
 
 .form-control:focus, .form-select:focus {
-  border-color: #0369a1;
-  box-shadow: 0 0 0 0.2rem rgba(3, 105, 161, 0.25);
-}
-
-[data-bs-theme="dark"] .form-control:focus,
-[data-bs-theme="dark"] .form-select:focus {
+  background: var(--nx-input-focus, rgba(56,189,248,.08));
   border-color: #38bdf8;
-  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.15);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+  color: var(--bs-body-color);
 }
 
-/* ═════════════════ THEME TOGGLE BUTTON ═════════════════ */
-.nx-theme-btn {
-  color: #fff;
-  font-weight: 500;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+[data-bs-theme="light"] .form-control,
+[data-bs-theme="light"] .form-select {
+  background: #fff;
+  border-color: rgba(14,165,233,.2);
+  color: #0f172a;
 }
 
-.nx-theme-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+[data-bs-theme="light"] .form-control:focus,
+[data-bs-theme="light"] .form-select:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2,132,199,.12);
 }
 
-/* ═════════════════ DROPDOWNS ═════════════════ */
+/* ── 11. DROPDOWNS ── */
 .dropdown-menu {
-  border: 1px solid var(--nx-border);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--nx-card-bg, rgba(11,18,36,.98));
+  border: 1px solid var(--nx-border, rgba(56,189,248,.13));
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-[data-bs-theme="dark"] .dropdown-menu {
-  border-color: #4b5563;
-  background: #1f2937;
+[data-bs-theme="light"] .dropdown-menu {
+  background: #fff;
+  border-color: rgba(14,165,233,.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,.12);
 }
 
 .dropdown-item {
-  padding: 0.6rem 1rem;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  color: var(--nx-txt2, #cbd5e1);
+  font-size: 13.5px;
+  padding: .5rem 1rem;
+  border-radius: 6px;
+  margin: 1px 4px;
+  transition: background .15s, color .15s;
 }
 
 .dropdown-item:hover {
-  background: rgba(3, 105, 161, 0.1);
-  color: #0369a1;
-}
-
-[data-bs-theme="dark"] .dropdown-item:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(56,189,248,.1);
   color: #38bdf8;
 }
 
-/* ═════════════════ BREADCRUMB ═════════════════ */
-.breadcrumb {
-  background: transparent;
-  padding: 0;
+[data-bs-theme="light"] .dropdown-item {
+  color: #1e293b;
 }
 
-.breadcrumb-item {
-  font-size: 13px;
-}
-
-.breadcrumb-item.active {
+[data-bs-theme="light"] .dropdown-item:hover {
+  background: rgba(2,132,199,.08);
   color: #0369a1;
-  font-weight: 600;
 }
 
-/* ═════════════════ RESPONSIVE ═════════════════ */
-@media (max-width: 768px) {
-  .main-header {
-    padding: 0.75rem;
-  }
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .75rem 1rem;
+  color: var(--nx-txt1, #f1f5f9);
+}
 
-  .navbar-brand {
-    font-size: 16px;
-  }
+.dropdown-divider {
+  border-color: var(--nx-border, rgba(56,189,248,.13));
+  margin: .25rem .5rem;
+}
 
-  .main-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 1040;
-  }
+/* ── 12. BADGES ── */
+.badge {
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: .75em;
+}
 
-  .content-wrapper {
-    margin-left: 0;
+/* ── 13. ALERTS ── */
+.alert {
+  border-radius: 10px;
+}
+
+/* ── 14. BREADCRUMB ── */
+.breadcrumb-item + .breadcrumb-item::before {
+  color: var(--nx-txt4, #64748b);
+}
+
+/* ── 15. RESPONSIVE mobile ── */
+@media (max-width: 991.98px) {
+  .app-content-header .breadcrumb {
+    display: none; /* Solo título en móvil */
   }
 }
 
-/* ═════════════════ UTILIDADES ═════════════════ */
+/* ── 16. UTILITIES ── */
 .elevation-3 {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
 }
 
 .text-muted {
-  color: var(--nx-text-muted) !important;
-}
-
-.border {
-  border-color: var(--nx-border) !important;
+  color: var(--nx-text-muted, #94a3b8) !important;
 }

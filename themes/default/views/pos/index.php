@@ -6,393 +6,672 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $page_title . ' | ' . $Settings->site_name; ?></title>
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png" />
-    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css" />
+    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" />
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet" />' : ''; ?>
+    <!-- Anti-FOUC: aplicar tema antes de pintar -->
+    <script>
+        (function(){
+            var t = localStorage.getItem('nx-theme') || 'dark';
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
     <script src="<?= $assets ?>dist/js/main.min.js"></script>
-    <style>
-        .pos-container { display: flex; flex-direction: column; height: 100vh; }
-        .pos-content { flex: 1; overflow: hidden; display: flex; }
-        .pos-cart { background: var(--bs-light); border-right: 1px solid var(--bs-border-color); overflow-y: auto; }
-        .pos-products { flex: 1; overflow-y: auto; }
-        .pos-header { background: var(--bs-body-bg); border-bottom: 1px solid var(--bs-border-color); padding: 0.75rem 1rem; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; padding: 0.75rem; }
-        .product-card { cursor: pointer; padding: 0.5rem; border: 1px solid var(--bs-border-color); border-radius: 0.375rem; text-align: center; transition: all 0.2s; }
-        .product-card:hover { background: var(--bs-primary); color: white; border-color: var(--bs-primary); }
-        .cart-item { padding: 0.75rem; border-bottom: 1px solid var(--bs-border-color); }
-        .cart-totals { position: sticky; bottom: 0; background: white; border-top: 2px solid var(--bs-primary); padding: 1rem; }
-        @media (max-width: 768px) {
-            .pos-content { flex-direction: column; }
-            .pos-cart { border-right: none; border-bottom: 1px solid var(--bs-border-color); }
-            .product-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-        }
-    </style>
 </head>
-<body class="pos-page">
-    <div class="pos-container">
-        <!-- Header -->
-        <header class="pos-header">
-            <div class="container-fluid">
-                <div class="row align-items-center g-2">
-                    <div class="col-auto">
-                        <h6 class="mb-0">
-                            <?php if ($store) { ?>
-                                <strong><?= html_escape($store->name); ?></strong>
-                            <?php } else { ?>
-                                <strong><?= html_escape($Settings->site_name); ?></strong>
-                            <?php } ?>
-                        </h6>
-                    </div>
-                    <div class="col">
-                        <!-- Language Selector -->
-                        <div class="btn-group btn-group-sm" role="group">
-                            <?php
-                            $scanned_lang_dir = array_map(function ($path) {
-                                return basename($path);
-                            }, glob(APPPATH . 'language/*', GLOB_ONLYDIR));
-                            foreach ($scanned_lang_dir as $entry) {
-                            ?>
-                                <a href="<?= site_url('pos/language/' . $entry); ?>" class="btn btn-outline-secondary btn-sm">
-                                    <img src="<?= $assets; ?>images/<?= $entry; ?>.png" alt="<?= $entry; ?>" height="16">
-                                </a>
-                            <?php } ?>
-                        </div>
-                    </div>
-                    <div class="col-auto ms-auto">
-                        <span class="clock me-3"></span>
-                        <?php if ($suspended_sales && sizeof($suspended_sales) > 0) { ?>
-                            <button class="btn btn-warning btn-sm me-2" data-bs-toggle="dropdown">
-                                <i class="fa fa-bell"></i> <span class="badge bg-danger"><?= sizeof($suspended_sales); ?></span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><input type="text" class="form-control form-control-sm m-2" placeholder="<?= lang('filter_by_reference'); ?>" data-list=".list-suspended-sales" id="filter-suspended-sales"></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <?php foreach ($suspended_sales as $ss) { ?>
-                                    <li><a class="dropdown-item list-suspended-sales" href="<?= site_url('pos/?hold=' . $ss->id); ?>">
-                                        <?= $this->tec->hrld($ss->date); ?> (<?= $ss->customer_name; ?>)
-                                        <div class="fw-bold"><?= $ss->hold_ref; ?></div>
-                                    </a></li>
-                                <?php } ?>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?= site_url('sales/opened'); ?>"><?= lang('view_all'); ?></a></li>
-                            </ul>
-                        <?php } ?>
+<body class="pos-v2">
+<!-- Anti-FOUC body -->
+<script>document.body.setAttribute('data-theme', localStorage.getItem('nx-theme')||'dark')</script>
 
-                        <?php if ($Admin) { ?>
-                            <a href="<?= site_url('settings'); ?>" class="btn btn-outline-secondary btn-sm me-2" title="<?= lang('settings'); ?>">
-                                <i class="fa fa-cog"></i>
-                            </a>
-                        <?php } ?>
+<!-- ═══════════════════════════════════════════════
+     TOAST CONTAINER
+════════════════════════════════════════════════ -->
+<div id="pos-toast-wrap"></div>
 
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                <i class="fa fa-user-circle"></i> <?= html_escape($this->session->userdata('username')); ?>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="<?= site_url('users/profile/' . $this->session->userdata('user_id')); ?>"><?= lang('profile'); ?></a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="<?= site_url('logout'); ?>"><?= lang('sign_out'); ?></a></li>
-                            </ul>
-                        </div>
-                    </div>
+<!-- ═══════════════════════════════════════════════
+     POS WRAPPER
+════════════════════════════════════════════════ -->
+<div class="pos-wrapper">
+
+    <!-- ── SIDEBAR ──────────────────────────────── -->
+    <aside class="pos-nav" id="posNav">
+        <div class="pos-nav-brand">
+            <div class="brand-logo">
+                <?php if ($store && !empty($store->image)): ?>
+                    <img src="<?= $assets ?>uploads/thumbs/<?= $store->image ?>" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:8px;">
+                <?php else: ?>
+                    <i class="fa fa-bolt"></i>
+                <?php endif; ?>
+            </div>
+            <div class="brand-text">
+                <div class="brand-name"><?= html_escape($store ? $store->name : $Settings->site_name) ?></div>
+                <div class="brand-sub">Punto de Venta</div>
+            </div>
+        </div>
+
+        <nav class="pos-nav-links">
+            <a href="<?= site_url('welcome') ?>" class="pos-nav-link" title="Dashboard">
+                <span class="nav-icon"><i class="fa fa-home"></i></span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="<?= site_url('pos') ?>" class="pos-nav-link active" title="Nueva Venta">
+                <span class="nav-icon"><i class="fa fa-cash-register"></i></span>
+                <span class="nav-label">Nueva Venta</span>
+            </a>
+            <a href="<?= site_url('sales/opened') ?>" class="pos-nav-link" title="Ventas">
+                <span class="nav-icon"><i class="fa fa-receipt"></i></span>
+                <span class="nav-label">Ventas</span>
+            </a>
+
+            <div class="pos-nav-divider"></div>
+            <div class="pos-nav-group-label">Catálogo</div>
+
+            <a href="<?= site_url('customers') ?>" class="pos-nav-link" title="Clientes">
+                <span class="nav-icon"><i class="fa fa-users"></i></span>
+                <span class="nav-label">Clientes</span>
+            </a>
+            <a href="<?= site_url('products') ?>" class="pos-nav-link" title="Productos">
+                <span class="nav-icon"><i class="fa fa-box-open"></i></span>
+                <span class="nav-label">Productos</span>
+            </a>
+            <a href="<?= site_url('purchases') ?>" class="pos-nav-link" title="Compras">
+                <span class="nav-icon"><i class="fa fa-truck"></i></span>
+                <span class="nav-label">Compras</span>
+            </a>
+
+            <div class="pos-nav-divider"></div>
+            <div class="pos-nav-group-label">Reportes</div>
+
+            <a href="<?= site_url('reports') ?>" class="pos-nav-link" title="Reportes">
+                <span class="nav-icon"><i class="fa fa-chart-bar"></i></span>
+                <span class="nav-label">Reportes</span>
+            </a>
+
+            <?php if ($Admin): ?>
+            <div class="pos-nav-divider"></div>
+            <a href="<?= site_url('settings') ?>" class="pos-nav-link" title="Configuración">
+                <span class="nav-icon"><i class="fa fa-cog"></i></span>
+                <span class="nav-label">Configuración</span>
+            </a>
+            <?php endif; ?>
+        </nav>
+
+        <div class="pos-nav-toggle">
+            <button id="navToggle" title="Colapsar menú">
+                <i class="fa fa-bars" id="navToggleIcon"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ── MAIN ─────────────────────────────────── -->
+    <div class="pos-main">
+
+        <!-- ── TOPBAR ──────────────────────────── -->
+        <header class="pos-topbar">
+            <!-- Store info -->
+            <div class="pos-topbar-store">
+                <div class="store-name">
+                    <i class="fa fa-store me-1" style="color:var(--nx-a1);font-size:.8rem;"></i>
+                    <?= html_escape($store ? $store->name : $Settings->site_name) ?>
                 </div>
+                <div class="store-sub">
+                    <?php if ($this->session->userdata('register_id')): ?>
+                        Caja #<?= $this->session->userdata('register_id') ?>
+                        &nbsp;·&nbsp; Sucursal <?= $this->session->userdata('store_id') ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="pos-topbar-sep"></div>
+
+            <!-- Hacienda status chip -->
+            <div class="pos-topbar-chip ok" title="Conexión Hacienda">
+                <i class="fa fa-circle-check"></i>
+                <span>Hacienda</span>
+            </div>
+
+            <div class="pos-topbar-spacer"></div>
+
+            <!-- Suspended sales bell -->
+            <?php if ($suspended_sales && count($suspended_sales) > 0): ?>
+            <div class="dropdown">
+                <button class="pos-topbar-btn" data-bs-toggle="dropdown" title="Ventas suspendidas">
+                    <i class="fa fa-bell"></i>
+                    <span class="badge bg-danger"><?= count($suspended_sales) ?></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" style="min-width:280px;">
+                    <li class="px-2 py-1">
+                        <input type="text" class="form-control form-control-sm"
+                               placeholder="<?= lang('filter_by_reference') ?>"
+                               data-list=".list-sus-sales" id="filter-suspended-sales">
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <?php foreach ($suspended_sales as $ss): ?>
+                    <li>
+                        <a class="dropdown-item list-sus-sales" href="<?= site_url('pos/?hold=' . $ss->id) ?>">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa fa-pause-circle text-warning"></i>
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.82rem;"><?= $ss->hold_ref ?: lang('no_ref') ?></div>
+                                    <div class="text-muted" style="font-size:.72rem;"><?= $ss->customer_name ?> · <?= $this->tec->hrld($ss->date) ?></div>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item text-center" style="font-size:.78rem;" href="<?= site_url('sales/opened') ?>"><?= lang('view_all') ?></a></li>
+                </ul>
+            </div>
+            <?php endif; ?>
+
+            <!-- Language flags -->
+            <div class="dropdown">
+                <button class="pos-topbar-btn" data-bs-toggle="dropdown" title="Idioma">
+                    <i class="fa fa-language"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <?php
+                    $scanned_lang_dir = array_map(function($p){ return basename($p); }, glob(APPPATH.'language/*', GLOB_ONLYDIR));
+                    foreach ($scanned_lang_dir as $entry): ?>
+                    <li>
+                        <a class="dropdown-item" href="<?= site_url('pos/language/'.$entry) ?>">
+                            <img src="<?= $assets ?>images/<?= $entry ?>.png" alt="<?= $entry ?>" height="14" class="me-2">
+                            <?= ucfirst($entry) ?>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+
+            <!-- Theme toggle -->
+            <button class="pos-topbar-btn" onclick="switchTheme()" title="Cambiar tema">
+                <i class="fa fa-circle-half-stroke"></i>
+            </button>
+
+            <?php if ($Admin): ?>
+            <a href="<?= site_url('settings') ?>" class="pos-topbar-btn" title="<?= lang('settings') ?>">
+                <i class="fa fa-cog"></i>
+            </a>
+            <?php endif; ?>
+
+            <!-- Clock -->
+            <div class="pos-topbar-clock pos-clock"></div>
+
+            <!-- User dropdown -->
+            <div class="dropdown">
+                <button class="pos-user-btn" data-bs-toggle="dropdown">
+                    <div class="pos-user-avatar">
+                        <?= strtoupper(substr($this->session->userdata('username'), 0, 2)) ?>
+                    </div>
+                    <span><?= html_escape($this->session->userdata('username')) ?></span>
+                    <i class="fa fa-chevron-down" style="font-size:.65rem;opacity:.6;"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" style="min-width:180px;">
+                    <li>
+                        <a class="dropdown-item" href="<?= site_url('users/profile/'.$this->session->userdata('user_id')) ?>">
+                            <i class="fa fa-user me-2"></i><?= lang('profile') ?>
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="<?= site_url('logout') ?>">
+                            <i class="fa fa-right-from-bracket me-2"></i><?= lang('sign_out') ?>
+                        </a>
+                    </li>
+                </ul>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <div class="pos-content">
-            <!-- Left Panel: Shopping Cart -->
-            <div class="pos-cart" style="width: 100%; max-width: 450px;">
-                <div class="p-3">
-                    <h6 class="mb-3"><i class="fa fa-shopping-cart me-2"></i><?= lang('sale_details'); ?></h6>
+        <!-- ── BODY ───────────────────────────── -->
+        <div class="pos-body">
 
-                    <?= form_open('pos', 'id="pos-sale-form" class="h-100"'); ?>
+            <!-- ═══ CENTER: búsqueda + categorías + productos ═══ -->
+            <div class="pos-center">
 
-                    <!-- Customer & Config Section -->
-                    <div class="mb-3">
+                <!-- Search bar -->
+                <?php if ($Settings->enable_parquimetro != "1"): ?>
+                <div class="pos-search-section">
+                    <div class="pos-search-wrapper">
+                        <span class="search-icon"><i class="fa fa-magnifying-glass"></i></span>
+                        <input type="text" id="add_item"
+                               placeholder="<?= lang('search__scan') ?> — nombre, código, SKU..."
+                               autocomplete="off">
+                        <div class="pos-search-kbds">
+                            <kbd>F3</kbd>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Category tabs -->
+                <div class="pos-cat-bar" id="posCatBar">
+                    <?php
+                    $allCatId = (int)$Settings->default_category;
+                    ?>
+                    <button class="pos-cat-btn active category"
+                            id="<?= $allCatId ?>"
+                            data-id="<?= $allCatId ?>">
+                        <i class="fa fa-grid-2"></i>
+                        <?= lang('all') ?: 'Todos' ?>
+                    </button>
+
+                    <?php if ($categories): foreach ($categories as $cat): ?>
+                    <button class="pos-cat-btn category"
+                            id="<?= (int)$cat->id ?>"
+                            data-id="<?= (int)$cat->id ?>">
+                        <i class="fa fa-tag"></i>
+                        <?= html_escape($cat->name) ?>
+                    </button>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <!-- Controls bar -->
+                <div class="pos-controls-bar">
+                    <select id="tipo_precio" title="<?= lang('price') ?>">
+                        <option value="price"><i class="fa fa-tag"></i> <?= lang('price') ?></option>
+                        <option value="offer_price"><?= lang('offer_price') ?></option>
+                    </select>
+
+                    <input type="text" id="filter-categories"
+                           placeholder="<?= lang('filter_categories') ?: 'Filtrar productos...' ?>"
+                           autocomplete="off">
+
+                    <div style="flex:1;"></div>
+
+                    <button class="pos-pg-btn" id="previous" title="Anterior" disabled>
+                        <i class="fa fa-chevron-left"></i>
+                    </button>
+                    <button class="pos-pg-btn" id="next" title="Siguiente">
+                        <i class="fa fa-chevron-right"></i>
+                    </button>
+                    <span class="pos-pg-info" id="pgInfo"></span>
+                </div>
+
+                <!-- Product grid -->
+                <div class="pos-product-grid" id="item-list">
+                    <?php if (!$t_nc): ?>
+                        <?= $products ?>
+                    <?php else: ?>
+                        <div class="pos-grid-empty">
+                            <i class="fa fa-box-open"></i>
+                            <p><?= lang('category_is_empty') ?></p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+            </div><!-- /pos-center -->
+
+            <!-- ═══ CART PANEL ═══════════════════════════════ -->
+            <div class="pos-cart-panel">
+                <?= form_open('pos', 'id="pos-sale-form"'); ?>
+
+                <!-- Customer -->
+                <div class="pcp-customer">
+                    <div class="pcp-section-label">
+                        <i class="fa fa-user"></i>
+                        <?= lang('customer') ?>
+                        <kbd style="margin-left:auto;background:var(--nx-bg3);border:1px solid var(--nx-border);border-radius:3px;padding:.05rem .3rem;font-size:.58rem;color:var(--nx-txt4);">F2</kbd>
+                    </div>
+                    <div class="pcp-customer-row">
                         <?php
-                        $cus = array();
+                        $cus = [];
                         foreach ($customers as $customer) {
                             $cus[$customer->id] = $customer->name . ' (' . $customer->cf2 . ')';
                         }
                         ?>
-                        <?= form_dropdown('customer_id', $cus, set_value('customer_id', $Settings->default_customer), 'id="spos_customer" class="form-select form-select-sm tom-select" required'); ?>
-                    </div>
-
-                    <?php if ($Settings->enable_parquimetro != "1") { ?>
-                        <div class="mb-3">
-                            <input type="text" name="code" id="add_item" class="form-control form-control-sm" placeholder="<?= lang('search__scan'); ?>" autocomplete="off">
-                        </div>
-                    <?php } ?>
-
-                    <!-- Activity Section -->
-                    <div class="btn-group w-100 mb-3" role="group">
-                        <?php if ($Settings->propina_enable == '1') { ?>
-                            <button type="button" class="btn btn-sm btn-warning external add_tips" id="add_tips">
-                                <i class="fa fa-percent"></i> <?= lang('tip'); ?>
-                            </button>
-                        <?php } ?>
-                        <button type="button" class="btn btn-sm btn-success" id="add-customer" data-bs-toggle="modal" data-bs-target="#customerModal">
-                            <i class="fa fa-plus"></i> <?= lang('customer'); ?>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#ModalNotes">
-                            <i class="fa fa-comment"></i> <?= lang('notes'); ?>
+                        <?= form_dropdown('customer_id', $cus, set_value('customer_id', $Settings->default_customer),
+                            'id="spos_customer" class="form-select form-select-sm tom-select" required'); ?>
+                        <button type="button" class="pcp-add-cust-btn"
+                                data-bs-toggle="modal" data-bs-target="#customerModal"
+                                title="<?= lang('add_customer') ?>">
+                            <i class="fa fa-user-plus"></i>
                         </button>
                     </div>
+                </div>
 
-                    <!-- Items Table -->
-                    <div class="table-responsive mb-3" style="max-height: 250px; overflow-y: auto;" role="region" aria-label="Detalle del carrito">
-                        <table class="table table-sm table-hover mb-0" id="posTable" role="grid" aria-label="Productos en el carrito">
-                            <thead class="table-light">
-                                <tr role="row">
-                                    <th class="w-50" role="columnheader"><?= lang('product'); ?></th>
-                                    <th class="text-center" role="columnheader" aria-label="Cantidad"><?= lang('qty'); ?></th>
-                                    <th class="text-end w-25" role="columnheader" aria-label="Total por producto"><?= lang('total'); ?></th>
-                                    <th class="text-center" style="width: 30px;" role="columnheader" aria-label="Eliminar"><i class="fa fa-trash" aria-hidden="true"></i></th>
-                                </tr>
-                            </thead>
-                            <tbody id="posTable"></tbody>
-                        </table>
+                <!-- Cart header -->
+                <div class="pcp-cart-bar">
+                    <div class="pcp-cart-title">
+                        <i class="fa fa-shopping-cart"></i>
+                        <?= lang('sale_details') ?>
                     </div>
+                    <span class="pcp-cart-badge" id="count">0</span>
 
-                    <!-- Totals Section -->
-                    <div class="cart-totals">
-                        <div class="row g-2 mb-2">
-                            <div class="col">
-                                <small class="text-muted"><?= lang('items'); ?>:</small>
-                                <div class="fw-bold" id="count">0</div>
-                            </div>
-                            <div class="col text-end">
-                                <small class="text-muted"><?= lang('subtotal'); ?>:</small>
-                                <div class="fw-bold" id="total">₡0.00</div>
-                            </div>
-                        </div>
-                        <div class="row g-2 mb-2">
-                            <div class="col">
-                                <a href="#" class="link-secondary text-decoration-none" id="add_discount" style="font-size: 0.875rem;">
-                                    <i class="fa fa-minus-circle"></i> <?= lang('discount'); ?>
-                                </a>
-                            </div>
-                            <div class="col text-end">
-                                <small id="ds_con" class="fw-bold">₡0.00</small>
-                            </div>
-                        </div>
-                        <div class="row g-2 border-top pt-2">
-                            <div class="col">
-                                <small class="text-muted"><?= lang('total_payable'); ?>:</small>
-                                <div class="h5 text-primary mb-0" id="total-payable">₡0.00</div>
-                            </div>
-                        </div>
+                    <!-- Extra buttons -->
+                    <div style="display:flex;gap:.3rem;margin-left:.5rem;">
+                        <?php if (!$t_nc): ?>
+                        <button type="button" class="pcp-cart-clear-btn" id="print_order"
+                                title="<?= lang('order') ?>">
+                            <i class="fa fa-print"></i>
+                        </button>
+                        <?php endif; ?>
+                        <button type="button" class="pcp-cart-clear-btn"
+                                data-bs-toggle="modal" data-bs-target="#ModalNotes"
+                                title="<?= lang('notes') ?>">
+                            <i class="fa fa-comment"></i>
+                        </button>
+                        <?php if ($Settings->propina_enable == '1'): ?>
+                        <button type="button" class="pcp-cart-clear-btn" id="add_tips">
+                            <i class="fa fa-percent"></i>
+                        </button>
+                        <?php endif; ?>
                     </div>
+                </div>
 
-                    <!-- Action Buttons -->
-                    <div class="btn-group w-100 mt-3" role="group">
-                        <?php if (!$t_nc && !$apa) { ?>
-                            <button type="button" class="btn btn-warning" id="suspend">
-                                <i class="fa fa-pause"></i> <?= lang('hold'); ?>
-                            </button>
-                        <?php } ?>
-                        <button type="button" class="btn btn-danger" id="reset">
-                            <i class="fa fa-times"></i> <?= lang('cancel'); ?>
+                <!-- Items list -->
+                <div class="pcp-items">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><?= lang('product') ?></th>
+                                <th style="text-align:right;">P/U</th>
+                                <th style="text-align:center;"><?= lang('qty') ?></th>
+                                <th style="text-align:right;"><?= lang('total') ?></th>
+                                <th style="width:24px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="posTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Totals -->
+                <div class="pcp-totals">
+                    <div class="pcp-total-row">
+                        <span class="tl"><i class="fa fa-hashtag"></i> <?= lang('items') ?></span>
+                        <span class="tv" id="count-items">0</span>
+                    </div>
+                    <div class="pcp-total-row">
+                        <span class="tl"><i class="fa fa-list"></i> <?= lang('subtotal') ?></span>
+                        <span class="tv" id="total">₡0.00</span>
+                    </div>
+                    <div class="pcp-total-row">
+                        <a href="#" class="tl text-decoration-none" id="add_discount" style="color:var(--nx-txt4);">
+                            <i class="fa fa-tag"></i> <?= lang('discount') ?>
+                        </a>
+                        <span class="tv" id="ds_con" style="color:var(--nx-warn);">₡0.00</span>
+                    </div>
+                    <div class="pcp-total-row">
+                        <span class="tl"><i class="fa fa-percent"></i> IVA</span>
+                        <span class="tv" id="total_tax_display">₡0.00</span>
+                    </div>
+                    <div class="pcp-total-divider"></div>
+                    <div class="pcp-grand-total">
+                        <span class="gl"><?= lang('total_payable') ?></span>
+                        <span class="gv" id="total-payable">₡0.00</span>
+                    </div>
+                </div>
+
+                <!-- Payment methods -->
+                <div class="pcp-pay-section">
+                    <div class="pcp-section-label">
+                        <i class="fa fa-credit-card"></i>
+                        Método de pago
+                    </div>
+                    <div class="pcp-pay-grid">
+                        <button type="button" class="pcp-pay-btn active" data-method="cash">
+                            <i class="fa fa-money-bill-wave"></i>
+                            Efectivo
+                        </button>
+                        <button type="button" class="pcp-pay-btn" data-method="card">
+                            <i class="fa fa-credit-card"></i>
+                            Tarjeta
+                        </button>
+                        <button type="button" class="pcp-pay-btn" data-method="sinpe">
+                            <i class="fa fa-mobile-screen-button"></i>
+                            SINPE
+                        </button>
+                        <button type="button" class="pcp-pay-btn" data-method="transfer">
+                            <i class="fa fa-building-columns"></i>
+                            Transfer.
                         </button>
                     </div>
+                </div>
 
-                    <div class="btn-group w-100 mt-2" role="group">
-                        <?php if (!$t_nc) { ?>
-                            <button type="button" class="btn btn-primary" id="print_order">
-                                <i class="fa fa-print"></i> <?= lang('order'); ?>
-                            </button>
-                            <button type="button" class="btn btn-primary" id="print_bill">
-                                <i class="fa fa-print"></i> <?= lang('invoice'); ?>
-                            </button>
-                        <?php } ?>
-                        <button type="button" class="btn btn-success" id="<?= $eid ? 'submit-sale' : 'payment'; ?>">
-                            <i class="fa fa-check"></i> <?= $eid ? lang('submit') : lang('payment'); ?>
+                <!-- Actions -->
+                <div class="pcp-actions">
+                    <div class="pcp-action-row">
+                        <?php if (!$t_nc && !$apa): ?>
+                        <button type="button" class="pos-btn pos-btn-warn" id="suspend">
+                            <i class="fa fa-pause"></i> <?= lang('hold') ?>
                         </button>
+                        <?php endif; ?>
+                        <button type="button" class="pos-btn pos-btn-danger" id="reset">
+                            <i class="fa fa-times"></i> <?= lang('cancel') ?>
+                        </button>
+                        <?php if (!$t_nc): ?>
+                        <button type="button" class="pos-btn pos-btn-ghost" id="print_bill">
+                            <i class="fa fa-print"></i>
+                        </button>
+                        <?php endif; ?>
                     </div>
 
-                    <!-- Hidden Fields -->
-                    <input type="hidden" name="total_tax" id="total_tax" value="<?= $total_tax; ?>">
-                    <input type="hidden" name="customer" id="customer" value="<?= $Settings->default_customer ?>">
-                    <input type="hidden" name="order_tax" id="tax_val" value="">
-                    <input type="hidden" name="order_discount" id="discount_val" value="">
-                    <input type="hidden" name="count" id="total_item" value="">
-                    <input type="hidden" name="amount" id="amount_val" value="">
-                    <input type="hidden" name="paid_by" id="paid_by_val" value="cash">
-                    <input type="hidden" name="payment_note" id="payment_note_val" value="">
-                    <input type="hidden" id="submit" type="submit" style="display: none;">
-
-                    <?= form_close(); ?>
-                </div>
-            </div>
-
-            <!-- Right Panel: Products -->
-            <div class="pos-products">
-                <div class="pos-header">
-                    <div class="row g-2">
-                        <div class="col">
-                            <select id="tipo_precio" class="form-select form-select-sm">
-                                <option value="price"><?= lang('price'); ?></option>
-                                <option value="offer_price"><?= lang('offer_price'); ?></option>
-                            </select>
-                        </div>
-                        <div class="col">
-                            <input type="text" id="filter-categories" class="form-control form-control-sm" placeholder="<?= lang('filter_categories'); ?>">
-                        </div>
-                        <div class="col-auto">
-                            <button class="btn btn-sm btn-outline-secondary" id="previous">
-                                <i class="fa fa-chevron-left"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" id="next">
-                                <i class="fa fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
+                    <button type="button"
+                            class="pos-btn pos-btn-pay"
+                            id="<?= $eid ? 'submit-sale' : 'payment' ?>">
+                        <i class="fa fa-check-circle"></i>
+                        <?= $eid ? lang('submit') : lang('payment') ?>
+                        <span class="kh">F4</span>
+                    </button>
                 </div>
 
-                <div class="product-grid" id="item-list">
-                    <?php if (!$t_nc) { ?>
-                        <?= $products; ?>
-                    <?php } ?>
-                </div>
-            </div>
-        </div>
-    </div>
+                <!-- Hidden form fields -->
+                <input type="hidden" name="total_tax"     id="total_tax"      value="<?= $total_tax ?>">
+                <input type="hidden" name="order_tax"     id="tax_val"        value="">
+                <input type="hidden" name="order_discount" id="discount_val"  value="">
+                <input type="hidden" name="count"          id="total_item"    value="">
+                <input type="hidden" name="amount"         id="amount_val"    value="">
+                <input type="hidden" name="paid_by"        id="paid_by_val"   value="cash">
+                <input type="hidden" name="payment_note"   id="payment_note_val" value="">
+                <input type="hidden" id="submit" style="display:none;">
 
-    <!-- Modals -->
-
-    <!-- Customer Modal -->
-    <div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="customerModalLabel"><?= lang('add_customer'); ?></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <?= form_open('pos/add_customer', 'id="customer-form"'); ?>
-                <div class="modal-body">
-                    <div id="c-alert" class="alert alert-danger d-none"></div>
-
-                    <div class="mb-3">
-                        <label class="form-label"><?= lang('name'); ?> <span class="text-danger">*</span></label>
-                        <?= form_input('name', '', 'class="form-control" id="cname" required'); ?>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label"><?= lang('email_address'); ?></label>
-                        <?= form_input('email', '', 'class="form-control" id="cemail"'); ?>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label"><?= lang('phone'); ?></label>
-                        <?= form_input('phone', '', 'class="form-control" id="cphone"'); ?>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><?= lang('cf1'); ?> <span class="text-danger">*</span></label>
-                                <select name="cf1" class="form-select" id="cf1" required>
-                                    <option value="01"><?= lang('id_card'); ?></option>
-                                    <option value="02"><?= lang('legal_id'); ?></option>
-                                    <option value="03">DIMEX</option>
-                                    <option value="04">NITE</option>
-                                    <option value="05"><?= lang('passport'); ?></option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><?= lang('cf2'); ?> <span class="text-danger">*</span></label>
-                                <?= form_input('cf2', '', 'class="form-control" id="cf2" required'); ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close'); ?></button>
-                    <button type="submit" class="btn btn-primary"><?= lang('add_customer'); ?></button>
-                </div>
                 <?= form_close(); ?>
+            </div><!-- /pos-cart-panel -->
+
+        </div><!-- /pos-body -->
+    </div><!-- /pos-main -->
+</div><!-- /pos-wrapper -->
+
+<!-- ════════════════════════════════════════════════
+     KEYBOARD HINTS BAR
+════════════════════════════════════════════════ -->
+<div class="pos-kbd-bar">
+    <span><kbd>F2</kbd> Cliente</span>
+    <span><kbd>F3</kbd> Buscar</span>
+    <span><kbd>F4</kbd> Cobrar</span>
+    <span><kbd>ESC</kbd> Cancelar</span>
+    <span><kbd>↑↓</kbd> Navegar</span>
+    <span><kbd>Enter</kbd> Agregar</span>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     MODALES
+════════════════════════════════════════════════ -->
+
+<!-- Customer Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-user-plus me-2" style="color:var(--nx-a1);"></i>
+                    <?= lang('add_customer') ?>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <?= form_open('customers/add', 'id="customer-form"'); ?>
+            <div class="modal-body">
+                <div id="c-alert" class="alert alert-danger d-none"></div>
+
+                <div class="mb-3">
+                    <label class="form-label"><?= lang('name') ?> <span class="text-danger">*</span></label>
+                    <?= form_input('name', '', 'class="form-control" id="cname" required') ?>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><?= lang('email_address') ?></label>
+                        <?= form_input('email', '', 'class="form-control" id="cemail"') ?>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><?= lang('phone') ?></label>
+                        <?= form_input('phone', '', 'class="form-control" id="cphone"') ?>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><?= lang('cf1') ?> <span class="text-danger">*</span></label>
+                        <select name="cf1" class="form-select" id="cf1" required>
+                            <option value="01"><?= lang('id_card') ?></option>
+                            <option value="02"><?= lang('legal_id') ?></option>
+                            <option value="03">DIMEX</option>
+                            <option value="04">NITE</option>
+                            <option value="05"><?= lang('passport') ?></option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><?= lang('cf2') ?> <span class="text-danger">*</span></label>
+                        <?= form_input('cf2', '', 'class="form-control" id="cf2" required') ?>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close') ?></button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-plus me-1"></i><?= lang('add_customer') ?>
+                </button>
+            </div>
+            <?= form_close(); ?>
+        </div>
+    </div>
+</div>
+
+<!-- Notes Modal -->
+<div class="modal fade" id="ModalNotes" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-comment me-2" style="color:var(--nx-a1);"></i>
+                    <?= lang('notes') ?>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label"><?= lang('reference_note') ?></label>
+                    <?= form_input('hold_ref', $reference_note ?? '', 'class="form-control" id="hold_ref"') ?>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><?= lang('note') ?></label>
+                    <textarea name="spos_note" id="spos_note" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close') ?></button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fa fa-check me-1"></i><?= lang('accept') ?>
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Notes Modal -->
-    <div class="modal fade" id="ModalNotes" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><?= lang('notes'); ?></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Payment Modal -->
+<div class="modal fade" id="payModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-cash-register me-2" style="color:var(--nx-ok);"></i>
+                    <?= lang('payment') ?>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Payment method selector -->
+                <div class="pay-methods-grid">
+                    <button type="button" class="pay-method-btn active" data-method="cash" id="pmCash">
+                        <i class="fa fa-money-bill-wave"></i>Efectivo
+                    </button>
+                    <button type="button" class="pay-method-btn" data-method="card" id="pmCard">
+                        <i class="fa fa-credit-card"></i>Tarjeta
+                    </button>
+                    <button type="button" class="pay-method-btn" data-method="sinpe" id="pmSinpe">
+                        <i class="fa fa-mobile-screen-button"></i>SINPE
+                    </button>
+                    <button type="button" class="pay-method-btn" data-method="transfer" id="pmTransfer">
+                        <i class="fa fa-building-columns"></i>Transfer.
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label"><?= lang('reference_note'); ?></label>
-                        <?= form_input('hold_ref', $reference_note ?? '', 'class="form-control" id="hold_ref"'); ?>
+
+                <!-- Totals display -->
+                <div class="pay-totals-row">
+                    <div class="pay-total-box">
+                        <div class="ptb-label"><?= lang('total_payable') ?></div>
+                        <div class="ptb-value" id="twt">₡0.00</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label"><?= lang('note'); ?></label>
-                        <textarea name="spos_note" id="spos_note" class="form-control" rows="3"></textarea>
+                    <div class="pay-total-box change">
+                        <div class="ptb-label"><?= lang('change') ?></div>
+                        <div class="ptb-value" id="balance">₡0.00</div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close'); ?></button>
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><?= lang('accept'); ?></button>
+
+                <!-- Amount input -->
+                <div class="pay-amount-group">
+                    <label><?= lang('amount') ?></label>
+                    <input type="number" id="amount" name="amount"
+                           placeholder="0.00" inputmode="decimal" min="0" step="any">
                 </div>
+
+                <!-- Quick amounts -->
+                <div class="pay-quick-row" id="payQuickAmounts">
+                    <button type="button" class="pay-quick-btn exact" id="payExact">
+                        <i class="fa fa-equals me-1"></i>Exacto
+                    </button>
+                    <button type="button" class="pay-quick-btn" data-amount="5000">₡5,000</button>
+                    <button type="button" class="pay-quick-btn" data-amount="10000">₡10,000</button>
+                    <button type="button" class="pay-quick-btn" data-amount="20000">₡20,000</button>
+                    <button type="button" class="pay-quick-btn" data-amount="50000">₡50,000</button>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:.875rem 1.25rem;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times me-1"></i><?= lang('close') ?>
+                </button>
+                <button type="button" class="pay-submit-btn" id="submit-sale" style="flex:1;max-width:200px;">
+                    <i class="fa fa-check"></i>
+                    <?= lang('submit') ?>
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Payment Modal -->
-    <div class="modal fade" id="payModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><?= lang('payment'); ?></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h6><?= lang('total_payable'); ?></h6>
-                            <h3 class="text-primary" id="twt">₡0.00</h3>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><?= lang('change'); ?></h6>
-                            <h3 class="text-success" id="balance">₡0.00</h3>
-                        </div>
-                    </div>
+<!-- ════════════════════════════════════════════════
+     INLINE PHP → JS VARIABLES
+════════════════════════════════════════════════ -->
+<script type="text/javascript">
+    var base_url = '<?= base_url(); ?>',
+        assets   = '<?= $assets ?>';
 
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label"><?= lang('payment_method'); ?></label>
-                            <select id="paid_by1" name="paid_by1" class="form-select" value="<?= lang('cash'); ?>" readonly>
-                                <option selected><?= lang('cash'); ?></option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label"><?= lang('amount'); ?></label>
-                            <input type="text" name="amount" id="amount" class="form-control kb-pad" inputmode="decimal">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label"><?= lang('reference'); ?></label>
-                            <input type="text" name="fpreferenciaNA" id="fpreferenciaNA" class="form-control" value="N/A" readonly>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close'); ?></button>
-                    <button type="button" class="btn btn-success" id="submit-sale"><?= lang('submit'); ?></button>
-                </div>
-            </div>
-        </div>
-    </div>
+    var Settings = <?= json_encode($Settings); ?>;
+    var username = '<?= addslashes($this->session->userdata('username')); ?>';
 
-    <script type="text/javascript">
-        var base_url = '<?= base_url(); ?>',
-            assets = '<?= $assets ?>';
-        var Settings = <?= json_encode($Settings); ?>;
-        var username = '<?= $this->session->userdata('username'); ?>';
-    </script>
+    window._pos_cat_id = <?= (int)$Settings->default_category; ?>;
+    window._pos_tcp    = <?= (int)$tcp; ?>;
+    window._pos_sid    = <?= (int)$sid; ?>;
+
+    var lang = {
+        no_match_found:      '<?= addslashes(lang('no_match_found')); ?>',
+        please_add_product:  '<?= addslashes(lang('please_add_product')); ?>',
+        r_u_sure:            '<?= addslashes(lang('r_u_sure')); ?>',
+        unexpected_value:    '<?= addslashes(lang('unexpected_value')); ?>',
+        remove:              '<?= addslashes(lang('delete')); ?>',
+        inclusive:           '<?= addslashes(lang('inclusive')); ?>',
+        exclusive:           '<?= addslashes(lang('exclusive')); ?>',
+        enter_pin_code:      '<?= addslashes(lang('enter_pin_code')); ?>',
+        wrong_pin:           '<?= addslashes(lang('wrong_pin')); ?>',
+        type_reference_note: '<?= addslashes(lang('type_reference_note')); ?>'
+    };
+</script>
+<script src="<?= $assets ?>dist/js/pos-core.js"></script>
 </body>
 </html>

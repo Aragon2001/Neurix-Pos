@@ -849,7 +849,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 ═════════════════════════════════════════════ -->
 <script>
 (function(){
-    var dark   = document.documentElement.getAttribute('data-theme') !== 'light';
+    var dark   = document.documentElement.getAttribute('data-bs-theme') !== 'light';
     var txt    = dark ? '#94a3b8' : '#475569';
     var txt1   = dark ? '#e2e8f0' : '#0f172a';
     var grid   = dark ? 'rgba(56,189,248,.07)' : 'rgba(14,165,233,.09)';

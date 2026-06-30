@@ -8,8 +8,13 @@ import 'admin-lte/dist/css/adminlte.min.css'
 import 'admin-lte'
 import '@fortawesome/fontawesome-free/css/all.css'
 
+// Sistema de variables CSS de Neurix (--nx-a1, --nx-txt3, --nx-card-bg, etc.)
+// Debe ir ANTES de neurix-adminlte4.css para que las variables existan cuando se usen
+import './neurix-theme-vars.css'
 // Importar CSS personalizado de Neurix para AdminLTE 4
 import './neurix-adminlte4.css'
+// Estilos específicos del módulo POS (pos-container, product-card, pos-cart, etc.)
+import './pos-redesign.css'
 
 // Importar librerías modernas
 import TomSelect from 'tom-select'
@@ -52,123 +57,22 @@ const initPopovers = () => {
   })
 }
 
-// ═════════════════ SIDEBAR TREEVIEW (AdminLTE 4 nativo) ═════════════════
-const initTreeview = () => {
-  const treeviewItems = document.querySelectorAll('.has-treeview > .nav-link')
-
-  treeviewItems.forEach(link => {
-    link.addEventListener('click', (e) => {
-      const parent = link.parentElement
-      const treeview = parent.querySelector('.nav-treeview')
-
-      if (treeview) {
-        e.preventDefault()
-
-        // Colapsar otros treeview
-        document.querySelectorAll('.has-treeview').forEach(item => {
-          if (item !== parent) {
-            item.classList.remove('menu-open')
-            const otherTreeview = item.querySelector('.nav-treeview')
-            if (otherTreeview) {
-              otherTreeview.style.display = 'none'
-            }
-          }
-        })
-
-        // Toggle actual con animación suave
-        parent.classList.toggle('menu-open')
-        const isOpen = parent.classList.contains('menu-open')
-
-        if (isOpen) {
-          treeview.style.display = 'block'
-          treeview.style.opacity = '0'
-          setTimeout(() => {
-            treeview.style.transition = 'opacity 0.3s ease'
-            treeview.style.opacity = '1'
-          }, 0)
-        } else {
-          treeview.style.opacity = '1'
-          treeview.style.transition = 'opacity 0.3s ease'
-          treeview.style.opacity = '0'
-          setTimeout(() => {
-            treeview.style.display = 'none'
-            treeview.style.transition = ''
-          }, 300)
-        }
-      }
-    })
-  })
-
-  // Mantener abierto si tiene item activo
-  document.querySelectorAll('.has-treeview').forEach(parent => {
-    const activeItem = parent.querySelector('.nav-treeview .nav-link.active')
-    if (activeItem) {
-      parent.classList.add('menu-open')
-      const treeview = parent.querySelector('.nav-treeview')
-      if (treeview) {
-        treeview.style.display = 'block'
-      }
-    }
-  })
-}
-
-// ═════════════════ MENU ACTIVO (Highlight current page) ═════════════════
-const initActiveMenu = () => {
-  const currentUrl = window.location.pathname
-  const navLinks = document.querySelectorAll('.nav-sidebar .nav-link')
-
-  navLinks.forEach(link => {
-    const href = link.getAttribute('href')
-    if (href && currentUrl.includes(href.replace(/^[^/]*\//, ''))) {
-      link.classList.add('active')
-      const parent = link.closest('.has-treeview')
-      if (parent) {
-        parent.classList.add('menu-open')
-        const treeview = parent.querySelector('.nav-treeview')
-        if (treeview) {
-          treeview.style.display = 'block'
-        }
-      }
-    }
-  })
-}
-
 // ═════════════════ MAIN - Ejecutar al cargar ═════════════════
+// Nota: treeview y sidebar toggle los maneja AdminLTE4 JS nativo
+// (data-lte-toggle="treeview" / data-lte-toggle="sidebar") — no duplicar aquí
 document.addEventListener('DOMContentLoaded', () => {
-  // Tema
   initTheme()
-
-  // Bootstrap 5 componentes
   initTooltips()
   initPopovers()
 
-  // AdminLTE 4 componentes
-  initTreeview()
-  initActiveMenu()
-
-  // Cerrar offcanvas sidebar al hacer click en un link (mobile)
-  const sidebar = document.getElementById('mainSidebar')
-  if (sidebar) {
-    const offcanvasInstance = bootstrap.Offcanvas.getOrCreateInstance(sidebar)
-    document.querySelectorAll('#mainSidebar .nav-link').forEach(link => {
-      link.addEventListener('click', () => {
-        if (!link.parentElement.classList.contains('has-treeview')) {
-          offcanvasInstance.hide()
-        }
-      })
-    })
-  }
-
-  // Exportar librerías globales para usar en scripts embebidos (legacy support)
+  // Exportar librerías globales para scripts embebidos en vistas PHP
   window.TomSelect = TomSelect
   window.Tabulator = Tabulator
   window.TempusDominus = TempusDominus
   window.Swal = Swal
   window.nxToggleTheme = (theme) => switchTheme(theme)
 
-  // Mostrar versión en console
-  console.log('%c🚀 Neurix POS v1.0', 'font-size: 16px; color: #0369a1; font-weight: bold;')
-  console.log('%cAdminLTE 4 + Bootstrap 5 + Vite', 'font-size: 12px; color: #38bdf8;')
+  console.log('%c Neurix POS v1.0', 'font-size:14px;color:#38bdf8;font-weight:bold;')
 })
 
 // ═════════════════ TEMA GLOBAL ═════════════════

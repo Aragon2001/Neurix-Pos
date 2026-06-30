@@ -5,67 +5,50 @@
     <title><?= $page_title . ' | ' . $Settings->site_name; ?></title>
     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <!-- CSS compilado por Vite: Bootstrap 5 + AdminLTE 4 + Neurix -->
     <link href="<?= base_url('themes/default/assets/dist/css/www.min.css'); ?>" rel="stylesheet">
     <?= $Settings->rtl ? '<link href="' . base_url('themes/default/assets/dist/css/rtl.css') . '" rel="stylesheet">' : ''; ?>
     <script>
-    /* Anti-FOUC: aplicar tema antes de renderizar (AdminLTE 4 con data-bs-theme) */
     (function(){
         var t = localStorage.getItem('nx-theme') || 'dark';
         document.documentElement.setAttribute('data-bs-theme', t);
         document.body.setAttribute('data-theme', t);
     })();
     </script>
-    <!-- Bundle Vite: Bootstrap 5 + AdminLTE 4 + librerías modernas (sin jQuery) -->
     <script src="<?= base_url('themes/default/assets/dist/js/main.min.js'); ?>" defer></script>
 </head>
-<body class="layout-fixed">
-<div class="wrapper d-flex flex-column" style="min-height:100vh;">
+<body class="layout-fixed sidebar-expand-lg">
+<div class="app-wrapper">
 
-<!-- ═══════════════ NAVBAR (HEADER) ═══════════════ -->
-<nav class="main-header navbar navbar-expand-md navbar-dark bg-dark border-bottom border-secondary sticky-top">
+<!-- ════════════════════════════════════════════════
+     APP-HEADER  (grid-area: lte-app-header)
+════════════════════════════════════════════════ -->
+<nav class="app-header navbar navbar-expand">
+    <div class="container-fluid px-3">
 
-    <!-- Logo / Brand -->
-    <a href="<?= site_url(); ?>" class="navbar-brand" style="display:flex;align-items:center;gap:9px;padding:0.5rem 1rem;">
-        <span class="brand-image" style="
-            display:inline-flex;align-items:center;justify-content:center;
-            width:36px;height:36px;border-radius:8px;flex-shrink:0;
-            background:linear-gradient(135deg,#0369a1,#38bdf8);
-            color:#fff;font-size:16px;font-weight:800;
-            box-shadow:0 2px 10px rgba(56,189,248,.4);">
-            <?= mb_strtoupper(mb_substr($Settings->site_name, 0, 1)); ?>
-        </span>
-        <span class="brand-text fw-bold">
-            <?= $store ? $store->name : $Settings->site_name; ?>
-        </span>
-    </a>
+        <!-- Sidebar toggle -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link nx-sidebar-toggle" data-lte-toggle="sidebar" href="#" role="button">
+                    <i class="fa fa-bars"></i>
+                </a>
+            </li>
+        </ul>
 
-    <!-- Navbar Toggler (para móvil) -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavRight" aria-controls="navbarNavRight" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+        <!-- ── Derecha ── -->
+        <ul class="navbar-nav ms-auto align-items-center gap-1">
 
-    <!-- Sidebar Toggle (solo visible en móvil/tablet; en desktop el sidebar siempre está visible) -->
-    <a href="#" class="nav-link ms-2 d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mainSidebar" aria-controls="mainSidebar" title="Alternar sidebar">
-        <i class="fa fa-bars"></i>
-        <span class="d-md-none ms-2">Menú</span>
-    </a>
-
-    <!-- Navbar Right Items -->
-    <div class="collapse navbar-collapse ms-auto" id="navbarNavRight">
-        <ul class="navbar-nav ms-auto">
-
-            <!-- Reloj (oculto en móvil) -->
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="#" class="nav-link clock" style="cursor:default;padding: 0.5rem;"></a>
+            <!-- Reloj -->
+            <li class="nav-item d-none d-md-inline-block">
+                <span class="nav-link nx-clock" id="nxClock" style="cursor:default;font-size:13px;font-variant-numeric:tabular-nums;"></span>
             </li>
 
             <!-- Alerta inventario -->
             <?php if ($Admin && $qty_alert_num && $this->session->userdata('store_id')): ?>
             <li class="nav-item">
-                <a href="<?= site_url('reports/alerts'); ?>" class="nav-link" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= lang('alerts'); ?>">
-                    <i class="fa fa-bell" style="color:#eab308;"></i>
-                    <span class="badge bg-warning text-dark ms-2"><?= $qty_alert_num; ?></span>
+                <a href="<?= site_url('reports/alerts'); ?>" class="nav-link position-relative"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= lang('alerts'); ?>">
+                    <i class="fa fa-bell"></i>
+                    <span class="navbar-badge badge text-bg-warning"><?= $qty_alert_num; ?></span>
                 </a>
             </li>
             <?php endif; ?>
@@ -73,376 +56,468 @@
             <!-- Ventas suspendidas -->
             <?php if ($suspended_sales && $this->session->userdata('store_id')): ?>
             <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="fa fa-shopping-cart"></i>
-                    <span class="badge bg-warning text-dark ms-2"><?= count($suspended_sales); ?></span>
+                <a href="#" class="nav-link position-relative dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                    <i class="fa fa-cart-shopping"></i>
+                    <span class="navbar-badge badge text-bg-warning"><?= count($suspended_sales); ?></span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li class="dropdown-header"><?= lang('recent_suspended_sales'); ?></li>
+                <ul class="dropdown-menu dropdown-menu-end" style="min-width:260px;">
+                    <li class="dropdown-header py-2"><?= lang('recent_suspended_sales'); ?></li>
                     <li><hr class="dropdown-divider"></li>
                     <?php foreach ($suspended_sales as $ss): ?>
                     <li><a href="<?= site_url('pos/?hold=' . $ss->id); ?>" class="dropdown-item load_suspended">
-                        <?= $this->tec->hrld($ss->date); ?> (<?= $ss->customer_name; ?>)<br>
-                        <small><strong><?= $ss->hold_ref; ?></strong></small>
+                        <i class="fa fa-clock fa-sm me-2 opacity-50"></i>
+                        <?= $this->tec->hrld($ss->date); ?> — <?= $ss->customer_name; ?><br>
+                        <small class="text-muted ms-3"><?= $ss->hold_ref; ?></small>
                     </a></li>
                     <?php endforeach; ?>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a href="<?= site_url('sales/opened'); ?>" class="dropdown-item"><?= lang('view_all'); ?></a></li>
+                    <li><a href="<?= site_url('sales/opened'); ?>" class="dropdown-item text-center"><?= lang('view_all'); ?></a></li>
                 </ul>
             </li>
             <?php endif; ?>
 
-            <!-- Destienda (multi-store) -->
+            <!-- Deseleccionar tienda -->
             <?php if ($Settings->multi_store && !$this->session->userdata('has_store_id') && $this->session->userdata('store_id')): ?>
             <li class="nav-item">
-                <a href="<?= site_url('stores/deselect_store'); ?>" class="nav-link" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= lang('deselect_store'); ?>">
-                    <i class="fa fa-sign-out"></i>
+                <a href="<?= site_url('stores/deselect_store'); ?>" class="nav-link"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= lang('deselect_store'); ?>">
+                    <i class="fa fa-right-from-bracket"></i>
                 </a>
             </li>
             <?php endif; ?>
 
             <!-- Toggle tema -->
             <li class="nav-item">
-                <button class="nav-link nx-theme-btn" id="nxThemeToggle" onclick="nxToggleTheme()" title="Cambiar tema" style="border:none;background:transparent;cursor:pointer;">
-                    <i class="fa fa-adjust"></i> <span id="nxThemeLabel" class="d-none d-sm-inline">Modo</span>
+                <button class="nav-link nx-theme-btn" onclick="nxToggleTheme()" title="Cambiar tema">
+                    <i class="fa fa-circle-half-stroke" id="nxThemeIcon"></i>
                 </button>
             </li>
 
-            <!-- Menú usuario -->
+            <!-- ── Dropdown USUARIO (card estilo referencia) ── -->
             <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <img src="<?= base_url('uploads/avatars/thumbs/' . ($this->session->userdata('avatar') ? $this->session->userdata('avatar') : $this->session->userdata('gender') . '.png')); ?>"
-                         class="rounded-circle" alt="Avatar" style="width:32px;height:32px;object-fit:cover;">
-                    <span class="d-none d-sm-inline ms-2" style="font-weight:600;font-size:14px;">
+                <a href="#" class="nav-link d-flex align-items-center gap-2 nx-user-toggle"
+                   data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                    <img src="<?= base_url('uploads/avatars/thumbs/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')); ?>"
+                         class="rounded-circle nx-header-avatar" alt="Avatar">
+                    <span class="d-none d-lg-inline fw-semibold" style="font-size:13px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                         <?= $this->session->userdata('first_name') . ' ' . $this->session->userdata('last_name'); ?>
                     </span>
+                    <i class="fa fa-angle-down fa-xs opacity-75 d-none d-lg-inline"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <!-- Cabecera usuario -->
-                    <li class="dropdown-header">
-                        <img src="<?= base_url('uploads/avatars/' . ($this->session->userdata('avatar') ? $this->session->userdata('avatar') : $this->session->userdata('gender') . '.png')); ?>" alt="Avatar" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
-                        <div class="ms-2">
-                            <p class="mb-0"><?= $this->session->userdata('first_name') . ' ' . $this->session->userdata('last_name'); ?></p>
-                            <small><?= $this->session->userdata('email'); ?></small>
+
+                <!-- Card de perfil -->
+                <div class="dropdown-menu dropdown-menu-end nx-user-card p-0">
+                    <!-- Cabecera del card -->
+                    <div class="nx-user-card-header text-center p-4">
+                        <div class="position-relative d-inline-block">
+                            <img src="<?= base_url('uploads/avatars/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')); ?>"
+                                 class="rounded-circle nx-user-card-avatar" alt="Avatar">
+                            <span class="nx-user-card-status-dot" title="Conectado"></span>
                         </div>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
+                        <div class="fw-bold mt-2" style="font-size:15px;color:#f1f5f9;">
+                            <?= $this->session->userdata('first_name') . ' ' . $this->session->userdata('last_name'); ?>
+                        </div>
+                        <div class="mt-1">
+                            <span class="badge nx-role-badge"><?= $Admin ? 'Administrador' : 'Cajero'; ?></span>
+                        </div>
+                    </div>
 
-                    <!-- Links -->
-                    <li><a href="<?= site_url('users/profile/' . $this->session->userdata('user_id')); ?>" class="dropdown-item">
-                        <i class="fa fa-user-circle-o"></i> <?= lang('profile'); ?>
-                    </a></li>
-                    <?php if ($this->db->dbdriver != 'sqlite3'): ?>
-                    <li><a href="<?= site_url('pos/view_bill'); ?>" target="_blank" class="dropdown-item">
-                        <i class="fa fa-desktop"></i> <?= lang('view_bill'); ?>
-                    </a></li>
-                    <?php endif; ?>
+                    <!-- Info rows -->
+                    <div class="nx-user-card-info px-4 pb-2">
+                        <div class="nx-user-info-row">
+                            <i class="fa fa-envelope nx-info-icon"></i>
+                            <span><?= $this->session->userdata('email'); ?></span>
+                        </div>
+                        <div class="nx-user-info-row">
+                            <i class="fa fa-shield nx-info-icon"></i>
+                            <span>Rol: <?= $Admin ? 'Administrador' : 'Cajero'; ?></span>
+                        </div>
+                        <?php if ($this->db->dbdriver != 'sqlite3'): ?>
+                        <div class="nx-user-info-row">
+                            <i class="fa fa-desktop nx-info-icon"></i>
+                            <a href="<?= site_url('pos/view_bill'); ?>" target="_blank" class="text-decoration-none" style="color:var(--nx-a1,#38bdf8);">
+                                <?= lang('view_bill'); ?>
+                            </a>
+                        </div>
+                        <?php endif; ?>
+                        <!-- Idioma -->
+                        <div class="nx-user-info-row">
+                            <i class="fa fa-globe nx-info-icon"></i>
+                            <div class="dropdown w-100">
+                                <a href="#" class="dropdown-toggle text-decoration-none d-flex align-items-center gap-1"
+                                   style="font-size:13px;color:inherit;" data-bs-toggle="dropdown">
+                                    <img src="<?= $assets; ?>images/<?= $Settings->selected_language; ?>.png" style="width:14px;" alt="">
+                                    <?= ucwords($Settings->selected_language); ?>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <?php
+                                    $scanned_lang_dir = array_map(function($p){ return basename($p); }, glob(APPPATH . 'language/*', GLOB_ONLYDIR));
+                                    foreach ($scanned_lang_dir as $entry): ?>
+                                    <li><a href="<?= site_url('pos/language/' . $entry); ?>" class="dropdown-item">
+                                        <img src="<?= $assets; ?>images/<?= $entry; ?>.png" style="width:14px;margin-right:6px;" alt="">
+                                        <?= ucwords($entry); ?>
+                                    </a></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
 
-                    <!-- Selector de idioma -->
-                    <li><a href="#" class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fa fa-globe"></i> Idioma
-                        <img src="<?= $assets; ?>images/<?= $Settings->selected_language; ?>.png" style="width:16px;margin-left:4px;" alt="">
-                    </a>
-                    <ul class="dropdown-menu">
-                        <?php
-                        $scanned_lang_dir = array_map(function($path){ return basename($path); }, glob(APPPATH . 'language/*', GLOB_ONLYDIR));
-                        foreach ($scanned_lang_dir as $entry): ?>
-                        <li><a href="<?= site_url('pos/language/' . $entry); ?>" class="dropdown-item">
-                            <img src="<?= $assets; ?>images/<?= $entry; ?>.png" class="language-img" style="width:16px;margin-right:6px;" alt="">
-                            <?= ucwords($entry); ?>
-                        </a></li>
-                        <?php endforeach; ?>
-                    </ul>
-                    </li>
-
-                    <li><hr class="dropdown-divider"></li>
-
-                    <!-- Logout -->
-                    <?php if ($this->session->userdata('register_id')): ?>
-                    <li><a href="<?= site_url('logout'); ?>" class="dropdown-item nx-btn-logout"
-                           data-confirm="<?= htmlspecialchars(lang('register_open_alert') ?: 'Tiene una caja abierta. ¿Cerrar sesión de todas formas?') ?>">
-                        <i class="fa fa-sign-out"></i> <?= lang('sign_out'); ?>
-                    </a></li>
-                    <?php else: ?>
-                    <li><a href="<?= site_url('logout'); ?>" class="dropdown-item nx-btn-logout">
-                        <i class="fa fa-sign-out"></i> <?= lang('sign_out'); ?>
-                    </a></li>
-                    <?php endif; ?>
-                </ul>
+                    <!-- Acciones -->
+                    <div class="nx-user-card-actions px-3 pb-3 d-flex gap-2">
+                        <a href="<?= site_url('users/profile/' . $this->session->userdata('user_id')); ?>"
+                           class="btn btn-outline-primary btn-sm flex-fill">
+                            <i class="fa fa-circle-user me-1"></i> <?= lang('profile'); ?>
+                        </a>
+                        <?php if ($this->session->userdata('register_id')): ?>
+                        <a href="<?= site_url('logout'); ?>" class="btn btn-danger btn-sm flex-fill nx-btn-logout"
+                           data-confirm="<?= htmlspecialchars(lang('register_open_alert') ?: 'Tiene una caja abierta. ¿Cerrar sesión?') ?>">
+                            <i class="fa fa-right-from-bracket me-1"></i> <?= lang('sign_out'); ?>
+                        </a>
+                        <?php else: ?>
+                        <a href="<?= site_url('logout'); ?>" class="btn btn-danger btn-sm flex-fill nx-btn-logout">
+                            <i class="fa fa-right-from-bracket me-1"></i> <?= lang('sign_out'); ?>
+                        </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </li>
 
         </ul>
     </div>
-
 </nav>
 
-<!-- ═══════════════ FILA: SIDEBAR + CONTENIDO ═══════════════
-     NOTA: el sidebar usa "offcanvas-lg" (no "offcanvas" simple). Con "offcanvas"
-     a secas, Bootstrap 5 lo mantiene SIEMPRE oculto (fuera de pantalla) hasta que
-     se activa el toggle, incluso en desktop -- por eso el panel se veía sin
-     navegación lateral. "offcanvas-lg" lo convierte en un sidebar fijo y visible
-     a partir de 992px, y solo se comporta como drawer deslizante por debajo de eso. -->
-<div class="d-flex flex-fill nx-layout-row" style="min-height:0;">
-<aside class="main-sidebar sidebar-dark-primary offcanvas-lg offcanvas-start" id="mainSidebar" tabindex="-1" aria-labelledby="mainSidebarLabel">
-    <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title" id="mainSidebarLabel">Menú</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+<!-- ════════════════════════════════════════════════
+     APP-SIDEBAR  (grid-area: lte-app-sidebar)
+════════════════════════════════════════════════ -->
+<aside class="app-sidebar nx-sidebar shadow" data-bs-theme="dark">
+
+    <!-- Marca / Logo -->
+    <div class="sidebar-brand">
+        <a href="<?= site_url(); ?>" class="brand-link d-flex align-items-center gap-2 text-decoration-none">
+            <span class="nx-brand-icon">
+                <?= mb_strtoupper(mb_substr($Settings->site_name, 0, 1)); ?>
+            </span>
+            <span class="brand-text fw-bold" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;">
+                <?= $store ? $store->name : $Settings->site_name; ?>
+            </span>
+        </a>
     </div>
-    <nav class="offcanvas-body ps-0 pe-0">
-        <ul class="nav nav-pills nav-sidebar flex-column">
 
-            <li class="nav-item mm_welcome">
-                <a href="<?= site_url(); ?>" class="nav-link">
-                    <span class="nx-sico nx-ico-blue"><i class="fa fa-tachometer"></i></span>
-                    <span class="nx-menu-txt"><?= lang('dashboard'); ?></span>
-                </a>
-            </li>
-
-            <?php if ($Settings->multi_store && !$this->session->userdata('store_id')): ?>
-            <li class="nav-item mm_stores">
-                <a href="<?= site_url('stores'); ?>" class="nav-link">
-                    <span class="nx-sico nx-ico-sky"><i class="fa fa-building"></i></span>
-                    <span class="nx-menu-txt"><?= lang('stores'); ?></span>
-                </a>
-            </li>
-            <?php endif; ?>
-
-            <li class="nav-item mm_pos">
-                <a href="<?= site_url('pos'); ?>" class="nav-link">
-                    <span class="nx-sico nx-ico-cyan"><i class="fa fa-shopping-bag"></i></span>
-                    <span class="nx-menu-txt"><?= lang('pos'); ?></span>
-                </a>
-            </li>
-
-            <?php if ($Admin): ?>
-            <li style="height:1px;background:var(--nx-border);margin:4px 16px;list-style:none;"></li>
-
-            <li class="nav-item has-treeview mm_products">
-                <a href="#" class="nav-link">
-                    <span class="nx-sico nx-ico-orange"><i class="fa fa-cube"></i></span>
-                    <span class="nx-menu-txt"><?= lang('products'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="products_index"><a href="<?= site_url('products'); ?>" class="nav-link"><i class="fa fa-list-ul"></i><?= lang('list_products'); ?></a></li>
-                    <li class="nav-item" id="products_add"><a href="<?= site_url('products/add'); ?>" class="nav-link"><i class="fa fa-plus-circle"></i><?= lang('add_product'); ?></a></li>
-                    <?php if ($this->Settings->enable_fastedition == "1"): ?>
-                    <li class="nav-item" id="products_fastedit"><a href="<?= site_url('products/fastedit'); ?>"><i class="fa fa-pencil"></i>Edición Rápida</a></li>
-                    <?php endif; ?>
-                    <li class="nav-item" id="products_ajuste"><a href="<?= site_url('products/ajuste'); ?>"><i class="fa fa-balance-scale"></i>Ajuste Inventario</a></li>
-                    <li class="nav-item" id="products_import"><a href="<?= site_url('products/import'); ?>"><i class="fa fa-upload"></i><?= lang('import_products'); ?></a></li>
-                    <li class="nav-item" id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" data-bs-toggle="ajax"><i class="fa fa-barcode"></i><?= lang('print_barcodes'); ?></a></li>
-                    <li class="nav-item" id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" data-bs-toggle="ajax"><i class="fa fa-tag"></i><?= lang('print_labels'); ?></a></li>
-                    <?php if ($this->Settings->multiprice_enabled == 1): ?>
-                    <li class="nav-item" id="products_prices"><a href="<?= site_url('products/listprices'); ?>"><i class="fa fa-dollar"></i>Lista de Precios</a></li>
-                    <li class="nav-item" id="products_addprices"><a href="<?= site_url('products/addprices'); ?>"><i class="fa fa-plus-circle"></i>Agregar Precios</a></li>
-                    <?php endif; ?>
-                </ul>
-            </li>
-
-            <li class="nav-item has-treeview mm_categories">
-                <a href="#" class="nav-link">
-                    <span class="nx-sico nx-ico-teal"><i class="fa fa-tags"></i></span>
-                    <span class="nx-menu-txt"><?= lang('categories'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="categories_index"><a href="<?= site_url('categories'); ?>" class="nav-link"><i class="fa fa-th-list"></i><?= lang('list_categories'); ?></a></li>
-                    <li class="nav-item" id="categories_add"><a href="<?= site_url('categories/add'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_category'); ?></a></li>
-                    <li class="nav-item" id="categories_import"><a href="<?= site_url('categories/import'); ?>"><i class="fa fa-upload"></i><?= lang('import_categories'); ?></a></li>
-                </ul>
-            </li>
-
-            <?php if ($this->session->userdata('store_id')): ?>
-            <li style="height:1px;background:var(--nx-border);margin:4px 16px;list-style:none;"></li>
-
-            <li class="nav-item has-treeview mm_sales">
-                <a href="#" class="nav-link">
-                    <span class="nx-sico nx-ico-green"><i class="fa fa-line-chart"></i></span>
-                    <span class="nx-menu-txt"><?= lang('sales'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="sales_index"><a href="<?= site_url('sales'); ?>"><i class="fa fa-list-alt"></i><?= lang('list_sales'); ?></a></li>
-                    <li class="nav-item" id="sales_opened"><a href="<?= site_url('sales/opened'); ?>"><i class="fa fa-clock-o"></i><?= lang('list_opened_bills'); ?></a></li>
-                    <?php if ($Settings->enable_layaway): ?>
-                    <li class="nav-item" id="sales_apartado"><a href="<?= site_url('sales/apartado'); ?>"><i class="fa fa-bookmark-o"></i><?= lang('list_apartado_sales'); ?></a></li>
-                    <?php endif; ?>
-                    <?php if ($Settings->enable_quote): ?>
-                    <li class="nav-item" id="sales_proforma"><a href="<?= site_url('sales/proforma'); ?>"><i class="fa fa-file-text-o"></i><?= lang('list_quotes_sales'); ?></a></li>
-                    <?php endif; ?>
-                </ul>
-            </li>
-
-            <li class="nav-item has-treeview mm_creditnotes">
-                <a href="#" class="nav-link">
-                    <span class="nx-sico nx-ico-pink"><i class="fa fa-exchange"></i></span>
-                    <span class="nx-menu-txt"><?= lang('credit_notes'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="creditnotes_index"><a href="<?= site_url('CreditNotes'); ?>"><i class="fa fa-minus-circle"></i><?= lang('credit_notes'); ?></a></li>
-                    <li class="nav-item" id="debitnotes_index"><a href="<?= site_url('debitnotes'); ?>"><i class="fa fa-plus-circle"></i>Notas de Débito</a></li>
-                </ul>
-            </li>
-
-            <li class="nav-item has-treeview mm_purchases">
-                <a href="#">
-                    <span class="nx-sico nx-ico-amber"><i class="fa fa-truck"></i></span>
-                    <span class="nx-menu-txt"><?= lang('purchases'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="purchases_index"><a href="<?= site_url('purchases'); ?>"><i class="fa fa-list-alt"></i><?= lang('list_purchases'); ?></a></li>
-                    <li class="nav-item" id="purchases_add"><a href="<?= site_url('purchases/add'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_purchase'); ?></a></li>
-                    <?php if ($Settings->fe == "1"): ?>
-                    <li class="nav-item" id="document_upload"><a href="<?= site_url('cargadocumentos'); ?>"><i class="fa fa-cloud-upload"></i><?= lang('documents_upload'); ?></a></li>
-                    <?php endif; ?>
-                    <li class="nav-item" id="purchases_expenses"><a href="<?= site_url('purchases/expenses'); ?>"><i class="fa fa-money"></i><?= lang('list_expenses'); ?></a></li>
-                    <li class="nav-item" id="purchases_add_expense"><a href="<?= site_url('purchases/add_expense'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_expense'); ?></a></li>
-                    <li class="nav-item" id="purchases_fec"><a href="<?= site_url('facturascompras/'); ?>"><i class="fa fa-file-text-o"></i><?= lang('list_fec'); ?></a></li>
-                    <li class="nav-item" id="purchases_add_fec"><a href="<?= site_url('facturascompras/create_fec'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_fec'); ?></a></li>
-                </ul>
-            </li>
-
-            <?php endif; /* store_id */ ?>
-            <li style="height:1px;background:var(--nx-border);margin:4px 16px;list-style:none;"></li>
-
-            <li class="nav-item has-treeview mm_auth mm_customers mm_suppliers">
-                <a href="#">
-                    <span class="nx-sico nx-ico-violet"><i class="fa fa-users"></i></span>
-                    <span class="nx-menu-txt"><?= lang('people'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="auth_users"><a href="<?= site_url('users'); ?>"><i class="fa fa-user"></i><?= lang('list_users'); ?></a></li>
-                    <li class="nav-item" id="auth_add"><a href="<?= site_url('users/add'); ?>"><i class="fa fa-user-plus"></i><?= lang('add_user'); ?></a></li>
-                    <li class="nav-item" id="customers_index"><a href="<?= site_url('customers'); ?>"><i class="fa fa-address-book-o"></i><?= lang('list_customers'); ?></a></li>
-                    <li class="nav-item" id="customers_add"><a href="<?= site_url('customers/add'); ?>"><i class="fa fa-user-plus"></i><?= lang('add_customer'); ?></a></li>
-                    <li class="nav-item" id="suppliers_index"><a href="<?= site_url('suppliers'); ?>"><i class="fa fa-industry"></i><?= lang('list_suppliers'); ?></a></li>
-                    <li class="nav-item" id="suppliers_add"><a href="<?= site_url('suppliers/add'); ?>"><i class="fa fa-plus-circle"></i>Agregar Proveedor</a></li>
-                </ul>
-            </li>
-
-            <li style="height:1px;background:var(--nx-border);margin:4px 16px;list-style:none;"></li>
-            <li class="nav-item has-treeview mm_settings">
-                <a href="#">
-                    <span class="nx-sico nx-ico-slate"><i class="fa fa-sliders"></i></span>
-                    <span class="nx-menu-txt"><?= lang('settings'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="settings_index"><a href="<?= site_url('settings'); ?>"><i class="fa fa-cog"></i><?= lang('settings'); ?></a></li>
-                    <li class="nav-item" id="settings_actividad"><a href="<?= site_url('settings/actividad'); ?>"><i class="fa fa-briefcase"></i><?= lang('actividad'); ?></a></li>
-                    <li class="nav-item" id="settings_actividad_add"><a href="<?= site_url('settings/add_actividad'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_actividad'); ?></a></li>
-                    <?php if ($Settings->is_shipping == 1): ?>
-                    <li class="nav-item" id="settings_shipping"><a href="<?= site_url('settings/shipping'); ?>"><i class="fa fa-truck"></i><?= lang('shipping_method'); ?></a></li>
-                    <li class="nav-item" id="settings_shipping_add"><a href="<?= site_url('settings/add_shipping'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_shipping'); ?></a></li>
-                    <?php endif; ?>
-                    <?php if ($Settings->propina_enable == '1'): ?>
-                    <li class="nav-item" id="waiting_tables"><a href="<?= site_url('settings/waiting_tables'); ?>"><i class="fa fa-table"></i>Lista de Mesas</a></li>
-                    <li class="nav-item" id="settings_add_table"><a href="<?= site_url('settings/add_table'); ?>"><i class="fa fa-plus-circle"></i>Agregar Mesa</a></li>
-                    <?php endif; ?>
-                    <li class="nav-item" id="settings_stores"><a href="<?= site_url('settings/stores'); ?>"><i class="fa fa-building"></i><?= lang('stores'); ?></a></li>
-                    <?php if ($Settings->multi_store): ?>
-                    <li class="nav-item" id="settings_add_store"><a href="<?= site_url('settings/add_store'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_store'); ?></a></li>
-                    <?php endif; ?>
-                    <li class="nav-item" id="settings_printers"><a href="<?= site_url('settings/printers'); ?>"><i class="fa fa-print"></i><?= lang('printers'); ?></a></li>
-                    <li class="nav-item" id="settings_add_printer"><a href="<?= site_url('settings/add_printer'); ?>"><i class="fa fa-plus-circle"></i><?= lang('add_printer'); ?></a></li>
-                    <?php if ($this->db->dbdriver != 'sqlite3'): ?>
-                    <li class="nav-item" id="settings_backups"><a href="<?= site_url('settings/backups'); ?>"><i class="fa fa-database"></i><?= lang('backups'); ?></a></li>
-                    <li><a href="<?= site_url('settings/getDownloadxml'); ?>"><i class="fa fa-file-code-o"></i>Backup XMLs</a></li>
-                    <?php endif; ?>
-                </ul>
-            </li>
-
-            <li style="height:1px;background:var(--nx-border);margin:4px 16px;list-style:none;"></li>
-            <li class="nav-item has-treeview mm_reports">
-                <a href="#">
-                    <span class="nx-sico nx-ico-rose"><i class="fa fa-area-chart"></i></span>
-                    <span class="nx-menu-txt"><?= lang('reports'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="reports_credit_customers"><a href="<?= site_url('reports/credit_customers'); ?>"><i class="fa fa-user-circle-o"></i>Cta. clientes</a></li>
-                    <?php if ($Settings->is_shipping == 1): ?>
-                    <li class="nav-item" id="reports_credit_shipping"><a href="<?= site_url('reports/credit_shipping'); ?>"><i class="fa fa-truck"></i>Cta. envíos</a></li>
-                    <?php endif; ?>
-                    <li class="nav-item" id="reports_daily_sales"><a href="<?= site_url('reports/daily_sales'); ?>"><i class="fa fa-calendar-check-o"></i><?= lang('daily_sales'); ?></a></li>
-                    <li class="nav-item" id="reports_monthly_sales"><a href="<?= site_url('reports/monthly_sales'); ?>"><i class="fa fa-calendar"></i><?= lang('monthly_sales'); ?></a></li>
-                    <li class="nav-item" id="reports_monthly_fec"><a href="<?= site_url('reports/monthly_fec'); ?>"><i class="fa fa-cloud"></i><?= lang('monthly_fec'); ?></a></li>
-                    <li class="nav-item" id="reports_monthly_sale_tax"><a href="<?= site_url('reports/monthly_sale_tax'); ?>"><i class="fa fa-percent"></i><?= lang('monthly_sale_tax'); ?></a></li>
-                    <li class="nav-item" id="sale_fe"><a href="<?= site_url('reports/sale_fe'); ?>"><i class="fa fa-file-pdf-o"></i><?= lang('model_d104'); ?></a></li>
-                    <li class="nav-item" id="d151"><a href="<?= site_url('reports/d151'); ?>"><i class="fa fa-file-pdf-o"></i><?= lang('model_d151'); ?></a></li>
-                    <li class="nav-item" id="reports_compras_electronicas"><a href="<?= site_url('reports/compras_electronicas'); ?>"><i class="fa fa-shopping-cart"></i>Compras mensuales</a></li>
-                    <li class="nav-item" id="reports_payments"><a href="<?= site_url('reports/payments'); ?>"><i class="fa fa-credit-card"></i><?= lang('payments_report'); ?></a></li>
-                    <li class="nav-item" id="reports_registers"><a href="<?= site_url('reports/registers'); ?>"><i class="fa fa-calculator"></i><?= lang('registers_report'); ?></a></li>
-                    <li class="nav-item" id="reports_top_products"><a href="<?= site_url('reports/top_products'); ?>"><i class="fa fa-trophy"></i><?= lang('top_products'); ?></a></li>
-                    <li class="nav-item" id="reports_products"><a href="<?= site_url('reports/products'); ?>"><i class="fa fa-cube"></i><?= lang('products_report'); ?></a></li>
-                    <li class="nav-item" id="reports_products_qty"><a href="<?= site_url('reports/products_quantity'); ?>"><i class="fa fa-sort-amount-desc"></i><?= lang('products_quantity'); ?></a></li>
-                    <li class="nav-item" id="inventory_adjustment"><a href="<?= site_url('reports/inventory_adjustment'); ?>"><i class="fa fa-refresh"></i><?= lang('inventory_adjustment'); ?></a></li>
-                </ul>
-            </li>
-
-            <?php else: /* no Admin */ ?>
-
-            <li class="nav-item has-treeview mm_customers">
-                <a href="#">
-                    <span class="nx-sico nx-ico-violet"><i class="fa fa-users"></i></span>
-                    <span class="nx-menu-txt"><?= lang('customers'); ?></span>
-                    <i class="fa fa-chevron-right nx-arrow"></i>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item" id="customers_index"><a href="<?= site_url('customers'); ?>"><i class="fa fa-address-book-o"></i><?= lang('list_customers'); ?></a></li>
-                    <li class="nav-item" id="customers_add"><a href="<?= site_url('customers/add'); ?>"><i class="fa fa-user-plus"></i><?= lang('add_customer'); ?></a></li>
-                    <?php if ($Settings->fe == "1"): ?>
-                    <li class="nav-item" id="document_upload"><a href="<?= site_url('cargadocumentos'); ?>"><i class="fa fa-cloud-upload"></i><?= lang('documents_upload'); ?></a></li>
-                    <?php endif; ?>
-                </ul>
-            </li>
-
-            <?php endif; ?>
-
-        </ul>
-    </nav>
+    <!-- ── Bloque de usuario dentro del sidebar ── -->
+    <div class="nx-sidebar-userblock">
+        <div class="nx-sb-avatar-wrap">
+            <img src="<?= base_url('uploads/avatars/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')); ?>"
+                 class="nx-sb-avatar" alt="Avatar">
+            <span class="nx-sb-status-dot" title="Conectado"></span>
+        </div>
+        <div class="nx-sb-info">
+            <div class="nx-sb-name">
+                <?= $this->session->userdata('first_name') . ' ' . mb_substr($this->session->userdata('last_name'), 0, 12); ?>
+            </div>
+            <div class="nx-sb-email"><?= $this->session->userdata('email'); ?></div>
+            <div class="nx-sb-status-row">
+                <span class="nx-sb-dot-green"></span>
+                <span>Conectado</span>
+                <span class="nx-sb-role"><?= $Admin ? 'Admin' : 'Cajero'; ?></span>
+            </div>
+        </div>
+        <a href="<?= site_url('users/profile/' . $this->session->userdata('user_id')); ?>"
+           class="nx-sb-edit-btn" title="Editar perfil">
+            <i class="fa fa-pen fa-xs"></i>
+        </a>
     </div>
+
+    <!-- ── Menú de navegación ── -->
+    <div class="sidebar-wrapper">
+        <nav aria-label="Navegación principal">
+            <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" data-accordion="false" id="mainSidebarMenu">
+
+                <!-- Dashboard -->
+                <li class="nav-item mm_welcome">
+                    <a href="<?= site_url(); ?>" class="nav-link">
+                        <span class="nx-sico nx-ico-blue"><i class="fa fa-gauge"></i></span>
+                        <p><?= lang('dashboard'); ?></p>
+                    </a>
+                </li>
+
+                <?php if ($Settings->multi_store && !$this->session->userdata('store_id')): ?>
+                <li class="nav-item mm_stores">
+                    <a href="<?= site_url('stores'); ?>" class="nav-link">
+                        <span class="nx-sico nx-ico-sky"><i class="fa fa-building"></i></span>
+                        <p><?= lang('stores'); ?></p>
+                    </a>
+                </li>
+                <?php endif; ?>
+
+                <!-- POS -->
+                <li class="nav-item mm_pos">
+                    <a href="<?= site_url('pos'); ?>" class="nav-link">
+                        <span class="nx-sico nx-ico-cyan"><i class="fa fa-cash-register"></i></span>
+                        <p><?= lang('pos'); ?></p>
+                    </a>
+                </li>
+
+                <?php if ($Admin): ?>
+                <li class="nav-header">Gestión</li>
+
+                <!-- Productos -->
+                <li class="nav-item has-treeview mm_products">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-orange"><i class="fa fa-box"></i></span>
+                        <p><?= lang('products'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="products_index"><a href="<?= site_url('products'); ?>" class="nav-link"><i class="fa fa-list-ul nav-icon"></i><p><?= lang('list_products'); ?></p></a></li>
+                        <li class="nav-item" id="products_add"><a href="<?= site_url('products/add'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_product'); ?></p></a></li>
+                        <?php if ($this->Settings->enable_fastedition == "1"): ?>
+                        <li class="nav-item" id="products_fastedit"><a href="<?= site_url('products/fastedit'); ?>" class="nav-link"><i class="fa fa-pencil nav-icon"></i><p>Edición Rápida</p></a></li>
+                        <?php endif; ?>
+                        <li class="nav-item" id="products_ajuste"><a href="<?= site_url('products/ajuste'); ?>" class="nav-link"><i class="fa fa-scale-balanced nav-icon"></i><p>Ajuste Inventario</p></a></li>
+                        <li class="nav-item" id="products_import"><a href="<?= site_url('products/import'); ?>" class="nav-link"><i class="fa fa-upload nav-icon"></i><p><?= lang('import_products'); ?></p></a></li>
+                        <li class="nav-item" id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" class="nav-link" data-bs-toggle="ajax"><i class="fa fa-barcode nav-icon"></i><p><?= lang('print_barcodes'); ?></p></a></li>
+                        <li class="nav-item" id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" class="nav-link" data-bs-toggle="ajax"><i class="fa fa-tag nav-icon"></i><p><?= lang('print_labels'); ?></p></a></li>
+                        <?php if ($this->Settings->multiprice_enabled == 1): ?>
+                        <li class="nav-item" id="products_prices"><a href="<?= site_url('products/listprices'); ?>" class="nav-link"><i class="fa fa-dollar-sign nav-icon"></i><p>Lista de Precios</p></a></li>
+                        <li class="nav-item" id="products_addprices"><a href="<?= site_url('products/addprices'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p>Agregar Precios</p></a></li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
+                <!-- Categorías -->
+                <li class="nav-item has-treeview mm_categories">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-teal"><i class="fa fa-tags"></i></span>
+                        <p><?= lang('categories'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="categories_index"><a href="<?= site_url('categories'); ?>" class="nav-link"><i class="fa fa-table-list nav-icon"></i><p><?= lang('list_categories'); ?></p></a></li>
+                        <li class="nav-item" id="categories_add"><a href="<?= site_url('categories/add'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_category'); ?></p></a></li>
+                        <li class="nav-item" id="categories_import"><a href="<?= site_url('categories/import'); ?>" class="nav-link"><i class="fa fa-upload nav-icon"></i><p><?= lang('import_categories'); ?></p></a></li>
+                    </ul>
+                </li>
+
+                <?php if ($this->session->userdata('store_id')): ?>
+                <li class="nav-header">Comercial</li>
+
+                <!-- Ventas -->
+                <li class="nav-item has-treeview mm_sales">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-green"><i class="fa fa-chart-line"></i></span>
+                        <p><?= lang('sales'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="sales_index"><a href="<?= site_url('sales'); ?>" class="nav-link"><i class="fa fa-list-alt nav-icon"></i><p><?= lang('list_sales'); ?></p></a></li>
+                        <li class="nav-item" id="sales_opened"><a href="<?= site_url('sales/opened'); ?>" class="nav-link"><i class="fa fa-clock nav-icon"></i><p><?= lang('list_opened_bills'); ?></p></a></li>
+                        <?php if ($Settings->enable_layaway): ?>
+                        <li class="nav-item" id="sales_apartado"><a href="<?= site_url('sales/apartado'); ?>" class="nav-link"><i class="fa fa-bookmark nav-icon"></i><p><?= lang('list_apartado_sales'); ?></p></a></li>
+                        <?php endif; ?>
+                        <?php if ($Settings->enable_quote): ?>
+                        <li class="nav-item" id="sales_proforma"><a href="<?= site_url('sales/proforma'); ?>" class="nav-link"><i class="fa fa-file-lines nav-icon"></i><p><?= lang('list_quotes_sales'); ?></p></a></li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
+                <!-- Notas de Crédito -->
+                <li class="nav-item has-treeview mm_creditnotes">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-pink"><i class="fa fa-right-left"></i></span>
+                        <p><?= lang('credit_notes'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="creditnotes_index"><a href="<?= site_url('CreditNotes'); ?>" class="nav-link"><i class="fa fa-circle-minus nav-icon"></i><p><?= lang('credit_notes'); ?></p></a></li>
+                        <li class="nav-item" id="debitnotes_index"><a href="<?= site_url('debitnotes'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p>Notas de Débito</p></a></li>
+                    </ul>
+                </li>
+
+                <!-- Compras -->
+                <li class="nav-item has-treeview mm_purchases">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-amber"><i class="fa fa-truck"></i></span>
+                        <p><?= lang('purchases'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="purchases_index"><a href="<?= site_url('purchases'); ?>" class="nav-link"><i class="fa fa-list-alt nav-icon"></i><p><?= lang('list_purchases'); ?></p></a></li>
+                        <li class="nav-item" id="purchases_add"><a href="<?= site_url('purchases/add'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_purchase'); ?></p></a></li>
+                        <?php if ($Settings->fe == "1"): ?>
+                        <li class="nav-item" id="document_upload"><a href="<?= site_url('cargadocumentos'); ?>" class="nav-link"><i class="fa fa-cloud-upload nav-icon"></i><p><?= lang('documents_upload'); ?></p></a></li>
+                        <?php endif; ?>
+                        <li class="nav-item" id="purchases_expenses"><a href="<?= site_url('purchases/expenses'); ?>" class="nav-link"><i class="fa fa-money-bill nav-icon"></i><p><?= lang('list_expenses'); ?></p></a></li>
+                        <li class="nav-item" id="purchases_add_expense"><a href="<?= site_url('purchases/add_expense'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_expense'); ?></p></a></li>
+                        <li class="nav-item" id="purchases_fec"><a href="<?= site_url('facturascompras/'); ?>" class="nav-link"><i class="fa fa-file-lines nav-icon"></i><p><?= lang('list_fec'); ?></p></a></li>
+                        <li class="nav-item" id="purchases_add_fec"><a href="<?= site_url('facturascompras/create_fec'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_fec'); ?></p></a></li>
+                    </ul>
+                </li>
+
+                <?php endif; /* store_id */ ?>
+
+                <li class="nav-header">Contactos</li>
+
+                <!-- Personas -->
+                <li class="nav-item has-treeview mm_auth mm_customers mm_suppliers">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-violet"><i class="fa fa-users"></i></span>
+                        <p><?= lang('people'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="auth_users"><a href="<?= site_url('users'); ?>" class="nav-link"><i class="fa fa-user nav-icon"></i><p><?= lang('list_users'); ?></p></a></li>
+                        <li class="nav-item" id="auth_add"><a href="<?= site_url('users/add'); ?>" class="nav-link"><i class="fa fa-user-plus nav-icon"></i><p><?= lang('add_user'); ?></p></a></li>
+                        <li class="nav-item" id="customers_index"><a href="<?= site_url('customers'); ?>" class="nav-link"><i class="fa fa-address-book nav-icon"></i><p><?= lang('list_customers'); ?></p></a></li>
+                        <li class="nav-item" id="customers_add"><a href="<?= site_url('customers/add'); ?>" class="nav-link"><i class="fa fa-user-plus nav-icon"></i><p><?= lang('add_customer'); ?></p></a></li>
+                        <li class="nav-item" id="suppliers_index"><a href="<?= site_url('suppliers'); ?>" class="nav-link"><i class="fa fa-industry nav-icon"></i><p><?= lang('list_suppliers'); ?></p></a></li>
+                        <li class="nav-item" id="suppliers_add"><a href="<?= site_url('suppliers/add'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p>Agregar Proveedor</p></a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-header">Sistema</li>
+
+                <!-- Configuración -->
+                <li class="nav-item has-treeview mm_settings">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-slate"><i class="fa fa-sliders"></i></span>
+                        <p><?= lang('settings'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="settings_index"><a href="<?= site_url('settings'); ?>" class="nav-link"><i class="fa fa-cog nav-icon"></i><p><?= lang('settings'); ?></p></a></li>
+                        <li class="nav-item" id="settings_actividad"><a href="<?= site_url('settings/actividad'); ?>" class="nav-link"><i class="fa fa-briefcase nav-icon"></i><p><?= lang('actividad'); ?></p></a></li>
+                        <li class="nav-item" id="settings_actividad_add"><a href="<?= site_url('settings/add_actividad'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_actividad'); ?></p></a></li>
+                        <?php if ($Settings->is_shipping == 1): ?>
+                        <li class="nav-item" id="settings_shipping"><a href="<?= site_url('settings/shipping'); ?>" class="nav-link"><i class="fa fa-truck nav-icon"></i><p><?= lang('shipping_method'); ?></p></a></li>
+                        <li class="nav-item" id="settings_shipping_add"><a href="<?= site_url('settings/add_shipping'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_shipping'); ?></p></a></li>
+                        <?php endif; ?>
+                        <?php if ($Settings->propina_enable == '1'): ?>
+                        <li class="nav-item" id="waiting_tables"><a href="<?= site_url('settings/waiting_tables'); ?>" class="nav-link"><i class="fa fa-table nav-icon"></i><p>Lista de Mesas</p></a></li>
+                        <li class="nav-item" id="settings_add_table"><a href="<?= site_url('settings/add_table'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p>Agregar Mesa</p></a></li>
+                        <?php endif; ?>
+                        <li class="nav-item" id="settings_stores"><a href="<?= site_url('settings/stores'); ?>" class="nav-link"><i class="fa fa-building nav-icon"></i><p><?= lang('stores'); ?></p></a></li>
+                        <?php if ($Settings->multi_store): ?>
+                        <li class="nav-item" id="settings_add_store"><a href="<?= site_url('settings/add_store'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_store'); ?></p></a></li>
+                        <?php endif; ?>
+                        <li class="nav-item" id="settings_printers"><a href="<?= site_url('settings/printers'); ?>" class="nav-link"><i class="fa fa-print nav-icon"></i><p><?= lang('printers'); ?></p></a></li>
+                        <li class="nav-item" id="settings_add_printer"><a href="<?= site_url('settings/add_printer'); ?>" class="nav-link"><i class="fa fa-circle-plus nav-icon"></i><p><?= lang('add_printer'); ?></p></a></li>
+                        <?php if ($this->db->dbdriver != 'sqlite3'): ?>
+                        <li class="nav-item" id="settings_backups"><a href="<?= site_url('settings/backups'); ?>" class="nav-link"><i class="fa fa-database nav-icon"></i><p><?= lang('backups'); ?></p></a></li>
+                        <li class="nav-item"><a href="<?= site_url('settings/getDownloadxml'); ?>" class="nav-link"><i class="fa fa-file-code nav-icon"></i><p>Backup XMLs</p></a></li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
+                <!-- Informes -->
+                <li class="nav-item has-treeview mm_reports">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-rose"><i class="fa fa-chart-area"></i></span>
+                        <p><?= lang('reports'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="reports_credit_customers"><a href="<?= site_url('reports/credit_customers'); ?>" class="nav-link"><i class="fa fa-circle-user nav-icon"></i><p>Cta. clientes</p></a></li>
+                        <?php if ($Settings->is_shipping == 1): ?>
+                        <li class="nav-item" id="reports_credit_shipping"><a href="<?= site_url('reports/credit_shipping'); ?>" class="nav-link"><i class="fa fa-truck nav-icon"></i><p>Cta. envíos</p></a></li>
+                        <?php endif; ?>
+                        <li class="nav-item" id="reports_daily_sales"><a href="<?= site_url('reports/daily_sales'); ?>" class="nav-link"><i class="fa fa-calendar-check nav-icon"></i><p><?= lang('daily_sales'); ?></p></a></li>
+                        <li class="nav-item" id="reports_monthly_sales"><a href="<?= site_url('reports/monthly_sales'); ?>" class="nav-link"><i class="fa fa-calendar nav-icon"></i><p><?= lang('monthly_sales'); ?></p></a></li>
+                        <li class="nav-item" id="reports_monthly_fec"><a href="<?= site_url('reports/monthly_fec'); ?>" class="nav-link"><i class="fa fa-cloud nav-icon"></i><p><?= lang('monthly_fec'); ?></p></a></li>
+                        <li class="nav-item" id="reports_monthly_sale_tax"><a href="<?= site_url('reports/monthly_sale_tax'); ?>" class="nav-link"><i class="fa fa-percent nav-icon"></i><p><?= lang('monthly_sale_tax'); ?></p></a></li>
+                        <li class="nav-item" id="sale_fe"><a href="<?= site_url('reports/sale_fe'); ?>" class="nav-link"><i class="fa fa-file-pdf nav-icon"></i><p><?= lang('model_d104'); ?></p></a></li>
+                        <li class="nav-item" id="d151"><a href="<?= site_url('reports/d151'); ?>" class="nav-link"><i class="fa fa-file-pdf nav-icon"></i><p><?= lang('model_d151'); ?></p></a></li>
+                        <li class="nav-item" id="reports_compras_electronicas"><a href="<?= site_url('reports/compras_electronicas'); ?>" class="nav-link"><i class="fa fa-cart-shopping nav-icon"></i><p>Compras mensuales</p></a></li>
+                        <li class="nav-item" id="reports_payments"><a href="<?= site_url('reports/payments'); ?>" class="nav-link"><i class="fa fa-credit-card nav-icon"></i><p><?= lang('payments_report'); ?></p></a></li>
+                        <li class="nav-item" id="reports_registers"><a href="<?= site_url('reports/registers'); ?>" class="nav-link"><i class="fa fa-calculator nav-icon"></i><p><?= lang('registers_report'); ?></p></a></li>
+                        <li class="nav-item" id="reports_top_products"><a href="<?= site_url('reports/top_products'); ?>" class="nav-link"><i class="fa fa-trophy nav-icon"></i><p><?= lang('top_products'); ?></p></a></li>
+                        <li class="nav-item" id="reports_products"><a href="<?= site_url('reports/products'); ?>" class="nav-link"><i class="fa fa-box nav-icon"></i><p><?= lang('products_report'); ?></p></a></li>
+                        <li class="nav-item" id="reports_products_qty"><a href="<?= site_url('reports/products_quantity'); ?>" class="nav-link"><i class="fa fa-sort-amount-desc nav-icon"></i><p><?= lang('products_quantity'); ?></p></a></li>
+                        <li class="nav-item" id="inventory_adjustment"><a href="<?= site_url('reports/inventory_adjustment'); ?>" class="nav-link"><i class="fa fa-arrows-rotate nav-icon"></i><p><?= lang('inventory_adjustment'); ?></p></a></li>
+                    </ul>
+                </li>
+
+                <?php else: /* no Admin */ ?>
+
+                <li class="nav-item has-treeview mm_customers">
+                    <a href="#" class="nav-link">
+                        <span class="nx-sico nx-ico-violet"><i class="fa fa-users"></i></span>
+                        <p><?= lang('customers'); ?> <i class="nav-arrow fa fa-angle-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="customers_index"><a href="<?= site_url('customers'); ?>" class="nav-link"><i class="fa fa-address-book nav-icon"></i><p><?= lang('list_customers'); ?></p></a></li>
+                        <li class="nav-item" id="customers_add"><a href="<?= site_url('customers/add'); ?>" class="nav-link"><i class="fa fa-user-plus nav-icon"></i><p><?= lang('add_customer'); ?></p></a></li>
+                        <?php if ($Settings->fe == "1"): ?>
+                        <li class="nav-item" id="document_upload"><a href="<?= site_url('cargadocumentos'); ?>" class="nav-link"><i class="fa fa-cloud-arrow-up nav-icon"></i><p><?= lang('documents_upload'); ?></p></a></li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
+                <?php endif; ?>
+
+            </ul>
+        </nav>
+    </div><!-- /sidebar-wrapper -->
+
 </aside>
 
-<!-- ═══════════════ MAIN CONTENT (AdminLTE 4) ═══════════════ -->
-<main class="content flex-grow-1">
-    <div class="container-fluid px-3 py-3">
+<!-- ════════════════════════════════════════════════
+     APP-MAIN  (grid-area: lte-app-main)
+════════════════════════════════════════════════ -->
+<main class="app-main">
 
-        <!-- Page Header with Breadcrumb -->
-        <div class="mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1 class="h3 mb-0"><?= $page_title; ?></h1>
+    <!-- Breadcrumb header -->
+    <div class="app-content-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-sm-6">
+                    <h3 class="mb-0"><?= $page_title; ?></h3>
+                </div>
+                <div class="col-sm-6">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb float-sm-end mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="<?= site_url(); ?>"><i class="fa fa-house fa-sm"></i> <?= lang('home'); ?></a>
+                            </li>
+                            <?php foreach ($bc as $b): ?>
+                                <?php if ($b['link'] === '#'): ?>
+                                    <li class="breadcrumb-item active" aria-current="page"><?= $b['page']; ?></li>
+                                <?php else: ?>
+                                    <li class="breadcrumb-item"><a href="<?= $b['link']; ?>"><?= $b['page']; ?></a></li>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </ol>
+                    </nav>
+                </div>
             </div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="<?= site_url(); ?>"><i class="fa fa-tachometer"></i> <?= lang('home'); ?></a></li>
-                    <?php foreach ($bc as $b): ?>
-                        <?php if ($b['link'] === '#'): ?>
-                            <li class="breadcrumb-item active" aria-current="page"><?= $b['page']; ?></li>
-                        <?php else: ?>
-                            <li class="breadcrumb-item"><a href="<?= $b['link']; ?>"><?= $b['page']; ?></a></li>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </ol>
-            </nav>
         </div>
+    </div>
 
-        <!-- Alerts -->
-        <div id="custom-alerts" style="display:none;">
-            <div class="alert alert-dismissable fade show" role="alert">
-                <div class="custom-msg"></div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Content body -->
+    <div class="app-content">
+        <div class="container-fluid">
+
+            <!-- Flash alerts -->
+            <div id="custom-alerts" style="display:none;">
+                <div class="alert alert-dismissable fade show" role="alert">
+                    <div class="custom-msg"></div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
-        </div>
-        <?php if ($error || $warning || $message): ?>
-        <script>
-        window._nxAlerts = window._nxAlerts || [];
-        <?php if ($error): ?>window._nxAlerts.push({icon:'error',title:<?= json_encode(strip_tags($error)) ?>});<?php endif; ?>
-        <?php if ($warning): ?>window._nxAlerts.push({icon:'warning',title:<?= json_encode(strip_tags($warning)) ?>});<?php endif; ?>
-        <?php if ($message): ?>window._nxAlerts.push({icon:'success',title:<?= json_encode(strip_tags($message)) ?>});<?php endif; ?>
-        </script>
-        <?php endif; ?>
+            <?php if ($error || $warning || $message): ?>
+            <script>
+            window._nxAlerts = window._nxAlerts || [];
+            <?php if ($error): ?>window._nxAlerts.push({icon:'error',title:<?= json_encode(strip_tags($error)) ?>});<?php endif; ?>
+            <?php if ($warning): ?>window._nxAlerts.push({icon:'warning',title:<?= json_encode(strip_tags($warning)) ?>});<?php endif; ?>
+            <?php if ($message): ?>window._nxAlerts.push({icon:'success',title:<?= json_encode(strip_tags($message)) ?>});<?php endif; ?>
+            </script>
+            <?php endif; ?>
+
+            <!-- Clock JS inline (sin jQuery) -->
+            <script>
+            (function(){
+                function tick(){
+                    var el = document.getElementById('nxClock');
+                    if (!el) return;
+                    var now = new Date();
+                    var h = String(now.getHours()).padStart(2,'0');
+                    var m = String(now.getMinutes()).padStart(2,'0');
+                    var s = String(now.getSeconds()).padStart(2,'0');
+                    el.textContent = h + ':' + m + ':' + s;
+                }
+                tick();
+                setInterval(tick, 1000);
+            })();
+            </script>

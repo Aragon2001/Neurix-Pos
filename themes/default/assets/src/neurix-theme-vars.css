@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEURIX-THEME-VARS.CSS — Neurix POS Design System: CSS Custom Properties
+   Recuperado del backup assets.backup.20260629-140124/dist/css/neurix-theme.css
+   Dark mode por defecto (en :root). Light mode sobreescribe via [data-theme="light"]
+   El script anti-FOUC en header.php pone data-theme en <body>, por lo que
+   [data-theme="light"] en body activa las variables de modo claro.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root, [data-theme="dark"] {
+    /* Colores de acento */
+    --nx-a1: #38bdf8;
+    --nx-a2: #818cf8;
+    --nx-a3: #22d3ee;
+    --nx-ok: #22c55e;
+    --nx-warn: #eab308;
+    --nx-err: #ef4444;
+    --nx-info: #0ea5e9;
+    --nx-pink: #ec4899;
+    --nx-orange: #f97316;
+    --nx-violet: #a78bfa;
+    --nx-teal: #2dd4bf;
+    --nx-rose: #fb7185;
+    --nx-emerald: #34d399;
+    --nx-amber: #fbbf24;
+    --nx-indigo: #6366f1;
+    --nx-sky: #38bdf8;
+    --nx-slate: #94a3b8;
+    --nx-cyan: #22d3ee;
+
+    /* Fondos */
+    --nx-bg:          #06091a;
+    --nx-bg2:         #0d1528;
+    --nx-bg3:         #111827;
+    --nx-bg4:         #0a1020;
+    --nx-bg5:         #1a2236;
+
+    --nx-header-bg:   rgba(8,13,28,.97);
+    --nx-sidebar-bg:  #070c1b;
+    --nx-card-bg:     rgba(11,18,36,.96);
+    --nx-card-bg2:    rgba(15,23,42,.92);
+    --nx-input-bg:    rgba(56,189,248,.04);
+    --nx-input-focus: rgba(56,189,248,.10);
+    --nx-hover-bg:    rgba(56,189,248,.06);
+    --nx-active-bg:   rgba(56,189,248,.10);
+    --nx-modal-bg:    rgba(9,14,30,.98);
+
+    /* Texto */
+    --nx-txt1: #f1f5f9;
+    --nx-txt2: #cbd5e1;
+    --nx-txt3: #94a3b8;
+    --nx-txt4: #64748b;
+
+    /* Bordes */
+    --nx-border:  rgba(56,189,248,.13);
+    --nx-border2: rgba(56,189,248,.06);
+    --nx-border3: rgba(56,189,248,.20);
+
+    /* Sombras */
+    --nx-shadow:    0 8px 32px rgba(0,0,0,.65);
+    --nx-shadow-sm: 0 2px 12px rgba(0,0,0,.45);
+    --nx-shadow-lg: 0 20px 60px rgba(0,0,0,.75);
+    --nx-glow:      0 0 24px rgba(56,189,248,.15);
+
+    /* Layout */
+    --nx-radius:    12px;
+    --nx-radius-sm: 8px;
+    --nx-radius-lg: 16px;
+    --nx-sidebar-w: 230px;
+    --nx-header-h:  50px;
+    --nx-transition: .22s cubic-bezier(.4,0,.2,1);
+}
+
+[data-theme="light"] {
+    /* Colores de acento — versión clara */
+    --nx-a1: #0284c7;
+    --nx-a2: #6366f1;
+    --nx-a3: #0891b2;
+    --nx-ok: #16a34a;
+    --nx-warn: #ca8a04;
+    --nx-err: #dc2626;
+    --nx-info: #0369a1;
+    --nx-pink: #db2777;
+    --nx-orange: #ea580c;
+    --nx-violet: #7c3aed;
+    --nx-teal: #0d9488;
+    --nx-rose: #e11d48;
+    --nx-emerald: #059669;
+    --nx-amber: #d97706;
+    --nx-indigo: #4338ca;
+    --nx-sky: #0284c7;
+    --nx-slate: #475569;
+    --nx-cyan: #0891b2;
+
+    /* Fondos — versión clara */
+    --nx-bg:          #f1f5f9;
+    --nx-bg2:         #e2e8f0;
+    --nx-bg3:         #f8fafc;
+    --nx-bg4:         #ffffff;
+    --nx-bg5:         #e8edf2;
+
+    --nx-header-bg:   rgba(15,23,42,.97);
+    --nx-sidebar-bg:  #1e293b;
+    --nx-card-bg:     #ffffff;
+    --nx-card-bg2:    #f8fafc;
+    --nx-input-bg:    #ffffff;
+    --nx-input-focus: rgba(2,132,199,.06);
+    --nx-hover-bg:    rgba(2,132,199,.06);
+    --nx-active-bg:   rgba(2,132,199,.10);
+    --nx-modal-bg:    #ffffff;
+
+    /* Texto — versión clara */
+    --nx-txt1: #0f172a;
+    --nx-txt2: #1e293b;
+    --nx-txt3: #475569;
+    --nx-txt4: #94a3b8;
+
+    /* Bordes — versión clara */
+    --nx-border:  rgba(14,165,233,.18);
+    --nx-border2: rgba(14,165,233,.08);
+    --nx-border3: rgba(14,165,233,.28);
+
+    /* Sombras — versión clara */
+    --nx-shadow:    0 4px 20px rgba(0,0,0,.10);
+    --nx-shadow-sm: 0 2px 8px rgba(0,0,0,.07);
+    --nx-shadow-lg: 0 12px 40px rgba(0,0,0,.15);
+    --nx-glow:      0 0 20px rgba(2,132,199,.12);
+}
