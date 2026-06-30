@@ -757,7 +757,7 @@
                                                     texto
                                                 </button>
                 <div class="table-responsive">
-                                                <table style="width: 100%">
+                                                <table class="table table-bordered table-condensed" style="width: 100%">
                                                     <thead>
                                                         <tr style="background: var(--table-head-bg); font-size: 16px; font-weight: bold;">
                                                             <td style="width: 25%; text-align: center;">Asunto / Codigo</td>
@@ -978,7 +978,7 @@
                     <div class="content" style="padding: 0;">
                         <div class="tableFixHead col-lg-5 col-md-5 col-sm-5" style="padding: 0;min-height: 250px;max-height: 250px; ">
                 <div class="table-responsive">
-                            <table class="col-md-12" id="tblReceivable">
+                            <table class="table table-condensed col-md-12" id="tblReceivable">
                                 <thead>
                                     <tr>
                                         <td>Articulo</td>
