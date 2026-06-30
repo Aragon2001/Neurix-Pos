@@ -1025,7 +1025,14 @@
       plugins: [],
       dropdownParent: 'body',
       dropdownClass: 'ts-dropdown ts-cust-dropdown',
-      openOnFocus: false,
+      openOnFocus: true,
+      onDropdownOpen: function () {
+        // Cerrar inmediatamente si el input está vacío (clic sin escribir)
+        if (!this.control_input.value.trim()) {
+          var self = this;
+          setTimeout(function () { self.close(); }, 0);
+        }
+      },
       // Nunca mostrar el ítem seleccionado dentro del control (la info va en la card)
       render: {
         item: function () { return '<div style="display:none"></div>'; },
@@ -1046,11 +1053,6 @@
         }
       },
       onChange: function (val) { setCustomer(val); }
-    });
-
-    // Solo mostrar el dropdown cuando hay texto escrito
-    ts.on('type', function (str) {
-      if (!str || str.trim().length === 0) ts.close();
     });
 
     // Restaurar cliente guardado (si sigue existiendo como opción)
