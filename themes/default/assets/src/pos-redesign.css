@@ -465,24 +465,53 @@ body.pos-v2 {
 .pcp-cust-search-row {
   display: flex; align-items: center; gap: .35rem;
 }
-/* Ocultar la <select> original — TomSelect crea el wrapper visible */
+/* Ocultar la <select> original */
 .pcp-cust-search-row select.tom-select { display: none; }
-.pcp-cust-search-row .ts-wrapper { flex: 1; min-width: 0; }
 
-/* Control del TomSelect */
+/* Wrapper TomSelect ocupa todo el espacio */
+.pcp-cust-search-row .ts-wrapper { flex: 1; min-width: 0; position: relative; }
+
+/* Icono de lupa — prefijo visual dentro del control */
+.pcp-cust-search-row .ts-wrapper::before {
+  content: '\f002';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nx-txt4);
+  font-size: .72rem;
+  pointer-events: none;
+  z-index: 2;
+  line-height: 1;
+}
+
+/* Control principal: solo un input limpio, sin flechas ni spinners */
 .pcp-cust-search-row .ts-control {
   background: var(--nx-bg2) !important;
   border: 1px solid var(--nx-border) !important;
   border-radius: 8px !important;
   min-height: 34px !important;
-  padding: 0 .6rem !important;
+  padding: 0 .6rem 0 28px !important;
   display: flex !important;
   align-items: center !important;
   flex-wrap: nowrap !important;
   gap: 0 !important;
-  cursor: text;
+  cursor: text !important;
+  box-shadow: none !important;
+  /* Eliminar CUALQUIER imagen/indicador de fondo que ponga TomSelect */
+  background-image: none !important;
 }
-/* Input de búsqueda dentro del control */
+/* Eliminar las flechas/carets tanto en pseudoelementos como en ::before/::after */
+.pcp-cust-search-row .ts-control::before,
+.pcp-cust-search-row .ts-control::after { display: none !important; }
+/* Ocultar cualquier botón de dropdown que TomSelect renderice como DOM */
+.pcp-cust-search-row .ts-wrapper .ts-dropdown-btn,
+.pcp-cust-search-row .ts-wrapper [data-ts-item],
+.pcp-cust-search-row .ts-control > .clear-button { display: none !important; }
+
+/* Input de búsqueda */
 .pcp-cust-search-row .ts-control > input {
   color: var(--nx-txt1) !important;
   font-size: .8rem !important;
@@ -493,14 +522,17 @@ body.pos-v2 {
   background: transparent !important;
   border: none !important;
   outline: none !important;
+  box-shadow: none !important;
 }
-/* Cuando hay un ítem seleccionado, ocultar el input de búsqueda */
-.pcp-cust-search-row .ts-wrapper.has-items .ts-control > input {
-  display: none !important;
-}
-/* Ítem seleccionado (nombre compacto) */
+.pcp-cust-search-row .ts-control > input::placeholder { color: var(--nx-txt4) !important; }
+
+/* Cuando hay ítem seleccionado: ocultar el input (el nombre está en la tarjeta) */
+.pcp-cust-search-row .ts-wrapper.has-items .ts-control > input { display: none !important; }
+
+/* Ítem seleccionado — nombre compacto (sin número de cédula) */
 .pcp-cust-search-row .ts-control .item {
   font-size: .8rem !important;
+  font-weight: 500 !important;
   color: var(--nx-txt1) !important;
   white-space: nowrap;
   overflow: hidden;
@@ -510,28 +542,39 @@ body.pos-v2 {
   margin: 0 !important;
   background: none !important;
   border: none !important;
+  /* El botón de borrar nativo de TomSelect no queremos */
+  cursor: default;
 }
-/* Flecha del dropdown */
-.pcp-cust-search-row .ts-wrapper.single .ts-control::after { display: none !important; }
+/* Ocultar el botón × nativo del ítem de TomSelect (usamos el nuestro) */
+.pcp-cust-search-row .ts-control .item > a.remove { display: none !important; }
 
-/* Dropdown de opciones */
+/* Estado focus del control */
+.pcp-cust-search-row .ts-control.focus,
+.pcp-cust-search-row .ts-wrapper.focus .ts-control {
+  border-color: var(--nx-a1) !important;
+  box-shadow: 0 0 0 2px rgba(56,189,248,.15) !important;
+  outline: none !important;
+}
+
+/* Dropdown de sugerencias */
 .pcp-cust-search-row .ts-dropdown {
   border: 1px solid var(--nx-border) !important;
-  border-radius: 8px !important;
+  border-radius: 9px !important;
   background: var(--nx-card-bg) !important;
-  box-shadow: 0 8px 24px rgba(0,0,0,.35) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4) !important;
   margin-top: 3px !important;
   font-size: .82rem !important;
+  overflow: hidden;
 }
+.pcp-cust-search-row .ts-dropdown-content { padding: 3px !important; }
 .pcp-cust-search-row .ts-dropdown .option {
   padding: .45rem .7rem !important;
   color: var(--nx-txt2) !important;
-  border-radius: 4px;
-  margin: 1px 3px;
+  border-radius: 6px !important;
 }
 .pcp-cust-search-row .ts-dropdown .option:hover,
 .pcp-cust-search-row .ts-dropdown .option.active {
-  background: rgba(56,189,248,.1) !important;
+  background: rgba(56,189,248,.12) !important;
   color: var(--nx-a1) !important;
 }
 
@@ -632,9 +675,10 @@ body.pos-v2 {
 [data-theme="light"] .pcp-cust-search-row .ts-control > input { color: #1e293b !important; }
 [data-theme="light"] .pcp-cust-search-row .ts-control .item { color: #1e293b !important; }
 [data-theme="light"] .pcp-cust-search-row .ts-dropdown {
-  background: #fff !important; border-color: #e2e8f0 !important;
+  background: #fff !important; border-color: #e2e8f0 !important; box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
 }
 [data-theme="light"] .pcp-cust-search-row .ts-dropdown .option { color: #334155 !important; }
+[data-theme="light"] .pcp-cust-search-row .ts-wrapper::before { color: #94a3b8; }
 [data-theme="light"] .pcp-cust-name { color: #1e293b; }
 [data-theme="light"] .pcp-cust-card.is-default .pcp-cust-name { color: #94a3b8; }
 [data-theme="light"] .pcp-cust-contact-item { color: #64748b; }

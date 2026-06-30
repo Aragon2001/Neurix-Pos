@@ -1013,6 +1013,8 @@
       maxItems: 1,
       allowEmptyOption: false,
       placeholder: 'Buscar cliente…',
+      plugins: [],          // sin plugins — remove_button, etc. añaden spinners/botones extra
+      controlInput: '<input>',
       // Ítem seleccionado: solo el nombre (sin el número de cédula entre paréntesis)
       render: {
         item: function (data, escape) {
