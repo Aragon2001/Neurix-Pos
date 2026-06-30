@@ -125,7 +125,7 @@
 
                     <p>&nbsp;</p>
 
-                    <p style="border-bottom: 1px solid #666;">&nbsp;</p>
+                    <p style="border-bottom: 1px solid var(--nx-border);">&nbsp;</p>
 
                     <p><?= lang("stamp_sign"); ?></p>
                 </div>
