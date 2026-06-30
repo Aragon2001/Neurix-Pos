@@ -110,7 +110,7 @@ if ($this->input->post('end_date')) {
 </script>
 <style type="text/css">
     .table td:nth-child(5), .table td:nth-child(6) { text-align: center; }
-    .topborder div { border-top: 1px solid #CCC; }
+    .topborder div { border-top: 1px solid var(--nx-border); }
 </style>
 <section class="content">
     <div class="row">

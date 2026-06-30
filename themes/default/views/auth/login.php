@@ -8,7 +8,10 @@
     <script>if (parent.frames.length !== 0) { top.location = '<?= site_url('login') ?>'; }</script>
     <?php } ?>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet">
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +34,7 @@
     body.nlx-body {
         margin: 0;
         background: var(--bg);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         display: flex; align-items: center; justify-content: center;
         min-height: 100vh; overflow: hidden; padding: 20px;
     }
@@ -476,7 +479,7 @@
                        class="form-control" autocomplete="off">
             </div>
             <div class="modal-footer">
-                <button data-bs-dismiss="modal" class="btn btn-default float-start" type="button"><?= lang('close'); ?></button>
+                <button data-bs-dismiss="modal" class="btn btn-default pull-left" type="button"><?= lang('close'); ?></button>
                 <button class="btn btn-primary" type="submit"><?= lang('submit'); ?></button>
             </div>
             <?= form_close(); ?>
@@ -484,6 +487,8 @@
     </div>
 </div>
 
+<script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
+<script src="<?= $assets ?>bootstrap/js/bootstrap.min.js"></script>
 <script>
 (function () {
     /* ── Particle network ── */

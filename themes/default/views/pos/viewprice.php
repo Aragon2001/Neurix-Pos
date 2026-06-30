@@ -26,7 +26,7 @@ if ($modal) {
                 <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css"/>
                 <style type="text/css" media="all">
                     body {
-                        color: #000;
+                        color: var(--nx-txt1, #1e293b);
                         font-size: 16px;
                     }
 
@@ -45,7 +45,7 @@ if ($modal) {
                     }
 
                     .table th {
-                        background: #f5f5f5;
+                        background: var(--table-head-bg, #f5f5f5);
                     }
 
                     .table th, .table td {
