@@ -483,8 +483,8 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 <!-- ════════════════════════════════════════════
      ANÁLISIS FINANCIERO (gráfica 12 meses)
 ═════════════════════════════════════════════ -->
-<div class="box" style="border-top:3px solid var(--nx-a1) !important;margin-bottom:18px;">
-    <div class="box-header" style="display:flex;align-items:center;justify-content:space-between;">
+<div class="card" style="border-top:3px solid var(--nx-a1);margin-bottom:18px;background:var(--nx-bg3);border-color:var(--nx-border);">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;background:transparent;border-bottom:1px solid var(--nx-border);">
         <div style="display:flex;align-items:center;gap:8px;">
             <i class="fa fa-area-chart" style="color:var(--nx-a1);font-size:16px;"></i>
             <span class="nx-section-title" style="margin:0;">Análisis financiero — últimos 12 meses</span>
@@ -495,7 +495,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <span style="color:#22c55e;"><i class="fa fa-circle"></i> Utilidad</span>
         </div>
     </div>
-    <div class="box-body" style="padding:8px 14px 8px !important;">
+    <div class="card-body" style="padding:8px 14px 8px;">
         <div id="nx-fin-12m" style="min-height:300px;"></div>
     </div>
 </div>
@@ -503,19 +503,19 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 <!-- ════════════════════════════════════════════
      FACTURAS ELECTRÓNICAS
 ═════════════════════════════════════════════ -->
-<div class="box" style="border-top:3px solid var(--nx-a3) !important;margin-bottom:18px;">
-    <div class="box-header" style="display:flex;align-items:center;justify-content:space-between;">
+<div class="card" style="border-top:3px solid var(--nx-a3);margin-bottom:18px;background:var(--nx-bg3);border-color:var(--nx-border);">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;background:transparent;border-bottom:1px solid var(--nx-border);">
         <div style="display:flex;align-items:center;gap:8px;">
             <i class="fa fa-cloud" style="color:var(--nx-a3);font-size:16px;"></i>
             <span class="nx-section-title" style="margin:0;">Facturación Electrónica — Hacienda</span>
         </div>
         <?php if ($feRech > 0): ?>
-        <a href="<?= site_url('reports/sale_fe'); ?>" class="btn btn-xs btn-warning" style="border-radius:8px !important;">
+        <a href="<?= site_url('reports/sale_fe'); ?>" class="btn btn-sm btn-warning" style="border-radius:8px;">
             <i class="fa fa-refresh"></i> Reenviar rechazadas (<?= $feRech; ?>)
         </a>
         <?php endif; ?>
     </div>
-    <div class="box-body">
+    <div class="card-body">
 
         <!-- Métricas FE row -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
@@ -583,12 +583,12 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 <!-- ════════════════════════════════════════════
      INVENTARIO
 ═════════════════════════════════════════════ -->
-<div class="box" style="border-top:3px solid var(--nx-a2) !important;margin-bottom:18px;">
-    <div class="box-header">
+<div class="card" style="border-top:3px solid var(--nx-a2);margin-bottom:18px;background:var(--nx-bg3);border-color:var(--nx-border);">
+    <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);">
         <i class="fa fa-cubes" style="color:var(--nx-a2);font-size:16px;margin-right:8px;"></i>
         <span class="nx-section-title" style="margin:0;">Inventario</span>
     </div>
-    <div class="box-body">
+    <div class="card-body">
 
         <!-- 4 métricas -->
         <div class="nx-inv-grid">
@@ -697,27 +697,27 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 <div class="row" style="margin-bottom:18px;">
 
     <div class="col-12 col-md-6">
-        <div class="box box-success" style="margin-bottom:0;">
-            <div class="box-header">
+        <div class="card" style="margin-bottom:0;background:var(--nx-bg3);border-color:var(--nx-border);border-top:2px solid var(--nx-ok);">
+            <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);">
                 <i class="fa fa-calendar-check-o" style="color:var(--nx-ok);margin-right:8px;"></i>
-                <h3 class="box-title">Top días de venta</h3>
+                <span style="font-weight:700;font-size:14px;">Top días de venta</span>
             </div>
-            <div class="box-body" style="padding:8px 14px 4px !important;">
+            <div class="card-body" style="padding:8px 14px 4px;">
                 <div id="nx-top-days" style="min-height:280px;"></div>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-md-6">
-        <div class="box box-primary" style="margin-bottom:0;">
-            <div class="box-header">
-                <i class="fa fa-trophy" style="color:var(--nx-a1);margin-right:8px;"></i>
-                <h3 class="box-title">Top productos por ingresos</h3>
-                <div class="box-tools float-end">
-                    <span style="font-size:11px;color:var(--nx-txt3);"><?= date('F Y'); ?></span>
-                </div>
+        <div class="card" style="margin-bottom:0;background:var(--nx-bg3);border-color:var(--nx-border);border-top:2px solid var(--nx-a1);">
+            <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);display:flex;align-items:center;justify-content:space-between;">
+                <span>
+                    <i class="fa fa-trophy" style="color:var(--nx-a1);margin-right:8px;"></i>
+                    <span style="font-weight:700;font-size:14px;">Top productos por ingresos</span>
+                </span>
+                <span style="font-size:11px;color:var(--nx-txt3);"><?= date('F Y'); ?></span>
             </div>
-            <div class="box-body" style="padding:8px 14px 4px !important;">
+            <div class="card-body" style="padding:8px 14px 4px;">
                 <div id="nx-top-prods" style="min-height:280px;"></div>
             </div>
         </div>
@@ -732,12 +732,12 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 
     <!-- Métodos de pago -->
     <div class="col-12 col-md-3">
-        <div class="box box-warning">
-            <div class="box-header">
+        <div class="card" style="background:var(--nx-bg3);border-color:var(--nx-border);border-top:2px solid var(--nx-warn);">
+            <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);">
                 <i class="fa fa-credit-card" style="color:var(--nx-warn);margin-right:8px;"></i>
-                <h3 class="box-title">Métodos de pago</h3>
+                <span style="font-weight:700;font-size:14px;">Métodos de pago</span>
             </div>
-            <div class="box-body" style="padding:8px 14px 4px !important;">
+            <div class="card-body" style="padding:8px 14px 4px;">
                 <div id="nx-pay-donut" style="min-height:240px;"></div>
                 <?php if (!empty($pay_methods)): ?>
                 <div class="table-responsive">
@@ -761,12 +761,12 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 
     <!-- Top clientes -->
     <div class="col-12 col-md-4">
-        <div class="box box-info">
-            <div class="box-header">
+        <div class="card" style="background:var(--nx-bg3);border-color:var(--nx-border);border-top:2px solid var(--nx-a3);">
+            <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);">
                 <i class="fa fa-users" style="color:var(--nx-a3);margin-right:8px;"></i>
-                <h3 class="box-title">Top clientes — <?= date('F'); ?></h3>
+                <span style="font-weight:700;font-size:14px;">Top clientes — <?= date('F'); ?></span>
             </div>
-            <div class="box-body" style="padding:0 !important;overflow:hidden;">
+            <div class="card-body" style="padding:0;overflow:hidden;">
                 <?php if (!empty($top_customers)): ?>
                 <div class="table-responsive">
                 <table class="nx-tbl">
@@ -794,15 +794,15 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 
     <!-- Últimas ventas -->
     <div class="col-12 col-md-5">
-        <div class="box box-primary">
-            <div class="box-header">
-                <i class="fa fa-list-alt" style="color:var(--nx-a1);margin-right:8px;"></i>
-                <h3 class="box-title">Últimas transacciones</h3>
-                <div class="box-tools float-end">
-                    <a href="<?= site_url('sales'); ?>" class="btn btn-xs btn-default">Ver todas</a>
-                </div>
+        <div class="card" style="background:var(--nx-bg3);border-color:var(--nx-border);border-top:2px solid var(--nx-a1);">
+            <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);display:flex;align-items:center;justify-content:space-between;">
+                <span>
+                    <i class="fa fa-list-alt" style="color:var(--nx-a1);margin-right:8px;"></i>
+                    <span style="font-weight:700;font-size:14px;">Últimas transacciones</span>
+                </span>
+                <a href="<?= site_url('sales'); ?>" class="btn btn-sm btn-outline-secondary">Ver todas</a>
             </div>
-            <div class="box-body" style="padding:0 !important;overflow:hidden;">
+            <div class="card-body" style="padding:0;overflow:hidden;">
                 <div class="table-responsive">
                 <table class="nx-tbl">
                     <thead><tr><th>#</th><th>Cliente</th><th style="text-align:right;">Total</th><th>Estado</th><th>FE</th></tr></thead>
