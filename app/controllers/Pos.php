@@ -176,7 +176,7 @@ class Pos extends PosPrint {
                 $real_unit_price = filter_var($_POST['real_unit_price'][$r] ?? null, FILTER_VALIDATE_FLOAT);
                 $item_comment  = strip_tags(trim($_POST['item_comment'][$r] ?? ''));
 
-                if ($item_id === false || $item_id <= 0) continue;
+                if ($item_id === false || $item_id < 0) continue; // 0 = producto ad-hoc
                 if ($item_quantity === false || $item_quantity <= 0) continue;
                 if ($real_unit_price === false || $real_unit_price < 0) continue;
 
@@ -282,6 +282,19 @@ class Pos extends PosPrint {
                         $product_details->tax = 0;
                         $product_details->type = "service";
                         $product_details->unit_of_measurement = "Sp";
+                    }
+
+                    // Producto ad-hoc (product_id=0): leer tasa de impuesto desde POST id_tax[]
+                    if (!$product_details && isset($_POST['id_tax'][$r]) && (int)$_POST['id_tax'][$r] > 0) {
+                        $q_im = $this->db->get_where('impuestos', ['id_impuesto' => (int)$_POST['id_tax'][$r]], 1);
+                        if ($q_im->num_rows() > 0) {
+                            $im = $q_im->row();
+                            $product_details = new stdClass();
+                            $product_details->tax         = (float)$im->tasa_impuesto;
+                            $product_details->tax_method  = 1;
+                            $product_details->type        = 'service';
+                            $product_details->unit_of_measurement = 'Sp';
+                        }
                     }
 
                     if (isset($product_details->tax) && $product_details->tax != 0) {
@@ -1263,6 +1276,7 @@ class Pos extends PosPrint {
             }
             $this->data['shipping'] = $shipping;
             $this->data['waiting_tables'] = $waiting_tables;
+            $this->data['impuestos_list'] = $this->site->getAllImpuestos();
             $this->data['page_title'] = lang('pos');
             $bc = array(array('link' => '#', 'page' => lang('pos')));
             $meta = array('page_title' => lang('pos'), 'bc' => $bc);

@@ -97,12 +97,9 @@
     if (spositems[item_id]) {
       spositems[item_id].row.qty = parseFloat(spositems[item_id].row.qty) + 1;
     } else {
-      // Apply tipo_precio selection
-      var tipoPrecio = $('tipo_precio');
-      if (tipoPrecio && tipoPrecio.value === 'offer_price' && item.row.offer_price) {
-        item.row.real_unit_price = item.row.offer_price;
-        item.row.price = item.row.offer_price;
-      }
+      // Preservar precio original para el toggle por producto
+      if (!item.row._orig_price) item.row._orig_price = item.row.price;
+      item.row._price_mode = 'normal';
       spositems[item_id] = item;
     }
     store('spositems', JSON.stringify(spositems));
@@ -214,6 +211,7 @@
           '<input name="item_comment[]" type="hidden" class="ritem_comment" value="' + item_comment + '">' +
           '<input name="product_code[]" type="hidden" value="' + item_code + '">' +
           '<input name="product_name[]" type="hidden" value="' + row.name + '">' +
+          '<input name="id_tax[]" type="hidden" value="' + (row._id_tax || 0) + '">' +
           '<button type="button" class="btn btn-sm btn-outline-secondary w-100 text-start edit" data-item="' + item_id + '">' +
             '<span class="sname">' + item_name + ' (' + item_code + ')</span>' +
           '</button>' +
@@ -222,6 +220,11 @@
           '<input class="realuprice" name="real_unit_price[]" type="hidden" value="' + row.real_unit_price + '">' +
           '<input class="rdiscount" name="product_discount[]" type="hidden" value="' + ds + '">' +
           '<small class="sprice">' + formatMoney(net_price + pr_tax_val) + '</small>' +
+          (row.offer_price && parseFloat(row.offer_price) > 0
+            ? '<button type="button" class="price-toggle-btn ' + (row._price_mode === 'offer' ? 'active' : '') + '"' +
+              ' data-item="' + item_id + '" title="' + (row._price_mode === 'offer' ? 'Usando precio oferta — click para precio normal' : 'Precio oferta disponible — click para activar') + '">' +
+              '<i class="fa fa-tag"></i></button>'
+            : '') +
         '</td>' +
         '<td class="align-middle" style="min-width:70px">' +
           '<input name="item_was_ordered[]" type="hidden" class="riwo" value="' + item_was_ordered + '">' +
@@ -638,6 +641,35 @@
   }
 
   /* ──────────────────────────────────────────────────────
+     PRECIO POR PRODUCTO: toggle normal/oferta (Fase 4)
+  ────────────────────────────────────────────────────── */
+  function initPriceToggle() {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.price-toggle-btn');
+      if (!btn) return;
+      var item_id = btn.dataset.item;
+      if (!item_id || !spositems[item_id]) return;
+
+      var row = spositems[item_id].row;
+      var origPrice  = parseFloat(row._orig_price  || row.price);
+      var offerPrice = parseFloat(row.offer_price);
+
+      if (row._price_mode === 'offer') {
+        row.real_unit_price = origPrice;
+        row.price           = origPrice;
+        row._price_mode     = 'normal';
+      } else {
+        row.real_unit_price = offerPrice;
+        row.price           = offerPrice;
+        row._price_mode     = 'offer';
+      }
+
+      store('spositems', JSON.stringify(spositems));
+      loadItems();
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────
      PAGO: abrir modal
   ────────────────────────────────────────────────────── */
   function initPayment() {
@@ -802,8 +834,96 @@
         form.reset();
         var alertEl = $('c-alert');
         if (alertEl) alertEl.classList.add('d-none');
+        var hacAlert = $('hac-alert');
+        if (hacAlert) hacAlert.classList.add('d-none');
       });
     }
+  }
+
+  /* ──────────────────────────────────────────────────────
+     HACIENDA AE LOOKUP en modal de cliente (Fase 6)
+  ────────────────────────────────────────────────────── */
+  function initHaciendaLookup() {
+    var btn    = $('btn-hac-lookup');
+    var cf2El  = $('cf2');
+    var cf1El  = $('cf1');
+    var nameEl = $('cname');
+    var alertEl = $('hac-alert');
+    var iconEl  = $('hac-icon');
+    if (!btn || !cf2El) return;
+
+    var debounceTimer;
+
+    function showHacAlert(type, msg) {
+      if (!alertEl) return;
+      alertEl.className = 'alert alert-' + type;
+      alertEl.style.fontSize = '.82rem';
+      alertEl.innerHTML = msg;
+    }
+
+    function hideHacAlert() {
+      if (alertEl) alertEl.className = 'alert d-none';
+    }
+
+    function setLoading(loading) {
+      if (!btn || !iconEl) return;
+      btn.disabled = loading;
+      iconEl.className = loading ? 'fa fa-spinner fa-spin' : 'fa fa-search';
+    }
+
+    function consultarHacienda(cedula) {
+      cedula = cedula.replace(/\D/g, '');
+      if (cedula.length < 9 || cedula.length > 12) return;
+
+      setLoading(true);
+      hideHacAlert();
+
+      fetch(window.base_url + 'hacienda_proxy/ae/' + encodeURIComponent(cedula), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.error) {
+            showHacAlert('warning', '&#9888; ' + data.error);
+            return;
+          }
+          if (data.nombre && nameEl && !nameEl.value) {
+            nameEl.value = data.nombre;
+          }
+          if (data.tipoIdentificacion && cf1El) {
+            cf1El.value = data.tipoIdentificacion;
+          }
+          var alertas = [];
+          if (data.situacion) {
+            if (data.situacion.moroso) alertas.push('MOROSO');
+            if (data.situacion.omiso)  alertas.push('OMISO');
+          }
+          if (alertas.length) {
+            showHacAlert('danger', '&#9888; Contribuyente: ' + alertas.join(', ') + ' — verifique antes de facturar a crédito.');
+          } else if (data.nombre) {
+            showHacAlert('success', '&#10003; Contribuyente encontrado. Verifique y corrija si es necesario.');
+          }
+        })
+        .catch(function () {
+          showHacAlert('warning', 'No se pudo consultar Hacienda. Registre manualmente.');
+        })
+        .finally(function () {
+          setLoading(false);
+        });
+    }
+
+    btn.addEventListener('click', function () {
+      consultarHacienda(cf2El.value);
+    });
+
+    // Auto-lookup al perder el foco (solo para cédulas de 9-12 dígitos)
+    cf2El.addEventListener('blur', function () {
+      clearTimeout(debounceTimer);
+      var v = this.value.replace(/\D/g, '');
+      if (v.length >= 9 && v.length <= 12) {
+        debounceTimer = setTimeout(function () { consultarHacienda(v); }, 300);
+      }
+    });
   }
 
   /* ──────────────────────────────────────────────────────
@@ -938,14 +1058,13 @@
       var isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
       var isSearch = document.activeElement && document.activeElement.id === 'add_item';
 
-      // F2 → focus en selector de cliente
+      // F2 → Producto rápido ad-hoc
       if (e.key === 'F2') {
         e.preventDefault();
-        var sel = $('spos_customer');
-        if (sel && sel.tomselect) {
-          sel.tomselect.focus();
-        } else if (sel) {
-          sel.focus();
+        var ahBtn = document.getElementById('adHocBtn');
+        if (ahBtn && window.bootstrap) {
+          var m = window.bootstrap.Modal.getOrCreateInstance(document.getElementById('adHocModal'));
+          if (m) m.show();
         }
         return;
       }
@@ -1062,7 +1181,7 @@
       title: 'Atajos de teclado',
       content:
         '<div style="font-size:.82rem;line-height:2;">' +
-        '<div><kbd>F2</kbd>&nbsp; Cliente</div>' +
+        '<div><kbd>F2</kbd>&nbsp; Producto rápido</div>' +
         '<div><kbd>F3</kbd>&nbsp; Buscar</div>' +
         '<div><kbd>F4</kbd>&nbsp; Cobrar</div>' +
         '<div><kbd>ESC</kbd>&nbsp; Cancelar búsqueda</div>' +
@@ -1103,6 +1222,241 @@
   }
 
   /* ──────────────────────────────────────────────────────
+     PRODUCTO AD-HOC (Fase 11)
+  ────────────────────────────────────────────────────── */
+  function initAdHocProduct() {
+    var modal = document.getElementById('adHocModal');
+    var cabysModal = document.getElementById('cabysSearchModal');
+    if (!modal) return;
+
+    var nameEl    = document.getElementById('ah-name');
+    var cabysEl   = document.getElementById('ah-cabys');
+    var cabysDesc = document.getElementById('ah-cabys-desc');
+    var qtyEl     = document.getElementById('ah-qty');
+    var costEl    = document.getElementById('ah-cost');
+    var priceEl   = document.getElementById('ah-price');
+    var ivaSwitch = document.getElementById('ah-iva-switch');
+    var ivaSel    = document.getElementById('ah-iva-selector');
+    var ivaSelect = document.getElementById('ah-iva-select');
+    var ivaRate   = document.getElementById('ah-iva-rate');
+    var previewPrice = document.getElementById('ah-preview-price');
+    var previewTax   = document.getElementById('ah-preview-tax');
+    var previewTotal = document.getElementById('ah-preview-total');
+    var confirmBtn   = document.getElementById('ah-confirm-btn');
+    var cabysSearchBtn = document.getElementById('ah-cabys-search-btn');
+    var cabysQ    = document.getElementById('cabys-q');
+    var cabysGoBtn = document.getElementById('cabys-go-btn');
+    var cabysResults = document.getElementById('cabys-results-list');
+
+    var priceManuallyEdited = false;
+
+    function getCurrentTasa() {
+      if (!ivaSwitch || !ivaSwitch.checked) return 0;
+      var opt = ivaSelect ? ivaSelect.selectedOptions[0] : null;
+      return opt ? parseFloat(opt.dataset.tasa || 0) : 0;
+    }
+
+    function updatePreview() {
+      var price = parseFloat(priceEl ? priceEl.value : 0) || 0;
+      var qty   = parseFloat(qtyEl ? qtyEl.value : 1) || 1;
+      var tasa  = getCurrentTasa();
+      var taxUnit = formatDecimal(price * tasa / 100, 2);
+      var total   = formatDecimal((price + taxUnit) * qty, 2);
+      if (previewPrice)  previewPrice.textContent  = formatMoney(price);
+      if (previewTax)    previewTax.textContent     = formatMoney(taxUnit);
+      if (previewTotal)  previewTotal.textContent   = formatMoney(total);
+    }
+
+    // Auto-copiar costo al precio si no se ha editado manualmente
+    if (costEl) {
+      costEl.addEventListener('input', function () {
+        if (!priceManuallyEdited && priceEl) {
+          priceEl.value = costEl.value;
+        }
+        updatePreview();
+      });
+    }
+    if (priceEl) {
+      priceEl.addEventListener('input', function () {
+        priceManuallyEdited = true;
+        updatePreview();
+      });
+    }
+    if (qtyEl)    qtyEl.addEventListener('input', updatePreview);
+
+    // IVA switch
+    if (ivaSwitch) {
+      ivaSwitch.addEventListener('change', function () {
+        if (ivaSel) ivaSel.style.display = this.checked ? '' : 'none';
+        updatePreview();
+      });
+    }
+    if (ivaSelect) {
+      ivaSelect.addEventListener('change', function () {
+        var opt = this.selectedOptions[0];
+        if (ivaRate) ivaRate.textContent = (opt ? parseFloat(opt.dataset.tasa || 0) : 0) + '%';
+        updatePreview();
+      });
+    }
+
+    // Reset al abrir modal
+    modal.addEventListener('show.bs.modal', function () {
+      if (nameEl)    nameEl.value = '';
+      if (cabysEl)   cabysEl.value = '';
+      if (cabysDesc) cabysDesc.value = '';
+      if (qtyEl)     qtyEl.value = 1;
+      if (costEl)    costEl.value = '';
+      if (priceEl)   priceEl.value = '';
+      if (ivaSwitch) ivaSwitch.checked = false;
+      if (ivaSel)    ivaSel.style.display = 'none';
+      priceManuallyEdited = false;
+      updatePreview();
+    });
+    modal.addEventListener('shown.bs.modal', function () {
+      if (nameEl) nameEl.focus();
+    });
+
+    // Buscar CABYS - abrir sub-modal
+    if (cabysSearchBtn) {
+      cabysSearchBtn.addEventListener('click', function () {
+        if (cabysModal && window.bootstrap) {
+          var m = window.bootstrap.Modal.getOrCreateInstance(cabysModal);
+          if (m) m.show();
+        }
+      });
+    }
+
+    // CABYS: búsqueda en el sub-modal
+    function doCabysSearch() {
+      var q = cabysQ ? cabysQ.value.trim() : '';
+      if (!q || !cabysResults) return;
+      var icon = document.getElementById('ah-cabys-icon');
+      if (icon) icon.className = 'fa fa-spinner fa-spin';
+      fetch(window.base_url + 'hacienda_proxy/cabys?q=' + encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (icon) icon.className = 'fa fa-search';
+          cabysResults.innerHTML = '';
+          var items = data.data || data.cabys || data || [];
+          if (!Array.isArray(items) || !items.length) {
+            cabysResults.innerHTML = '<div class="p-3 text-muted text-center">Sin resultados</div>';
+            return;
+          }
+          items.slice(0, 50).forEach(function (it) {
+            var row = document.createElement('div');
+            row.className = 'p-2 border-bottom d-flex align-items-start justify-content-between gap-2';
+            row.style.cssText = 'cursor:pointer;font-size:.85rem;';
+            var tasa   = parseFloat(it.impuesto) || 0;
+            var codigo = it.codigo || it.Codigo || '';
+            var desc   = it.descripcion || it.Descripcion || '';
+            row.innerHTML =
+              '<div>' +
+                '<span class="font-monospace text-info">' + codigo + '</span>' +
+                ' &mdash; ' + desc +
+              '</div>' +
+              '<button type="button" class="btn btn-sm btn-outline-success flex-shrink-0" style="font-size:.75rem;">Aplicar</button>';
+            row.querySelector('button').addEventListener('click', function () {
+              if (cabysEl)   cabysEl.value = codigo;
+              if (cabysDesc) cabysDesc.value = desc;
+              // Precargar impuesto sugerido si IVA switch está activo
+              if (tasa > 0 && ivaSelect) {
+                var opts = ivaSelect.querySelectorAll('option');
+                for (var i = 0; i < opts.length; i++) {
+                  if (parseFloat(opts[i].dataset.tasa) === parseFloat(tasa)) {
+                    ivaSelect.value = opts[i].value;
+                    if (!ivaSwitch.checked) {
+                      ivaSwitch.checked = true;
+                      if (ivaSel) ivaSel.style.display = '';
+                    }
+                    if (ivaRate) ivaRate.textContent = tasa + '%';
+                    break;
+                  }
+                }
+              }
+              updatePreview();
+              if (cabysModal && window.bootstrap) {
+                var m = window.bootstrap.Modal.getInstance(cabysModal);
+                if (m) m.hide();
+              }
+            });
+            cabysResults.appendChild(row);
+          });
+        })
+        .catch(function () {
+          if (icon) icon.className = 'fa fa-search';
+          if (cabysResults) cabysResults.innerHTML = '<div class="p-3 text-danger text-center">Error al consultar CABYS</div>';
+        });
+    }
+
+    if (cabysGoBtn) cabysGoBtn.addEventListener('click', doCabysSearch);
+    if (cabysQ) {
+      cabysQ.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') doCabysSearch();
+      });
+    }
+    if (cabysModal) {
+      cabysModal.addEventListener('shown.bs.modal', function () {
+        if (cabysQ) { cabysQ.value = ''; cabysQ.focus(); }
+        if (cabysResults) cabysResults.innerHTML = '';
+      });
+    }
+
+    // Confirmar agregar al carrito
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function () {
+        var name  = nameEl ? nameEl.value.trim() : '';
+        var cabys = cabysEl ? cabysEl.value.trim() : '';
+        var qty   = parseFloat(qtyEl ? qtyEl.value : 1) || 1;
+        var price = parseFloat(priceEl ? priceEl.value : 0) || 0;
+
+        if (!name) { nameEl && nameEl.focus(); showAlert('Ingrese el nombre del producto.'); return; }
+        if (!cabys || !/^\d{13}$/.test(cabys)) { cabysEl && cabysEl.focus(); showAlert('Ingrese un código CABYS válido (13 dígitos).'); return; }
+        if (!price || price <= 0) { priceEl && priceEl.focus(); showAlert('Ingrese un precio válido.'); return; }
+
+        var tasa  = getCurrentTasa();
+        var idTax = 0;
+        if (ivaSwitch && ivaSwitch.checked && ivaSelect) {
+          idTax = parseInt(ivaSelect.value) || 0;
+        }
+
+        var uid = 'adhoc_' + Date.now();
+        var item = {
+          id: uid,
+          item_id: uid,
+          label: name + ' (' + cabys + ')',
+          row: {
+            id: 0,
+            type: 'service',
+            tax_method: 1,
+            qty: qty,
+            quantity: 999999,
+            discount: '0',
+            code: cabys,
+            name: name,
+            price: price,
+            real_unit_price: price,
+            offer_price: 0,
+            comment: '',
+            ordered: 0,
+            tax: tasa,
+            _orig_price: price,
+            _price_mode: 'normal',
+            _id_tax: idTax
+          }
+        };
+
+        add_invoice_item(item);
+        showToast(name);
+
+        if (modal && window.bootstrap) {
+          var m = window.bootstrap.Modal.getInstance(modal);
+          if (m) m.hide();
+        }
+      });
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────
      INICIALIZACIÓN
   ────────────────────────────────────────────────────── */
   function init() {
@@ -1119,12 +1473,14 @@
     initCategoryNav();
     initCategoryFilter();
     initDeleteItem();
+    initPriceToggle();
     initQuantityChange();
     initPayment();
     initSubmit();
     initReset();
     initSuspend();
     initCustomerForm();
+    initHaciendaLookup();
     initCustomerSelect();
     initClock();
     initPaymentMethods();
@@ -1134,6 +1490,7 @@
     initModalFocusReturn();
     initPrintToggle();
     initKeyboardPopover();
+    initAdHocProduct();
 
     // Renderizar carrito al cargar
     loadItems();

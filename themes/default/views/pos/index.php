@@ -182,6 +182,11 @@
                 </ul>
             </div>
 
+            <!-- Producto rápido ad-hoc (Fase 11) -->
+            <button class="pos-topbar-btn" id="adHocBtn" title="Producto rápido (F2)" data-bs-toggle="modal" data-bs-target="#adHocModal">
+                <i class="fa fa-bolt"></i>
+            </button>
+
             <!-- Keyboard shortcuts (Fase 9) -->
             <button class="pos-topbar-btn" id="kbdShortcutsBtn" title="Atajos de teclado">
                 <i class="fa fa-keyboard"></i>
@@ -289,11 +294,6 @@
 
                 <!-- Controls bar -->
                 <div class="pos-controls-bar">
-                    <select id="tipo_precio" title="<?= lang('price') ?>">
-                        <option value="price"><i class="fa fa-tag"></i> <?= lang('price') ?></option>
-                        <option value="offer_price"><?= lang('offer_price') ?></option>
-                    </select>
-
                     <input type="text" id="filter-categories"
                            placeholder="<?= lang('filter_categories') ?: 'Filtrar productos...' ?>"
                            autocomplete="off">
@@ -423,32 +423,6 @@
                     </div>
                 </div>
 
-                <!-- Payment methods -->
-                <div class="pcp-pay-section">
-                    <div class="pcp-section-label">
-                        <i class="fa fa-credit-card"></i>
-                        Método de pago
-                    </div>
-                    <div class="pcp-pay-grid">
-                        <button type="button" class="pcp-pay-btn active" data-method="cash">
-                            <i class="fa fa-money-bill-wave"></i>
-                            Efectivo
-                        </button>
-                        <button type="button" class="pcp-pay-btn" data-method="card">
-                            <i class="fa fa-credit-card"></i>
-                            Tarjeta
-                        </button>
-                        <button type="button" class="pcp-pay-btn" data-method="sinpe">
-                            <i class="fa fa-mobile-screen-button"></i>
-                            SINPE
-                        </button>
-                        <button type="button" class="pcp-pay-btn" data-method="transfer">
-                            <i class="fa fa-building-columns"></i>
-                            Transfer.
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Actions -->
                 <div class="pcp-actions">
                     <div class="pcp-action-row">
@@ -511,6 +485,32 @@
             <?= form_open('customers/add', 'id="customer-form"'); ?>
             <div class="modal-body">
                 <div id="c-alert" class="alert alert-danger d-none"></div>
+                <div id="hac-alert" class="alert d-none" style="font-size:.82rem;padding:.5rem .75rem;"></div>
+
+                <!-- Tipo + Número de identificación (Hacienda AE lookup) -->
+                <div class="row g-2 mb-3">
+                    <div class="col-5">
+                        <label class="form-label"><?= lang('cf1') ?> <span class="text-danger">*</span></label>
+                        <select name="cf1" class="form-select form-select-sm" id="cf1" required>
+                            <option value="01"><?= lang('id_card') ?></option>
+                            <option value="02"><?= lang('legal_id') ?></option>
+                            <option value="03">DIMEX</option>
+                            <option value="04">NITE</option>
+                            <option value="05"><?= lang('passport') ?></option>
+                        </select>
+                    </div>
+                    <div class="col-7">
+                        <label class="form-label"><?= lang('cf2') ?> <span class="text-danger">*</span></label>
+                        <div class="input-group input-group-sm">
+                            <?= form_input('cf2', '', 'class="form-control" id="cf2" required autocomplete="off"') ?>
+                            <button type="button" class="btn btn-outline-info" id="btn-hac-lookup"
+                                    title="Buscar en Hacienda (padrón de contribuyentes)"
+                                    style="font-size:.75rem;padding:.25rem .5rem;">
+                                <i class="fa fa-search" id="hac-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="mb-3">
                     <label class="form-label"><?= lang('name') ?> <span class="text-danger">*</span></label>
@@ -524,22 +524,6 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label"><?= lang('phone') ?></label>
                         <?= form_input('phone', '', 'class="form-control" id="cphone"') ?>
-                    </div>
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label"><?= lang('cf1') ?> <span class="text-danger">*</span></label>
-                        <select name="cf1" class="form-select" id="cf1" required>
-                            <option value="01"><?= lang('id_card') ?></option>
-                            <option value="02"><?= lang('legal_id') ?></option>
-                            <option value="03">DIMEX</option>
-                            <option value="04">NITE</option>
-                            <option value="05"><?= lang('passport') ?></option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label"><?= lang('cf2') ?> <span class="text-danger">*</span></label>
-                        <?= form_input('cf2', '', 'class="form-control" id="cf2" required') ?>
                     </div>
                 </div>
             </div>
@@ -657,6 +641,130 @@
 </div>
 
 <!-- ════════════════════════════════════════════════
+     MODAL: Producto rápido ad-hoc (Fase 11)
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="adHocModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-bolt me-2" style="color:var(--nx-ok);"></i>
+                    Producto rápido
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Nombre -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ah-name" placeholder="Descripción del producto/servicio" autocomplete="off" required>
+                </div>
+
+                <!-- CABYS -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Código CABYS <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control font-monospace" id="ah-cabys" placeholder="0000000000000" maxlength="13" autocomplete="off" style="max-width:170px;">
+                        <input type="text" class="form-control" id="ah-cabys-desc" placeholder="Descripción CABYS" readonly>
+                        <button type="button" class="btn btn-outline-info" id="ah-cabys-search-btn">
+                            <i class="fa fa-search" id="ah-cabys-icon"></i> Buscar
+                        </button>
+                    </div>
+                    <!-- Panel resultados CABYS -->
+                    <div id="ah-cabys-results" class="mt-2" style="display:none;max-height:220px;overflow-y:auto;border:1px solid var(--bs-border-color);border-radius:.375rem;"></div>
+                </div>
+
+                <!-- Cantidad + Costo + Precio -->
+                <div class="row g-2 mb-3">
+                    <div class="col-3">
+                        <label class="form-label fw-semibold">Cantidad <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="ah-qty" value="1" min="0.01" step="any">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label fw-semibold">Costo</label>
+                        <input type="number" class="form-control" id="ah-cost" placeholder="0.00" min="0" step="any">
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label fw-semibold">Precio (sin impuesto) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="ah-price" placeholder="0.00" min="0" step="any">
+                    </div>
+                </div>
+
+                <!-- IVA -->
+                <div class="mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="ah-iva-switch" role="switch">
+                            <label class="form-check-label fw-semibold" for="ah-iva-switch">¿Lleva IVA?</label>
+                        </div>
+                        <div id="ah-iva-selector" style="display:none;" class="d-flex align-items-center gap-2">
+                            <select class="form-select form-select-sm" id="ah-iva-select" style="max-width:240px;">
+                                <?php if (!empty($impuestos_list)): ?>
+                                    <?php foreach ($impuestos_list as $imp): ?>
+                                        <?php if ($imp->tasa_impuesto == 0) continue; ?>
+                                        <option value="<?= (int)$imp->id_impuesto ?>"
+                                                data-tasa="<?= (float)$imp->tasa_impuesto ?>"
+                                            <?= $imp->tasa_impuesto == 13 ? 'selected' : '' ?>>
+                                            <?= html_escape($imp->descripcion_impuesto) ?> (<?= (float)$imp->tasa_impuesto ?>%)
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <span class="badge bg-secondary" id="ah-iva-rate">13%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Totales en tiempo real -->
+                <div class="p-3 rounded" style="background:var(--bs-tertiary-bg);font-size:.9rem;">
+                    <div class="row text-center g-2">
+                        <div class="col-4">
+                            <div class="text-muted small">Precio unit.</div>
+                            <div class="fw-bold" id="ah-preview-price">₡0.00</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Impuesto unit.</div>
+                            <div class="fw-bold text-warning" id="ah-preview-tax">₡0.00</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Total línea</div>
+                            <div class="fw-bold text-success" id="ah-preview-total">₡0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success px-4" id="ah-confirm-btn">
+                    <i class="fa fa-plus me-1"></i> Agregar al carrito
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal búsqueda CABYS -->
+<div class="modal fade" id="cabysSearchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa fa-search me-2"></i>Buscar CABYS</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="cabys-q" placeholder="Buscar por código o descripción...">
+                    <button type="button" class="btn btn-primary" id="cabys-go-btn">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+                <div id="cabys-results-list" style="max-height:380px;overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
      INLINE PHP → JS VARIABLES
 ════════════════════════════════════════════════ -->
 <script type="text/javascript">
@@ -666,9 +774,10 @@
     var Settings = <?= json_encode($Settings); ?>;
     var username = '<?= addslashes($this->session->userdata('username')); ?>';
 
-    window._pos_cat_id = <?= (int)$Settings->default_category; ?>;
-    window._pos_tcp    = <?= (int)$tcp; ?>;
-    window._pos_sid    = <?= (int)$sid; ?>;
+    window._pos_cat_id  = <?= (int)$Settings->default_category; ?>;
+    window._pos_tcp     = <?= (int)$tcp; ?>;
+    window._pos_sid     = <?= (int)$sid; ?>;
+    window._impuestos   = <?= json_encode($impuestos_list ?: []); ?>;
 
     var lang = {
         no_match_found:      '<?= addslashes(lang('no_match_found')); ?>',

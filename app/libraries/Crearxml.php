@@ -266,7 +266,9 @@ class Crearxml
 
                 $row = $this->site->getProductByID($items['product_id']);
                 $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-                $qq = $this->db->get_where('impuestos', array('id_impuesto' => isset($row->id_tax) ? $row->id_tax : 8), 1);
+                // Para productos ad-hoc (sin product_id): usar id_tax guardado en la línea de venta
+                $id_tax_lookup = isset($row->id_tax) ? $row->id_tax : (isset($items['id_tax']) && $items['id_tax'] > 0 ? $items['id_tax'] : 8);
+                $qq = $this->db->get_where('impuestos', array('id_impuesto' => $id_tax_lookup), 1);
                 if ($qq->num_rows() > 0) {
                     $im = $qq->row();
                     $items['id_impuesto'] = $im->id_impuesto;
@@ -324,7 +326,7 @@ class Crearxml
                             <Tipo>' . $CodigoTipo . '</Tipo>
                             <Codigo>' . substr($CodigoCodigo, 0, 19) . '</Codigo>
                             </CodigoComercial>'
-                            . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+                            . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : (isset($items['product_code']) && preg_match('/^\d{13}$/', $items['product_code']) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($items['product_code']) . '</Codigo></CodigoComercial>' : ''))
                             . '<Cantidad>' . $Cantidad . '</Cantidad>
                             <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
                             <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>
@@ -790,7 +792,7 @@ class Crearxml
             <Tipo>' . $CodigoTipo . '</Tipo>
             <Codigo>' . substr($CodigoCodigo, 0, 19) . '</Codigo>
             </CodigoComercial>'
-            . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+            . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : (isset($items['product_code']) && preg_match('/^\d{13}$/', $items['product_code']) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($items['product_code']) . '</Codigo></CodigoComercial>' : ''))
             . '<Cantidad>' . $Cantidad . '</Cantidad>
             <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
             <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>
@@ -1122,7 +1124,8 @@ class Crearxml
 
             $row = $this->site->getProductByID($items['product_id']);
             $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-            $qq = $this->db->get_where('impuestos', array('id_impuesto' => isset($row->id_tax) ? $row->id_tax : 8), 1);
+            $id_tax_lookup3 = isset($row->id_tax) ? $row->id_tax : (isset($items['id_tax']) && $items['id_tax'] > 0 ? $items['id_tax'] : 8);
+            $qq = $this->db->get_where('impuestos', array('id_impuesto' => $id_tax_lookup3), 1);
             if ($qq->num_rows() > 0) {
                 $im = $qq->row();
                 $items['codigo_impuesto'] = $im->codigo_impuesto;
@@ -1173,7 +1176,7 @@ class Crearxml
                         <Tipo>' . $CodigoTipo . '</Tipo>
                         <Codigo>' . substr($CodigoCodigo, 0, 19) . '</Codigo>
                         </CodigoComercial>'
-                        . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+                        . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : (isset($items['product_code']) && preg_match('/^\d{13}$/', $items['product_code']) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($items['product_code']) . '</Codigo></CodigoComercial>' : ''))
                         . '<Cantidad>' . $Cantidad . '</Cantidad>
                         <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
                         <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>
@@ -1496,7 +1499,8 @@ class Crearxml
 
             $row = $this->site->getProductByID($items['product_id']);
             $this->db->select("{$this->db->dbprefix('impuestos')}.*", FALSE);
-            $qq = $this->db->get_where('impuestos', array('id_impuesto' => isset($row->id_tax) ? $row->id_tax : 8), 1);
+            $id_tax_lookup4 = isset($row->id_tax) ? $row->id_tax : (isset($items['id_tax']) && $items['id_tax'] > 0 ? $items['id_tax'] : 8);
+            $qq = $this->db->get_where('impuestos', array('id_impuesto' => $id_tax_lookup4), 1);
             if ($qq->num_rows() > 0) {
                 $im = $qq->row();
                 $items['codigo_impuesto'] = $im->codigo_impuesto;
@@ -1545,7 +1549,7 @@ class Crearxml
                             <Tipo>03</Tipo>
                             <Codigo>' . substr($items["product_code"], 0, 19) . '</Codigo>
                         </CodigoComercial>'
-                        . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : '')
+                        . (!empty($row->cabys) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($row->cabys) . '</Codigo></CodigoComercial>' : (isset($items['product_code']) && preg_match('/^\d{13}$/', $items['product_code']) ? '<CodigoComercial><Tipo>05</Tipo><Codigo>' . htmlspecialchars($items['product_code']) . '</Codigo></CodigoComercial>' : ''))
                         . '<Cantidad>' . $Cantidad . '</Cantidad>
                         <UnidadMedida>' . $items["unit_of_measurement"] . '</UnidadMedida>
                         <Detalle>' . substr($this->quitatilde($Detalle), 0, 80) . '</Detalle>

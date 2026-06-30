@@ -420,6 +420,16 @@ body.pos-v2 {
   overflow: hidden;
 }
 
+/* Fase 8: el form ocupa toda la altura del panel para que .pcp-items
+   pueda crecer con flex:1 y el carrito no empuje los botones de acción */
+#pos-sale-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Customer section */
 .pcp-customer {
   padding: .75rem .875rem .625rem;
@@ -586,35 +596,17 @@ body.pos-v2 {
 }
 .pcp-grand-total .gv.bump { animation: totalUp .35s ease; }
 
-/* ─── Payment methods (in cart) ──────────────────────────────── */
-.pcp-pay-section {
-  padding: .5rem .875rem;
-  border-bottom: 1px solid var(--nx-border);
-  background: var(--nx-bg3);
-  flex-shrink: 0;
-}
-.pcp-pay-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: .35rem; margin-top: .4rem;
-}
-.pcp-pay-btn {
-  display: flex; flex-direction: column;
-  align-items: center; gap: .18rem;
-  padding: .45rem .2rem;
-  background: var(--nx-card-bg);
-  border: 1.5px solid var(--nx-border);
-  border-radius: 8px;
-  color: var(--nx-txt3);
+/* ─── Toggle de precio por producto (Fase 4) ─────────────────── */
+.price-toggle-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; margin-left: 3px;
+  background: none; border: none; padding: 0;
+  color: var(--nx-txt4); opacity: .45;
   cursor: pointer; transition: all .18s;
-  font-size: .6rem; font-weight: 700;
-  text-align: center; line-height: 1.1;
+  font-size: .7rem; vertical-align: middle;
 }
-.pcp-pay-btn i { font-size: 1rem; display: block; margin-bottom: .05rem; }
-.pcp-pay-btn:hover { background: var(--nx-hover-bg); border-color: var(--nx-border3); color: var(--nx-txt1); }
-.pcp-pay-btn.active {
-  background: var(--nx-active-bg); border-color: var(--nx-a1);
-  color: var(--nx-a1);
-}
+.price-toggle-btn:hover { opacity: .85; color: var(--nx-warn); }
+.price-toggle-btn.active { opacity: 1; color: var(--nx-ok); }
 
 /* ─── Actions ─────────────────────────────────────────────────── */
 .pcp-actions {
