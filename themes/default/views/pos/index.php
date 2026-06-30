@@ -346,6 +346,7 @@
 
                     <!-- Barra de búsqueda (visible cuando no hay cliente) -->
                     <div class="pcp-cust-search-wrap" id="pos-cust-search-wrap">
+                        <p class="pcp-cust-hint"><i class="fa fa-info-circle"></i> Escriba el nombre o número de cédula del cliente</p>
                         <?php
                         $cus = [];
                         foreach ($customers as $customer) {

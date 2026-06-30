@@ -937,7 +937,14 @@
   /* ──────────────────────────────────────────────────────
      TOM SELECT: cliente
   ────────────────────────────────────────────────────── */
-  var CF1_LABELS = { '01':'Cédula', '02':'Jurídica', '03':'DIMEX', '04':'NITE', '05':'Pasaporte' };
+  // Tipos de identificación según Hacienda CR (v4.4)
+  var CF1_LABELS = {
+    '01': 'Cédula Física',
+    '02': 'Cédula Jurídica',
+    '03': 'DIMEX',
+    '04': 'NITE',
+    '05': 'Pasaporte'
+  };
 
   function getDefaultCustomerId() {
     return String((window.Settings || {}).default_customer || '');
