@@ -5,7 +5,7 @@
 
     <p><strong><?= lang("update_price"); ?></strong>: <a href="<?= $this->config->base_url(); ?>smlib/lib/sample_product_price.csv">Download CSV file Sample</a></p>
 
-    <p><span style="color: #F60;"><?= lang("csv1"); ?></span><br /><span style="color: #060;"><?= lang("csv2"); ?> (<?= lang("product_code"); ?>, <?= lang("product_price"); ?>)</span> <?= lang("csv3"); ?></p>
+    <p><span style="color: var(--warning);"><?= lang("csv1"); ?></span><br /><span style="color: var(--success);"><?= lang("csv2"); ?> (<?= lang("product_code"); ?>, <?= lang("product_price"); ?>)</span> <?= lang("csv3"); ?></p>
 
     <?= form_open_multipart("module=products&view=update_price");?>
 

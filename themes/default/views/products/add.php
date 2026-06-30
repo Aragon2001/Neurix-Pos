@@ -160,7 +160,7 @@
                                     <label for="cabys">Código CABYS <small>(Clasificador Hacienda — 13 dígitos)</small></label>
                                     <input type="text" id="cabys-buscar" class="form-control tip" placeholder="Buscar por descripción (mín. 3 caracteres)..." autocomplete="off" style="margin-bottom:4px;">
                                     <?= form_input('cabys', set_value('cabys'), 'class="form-control tip" id="cabys" maxlength="13" placeholder="Ej: 8101102000000"'); ?>
-                                    <span id="cabys-info" class="help-block" style="display:none;color:#3c763d;"></span>
+                                    <span id="cabys-info" class="help-block" style="display:none;color:var(--success);"></span>
                                     <span class="help-block">Busque por descripción o escriba el código de 13 dígitos directamente.</span>
                                 </div>
 

@@ -26,7 +26,7 @@ if ($modal) {
                 <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css"/>
                 <style type="text/css" media="all">
                     body {
-                        color: #000;
+                        color: var(--nx-txt1, #1e293b);
                         font-size: 16px;
                     }
 
@@ -45,7 +45,7 @@ if ($modal) {
                     }
 
                     .table th {
-                        background: #f5f5f5;
+                        background: var(--table-head-bg, #f5f5f5);
                     }
 
                     .table th, .table td {
@@ -131,9 +131,9 @@ if ($modal) {
                                 <thead>
                                 <tr>
                                     <th class="text-center"
-                                        style="width: 50%; border-bottom: 2px solid #ddd;"><?= lang('Placa Vehiculo'); ?></th>
+                                        style="width: 50%; border-bottom: 2px solid var(--nx-border);"><?= lang('Placa Vehiculo'); ?></th>
                                     <th class="text-center"
-                                        style="width: 12%; border-bottom: 2px solid #ddd;"><?= lang('Hora de entrada'); ?></th>
+                                        style="width: 12%; border-bottom: 2px solid var(--nx-border);"><?= lang('Hora de entrada'); ?></th>
                                 </tr>
                                 </thead>
                                 <tbody>

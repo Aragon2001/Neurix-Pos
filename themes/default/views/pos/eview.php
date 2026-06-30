@@ -4,15 +4,17 @@
 if ($modal) {
     ?>
     <style type="text/css" media="all">
-        body { color: #000; font-size: 16px !important; }
+        body { color: var(--nx-txt1, #1e293b); font-size: 16px !important; }
         #wrapper { max-width: 500px; margin: 0 auto; padding-top: 20px; font-size: 28px; }
         .btn { margin-bottom: 5px; }
         .table { border-radius: 3px; }
-        .table th { background: #f5f5f5; }
+        .table th { background: var(--table-head-bg, #f5f5f5); }
         .table th, .table td { vertical-align: middle !important; }
         h3 { margin: 5px 0; font-size: 36px; }
 
         @media print {
+            body { color: #000 !important; }
+            .table th { background: #f5f5f5 !important; }
             .no-print { display: none; }
             #wrapper { max-width: 500px; width: 100%; min-width: 250px; margin: 0 auto; }
         }
@@ -36,15 +38,17 @@ if ($modal) {
                     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
                     <link href="<?= $assets ?>dist/css/styles.css" rel="stylesheet" type="text/css" />
                     <style type="text/css" media="all">
-                        body { color: #000; }
+                        body { color: var(--nx-txt1, #1e293b); }
                         #wrapper { max-width: 500px; margin: 0 auto; padding-top: 20px; font-size: 28px; }
                         .btn { margin-bottom: 5px; }
                         .table { border-radius: 3px; }
-                        .table th { background: #f5f5f5; }
+                        .table th { background: var(--table-head-bg, #f5f5f5); }
                         .table th, .table td { vertical-align: middle !important; }
                         h3 { margin: 5px 0; font-size: 36px; }
 
                         @media print {
+                            body { color: #000 !important; }
+                            .table th { background: #f5f5f5 !important; }
                             .no-print { display: none; }
                             #wrapper { max-width: 500px; width: 100%; min-width: 250px; margin: 0 auto; }
                         }
@@ -64,7 +68,7 @@ if ($modal) {
                             </div>
                             <?php } ?>
                         </div>
-                        <div id="receipt-data" style="background:#fff;">
+                        <div id="receipt-data" style="background:var(--nx-card-bg, #fff);">
                             <div>
                                 <div style="text-align:center;">
                                     <?php
@@ -101,8 +105,8 @@ if ($modal) {
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th style="text-align:left;border-top:1px dashed #000;"><?= lang("total"); ?></th>
-                                            <th style="text-align:right;border-top:1px dashed #000;"><?= $this->tec->formatMoney($inv->total + $inv->product_tax); ?></th>
+                                            <th style="text-align:left;border-top:1px dashed var(--nx-border);"><?= lang("total"); ?></th>
+                                            <th style="text-align:right;border-top:1px dashed var(--nx-border);"><?= $this->tec->formatMoney($inv->total + $inv->product_tax); ?></th>
                                         </tr>
                                         <?php
                                         if ($inv->order_tax != 0) {

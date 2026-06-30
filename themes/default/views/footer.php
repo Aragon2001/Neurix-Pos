@@ -44,9 +44,12 @@
 <script>
 /* ── SweetAlert2 shims & helpers ── */
 
+// Read brand colors from CSS variables so Swal buttons respect the active theme
+var _cv = function(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || undefined; };
+
 // Redirige alert() nativo a Swal
 window.alert = function(msg) {
-    Swal.fire({ icon: 'warning', text: String(msg), confirmButtonColor: '#0369a1' });
+    Swal.fire({ icon: 'warning', text: String(msg), confirmButtonColor: _cv('--primary') });
 };
 
 // Shim bootbox → SweetAlert2 (para código compilado en scripts.min.js)
@@ -56,7 +59,7 @@ var bootbox = {
             .then(function() { if (cb) cb(); });
     },
     confirm: function(msg, cb) {
-        Swal.fire({ title: String(msg), icon: 'question', showCancelButton: true, confirmButtonText: 'Sí', cancelButtonText: 'Cancelar', confirmButtonColor: '#0369a1', cancelButtonColor: '#6b7280' })
+        Swal.fire({ title: String(msg), icon: 'question', showCancelButton: true, confirmButtonText: 'Sí', cancelButtonText: 'Cancelar', confirmButtonColor: _cv('--primary'), cancelButtonColor: _cv('--nx-txt3') })
             .then(function(r) { if (cb) cb(r.isConfirmed); });
     }
 };
@@ -71,8 +74,8 @@ $(document).on('click', 'a[data-confirm]', function(e) {
         showCancelButton: true,
         confirmButtonText: 'Sí, continuar',
         cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#dc2626',
-        cancelButtonColor: '#6b7280',
+        confirmButtonColor: _cv('--danger'),
+        cancelButtonColor: _cv('--nx-txt3'),
         reverseButtons: true
     }).then(function(r) { if (r.isConfirmed) window.location.href = href; });
 });
