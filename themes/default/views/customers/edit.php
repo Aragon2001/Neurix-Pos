@@ -35,24 +35,25 @@
               <div class="mb-3">
                   <label class="form-label" for="cf1"><?= $this->lang->line("ccf1"); ?></label>
                   <select name="cf1" class="form-control tom-select" id="cf1" style="width:100%;">
-                      <option <?= ($customer->cf1 == '01') ? 'selected="selected"' : ''; ?> value="01">Cédula de Identidad</option>
-                      <option <?= ($customer->cf1 == '02') ? 'selected="selected"' : ''; ?> value="02">Cédula Jurídica</option>
-                      <option <?= ($customer->cf1 == '03') ? 'selected="selected"' : ''; ?> value="03">DIMEX</option>
-                      <option <?= ($customer->cf1 == '04') ? 'selected="selected"' : ''; ?> value="04">NITE</option>
-                      <option <?= ($customer->cf1 == '05') ? 'selected="selected"' : ''; ?> value="05">Pasaporte</option>
+                      <option <?= ($customer->cf1 == '01') ? 'selected="selected"' : ''; ?> value="01">01 — Cédula Física</option>
+                      <option <?= ($customer->cf1 == '02') ? 'selected="selected"' : ''; ?> value="02">02 — Cédula Jurídica</option>
+                      <option <?= ($customer->cf1 == '03') ? 'selected="selected"' : ''; ?> value="03">03 — DIMEX</option>
+                      <option <?= ($customer->cf1 == '04') ? 'selected="selected"' : ''; ?> value="04">04 — NITE</option>
+                      <option <?= ($customer->cf1 == '05') ? 'selected="selected"' : ''; ?> value="05">05 — Pasaporte</option>
                   </select>
               </div>
 
               <div class="mb-3">
                   <label class="form-label" for="cf2"><?= $this->lang->line("ccf2"); ?></label>
                   <div class="input-group">
-                      <?= form_input('cf2', set_value('cf2', @$customer->cf2), 'class="form-control" id="cf2"');?>
+                      <?= form_input('cf2', set_value('cf2', @$customer->cf2), 'class="form-control" id="cf2" placeholder="Ej: 112340567"');?>
                       <span class="input-group-btn">
                           <button type="button" id="btn-hacienda" class="btn btn-info btn-sm" title="Consultar nombre y actividades en Hacienda">
                               <i class="fa fa-search"></i> Buscar en Hacienda
                           </button>
                       </span>
                   </div>
+                  <small class="text-muted"><i class="fa fa-magic"></i> Al ingresar el número se autocompleta con los datos del padrón de Hacienda</small>
               </div>
 
               <div id="hacienda-alert" class="alert" style="display:none; margin-top:4px;"></div>

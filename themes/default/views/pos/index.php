@@ -518,23 +518,26 @@
                     <div class="col-5">
                         <label class="form-label"><?= lang('cf1') ?> <span class="text-danger">*</span></label>
                         <select name="cf1" class="form-select form-select-sm" id="cf1" required>
-                            <option value="01"><?= lang('id_card') ?></option>
-                            <option value="02"><?= lang('legal_id') ?></option>
-                            <option value="03">DIMEX</option>
-                            <option value="04">NITE</option>
-                            <option value="05"><?= lang('passport') ?></option>
+                            <option value="01">01 — Cédula Física</option>
+                            <option value="02">02 — Cédula Jurídica</option>
+                            <option value="03">03 — DIMEX</option>
+                            <option value="04">04 — NITE</option>
+                            <option value="05">05 — Pasaporte</option>
                         </select>
                     </div>
                     <div class="col-7">
                         <label class="form-label"><?= lang('cf2') ?> <span class="text-danger">*</span></label>
                         <div class="input-group input-group-sm">
-                            <?= form_input('cf2', '', 'class="form-control" id="cf2" required autocomplete="off"') ?>
+                            <?= form_input('cf2', '', 'class="form-control" id="cf2" required autocomplete="off" placeholder="Ej: 112340567"') ?>
                             <button type="button" class="btn btn-outline-info" id="btn-hac-lookup"
                                     title="Buscar en Hacienda (padrón de contribuyentes)"
                                     style="font-size:.75rem;padding:.25rem .5rem;">
                                 <i class="fa fa-search" id="hac-icon"></i>
                             </button>
                         </div>
+                        <small class="text-muted" style="font-size:.65rem">
+                            <i class="fa fa-magic"></i> Al ingresar el número se autocompleta con datos de Hacienda
+                        </small>
                     </div>
                 </div>
 
