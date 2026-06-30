@@ -1025,6 +1025,84 @@
   }
 
   /* ──────────────────────────────────────────────────────
+     TOGGLE DE IMPRESIÓN AUTOMÁTICA (Fase 7)
+  ────────────────────────────────────────────────────── */
+  function initPrintToggle() {
+    var btn = document.getElementById('printToggleBtn');
+    if (!btn) return;
+
+    function updateBtn() {
+      var on = localStorage.getItem('pos_autoprint') === '1';
+      btn.style.color = on ? 'var(--nx-ok)' : '';
+      btn.title = on ? 'Impresión automática: ON (click para desactivar)' : 'Impresión automática: OFF (click para activar)';
+    }
+
+    btn.addEventListener('click', function () {
+      var on = localStorage.getItem('pos_autoprint') === '1';
+      localStorage.setItem('pos_autoprint', on ? '0' : '1');
+      updateBtn();
+      showToast(on ? 'Impresión automática desactivada' : 'Impresión automática activada',
+                on ? 'fa-print' : 'fa-check-circle');
+    });
+
+    updateBtn();
+  }
+
+  /* ──────────────────────────────────────────────────────
+     POPOVER DE ATAJOS DE TECLADO (Fase 9)
+  ────────────────────────────────────────────────────── */
+  function initKeyboardPopover() {
+    var btn = document.getElementById('kbdShortcutsBtn');
+    if (!btn || !window.bootstrap) return;
+
+    var pop = new window.bootstrap.Popover(btn, {
+      html: true,
+      trigger: 'click',
+      placement: 'bottom',
+      title: 'Atajos de teclado',
+      content:
+        '<div style="font-size:.82rem;line-height:2;">' +
+        '<div><kbd>F2</kbd>&nbsp; Cliente</div>' +
+        '<div><kbd>F3</kbd>&nbsp; Buscar</div>' +
+        '<div><kbd>F4</kbd>&nbsp; Cobrar</div>' +
+        '<div><kbd>ESC</kbd>&nbsp; Cancelar búsqueda</div>' +
+        '<div><kbd>↑↓</kbd>&nbsp; Navegar lista</div>' +
+        '<div><kbd>Enter</kbd>&nbsp; Agregar producto</div>' +
+        '<div><kbd>+</kbd>&nbsp; Foco rápido a búsqueda</div>' +
+        '</div>'
+    });
+
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', function (e) {
+      if (!btn.contains(e.target)) pop.hide();
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────
+     AUTOFOCUS: retornar foco a búsqueda después de modales
+  ────────────────────────────────────────────────────── */
+  function returnFocusToSearch() {
+    // Pequeño delay para que Bootstrap termine de limpiar el modal
+    setTimeout(function () {
+      var si = $('add_item');
+      if (si) si.focus();
+    }, 80);
+  }
+
+  function initModalFocusReturn() {
+    // Retornar foco al campo de búsqueda al cerrar cualquier modal del POS
+    ['payModal', 'customerModal', 'ModalNotes'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('hidden.bs.modal', returnFocusToSearch);
+    });
+
+    // Retornar foco también cuando cualquier dropdown de Bootstrap se cierra
+    document.addEventListener('hidden.bs.dropdown', function () {
+      returnFocusToSearch();
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────
      INICIALIZACIÓN
   ────────────────────────────────────────────────────── */
   function init() {
@@ -1053,6 +1131,9 @@
     initQuickAmounts();
     initKeyboardShortcuts();
     initSidebarToggle();
+    initModalFocusReturn();
+    initPrintToggle();
+    initKeyboardPopover();
 
     // Renderizar carrito al cargar
     loadItems();

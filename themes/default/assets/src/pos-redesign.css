@@ -722,25 +722,6 @@ body.pos-v2 {
 .pos-toast.in  { animation: toastIn .25s ease forwards; }
 .pos-toast.out { animation: toastOut .2s ease forwards; }
 
-/* ─── Keyboard hints bar ─────────────────────────────────────── */
-.pos-kbd-bar {
-  position: fixed; bottom: 0; left: 50%;
-  transform: translateX(-50%);
-  display: flex; gap: .875rem;
-  padding: .35rem 1.25rem;
-  background: var(--nx-card-bg);
-  border: 1px solid var(--nx-border); border-bottom: none;
-  border-radius: 10px 10px 0 0;
-  font-size: .65rem; color: var(--nx-txt4);
-  opacity: .65; pointer-events: none; z-index: 10;
-}
-.pos-kbd-bar kbd {
-  background: var(--nx-bg3); border: 1px solid var(--nx-border);
-  border-radius: 3px; padding: .05rem .3rem;
-  font-size: .62rem; color: var(--nx-txt3);
-  font-family: monospace;
-}
-
 /* ═══ PAYMENT MODAL (redesigned) ════════════════════════════════ */
 #payModal .modal-content {
   background: var(--nx-modal-bg);
@@ -880,7 +861,6 @@ body.pos-v2 {
     overflow-y: auto;
   }
   .pos-product-grid { grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: .4rem; padding: .5rem; }
-  .pos-kbd-bar { display: none; }
   .pcp-pay-grid { grid-template-columns: repeat(4,1fr); }
 }
 @media (max-width: 480px) {
@@ -890,12 +870,44 @@ body.pos-v2 {
   .pos-topbar-chip { display: none; }
 }
 
-/* ─── Light theme fine-tuning ───────────────────────────────── */
-[data-theme="light"] .pos-topbar { background: var(--nx-header-bg); }
+/* ─── Light theme fine-tuning ───────────────────────────────────────
+   La topbar y el sidebar mantienen fondo oscuro en modo claro (diseño
+   intencional de "chrome oscuro"). Los colores de texto deben forzarse
+   a los valores del dark mode para que sean legibles sobre ese fondo.
+   ────────────────────────────────────────────────────────────────── */
+[data-theme="light"] .pos-topbar { background: rgba(8,13,28,.97); }
 [data-theme="light"] .btn-close { filter: none; }
+
+/* Topbar: texto y botones → mantener colores oscuros */
+[data-theme="light"] .pos-topbar-store .store-name { color: #f1f5f9; }
+[data-theme="light"] .pos-topbar-store .store-sub  { color: #94a3b8; }
+[data-theme="light"] .pos-topbar-sep               { background: rgba(56,189,248,.13); }
+[data-theme="light"] .pos-topbar-clock             { color: #cbd5e1; }
+[data-theme="light"] .pos-topbar-btn               { color: #94a3b8; border-color: rgba(56,189,248,.13); }
+[data-theme="light"] .pos-topbar-btn:hover         { background: rgba(56,189,248,.08); color: #f1f5f9; border-color: rgba(56,189,248,.25); }
+[data-theme="light"] .pos-topbar-chip              { background: rgba(11,18,36,.5); border-color: rgba(56,189,248,.13); color: #94a3b8; }
+[data-theme="light"] .pos-user-btn                 { background: rgba(11,18,36,.3); border-color: rgba(56,189,248,.13); color: #cbd5e1; }
+[data-theme="light"] .pos-user-btn:hover           { background: rgba(56,189,248,.1); border-color: rgba(56,189,248,.25); }
+
+/* Sidebar: también mantiene fondo oscuro → mantener texto claro */
+[data-theme="light"] .pos-nav-brand .brand-name    { color: #f1f5f9; }
+[data-theme="light"] .pos-nav-brand .brand-sub     { color: #64748b; }
+[data-theme="light"] .pos-nav-divider              { background: rgba(56,189,248,.1); }
+[data-theme="light"] .pos-nav-group-label          { color: rgba(148,163,184,.5); }
+[data-theme="light"] .pos-nav-link                 { color: #94a3b8; }
+[data-theme="light"] .pos-nav-link:hover           { background: rgba(56,189,248,.08); color: #f1f5f9; }
+[data-theme="light"] .pos-nav-link.active          { background: rgba(56,189,248,.12); color: #f1f5f9; }
+[data-theme="light"] .pos-nav-link.active .nav-icon { color: #38bdf8; }
+[data-theme="light"] .pos-nav-toggle button        { color: #94a3b8; }
+[data-theme="light"] .pos-nav-toggle button:hover  { background: rgba(56,189,248,.08); color: #f1f5f9; border-color: rgba(56,189,248,.25); }
+
+/* TomSelect overrides */
 [data-theme="light"] .ts-wrapper.single .ts-control,
 [data-theme="light"] .ts-control { background: #fff !important; color: #0f172a !important; }
 [data-theme="light"] .ts-dropdown { background: #fff !important; }
 [data-theme="light"] .ts-dropdown .option { color: #1e293b; }
 [data-theme="light"] .ts-dropdown .option:hover,
 [data-theme="light"] .ts-dropdown .option.active { background: #f1f5f9 !important; }
+
+/* Hover glow del producto → azul más suave en modo claro */
+[data-theme="light"] .pos-product-grid .product:hover { box-shadow: 0 4px 16px rgba(2,132,199,.12); }

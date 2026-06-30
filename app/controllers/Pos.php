@@ -141,7 +141,7 @@ class Pos extends PosPrint {
             $customer_details = $this->pos_model->getCustomerByID($customer_id);
             $customer = $customer_details->name;
 
-            $actividad_id = $this->input->post('actividad_id');
+            $actividad_id = $this->input->post('actividad_id') ?: $this->Settings->default_actividad;
             $actividad_details = $this->pos_model->getActividadByID($actividad_id);
 
             $TipoDocumentoE = $this->input->post('ETipoDocumento');
@@ -1863,7 +1863,7 @@ class Pos extends PosPrint {
         $customer_id = $this->input->post('customer_id');
         $customer_details = $this->pos_model->getCustomerByID($customer_id);
         $customer = $customer_details->name;
-        $actividad_id = $this->input->post('actividad_id');
+        $actividad_id = $this->input->post('actividad_id') ?: $this->Settings->default_actividad;
         $ctaQty = $this->input->post("CtaQty");
         $productos= $this->input->post("idproduct");
         $percentage = '%';

@@ -182,6 +182,29 @@
                 </ul>
             </div>
 
+            <!-- Keyboard shortcuts (Fase 9) -->
+            <button class="pos-topbar-btn" id="kbdShortcutsBtn" title="Atajos de teclado">
+                <i class="fa fa-keyboard"></i>
+            </button>
+
+            <!-- Print auto-toggle (Fase 7) -->
+            <button class="pos-topbar-btn" id="printToggleBtn" title="Impresión automática: OFF">
+                <i class="fa fa-print"></i>
+            </button>
+
+            <!-- Caja (Fase 13) -->
+            <a href="<?= site_url('pos/open_register') ?>" class="pos-topbar-btn" title="Apertura de caja">
+                <i class="fa fa-cash-register"></i>
+            </a>
+
+            <!-- Historial ventas + proformas (Fase 14) -->
+            <a href="<?= site_url('sales') ?>" class="pos-topbar-btn" title="<?= lang('sales') ?>">
+                <i class="fa fa-receipt"></i>
+            </a>
+            <a href="<?= site_url('sales/proforma') ?>" class="pos-topbar-btn" title="Proformas">
+                <i class="fa fa-file-invoice"></i>
+            </a>
+
             <!-- Theme toggle -->
             <button class="pos-topbar-btn" onclick="switchTheme()" title="Cambiar tema">
                 <i class="fa fa-circle-half-stroke"></i>
@@ -469,18 +492,6 @@
         </div><!-- /pos-body -->
     </div><!-- /pos-main -->
 </div><!-- /pos-wrapper -->
-
-<!-- ════════════════════════════════════════════════
-     KEYBOARD HINTS BAR
-════════════════════════════════════════════════ -->
-<div class="pos-kbd-bar">
-    <span><kbd>F2</kbd> Cliente</span>
-    <span><kbd>F3</kbd> Buscar</span>
-    <span><kbd>F4</kbd> Cobrar</span>
-    <span><kbd>ESC</kbd> Cancelar</span>
-    <span><kbd>↑↓</kbd> Navegar</span>
-    <span><kbd>Enter</kbd> Agregar</span>
-</div>
 
 <!-- ════════════════════════════════════════════════
      MODALES
