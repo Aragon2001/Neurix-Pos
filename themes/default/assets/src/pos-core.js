@@ -944,53 +944,59 @@
   }
 
   function renderCustomerCard(id) {
-    var card    = document.getElementById('pos-cust-card');
-    var avatar  = document.getElementById('pos-cust-avatar');
-    var nameEl  = document.getElementById('pos-cust-name');
-    var metaEl  = document.getElementById('pos-cust-doc');
-    var contEl  = document.getElementById('pos-cust-contact');
-    var clearBtn = document.getElementById('pos-cust-clear');
+    var searchWrap = document.getElementById('pos-cust-search-wrap');
+    var card       = document.getElementById('pos-cust-card');
+    var lupaBtn    = document.getElementById('pos-cust-lupa');
+    var clearBtn   = document.getElementById('pos-cust-clear');
+    var avatar     = document.getElementById('pos-cust-avatar');
+    var nameEl     = document.getElementById('pos-cust-name');
+    var metaEl     = document.getElementById('pos-cust-doc');
+    var contEl     = document.getElementById('pos-cust-contact');
     if (!card) return;
 
-    var defaultId = getDefaultCustomerId();
     var cmap = window._customers || {};
     var c    = cmap[id];
 
-    // Sin cliente seleccionado → estado "de contado"
+    // Sin cliente → mostrar barra, ocultar lupa y X, card en modo "contado"
     if (!c) {
+      if (searchWrap) searchWrap.style.display = '';
+      if (lupaBtn)    lupaBtn.style.display    = 'none';
+      if (clearBtn)   clearBtn.style.display   = 'none';
       card.className = 'pcp-cust-card is-default';
-      if (avatar) { avatar.textContent = 'C'; }
+      if (avatar) avatar.textContent = 'C';
       if (nameEl) nameEl.textContent = 'Cliente de Contado';
-      if (metaEl) metaEl.innerHTML = '';
-      if (contEl) contEl.innerHTML = '';
-      if (clearBtn) clearBtn.style.display = 'none';
+      if (metaEl) metaEl.innerHTML   = '';
+      if (contEl) contEl.innerHTML   = '';
       return;
     }
 
+    // Con cliente → ocultar barra, mostrar lupa y X dentro del card
+    if (searchWrap) searchWrap.style.display = 'none';
+    if (lupaBtn)    lupaBtn.style.display    = 'flex';
+    if (clearBtn)   clearBtn.style.display   = 'flex';
+
     var name     = c.name || '—';
     var initials = name.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
-    var isDefault = String(id) === defaultId;
 
-    card.className = 'pcp-cust-card' + (isDefault ? ' is-default' : '');
+    card.className = 'pcp-cust-card';
     if (avatar) avatar.textContent = initials;
     if (nameEl) nameEl.textContent = name;
 
     // Badge: tipo + número documento
-    var meta = '';
-    if (c.cf2) {
+    if (metaEl) {
       var label = CF1_LABELS[c.cf1] || 'Doc.';
-      meta += '<span class="pcp-cust-badge"><i class="fa fa-id-card"></i>' + label + ': ' + c.cf2 + '</span>';
+      metaEl.innerHTML = c.cf2
+        ? '<span class="pcp-cust-badge"><i class="fa fa-id-card"></i>' + label + ': ' + c.cf2 + '</span>'
+        : '';
     }
-    if (metaEl) metaEl.innerHTML = meta;
 
     // Contacto: email + teléfono
-    var contact = '';
-    if (c.email) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-envelope"></i>' + c.email + '</span>';
-    if (c.phone) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-phone"></i>' + c.phone + '</span>';
-    if (contEl) contEl.innerHTML = contact;
-
-    // Botón X: visible solo cuando hay un cliente real (no el de contado)
-    if (clearBtn) clearBtn.style.display = (isDefault ? 'none' : 'flex');
+    if (contEl) {
+      var contact = '';
+      if (c.email) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-envelope"></i>' + c.email + '</span>';
+      if (c.phone) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-phone"></i>' + c.phone + '</span>';
+      contEl.innerHTML = contact;
+    }
   }
 
   function initCustomerSelect() {
@@ -1005,24 +1011,35 @@
     function setCustomer(val) {
       store('spos_customer', val || '');
       renderCustomerCard(val || '');
-      // Sincronizar el hidden input que se envía en el submit
       if (hiddenInput) hiddenInput.value = val || defaultId;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     var ts = new window.TomSelect(sel, {
       maxItems: 1,
       allowEmptyOption: false,
       placeholder: 'Buscar cliente…',
-      plugins: [],          // sin plugins — remove_button, etc. añaden spinners/botones extra
-      controlInput: '<input>',
-      // Ítem seleccionado: solo el nombre (sin el número de cédula entre paréntesis)
+      plugins: [],
+      // Nunca mostrar el ítem seleccionado dentro del control (la info va en la card)
       render: {
-        item: function (data, escape) {
-          var name = (data.text || '').replace(/\s*\(.*\)\s*$/, '').trim();
-          return '<div>' + escape(name) + '</div>';
-        },
-        option: function (data, escape) {
-          return '<div class="py-1 px-1">' + escape(data.text) + '</div>';
+        item: function () { return '<div style="display:none"></div>'; },
+        option: function (data) {
+          // Separar nombre y documento: "NOMBRE (documento)"
+          var raw  = data.text || '';
+          var m    = raw.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+          var name = m ? m[1].trim() : raw;
+          var doc  = m ? m[2] : '';
+          var initials = name.split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
+          return '<div class="ts-cust-opt">' +
+            '<div class="ts-cust-opt-av">' + escapeHtml(initials) + '</div>' +
+            '<div class="ts-cust-opt-info">' +
+              '<div class="ts-cust-opt-name">' + escapeHtml(name) + '</div>' +
+              (doc ? '<div class="ts-cust-opt-doc"><i class="fa fa-id-card" style="font-size:.58rem;margin-right:.2rem"></i>' + escapeHtml(doc) + '</div>' : '') +
+            '</div>' +
+          '</div>';
         }
       },
       onChange: function (val) { setCustomer(val); }
@@ -1039,12 +1056,28 @@
       renderCustomerCard('');
     }
 
-    // Botón X → volver a "Cliente de Contado"
+    // Botón X (dentro del card) → limpiar y volver a contado
     var clearBtn = document.getElementById('pos-cust-clear');
     if (clearBtn) {
       clearBtn.addEventListener('click', function () {
         ts.clear(true);
         setCustomer('');
+      });
+    }
+
+    // Botón lupa (dentro del card) → volver a mostrar la barra de búsqueda
+    var lupaBtn = document.getElementById('pos-cust-lupa');
+    if (lupaBtn) {
+      lupaBtn.addEventListener('click', function () {
+        // Limpiar selección y mostrar la barra
+        ts.clear(true);
+        setCustomer('');
+        // Abrir el dropdown automáticamente
+        setTimeout(function () {
+          var searchWrap = document.getElementById('pos-cust-search-wrap');
+          if (searchWrap) searchWrap.style.display = '';
+          ts.focus();
+        }, 30);
       });
     }
   }

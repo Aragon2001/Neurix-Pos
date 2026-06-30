@@ -340,12 +340,12 @@
                         </button>
                     </div>
 
-                    <!-- Hidden input real para el submit (siempre tiene valor válido) -->
+                    <!-- Hidden input para el submit -->
                     <input type="hidden" id="pos-customer-hidden" name="customer_id"
                            value="<?= (int)$Settings->default_customer ?>">
 
-                    <!-- Search row: TomSelect + botón limpiar -->
-                    <div class="pcp-cust-search-row">
+                    <!-- Barra de búsqueda (visible cuando no hay cliente) -->
+                    <div class="pcp-cust-search-wrap" id="pos-cust-search-wrap">
                         <?php
                         $cus = [];
                         foreach ($customers as $customer) {
@@ -354,21 +354,25 @@
                         }
                         ?>
                         <?= form_dropdown('_customer_search', $cus, '',
-                            'id="spos_customer" class="form-select form-select-sm tom-select"'); ?>
-                        <button type="button" id="pos-cust-clear" class="pcp-cust-clear-btn"
-                                title="Cambiar a contado" style="display:none">
-                            <i class="fa fa-times"></i>
-                        </button>
+                            'id="spos_customer" class="form-select tom-select"'); ?>
                     </div>
 
-                    <!-- Tarjeta de datos del cliente -->
-                    <div class="pcp-cust-card" id="pos-cust-card">
+                    <!-- Info del cliente: lupa (re-buscar) + avatar + datos + X -->
+                    <div class="pcp-cust-card is-default" id="pos-cust-card">
+                        <button type="button" class="pcp-cust-lupa" id="pos-cust-lupa"
+                                title="Cambiar cliente" style="display:none">
+                            <i class="fa fa-search"></i>
+                        </button>
                         <div class="pcp-cust-avatar" id="pos-cust-avatar">C</div>
                         <div class="pcp-cust-info">
                             <div class="pcp-cust-name" id="pos-cust-name">Cliente de Contado</div>
                             <div class="pcp-cust-meta" id="pos-cust-doc"></div>
                             <div class="pcp-cust-contact" id="pos-cust-contact"></div>
                         </div>
+                        <button type="button" class="pcp-cust-clear-btn" id="pos-cust-clear"
+                                title="Quitar cliente" style="display:none">
+                            <i class="fa fa-times"></i>
+                        </button>
                     </div>
                 </div>
 

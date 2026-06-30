@@ -431,257 +431,252 @@ body.pos-v2 {
 }
 
 /* Customer section */
-/* ─── SECCIÓN CLIENTE ──────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   SECCIÓN CLIENTE
+   ═══════════════════════════════════════════════════════════ */
 .pcp-customer {
-  padding: .7rem .875rem .65rem;
+  padding: .65rem .875rem .7rem;
   border-bottom: 1px solid var(--nx-border);
   background: var(--nx-bg3);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: .45rem;
+  gap: .4rem;
 }
 
+/* ── Label row ─────────────────────────────────── */
 .pcp-section-label {
-  font-size: .62rem; font-weight: 700;
+  font-size: .6rem; font-weight: 700;
   color: var(--nx-txt4); text-transform: uppercase;
-  letter-spacing: .7px;
-  display: flex; align-items: center; gap: .35rem;
+  letter-spacing: .8px;
+  display: flex; align-items: center; gap: .3rem;
 }
-.pcp-section-label i { color: var(--nx-a1); font-size: .7rem; }
+.pcp-section-label > i { color: var(--nx-a1); font-size: .65rem; }
 
 .pcp-add-cust-btn {
-  width: 24px; height: 24px; flex-shrink: 0;
+  width: 22px; height: 22px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: transparent;
   border: 1px solid var(--nx-border);
-  border-radius: 6px;
-  color: var(--nx-ok); cursor: pointer; font-size: .68rem;
+  border-radius: 5px;
+  color: var(--nx-ok); cursor: pointer; font-size: .65rem;
   transition: all .15s;
 }
-.pcp-add-cust-btn:hover { background: var(--nx-ok); border-color: var(--nx-ok); color: white; }
+.pcp-add-cust-btn:hover { background: var(--nx-ok); border-color: var(--nx-ok); color: #fff; }
 
-/* ─── Fila de búsqueda: TomSelect + botón limpiar ── */
-.pcp-cust-search-row {
-  display: flex; align-items: center; gap: .35rem;
-}
-/* Ocultar la <select> original */
-.pcp-cust-search-row select.tom-select { display: none; }
-
-/* Wrapper TomSelect ocupa todo el espacio */
-.pcp-cust-search-row .ts-wrapper { flex: 1; min-width: 0; position: relative; }
-
-/* Icono de lupa — prefijo visual dentro del control */
-.pcp-cust-search-row .ts-wrapper::before {
+/* ── Barra de búsqueda TomSelect ───────────────── */
+/* Ocultar select nativo */
+.pcp-cust-search-wrap select.tom-select { display: none; }
+/* Wrapper TomSelect */
+.pcp-cust-search-wrap .ts-wrapper { position: relative; }
+/* Lupa decorativa dentro del campo */
+.pcp-cust-search-wrap .ts-wrapper::before {
   content: '\f002';
-  font-family: 'Font Awesome 5 Free';
-  font-weight: 900;
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--nx-txt4);
-  font-size: .72rem;
-  pointer-events: none;
-  z-index: 2;
-  line-height: 1;
+  font-family: 'Font Awesome 5 Free'; font-weight: 900;
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--nx-txt4); font-size: .7rem; pointer-events: none; z-index: 2;
 }
-
-/* Control principal: solo un input limpio, sin flechas ni spinners */
-.pcp-cust-search-row .ts-control {
+/* Control: campo plano limpio */
+.pcp-cust-search-wrap .ts-control {
   background: var(--nx-bg2) !important;
   border: 1px solid var(--nx-border) !important;
-  border-radius: 8px !important;
-  min-height: 34px !important;
-  padding: 0 .6rem 0 28px !important;
-  display: flex !important;
-  align-items: center !important;
-  flex-wrap: nowrap !important;
-  gap: 0 !important;
-  cursor: text !important;
-  box-shadow: none !important;
-  /* Eliminar CUALQUIER imagen/indicador de fondo que ponga TomSelect */
-  background-image: none !important;
-}
-/* Eliminar las flechas/carets tanto en pseudoelementos como en ::before/::after */
-.pcp-cust-search-row .ts-control::before,
-.pcp-cust-search-row .ts-control::after { display: none !important; }
-/* Ocultar cualquier botón de dropdown que TomSelect renderice como DOM */
-.pcp-cust-search-row .ts-wrapper .ts-dropdown-btn,
-.pcp-cust-search-row .ts-wrapper [data-ts-item],
-.pcp-cust-search-row .ts-control > .clear-button { display: none !important; }
-
-/* Input de búsqueda */
-.pcp-cust-search-row .ts-control > input {
-  color: var(--nx-txt1) !important;
-  font-size: .8rem !important;
-  flex: 1 !important;
-  min-width: 60px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-.pcp-cust-search-row .ts-control > input::placeholder { color: var(--nx-txt4) !important; }
-
-/* Cuando hay ítem seleccionado: ocultar el input (el nombre está en la tarjeta) */
-.pcp-cust-search-row .ts-wrapper.has-items .ts-control > input { display: none !important; }
-
-/* Ítem seleccionado — nombre compacto (sin número de cédula) */
-.pcp-cust-search-row .ts-control .item {
-  font-size: .8rem !important;
-  font-weight: 500 !important;
-  color: var(--nx-txt1) !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: none !important;
-  border: none !important;
-  /* El botón de borrar nativo de TomSelect no queremos */
-  cursor: default;
-}
-/* Ocultar el botón × nativo del ítem de TomSelect (usamos el nuestro) */
-.pcp-cust-search-row .ts-control .item > a.remove { display: none !important; }
-
-/* Estado focus del control */
-.pcp-cust-search-row .ts-control.focus,
-.pcp-cust-search-row .ts-wrapper.focus .ts-control {
-  border-color: var(--nx-a1) !important;
-  box-shadow: 0 0 0 2px rgba(56,189,248,.15) !important;
-  outline: none !important;
-}
-
-/* Dropdown de sugerencias */
-.pcp-cust-search-row .ts-dropdown {
-  border: 1px solid var(--nx-border) !important;
   border-radius: 9px !important;
-  background: var(--nx-card-bg) !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,.4) !important;
-  margin-top: 3px !important;
-  font-size: .82rem !important;
-  overflow: hidden;
+  min-height: 36px !important;
+  padding: 0 .65rem 0 30px !important;
+  display: flex !important; align-items: center !important;
+  flex-wrap: nowrap !important; gap: 0 !important;
+  cursor: text !important; box-shadow: none !important;
+  background-image: none !important;
+  transition: border-color .15s, box-shadow .15s;
 }
-.pcp-cust-search-row .ts-dropdown-content { padding: 3px !important; }
-.pcp-cust-search-row .ts-dropdown .option {
-  padding: .45rem .7rem !important;
-  color: var(--nx-txt2) !important;
-  border-radius: 6px !important;
+/* Quitar TODOS los pseudo-elementos (flechas, carets) */
+.pcp-cust-search-wrap .ts-control::before,
+.pcp-cust-search-wrap .ts-control::after { display: none !important; }
+/* Quitar botones nativos de TomSelect */
+.pcp-cust-search-wrap .ts-dropdown-btn,
+.pcp-cust-search-wrap .clear-button,
+.pcp-cust-search-wrap .ts-control > a.remove { display: none !important; }
+/* Input de texto */
+.pcp-cust-search-wrap .ts-control > input {
+  color: var(--nx-txt1) !important; font-size: .82rem !important;
+  flex: 1 !important; min-width: 60px !important;
+  padding: 0 !important; margin: 0 !important;
+  background: transparent !important; border: none !important;
+  outline: none !important; box-shadow: none !important;
 }
-.pcp-cust-search-row .ts-dropdown .option:hover,
-.pcp-cust-search-row .ts-dropdown .option.active {
-  background: rgba(56,189,248,.12) !important;
-  color: var(--nx-a1) !important;
-}
-
-/* Botón X — limpiar cliente */
-.pcp-cust-clear-btn {
-  width: 28px; height: 28px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(239,68,68,.35);
-  border-radius: 7px;
-  color: #ef4444; cursor: pointer; font-size: .7rem;
-  transition: all .15s;
-}
-.pcp-cust-clear-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
-
-/* ─── Tarjeta de datos del cliente ─────────────────── */
-.pcp-cust-card {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  background: linear-gradient(135deg, rgba(56,189,248,.08) 0%, rgba(99,102,241,.05) 100%);
-  border: 1px solid rgba(56,189,248,.2);
-  border-radius: 10px;
-  padding: .5rem .65rem;
-  min-height: 54px;
-  transition: background .2s, border-color .2s;
-}
-.pcp-cust-card.is-default {
-  background: rgba(255,255,255,.02);
-  border-color: var(--nx-border);
+.pcp-cust-search-wrap .ts-control > input::placeholder { color: var(--nx-txt4) !important; }
+/* Ítem en el control: nunca se muestra (la info va en la card) */
+.pcp-cust-search-wrap .ts-control .item { display: none !important; }
+/* Focus */
+.pcp-cust-search-wrap .ts-wrapper.focus .ts-control,
+.pcp-cust-search-wrap .ts-control.focus {
+  border-color: var(--nx-a1) !important;
+  box-shadow: 0 0 0 3px rgba(56,189,248,.13) !important;
 }
 
-.pcp-cust-avatar {
-  width: 38px; height: 38px; flex-shrink: 0;
+/* ── Dropdown de la lista de clientes ──────────── */
+.pcp-cust-search-wrap .ts-dropdown {
+  border: 1px solid var(--nx-border) !important;
+  border-radius: 10px !important;
+  background: var(--nx-bg2) !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,.45) !important;
+  margin-top: 4px !important;
+  overflow: hidden !important;
+}
+.pcp-cust-search-wrap .ts-dropdown-content { padding: 4px !important; max-height: 220px; }
+/* Opción con avatar + dos líneas */
+.pcp-cust-search-wrap .ts-dropdown .option {
+  padding: 0 !important;
+  border-radius: 7px !important;
+  margin-bottom: 2px !important;
+  transition: background .12s !important;
+  cursor: pointer !important;
+}
+.pcp-cust-search-wrap .ts-dropdown .option:hover,
+.pcp-cust-search-wrap .ts-dropdown .option.active {
+  background: rgba(56,189,248,.1) !important;
+}
+/* Layout interno de cada opción */
+.ts-cust-opt {
+  display: flex; align-items: center; gap: .55rem;
+  padding: .42rem .55rem;
+}
+.ts-cust-opt-av {
+  width: 32px; height: 32px; flex-shrink: 0;
   border-radius: 50%;
   background: linear-gradient(135deg, #38bdf8, #6366f1);
   display: flex; align-items: center; justify-content: center;
-  font-size: .88rem; font-weight: 700; color: white;
-  text-transform: uppercase; letter-spacing: .5px;
-  box-shadow: 0 2px 10px rgba(56,189,248,.35);
+  font-size: .72rem; font-weight: 700; color: #fff;
+  text-transform: uppercase; letter-spacing: .3px;
+  user-select: none;
+}
+.ts-cust-opt-info { flex: 1; min-width: 0; }
+.ts-cust-opt-name {
+  font-size: .8rem; font-weight: 600; color: var(--nx-txt1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.ts-cust-opt-doc {
+  font-size: .68rem; color: var(--nx-txt4);
+  margin-top: .06rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Opción activa: destacar nombre */
+.ts-dropdown .option.active .ts-cust-opt-name,
+.ts-dropdown .option:hover .ts-cust-opt-name { color: var(--nx-a1) !important; }
+.ts-dropdown .option.active .ts-cust-opt-av,
+.ts-dropdown .option:hover .ts-cust-opt-av {
+  box-shadow: 0 0 0 2px rgba(56,189,248,.4);
+}
+/* "no results" */
+.pcp-cust-search-wrap .ts-dropdown .no-results {
+  padding: .6rem .75rem !important; font-size: .8rem !important;
+  color: var(--nx-txt4) !important; font-style: italic;
+}
+
+/* ── Card del cliente (flat, sin caja anidada) ── */
+.pcp-cust-card {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem 0;          /* sin fondo, sin borde propio */
+  min-height: 48px;
+  transition: opacity .2s;
+}
+/* Separador superior sutil para distinguir del buscador */
+.pcp-cust-card:not(.is-default) {
+  border-top: 1px solid var(--nx-border);
+  padding-top: .45rem;
+  margin-top: .05rem;
+}
+
+/* Avatar circular con gradiente */
+.pcp-cust-avatar {
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; font-weight: 700; color: #fff;
+  text-transform: uppercase; letter-spacing: .4px;
+  box-shadow: 0 2px 8px rgba(56,189,248,.3);
   user-select: none;
 }
 .pcp-cust-card.is-default .pcp-cust-avatar {
-  background: var(--nx-bg2);
-  box-shadow: none;
-  color: var(--nx-txt4);
-  font-size: .72rem;
+  background: var(--nx-bg2); box-shadow: none;
+  color: var(--nx-txt4); font-size: .7rem; font-weight: 400;
 }
 
+/* Info: nombre + doc + contacto */
 .pcp-cust-info { flex: 1; min-width: 0; }
 
 .pcp-cust-name {
-  font-size: .83rem; font-weight: 600;
-  color: var(--nx-txt1);
+  font-size: .82rem; font-weight: 600; color: var(--nx-txt1);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   line-height: 1.25;
 }
 .pcp-cust-card.is-default .pcp-cust-name {
-  color: var(--nx-txt4); font-weight: 500; font-style: italic;
+  color: var(--nx-txt4); font-weight: 400; font-style: italic;
 }
 
-.pcp-cust-meta {
-  display: flex; align-items: center; gap: .3rem;
-  flex-wrap: wrap; margin-top: .15rem;
-}
+.pcp-cust-meta { display: flex; align-items: center; gap: .25rem; margin-top: .12rem; }
 .pcp-cust-badge {
-  display: inline-flex; align-items: center; gap: .22rem;
-  font-size: .65rem; font-weight: 600;
-  background: rgba(56,189,248,.12);
-  color: var(--nx-a1);
-  border: 1px solid rgba(56,189,248,.22);
-  border-radius: 4px;
-  padding: .04rem .32rem;
-  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: .18rem;
+  font-size: .63rem; font-weight: 600;
+  background: rgba(56,189,248,.1); color: var(--nx-a1);
+  border: 1px solid rgba(56,189,248,.2);
+  border-radius: 4px; padding: .03rem .28rem; white-space: nowrap;
 }
-.pcp-cust-badge i { font-size: .6rem; }
+.pcp-cust-badge i { font-size: .58rem; }
 
-.pcp-cust-contact {
-  display: flex; gap: .55rem; flex-wrap: wrap;
-  margin-top: .15rem;
-}
+.pcp-cust-contact { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .1rem; }
 .pcp-cust-contact-item {
-  display: flex; align-items: center; gap: .22rem;
-  font-size: .67rem; color: var(--nx-txt4);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 150px;
+  display: flex; align-items: center; gap: .2rem;
+  font-size: .66rem; color: var(--nx-txt4);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 145px;
 }
-.pcp-cust-contact-item i { font-size: .58rem; flex-shrink: 0; }
+.pcp-cust-contact-item i { font-size: .56rem; flex-shrink: 0; }
 
-/* ─── Light mode ─────────────────────────────────── */
-[data-theme="light"] .pcp-cust-card {
-  background: linear-gradient(135deg, rgba(56,189,248,.07) 0%, rgba(99,102,241,.04) 100%);
+/* Botón lupa dentro del card (re-buscar) */
+.pcp-cust-lupa {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(56,189,248,.08);
+  border: 1px solid rgba(56,189,248,.2);
+  border-radius: 8px; color: var(--nx-a1);
+  cursor: pointer; font-size: .7rem;
+  transition: all .15s;
 }
-[data-theme="light"] .pcp-cust-card.is-default { background: #f8fafc; }
-[data-theme="light"] .pcp-cust-search-row .ts-control {
+.pcp-cust-lupa:hover {
+  background: var(--nx-a1); color: #fff; border-color: var(--nx-a1);
+}
+
+/* Botón X dentro del card (quitar cliente) */
+.pcp-cust-clear-btn {
+  width: 26px; height: 26px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(239,68,68,.3);
+  border-radius: 7px; color: rgba(239,68,68,.7);
+  cursor: pointer; font-size: .65rem;
+  transition: all .15s;
+}
+.pcp-cust-clear-btn:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+
+/* ── Light mode ────────────────────────────────── */
+[data-theme="light"] .pcp-cust-search-wrap .ts-control {
   background: #f1f5f9 !important; border-color: #cbd5e1 !important;
 }
-[data-theme="light"] .pcp-cust-search-row .ts-control > input { color: #1e293b !important; }
-[data-theme="light"] .pcp-cust-search-row .ts-control .item { color: #1e293b !important; }
-[data-theme="light"] .pcp-cust-search-row .ts-dropdown {
-  background: #fff !important; border-color: #e2e8f0 !important; box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
+[data-theme="light"] .pcp-cust-search-wrap .ts-control > input { color: #1e293b !important; }
+[data-theme="light"] .pcp-cust-search-wrap .ts-dropdown {
+  background: #fff !important; border-color: #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.1) !important;
 }
-[data-theme="light"] .pcp-cust-search-row .ts-dropdown .option { color: #334155 !important; }
-[data-theme="light"] .pcp-cust-search-row .ts-wrapper::before { color: #94a3b8; }
+[data-theme="light"] .ts-cust-opt-name { color: #1e293b; }
+[data-theme="light"] .ts-cust-opt-doc  { color: #64748b; }
 [data-theme="light"] .pcp-cust-name { color: #1e293b; }
 [data-theme="light"] .pcp-cust-card.is-default .pcp-cust-name { color: #94a3b8; }
 [data-theme="light"] .pcp-cust-contact-item { color: #64748b; }
+[data-theme="light"] .pcp-cust-card:not(.is-default) { border-top-color: #e2e8f0; }
 
 /* Cart header (item count bar) */
 .pcp-cart-bar {
