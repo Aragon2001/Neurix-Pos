@@ -329,7 +329,7 @@
 
                 <!-- Customer -->
                 <div class="pcp-customer">
-                    <!-- Label + botón nuevo cliente -->
+                    <!-- Label row -->
                     <div class="pcp-section-label">
                         <i class="fa fa-user-circle"></i>
                         <?= lang('customer') ?>
@@ -340,23 +340,32 @@
                         </button>
                     </div>
 
-                    <!-- Selector TomSelect -->
-                    <div class="pcp-customer-search">
+                    <!-- Hidden input real para el submit (siempre tiene valor válido) -->
+                    <input type="hidden" id="pos-customer-hidden" name="customer_id"
+                           value="<?= (int)$Settings->default_customer ?>">
+
+                    <!-- Search row: TomSelect + botón limpiar -->
+                    <div class="pcp-cust-search-row">
                         <?php
                         $cus = [];
                         foreach ($customers as $customer) {
+                            if ((int)$customer->id === (int)$Settings->default_customer) continue;
                             $cus[$customer->id] = $customer->name . ' (' . $customer->cf2 . ')';
                         }
                         ?>
-                        <?= form_dropdown('customer_id', $cus, set_value('customer_id', $Settings->default_customer),
-                            'id="spos_customer" class="form-select form-select-sm tom-select" required'); ?>
+                        <?= form_dropdown('_customer_search', $cus, '',
+                            'id="spos_customer" class="form-select form-select-sm tom-select"'); ?>
+                        <button type="button" id="pos-cust-clear" class="pcp-cust-clear-btn"
+                                title="Cambiar a contado" style="display:none">
+                            <i class="fa fa-times"></i>
+                        </button>
                     </div>
 
-                    <!-- Tarjeta de datos del cliente (aparece al seleccionar) -->
+                    <!-- Tarjeta de datos del cliente -->
                     <div class="pcp-cust-card" id="pos-cust-card">
-                        <div class="pcp-cust-avatar" id="pos-cust-avatar">?</div>
+                        <div class="pcp-cust-avatar" id="pos-cust-avatar">C</div>
                         <div class="pcp-cust-info">
-                            <div class="pcp-cust-name" id="pos-cust-name">—</div>
+                            <div class="pcp-cust-name" id="pos-cust-name">Cliente de Contado</div>
                             <div class="pcp-cust-meta" id="pos-cust-doc"></div>
                             <div class="pcp-cust-contact" id="pos-cust-contact"></div>
                         </div>

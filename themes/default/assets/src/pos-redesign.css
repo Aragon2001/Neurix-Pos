@@ -433,139 +433,210 @@ body.pos-v2 {
 /* Customer section */
 /* ─── SECCIÓN CLIENTE ──────────────────────────────────────── */
 .pcp-customer {
-  padding: .75rem .875rem .6rem;
+  padding: .7rem .875rem .65rem;
   border-bottom: 1px solid var(--nx-border);
   background: var(--nx-bg3);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: .45rem;
 }
 
 .pcp-section-label {
-  font-size: .65rem; font-weight: 700;
+  font-size: .62rem; font-weight: 700;
   color: var(--nx-txt4); text-transform: uppercase;
-  letter-spacing: .6px;
+  letter-spacing: .7px;
   display: flex; align-items: center; gap: .35rem;
-  margin-bottom: 0;
 }
-.pcp-section-label i { color: var(--nx-a1); }
+.pcp-section-label i { color: var(--nx-a1); font-size: .7rem; }
 
 .pcp-add-cust-btn {
-  width: 26px; height: 26px; flex-shrink: 0;
+  width: 24px; height: 24px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: transparent;
   border: 1px solid var(--nx-border);
   border-radius: 6px;
-  color: var(--nx-ok); cursor: pointer; font-size: .75rem;
+  color: var(--nx-ok); cursor: pointer; font-size: .68rem;
   transition: all .15s;
 }
-.pcp-add-cust-btn:hover {
-  background: var(--nx-ok);
-  border-color: var(--nx-ok);
-  color: white;
-}
+.pcp-add-cust-btn:hover { background: var(--nx-ok); border-color: var(--nx-ok); color: white; }
 
-/* Selector TomSelect */
-.pcp-customer-search { position: relative; }
-.pcp-customer-search select.tom-select { display: none; }
-.pcp-customer-search .ts-wrapper { width: 100%; }
-.pcp-customer-search .ts-control {
+/* ─── Fila de búsqueda: TomSelect + botón limpiar ── */
+.pcp-cust-search-row {
+  display: flex; align-items: center; gap: .35rem;
+}
+/* Ocultar la <select> original — TomSelect crea el wrapper visible */
+.pcp-cust-search-row select.tom-select { display: none; }
+.pcp-cust-search-row .ts-wrapper { flex: 1; min-width: 0; }
+
+/* Control del TomSelect */
+.pcp-cust-search-row .ts-control {
   background: var(--nx-bg2) !important;
-  border-color: var(--nx-border) !important;
+  border: 1px solid var(--nx-border) !important;
   border-radius: 8px !important;
-  font-size: .8rem !important;
-  min-height: 32px !important;
-  padding: .2rem .55rem !important;
+  min-height: 34px !important;
+  padding: 0 .6rem !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  cursor: text;
 }
-.pcp-customer-search .ts-control input { color: var(--nx-txt1) !important; font-size: .8rem !important; }
-.pcp-customer-search .ts-control .item { color: var(--nx-txt1) !important; font-size: .8rem !important; }
+/* Input de búsqueda dentro del control */
+.pcp-cust-search-row .ts-control > input {
+  color: var(--nx-txt1) !important;
+  font-size: .8rem !important;
+  flex: 1 !important;
+  min-width: 60px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+/* Cuando hay un ítem seleccionado, ocultar el input de búsqueda */
+.pcp-cust-search-row .ts-wrapper.has-items .ts-control > input {
+  display: none !important;
+}
+/* Ítem seleccionado (nombre compacto) */
+.pcp-cust-search-row .ts-control .item {
+  font-size: .8rem !important;
+  color: var(--nx-txt1) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: none !important;
+  border: none !important;
+}
+/* Flecha del dropdown */
+.pcp-cust-search-row .ts-wrapper.single .ts-control::after { display: none !important; }
 
-/* Tarjeta de datos del cliente */
+/* Dropdown de opciones */
+.pcp-cust-search-row .ts-dropdown {
+  border: 1px solid var(--nx-border) !important;
+  border-radius: 8px !important;
+  background: var(--nx-card-bg) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35) !important;
+  margin-top: 3px !important;
+  font-size: .82rem !important;
+}
+.pcp-cust-search-row .ts-dropdown .option {
+  padding: .45rem .7rem !important;
+  color: var(--nx-txt2) !important;
+  border-radius: 4px;
+  margin: 1px 3px;
+}
+.pcp-cust-search-row .ts-dropdown .option:hover,
+.pcp-cust-search-row .ts-dropdown .option.active {
+  background: rgba(56,189,248,.1) !important;
+  color: var(--nx-a1) !important;
+}
+
+/* Botón X — limpiar cliente */
+.pcp-cust-clear-btn {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(239,68,68,.35);
+  border-radius: 7px;
+  color: #ef4444; cursor: pointer; font-size: .7rem;
+  transition: all .15s;
+}
+.pcp-cust-clear-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+/* ─── Tarjeta de datos del cliente ─────────────────── */
 .pcp-cust-card {
   display: flex;
   align-items: center;
-  gap: .6rem;
-  background: linear-gradient(135deg, rgba(56,189,248,.07) 0%, rgba(99,102,241,.05) 100%);
-  border: 1px solid rgba(56,189,248,.18);
+  gap: .55rem;
+  background: linear-gradient(135deg, rgba(56,189,248,.08) 0%, rgba(99,102,241,.05) 100%);
+  border: 1px solid rgba(56,189,248,.2);
   border-radius: 10px;
-  padding: .55rem .7rem;
-  min-height: 52px;
-  transition: opacity .2s;
+  padding: .5rem .65rem;
+  min-height: 54px;
+  transition: background .2s, border-color .2s;
 }
 .pcp-cust-card.is-default {
-  background: var(--nx-bg2);
+  background: rgba(255,255,255,.02);
   border-color: var(--nx-border);
 }
 
 .pcp-cust-avatar {
-  width: 36px; height: 36px; flex-shrink: 0;
+  width: 38px; height: 38px; flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--nx-a1), var(--nx-a2, #6366f1));
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
   display: flex; align-items: center; justify-content: center;
-  font-size: .9rem; font-weight: 700; color: white;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  box-shadow: 0 2px 8px rgba(56,189,248,.3);
+  font-size: .88rem; font-weight: 700; color: white;
+  text-transform: uppercase; letter-spacing: .5px;
+  box-shadow: 0 2px 10px rgba(56,189,248,.35);
+  user-select: none;
 }
 .pcp-cust-card.is-default .pcp-cust-avatar {
-  background: var(--nx-bg3);
+  background: var(--nx-bg2);
   box-shadow: none;
   color: var(--nx-txt4);
+  font-size: .72rem;
 }
 
 .pcp-cust-info { flex: 1; min-width: 0; }
 
 .pcp-cust-name {
-  font-size: .82rem; font-weight: 600;
+  font-size: .83rem; font-weight: 600;
   color: var(--nx-txt1);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.25;
 }
-.pcp-cust-card.is-default .pcp-cust-name { color: var(--nx-txt3); }
+.pcp-cust-card.is-default .pcp-cust-name {
+  color: var(--nx-txt4); font-weight: 500; font-style: italic;
+}
 
 .pcp-cust-meta {
   display: flex; align-items: center; gap: .3rem;
-  flex-wrap: wrap; margin-top: .18rem;
+  flex-wrap: wrap; margin-top: .15rem;
 }
 .pcp-cust-badge {
-  display: inline-flex; align-items: center; gap: .2rem;
-  font-size: .67rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: .22rem;
+  font-size: .65rem; font-weight: 600;
   background: rgba(56,189,248,.12);
   color: var(--nx-a1);
-  border: 1px solid rgba(56,189,248,.2);
+  border: 1px solid rgba(56,189,248,.22);
   border-radius: 4px;
-  padding: .05rem .35rem;
-  letter-spacing: .3px;
+  padding: .04rem .32rem;
   white-space: nowrap;
 }
-.pcp-cust-card.is-default .pcp-cust-badge {
-  background: var(--nx-bg3);
-  color: var(--nx-txt4);
-  border-color: var(--nx-border);
-}
+.pcp-cust-badge i { font-size: .6rem; }
 
 .pcp-cust-contact {
-  display: flex; gap: .5rem; flex-wrap: wrap;
-  margin-top: .18rem;
+  display: flex; gap: .55rem; flex-wrap: wrap;
+  margin-top: .15rem;
 }
 .pcp-cust-contact-item {
   display: flex; align-items: center; gap: .22rem;
-  font-size: .68rem; color: var(--nx-txt4);
+  font-size: .67rem; color: var(--nx-txt4);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 140px;
+  max-width: 150px;
 }
-.pcp-cust-contact-item i { font-size: .6rem; color: var(--nx-txt4); flex-shrink: 0; }
+.pcp-cust-contact-item i { font-size: .58rem; flex-shrink: 0; }
 
-/* Light mode overrides */
+/* ─── Light mode ─────────────────────────────────── */
 [data-theme="light"] .pcp-cust-card {
-  background: linear-gradient(135deg, rgba(56,189,248,.06) 0%, rgba(99,102,241,.04) 100%);
+  background: linear-gradient(135deg, rgba(56,189,248,.07) 0%, rgba(99,102,241,.04) 100%);
 }
-[data-theme="light"] .pcp-customer-search .ts-control {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
+[data-theme="light"] .pcp-cust-card.is-default { background: #f8fafc; }
+[data-theme="light"] .pcp-cust-search-row .ts-control {
+  background: #f1f5f9 !important; border-color: #cbd5e1 !important;
 }
+[data-theme="light"] .pcp-cust-search-row .ts-control > input { color: #1e293b !important; }
+[data-theme="light"] .pcp-cust-search-row .ts-control .item { color: #1e293b !important; }
+[data-theme="light"] .pcp-cust-search-row .ts-dropdown {
+  background: #fff !important; border-color: #e2e8f0 !important;
+}
+[data-theme="light"] .pcp-cust-search-row .ts-dropdown .option { color: #334155 !important; }
 [data-theme="light"] .pcp-cust-name { color: #1e293b; }
+[data-theme="light"] .pcp-cust-card.is-default .pcp-cust-name { color: #94a3b8; }
 [data-theme="light"] .pcp-cust-contact-item { color: #64748b; }
 
 /* Cart header (item count bar) */
