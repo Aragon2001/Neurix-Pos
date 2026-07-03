@@ -222,7 +222,7 @@
           '<small class="sprice">' + formatMoney(net_price + pr_tax_val) + '</small>' +
           (row.offer_price && parseFloat(row.offer_price) > 0
             ? '<button type="button" class="price-toggle-btn ' + (row._price_mode === 'offer' ? 'active' : '') + '"' +
-              ' data-item="' + item_id + '" title="' + (row._price_mode === 'offer' ? 'Usando precio oferta — click para precio normal' : 'Precio oferta disponible — click para activar') + '">' +
+              ' data-item="' + item_id + '" title="' + (row._price_mode === 'offer' ? t('usando_precio_oferta', 'Usando precio oferta — click para precio normal') : t('precio_oferta_disponible', 'Precio oferta disponible — click para activar')) + '">' +
               '<i class="fa fa-tag"></i></button>'
             : '') +
         '</td>' +
@@ -321,7 +321,7 @@
         }
       })
       .catch(function () {
-        showAlert('Error al obtener producto');
+        showAlert(t('error_obtener_producto', 'Error al obtener producto'));
       });
   }
 
@@ -407,7 +407,7 @@
           showDropdown(data);
         })
         .catch(function () {
-          showAlert('Error en la búsqueda');
+          showAlert(t('error_busqueda', 'Error en la búsqueda'));
         });
     }
 
@@ -827,11 +827,11 @@
               window.bootstrap.Modal.getInstance(modal).hide();
             }
           } else {
-            if (alertEl) { alertEl.textContent = res.msg || 'Error'; alertEl.classList.remove('d-none'); }
+            if (alertEl) { alertEl.textContent = res.msg || t('error', 'Error'); alertEl.classList.remove('d-none'); }
           }
         })
         .catch(function () {
-          if (alertEl) { alertEl.textContent = 'Error al agregar cliente'; alertEl.classList.remove('d-none'); }
+          if (alertEl) { alertEl.textContent = t('error_agregar_cliente', 'Error al agregar cliente'); alertEl.classList.remove('d-none'); }
         });
     });
 
@@ -938,13 +938,15 @@
      TOM SELECT: cliente
   ────────────────────────────────────────────────────── */
   // Tipos de identificación según Hacienda CR (v4.4)
-  var CF1_LABELS = {
-    '01': 'Cédula Física',
-    '02': 'Cédula Jurídica',
-    '03': 'DIMEX',
-    '04': 'NITE',
-    '05': 'Pasaporte'
-  };
+  function getCf1Labels() {
+    return {
+      '01': t('cedula_identidad', 'Cédula Física'),
+      '02': t('cedula_juridica', 'Cédula Jurídica'),
+      '03': 'DIMEX',
+      '04': 'NITE',
+      '05': t('pasaporte', 'Pasaporte')
+    };
+  }
 
   function getDefaultCustomerId() {
     return String((window.Settings || {}).default_customer || '');
@@ -971,7 +973,7 @@
       if (clearBtn)   clearBtn.style.display   = 'none';
       card.className = 'pcp-cust-card is-default';
       if (avatar) avatar.textContent = 'C';
-      if (nameEl) nameEl.textContent = 'Cliente de Contado';
+      if (nameEl) nameEl.textContent = t('cliente_contado', 'Cliente de Contado');
       if (metaEl) metaEl.innerHTML   = '';
       if (contEl) contEl.innerHTML   = '';
       return;
@@ -991,7 +993,7 @@
 
     // Badge: tipo + número documento
     if (metaEl) {
-      var label = CF1_LABELS[c.cf1] || 'Doc.';
+      var label = getCf1Labels()[c.cf1] || t('documento_label', 'Doc.');
       metaEl.innerHTML = c.cf2
         ? '<span class="pcp-cust-badge"><i class="fa fa-id-card"></i>' + label + ': ' + c.cf2 + '</span>'
         : '';
@@ -1028,7 +1030,7 @@
     var ts = new window.TomSelect(sel, {
       maxItems: 1,
       allowEmptyOption: false,
-      placeholder: 'Buscar cliente…',
+      placeholder: t('buscar_cliente_placeholder', 'Buscar cliente…'),
       plugins: [],
       dropdownParent: 'body',
       dropdownClass: 'ts-dropdown ts-cust-dropdown',
@@ -1310,14 +1312,14 @@
     function updateBtn() {
       var on = localStorage.getItem('pos_autoprint') === '1';
       btn.style.color = on ? 'var(--nx-ok)' : '';
-      btn.title = on ? 'Impresión automática: ON (click para desactivar)' : 'Impresión automática: OFF (click para activar)';
+      btn.title = on ? t('impresion_auto_on', 'Impresión automática: ON (click para desactivar)') : t('impresion_auto_off_title', 'Impresión automática: OFF (click para activar)');
     }
 
     btn.addEventListener('click', function () {
       var on = localStorage.getItem('pos_autoprint') === '1';
       localStorage.setItem('pos_autoprint', on ? '0' : '1');
       updateBtn();
-      showToast(on ? 'Impresión automática desactivada' : 'Impresión automática activada',
+      showToast(on ? t('impresion_auto_desactivada', 'Impresión automática desactivada') : t('impresion_auto_activada', 'Impresión automática activada'),
                 on ? 'fa-print' : 'fa-check-circle');
     });
 
@@ -1335,16 +1337,16 @@
       html: true,
       trigger: 'click',
       placement: 'bottom',
-      title: 'Atajos de teclado',
+      title: t('atajos_teclado', 'Atajos de teclado'),
       content:
         '<div style="font-size:.82rem;line-height:2;">' +
-        '<div><kbd>F2</kbd>&nbsp; Producto rápido</div>' +
-        '<div><kbd>F3</kbd>&nbsp; Buscar</div>' +
-        '<div><kbd>F4</kbd>&nbsp; Cobrar</div>' +
-        '<div><kbd>ESC</kbd>&nbsp; Cancelar búsqueda</div>' +
-        '<div><kbd>↑↓</kbd>&nbsp; Navegar lista</div>' +
-        '<div><kbd>Enter</kbd>&nbsp; Agregar producto</div>' +
-        '<div><kbd>+</kbd>&nbsp; Foco rápido a búsqueda</div>' +
+        '<div><kbd>F2</kbd>&nbsp; ' + t('modal_producto_rapido', 'Producto rápido') + '</div>' +
+        '<div><kbd>F3</kbd>&nbsp; ' + t('buscar', 'Buscar') + '</div>' +
+        '<div><kbd>F4</kbd>&nbsp; ' + t('kbd_cobrar', 'Cobrar') + '</div>' +
+        '<div><kbd>ESC</kbd>&nbsp; ' + t('kbd_cancelar_busqueda', 'Cancelar búsqueda') + '</div>' +
+        '<div><kbd>↑↓</kbd>&nbsp; ' + t('kbd_navegar_lista', 'Navegar lista') + '</div>' +
+        '<div><kbd>Enter</kbd>&nbsp; ' + t('kbd_agregar_producto', 'Agregar producto') + '</div>' +
+        '<div><kbd>+</kbd>&nbsp; ' + t('kbd_foco_busqueda', 'Foco rápido a búsqueda') + '</div>' +
         '</div>'
     });
 
@@ -1566,9 +1568,9 @@
         var qty   = parseFloat(qtyEl ? qtyEl.value : 1) || 1;
         var price = parseFloat(priceEl ? priceEl.value : 0) || 0;
 
-        if (!name) { nameEl && nameEl.focus(); showAlert('Ingrese el nombre del producto.'); return; }
-        if (!cabys || !/^\d{13}$/.test(cabys)) { cabysEl && cabysEl.focus(); showAlert('Ingrese un código CABYS válido (13 dígitos).'); return; }
-        if (!price || price <= 0) { priceEl && priceEl.focus(); showAlert('Ingrese un precio válido.'); return; }
+        if (!name) { nameEl && nameEl.focus(); showAlert(t('ingrese_nombre_producto', 'Ingrese el nombre del producto.')); return; }
+        if (!cabys || !/^\d{13}$/.test(cabys)) { cabysEl && cabysEl.focus(); showAlert(t('ingrese_cabys_valido', 'Ingrese un código CABYS válido (13 dígitos).')); return; }
+        if (!price || price <= 0) { priceEl && priceEl.focus(); showAlert(t('ingrese_precio_valido', 'Ingrese un precio válido.')); return; }
 
         var tasa  = getCurrentTasa();
         var idTax = 0;

@@ -222,7 +222,6 @@ $lang['amount'] = "Pagado";
 $lang['paid_by'] = "付钱";
 $lang['cash'] = "Efectivo";
 $lang['cc'] = "Tarjeta";
-$lang['check'] = "Cheque";
 $lang['gift_card_no'] = "Gift card";
 $lang['swipe'] = "滑动";
 $lang['cc_no'] = "信用卡号";
@@ -235,7 +234,6 @@ $lang['Discover'] = "发现";
 $lang['month'] = "月";
 $lang['year'] = "年";
 $lang['cvv2'] = "CVV2";
-$lang['check_not'] = "检查否";
 $lang['clear'] = "清除";
 
 $lang['cf1'] = "文件类型";
@@ -374,7 +372,6 @@ $lang['income'] = "收入";
 $lang['profit'] = "利润";
 $lang['can_use_barcode'] = "你可以使用产品的条形码作为代码";
 $lang['to_reset'] = "重启";
-$lang['成功'] = "成功";
 $lang['suspended_sale_loaded'] = "打开发票已加载";
 $lang['shortcut_keys'] = "快捷键";
 $lang['opened_at'] = "打开";
@@ -512,7 +509,6 @@ $lang['alert_x_expense'] = "你将删除费用，点击确定删除";
 $lang['alert_x_supplier'] = "你要删除提供者，点击确定删除";
 $lang['apply_to_order'] = "申请订单总额";
 $lang['apply_to_products'] = "适用于所有订单商品";
-$lang['provider'] = "提供者";
 $lang['supplier_added'] = "提供商成功添加";
 $lang['supplier_updated'] = "提供商已成功更新";
 $lang['edit_supplier'] = "编辑提供者";
@@ -549,8 +545,6 @@ $lang['after_sale_page'] = "售后页面";
 $lang['receipt'] = "收据";
 $lang['other'] = "其他";
 $lang['CC'] = "信用卡";
-
-$lang['Check'] = "检查";
 $lang['update_status'] = "更新状态";
 $lang['sale_id'] = "销售ID";
 $lang['status_updated'] = "销售状态已成功更新";
@@ -602,7 +596,6 @@ $lang['total_tax'] = "增值税总额";
 $lang['open_time'] = "开放时间";
 $lang['close_time'] = "关闭时间";
 $lang['cc_slips'] = "信用卡单";
-$lang['checks'] = "支票";
 $lang['register_open_alert'] = "方框已打开，你确定要关闭会话吗？";
 $lang['filter_by_reference'] = "按引用过滤";
 $lang['order'] = "订单";
@@ -673,3 +666,846 @@ $lang['select_customer_for_due'] = "请选择客户.";
 $lang['rtl_support'] = "RTL支持";
 $lang['send_print_as'] = "发送打印为";
 $lang['text'] = "文字";
+$lang['db'] = "数据库已恢复";
+
+// ─── 缺失翻译 — 完整审计 2026-07-01 ─────────────────────────────────────────
+
+// 搜索模式
+$lang['0_search'] = "开头是";
+$lang['1_search'] = "包含";
+$lang['2_search'] = "结尾是";
+$lang['3_search'] = "精确匹配";
+$lang['search_sensibility'] = "搜索灵敏度";
+$lang['sugerencias_mostrar'] = "显示建议数量";
+
+// 导航
+$lang['dashboard'] = "控制台";
+$lang['analitica'] = "数据分析";
+$lang['nav_comercial'] = "商业";
+$lang['nav_contactos'] = "联系人";
+$lang['nav_gestion'] = "管理";
+$lang['nav_sistema'] = "系统";
+
+// 通用界面
+$lang['buscar'] = "搜索";
+$lang['siguiente'] = "下一步";
+$lang['anterior'] = "上一步";
+$lang['actualizar'] = "更新";
+$lang['aplicar'] = "应用";
+$lang['sumar'] = "合计";
+$lang['subir'] = "上传";
+$lang['ver_todas'] = "查看全部";
+$lang['ver_todas_label'] = "查看全部";
+$lang['sin_datos'] = "无数据";
+$lang['activado'] = "已启用";
+$lang['desactivado'] = "已停用";
+$lang['habilitada'] = "已启用";
+$lang['deshabilitada'] = "已停用";
+$lang['ambos'] = "两者";
+$lang['razon'] = "原因";
+$lang['no_mostrar'] = "不显示";
+$lang['choose_file'] = "选择文件";
+$lang['no_file_selected'] = "未选择文件";
+$lang['re_create'] = "重新生成";
+$lang['ver_pdf'] = "查看PDF / 下载PDF";
+$lang['notes'] = "备注";
+$lang['no_ref'] = "无参考";
+$lang['sale_details'] = "销售详情";
+$lang['serial'] = "序列号";
+$lang['cant'] = "数量";
+$lang['items'] = "商品";
+$lang['articulo'] = "商品";
+$lang['concepto'] = "概念";
+$lang['actual'] = "当前";
+$lang['avance'] = "进度";
+$lang['hora'] = "小时";
+$lang['dia'] = "日";
+$lang['mes'] = "月份";
+
+// 哈辛达 / 电子发票环境
+$lang['hacienda'] = "税务局";
+$lang['ambiente_hacienda'] = "税务局环境";
+$lang['ambiente_activo_label'] = "当前环境";
+$lang['ambiente_activo_info'] = "当前环境：";
+$lang['produccion'] = "生产环境";
+$lang['pruebas_sandbox'] = "测试沙盒";
+$lang['produccion_activa_label'] = "生产环境 已激活";
+$lang['pruebas_activa_label'] = "沙盒环境 已激活";
+$lang['cambie_a_produccion'] = "仅在凭据和证书确认无误后切换至生产环境。";
+$lang['conexion_hacienda'] = "税务局连接";
+$lang['estado_hacienda'] = "税务局状态";
+$lang['enviado_hacienda'] = "已发送至税务局";
+$lang['mensaje_hacienda'] = "税务局消息";
+$lang['respuesta_hacienda'] = "税务局响应";
+$lang['fe_hacienda_titulo'] = "电子发票 — 税务局";
+$lang['tokens_api_hacienda'] = "税务局 API 令牌";
+$lang['sistema_en_linea'] = "系统在线";
+$lang['conectado'] = "已连接";
+
+// 哈辛达 — 配置锁定
+$lang['bloqueo_config_hacienda'] = "税务局配置锁定";
+$lang['sincronizacion_bloqueo'] = "同步与锁定";
+$lang['bloquear_configuracion'] = "锁定配置";
+$lang['desbloquear'] = "解锁";
+$lang['desbloquear_confirm'] = "确定要解锁税务局配置吗？";
+$lang['no_bloqueada'] = "未锁定";
+$lang['config_bloqueada_msg'] = "税务局配置已锁定，发行方信息为只读。";
+$lang['bloqueo_advertencia'] = "如果您已测试配置并确认一切正常，请锁定以防止意外更改。";
+
+// 哈辛达 — 凭据
+$lang['usuario_produccion'] = "生产用户名";
+$lang['password_produccion'] = "生产密码";
+$lang['usuario_prueba'] = "测试用户名";
+$lang['password_prueba'] = "测试密码";
+$lang['probar_cred_prod'] = "测试生产凭据";
+$lang['probar_cred_prueba'] = "测试沙盒凭据";
+$lang['ingrese_credenciales'] = "请输入您的凭据以继续";
+
+// 哈辛达 — 数字证书
+$lang['certificado_digital'] = "数字证书 (.p12)";
+$lang['certificado_cargado'] = "已加载证书：";
+$lang['nombre_certificado_label'] = "证书名称（不含 .p12 扩展名）";
+$lang['subir_certificado_label'] = "上传证书 .p12（覆盖当前证书）";
+$lang['no_hay_certificado'] = "服务器上无证书。";
+$lang['pin_certificado'] = "证书 PIN（4位数字）";
+
+// 哈辛达 — 发行方信息
+$lang['identificacion_emisor'] = "发行方身份证件";
+$lang['nombre_obligado'] = "纳税人名称";
+$lang['nombre_comercial_fantasia'] = "商业名称 / 品牌";
+$lang['direccion_tributario'] = "纳税人地址";
+$lang['cod_act_economica'] = "经济活动代码";
+$lang['codigo_moneda'] = "货币代码";
+$lang['cod_pais'] = "国家代码";
+$lang['otras_senas_label'] = "其他地址信息";
+$lang['otras_senas'] = "其他地址信息";
+
+// 哈辛达 — 经济活动
+$lang['actividad_economica'] = "经济活动";
+$lang['actividad_predeterminada'] = "默认活动";
+$lang['default_actividad'] = "默认经济活动";
+$lang['ecomic_activity'] = "经济活动";
+$lang['code_actividad'] = "活动代码";
+$lang['actividad'] = "活动";
+$lang['add_actividad'] = "添加活动";
+$lang['edit_actividad'] = "编辑活动";
+$lang['actividad_deleted'] = "活动已删除";
+$lang['actividad_updated'] = "活动已更新";
+
+// 哈辛达 — 电子凭证
+$lang['comprobante_electronico'] = "电子凭证";
+$lang['elect_fec'] = "电子采购发票";
+$lang['fec'] = "电子采购发票";
+$lang['add_fec'] = "添加采购发票";
+$lang['list_fec'] = "采购发票列表";
+$lang['monthly_fec'] = "月度采购发票";
+$lang['clave'] = "密钥";
+$lang['textos_comprobantes'] = "电子凭证文本";
+$lang['documentos_periodo'] = "本期文件数量";
+
+// 哈辛达 — CABYS 目录
+$lang['codigo_cabys'] = "CABYS 代码";
+$lang['desc_cabys'] = "CABYS 描述";
+$lang['catalogo_cabys_label'] = "CABYS 目录";
+$lang['catalogo'] = "目录";
+$lang['limpiar_cache_cabys'] = "清除 CABYS 缓存";
+$lang['cabys_cache_info'] = "如果税务局发布了 CABYS 目录更新，请清除本地缓存以获取最新版本。";
+
+// 哈辛达 — 免税
+$lang['exoneracion'] = "免税";
+$lang['exoneracion_factura'] = "发票免税";
+$lang['add_exoneracion'] = "添加免税";
+$lang['agregar_exoneracion'] = "添加免税";
+$lang['apply_exoneracion'] = "应用免税";
+$lang['exo_nombre_inst'] = "签发免税的机构名称";
+$lang['exo_numero_doc'] = "免税或授权文件编号";
+$lang['exo_fecha_emision'] = "文件签发日期/时间（格式：2019-07-31 13:53:00）";
+$lang['exo_porcentaje'] = "免税百分比";
+
+// 哈辛达 — 税种 / 税率
+$lang['tipo_impuesto'] = "税种";
+$lang['impuesto_producto'] = "产品税";
+$lang['impuesto_unit'] = "单位税额";
+$lang['impuestos_iva'] = "增值税";
+$lang['credito_iva'] = "增值税抵扣";
+$lang['credito_compras'] = "采购抵扣";
+$lang['credito_ventas'] = "销售抵扣";
+$lang['tarifa_0'] = "税率 0%";
+$lang['tarifa_1'] = "税率 1%";
+$lang['tarifa_2'] = "税率 2%";
+$lang['tarifa_4'] = "税率 4%";
+$lang['tarifa_13'] = "税率 13%";
+$lang['tasa'] = "费率";
+$lang['tasa_propina'] = "小费费率 (%)";
+$lang['tasa_exito'] = "成功率";
+$lang['tasa_rechazo'] = "拒绝率";
+$lang['lleva_iva'] = "含增值税？";
+$lang['imp'] = "税";
+$lang['mostrar_imp_como'] = "收据上税费显示方式";
+
+// 哈辛达 — 货币 / 汇率
+$lang['tipo_cambio'] = "汇率";
+$lang['tipo_cambio_col'] = "汇率";
+$lang['colones'] = "科朗";
+$lang['dolares'] = "美元";
+$lang['regimen_simplificado'] = "简化税制";
+
+// 反模式键（西班牙语文本作为键）
+$lang['Aceptado'] = "已接受";
+$lang['Recibido'] = "已接收";
+$lang['Procesando'] = "处理中";
+$lang['Rechazado'] = "已拒绝";
+$lang['Emitido'] = "已发出";
+$lang['Fecha'] = "日期";
+$lang['Dia'] = "日";
+$lang['Hora de entrada'] = "入场时间";
+$lang['Faltante'] = "差额";
+$lang['Producto'] = "产品";
+$lang['Seleccione'] = "请选择";
+$lang['Moneda'] = "货币";
+$lang['Identificacion'] = "身份证件";
+$lang['Monto Exento'] = "免税金额";
+$lang['Monto Gravado'] = "应税金额";
+$lang['Tipo Cambio'] = "汇率";
+$lang['Ubicacion'] = "位置";
+$lang['Ubicación'] = "位置";
+$lang['Depositos'] = "存款";
+$lang['Apartados_sales'] = "预付款";
+$lang['Quotes_sales'] = "报价单";
+$lang['Factura Electronica'] = "电子发票";
+$lang['Nota de Credito Electronica'] = "电子贷记单";
+$lang['Tiquete N°'] = "票据号";
+$lang['N° Fctura'] = "发票号";
+$lang['Consecutivo N°'] = "连续号";
+$lang['TipoDocumentoE'] = "文件类型";
+$lang['NumeroDocumentoE'] = "文件编号";
+$lang['FechaEmisionE'] = "签发日期";
+$lang['NombreInstitucionE'] = "机构名称";
+$lang['PorcentajeExoneracionE'] = "免税百分比";
+$lang['Bienes de Capital'] = "资本资产";
+$lang['Gasto Corriente no genera credito'] = "经常性支出（不产生增值税抵扣）";
+$lang['Gastos / Retiros'] = "支出 / 提款";
+$lang['General Credito IVA'] = "一般增值税抵扣";
+$lang['General Credito parcial del IVA'] = "部分增值税抵扣";
+$lang['Proporcionalidad'] = "比例分摊";
+$lang['Servicios Profesionales'] = "专业服务";
+$lang['Placa Vehiculo'] = "车牌号";
+
+// 电子发票 — 凭证状态
+$lang['status_hacienda_col'] = "税务局状态";
+$lang['aceptado'] = "已接受";
+$lang['rechazado'] = "已拒绝";
+$lang['recibido'] = "已接收";
+$lang['procesando'] = "处理中";
+$lang['aceptadas_label'] = "已接受";
+$lang['rechazadas_label'] = "已拒绝";
+$lang['procesando_label'] = "处理中";
+$lang['procesando_error'] = "处理中 / 错误";
+$lang['fe_aceptadas'] = "已接受电子发票";
+$lang['fe_rechazadas'] = "已拒绝电子发票";
+$lang['tiquetes_aprobados'] = "已批准票据";
+$lang['tiquetes_rechazados'] = "已拒绝票据";
+$lang['no_procesado'] = "未处理";
+$lang['reenviar_rechazadas'] = "重发被拒绝的文件";
+
+// 电子发票 — 报表列
+$lang['t_doc'] = "文件类型";
+$lang['n_doc'] = "文件编号";
+$lang['tipo_col'] = "类型";
+$lang['fecha_factura'] = "发票日期";
+$lang['fecha_factura_col'] = "发票日期";
+$lang['numero_factura'] = "发票号码";
+$lang['full_tax_col'] = "全额税采购";
+$lang['subtotal_sin_imp'] = "小计（不含税）";
+$lang['monto_total'] = "总金额";
+$lang['importe_total'] = "总金额";
+$lang['monto_total_impuesto'] = "税额合计";
+$lang['total_impuesto_del'] = "税额合计";
+$lang['total_linea'] = "行合计";
+$lang['total_comprobante'] = "凭证合计";
+
+// 电子发票 — 服务 / 商品合计
+$lang['total_serv_gravados'] = "应税服务合计";
+$lang['total_serv_exentos'] = "免税服务合计";
+$lang['total_serv_exonerado'] = "豁免服务合计";
+$lang['total_serv_gravados_f'] = "应税服务合计";
+$lang['total_serv_exentos_f'] = "免税服务合计";
+$lang['total_serv_gravados_v'] = "应税服务合计（销售）";
+$lang['total_merc_gravadas'] = "应税商品合计";
+$lang['total_merc_exentas'] = "免税商品合计";
+$lang['total_merc_exonerada'] = "豁免商品合计";
+$lang['total_merc_gravados'] = "应税商品合计";
+$lang['total_merc_exentos'] = "免税商品合计";
+$lang['total_gravado'] = "应税合计";
+$lang['total_gravados'] = "应税合计";
+$lang['total_exento'] = "免税合计";
+$lang['total_exentos'] = "免税合计";
+$lang['total_exonerado'] = "豁免合计";
+$lang['total_exentas_gravadas'] = "免税 + 应税合计";
+$lang['total_ventas_exoneradas'] = "豁免销售合计";
+$lang['total_emitidas'] = "已开具合计";
+$lang['tot_imp_0_cobrado'] = "已收 0% 税";
+$lang['tot_imp_1_cobrado'] = "已收 1% 税";
+$lang['tot_imp_2_cobrado'] = "已收 2% 税";
+$lang['tot_imp_4_cobrado'] = "已收 4% 税";
+$lang['tot_imp_13_cobrado'] = "已收 13% 税";
+$lang['tot_monto_sin_imp'] = "不含税总金额";
+$lang['tot_monto_con_imp'] = "含税总金额";
+
+// 电子发票 — 身份证件类型
+$lang['tipo_doc_cedula'] = "证件类型";
+$lang['cedula_documento'] = "证件号码";
+$lang['n_identificacion'] = "身份证号";
+$lang['identificacion'] = "身份证件";
+$lang['passaporte'] = "护照";
+$lang['servicios_profesionales'] = "专业服务";
+
+// XML 文件上传
+$lang['documents_upload'] = "上传税务文件";
+$lang['seleccionar_xml'] = "从计算机选择 XML 文件";
+$lang['arrastrar_soltar_xml'] = "或将 XML 文件拖放至下方";
+$lang['zona_arrastre_xml'] = "将 XML 文件拖放至此处";
+$lang['subir_archivos'] = "上传文件";
+$lang['resultado_carga'] = "文件上传结果";
+$lang['backup_xml'] = "XML 备份";
+$lang['backup_xmls'] = "XML 备份";
+$lang['xml_backups'] = "XML 备份";
+$lang['xmls'] = "XML 文件";
+
+// POS — 界面
+$lang['nueva_venta'] = "新销售";
+$lang['modo_oscuro'] = "深色模式";
+$lang['cambiar_tema'] = "更换主题";
+$lang['mostrar_categorias'] = "显示分类";
+$lang['ocultar_categorias'] = "隐藏分类";
+$lang['ocultar_formulario'] = "隐藏表单";
+$lang['panel_categorias_pos'] = "POS 分类面板";
+$lang['agregar_carrito'] = "加入购物车";
+$lang['cambiar_cliente'] = "更换客户";
+$lang['impresion_auto_on'] = "自动打印：开";
+$lang['impresion_auto_off'] = "自动打印：关";
+$lang['imprimir_articulos'] = "打印销售商品";
+$lang['edicion_rapida'] = "快速编辑";
+$lang['edicion_rapida_prod'] = "快速编辑产品";
+$lang['producto_rapido'] = "快速产品 (F2)";
+$lang['desc_prod_servicio'] = "产品/服务描述";
+
+// POS — 键盘快捷键
+$lang['atajos_teclado'] = "键盘快捷键";
+$lang['atajo_agregar_cliente'] = "添加客户";
+$lang['atajo_agregar_item'] = "添加商品（聚焦）";
+$lang['atajo_alternar_cats'] = "切换分类";
+$lang['atajo_cancelar_venta'] = "取消销售";
+$lang['atajo_cerrar_caja'] = "关闭收银机";
+$lang['atajo_editar_ultimo'] = "编辑最后商品";
+$lang['atajo_finalizar_venta'] = "完成销售";
+$lang['atajo_imprimir_factura'] = "打印发票";
+$lang['atajo_imprimir_orden'] = "打印订单";
+$lang['atajo_retomar'] = "恢复待处理";
+$lang['atajo_suspender_venta'] = "暂停销售";
+$lang['atajo_ventas_hoy'] = "今日销售";
+
+// POS — 快速产品模态框
+$lang['precio_sin_impuesto'] = "价格（不含税）";
+$lang['precio_unit'] = "单价";
+$lang['agregar_producto_manual'] = "手动添加产品";
+$lang['error_busqueda_producto'] = "产品搜索错误";
+$lang['producto_no_encontrado'] = "未找到产品";
+$lang['producto_sin_codigo_msg'] = "您尝试查看的产品未找到，可能是没有代码的产品。";
+
+// POS — 收银机
+$lang['apertura_caja'] = "开机";
+$lang['cerrar_caja'] = "关闭收银机";
+$lang['detalles_cierre_caja'] = "收银关闭详情";
+$lang['imprimir_cierre_caja'] = "打印收银关闭单";
+$lang['imprimir_cierre_web'] = "通过网页打印关闭单";
+$lang['cierre_unico'] = "单次收银关闭";
+$lang['detalles_cajero'] = "收银员详情";
+$lang['closed_at'] = "关闭时间";
+$lang['cobrado'] = "已收款";
+$lang['total_cash_submitted'] = "提交现金合计";
+$lang['total_cheques_submitted'] = "提交支票合计";
+$lang['faltante'] = "差额";
+$lang['no_puede_aperturar'] = "没有管理员授权，无法重新开机";
+
+// POS — 小费
+$lang['propina'] = "小费";
+$lang['servicio_propina'] = "服务";
+
+// POS — 餐桌
+$lang['agregar_mesa'] = "添加餐桌";
+$lang['lista_mesas'] = "餐桌列表";
+
+// 销售 — 预付款
+$lang['apartados'] = "预付款";
+$lang['apartado_sale'] = "预付款销售";
+$lang['apartado_added'] = "预付款已添加";
+$lang['list_apartado_sales'] = "预付款列表";
+$lang['view_apartado'] = "查看预付款";
+$lang['sec_apartados'] = "预付款、报价单和配送";
+$lang['efectivo_apartados'] = "预付款现金";
+$lang['tarjetas_apartados'] = "预付款信用卡";
+$lang['footer_apartado_label'] = "预付款页脚";
+
+// 销售 — 报价单 / 形式发票
+$lang['cotizaciones'] = "报价单 / 形式发票";
+$lang['proforma'] = "形式发票";
+$lang['proformas'] = "形式发票";
+$lang['qoutes_sale'] = "报价单销售";
+$lang['view_quotes'] = "查看报价单";
+$lang['list_quotes_sales'] = "报价单列表";
+$lang['quote_saved_to_opened_bill'] = "报价单已保存到当前订单";
+$lang['quotes_sale_loaded'] = "报价单已加载";
+$lang['footer_nc_label'] = "贷记单页脚";
+$lang['footer_fe_label'] = "电子发票页脚";
+
+// 销售 — 付款
+$lang['formulario_pago'] = "付款表单";
+$lang['metodos_pago'] = "付款方式";
+$lang['metodos_pago_label'] = "付款方式";
+$lang['pagar_por'] = "付款方式";
+$lang['debito'] = "借记";
+$lang['tarjeta'] = "信用卡";
+$lang['tarjeta_cd'] = "信用卡/借记卡";
+$lang['deposito'] = "存款";
+$lang['a_credito'] = "赊账";
+$lang['tiempo_credito'] = "选择信用期限";
+$lang['question_enable_credit'] = "允许客户赊账？";
+$lang['question_print_inoice'] = "付款后打印发票？";
+$lang['payment_received'] = "已收款金额";
+$lang['payment_reference'] = "付款参考";
+$lang['payment_returned'] = "找零";
+
+// 销售 — 付款状态
+$lang['estado_pago'] = "付款状态";
+$lang['pagada'] = "已付款";
+$lang['pagado_label'] = "已付款";
+$lang['no_pagada'] = "未付款";
+$lang['parcialmente_pagada'] = "部分付款";
+$lang['pendiente_pago'] = "待付款";
+$lang['pendientes_label'] = "待处理";
+$lang['vencido'] = "已逾期";
+$lang['vencida_label'] = "已逾期";
+$lang['facturas_sin_saldar'] = "未结算发票";
+$lang['facturas_label'] = "发票";
+$lang['notas_credito_label'] = "贷记单";
+$lang['notas_debito'] = "借记单";
+$lang['ordenes_label'] = "订单";
+$lang['ordenes_compra'] = "采购订单";
+$lang['ventas_abiertas'] = "未结销售";
+
+// 应收/应付账款
+$lang['cta_clientes'] = "客户账户";
+$lang['cta_envios'] = "配送账户";
+$lang['monto_adeudado'] = "欠款金额";
+$lang['total_por_cobrar'] = "应收合计";
+$lang['total_por_pagar'] = "应付合计";
+$lang['total_pagado'] = "已付合计";
+$lang['total_credits_sales'] = "赊账销售合计";
+$lang['pagar_deuda'] = "还款";
+$lang['pago_deuda_form'] = "您可以通过以下方式还款";
+$lang['limitcredit'] = "信用额度";
+
+// 产品
+$lang['tipo_producto'] = "产品类型";
+$lang['mercancia'] = "商品";
+$lang['caja_col'] = "箱";
+$lang['fraccion'] = "份";
+$lang['cantidad_fracciones'] = "份数";
+$lang['fracciones_caja'] = "每箱份数";
+$lang['lista_de_precio'] = "价格表";
+$lang['lista_de_precio2'] = "价格表";
+$lang['lista_precios'] = "价格表列表";
+$lang['agregar_precios'] = "添加价格";
+$lang['configure_precios'] = "配置价格";
+$lang['precio_neto'] = "净价";
+$lang['precio_unitario_neto'] = "净单价";
+$lang['precio_venta_inv'] = "销售价格";
+$lang['cost_inv'] = "库存成本";
+$lang['cost_price'] = "成本价";
+$lang['costo_total'] = "总成本";
+$lang['margen'] = "利润率";
+$lang['margen_bruto'] = "毛利率";
+$lang['margen_bruto_inv'] = "库存毛利率";
+$lang['margen_ganancia'] = "利润率";
+$lang['margen_ganancia_costo'] = "基于成本的利润率";
+$lang['update_price'] = "更新价格";
+$lang['descuento_producto'] = "产品折扣";
+$lang['min_stock'] = "最低库存";
+$lang['bajo_alerta'] = "低于警戒线";
+$lang['sin_alertas_inv'] = "无库存预警";
+$lang['resumen_stock'] = "库存摘要";
+$lang['stock'] = "库存";
+$lang['productos_en_stock'] = "库存产品";
+$lang['products_quantity'] = "产品数量";
+$lang['simbologia_barras'] = "条形码类型";
+
+// 计量单位
+$lang['unidad'] = "单位";
+$lang['kilogramo'] = "千克";
+$lang['galon'] = "加仑";
+$lang['litro'] = "升";
+$lang['metro'] = "米";
+$lang['metro_cuadrado'] = "平方米";
+$lang['metro_cubico'] = "立方米";
+$lang['minuto'] = "分钟";
+$lang['tonelada'] = "吨";
+
+// 库存
+$lang['inventory_label'] = "库存";
+$lang['inventory_adjustment'] = "库存调整";
+$lang['ajuste_inventario'] = "库存调整";
+$lang['descripcion_ajuste'] = "调整说明";
+$lang['tipo_movimiento'] = "移动类型";
+$lang['fecha_movimiento'] = "移动日期";
+$lang['cantidad_movida'] = "移动数量";
+$lang['cantidad_fracc_movida'] = "移动份数";
+$lang['precio_anterior'] = "原价格";
+$lang['precio_actual'] = "当前价格";
+
+// 采购
+$lang['descuento_compra'] = "采购折扣";
+$lang['total_compra'] = "采购合计";
+$lang['total_compra_neta'] = "净采购合计";
+$lang['compras_mensuales'] = "月度采购";
+$lang['agregar_articulo_comprado'] = "添加采购商品";
+$lang['items_factura'] = "发票商品";
+$lang['items_adicionales'] = "附加发票商品";
+
+// 配送
+$lang['metodo_envio'] = "配送方式";
+$lang['shipping_method'] = "配送方式";
+$lang['code_shipping'] = "配送代码";
+$lang['add_shipping'] = "添加配送";
+$lang['edit_shipping'] = "编辑配送";
+$lang['shipping_deleted'] = "配送已删除";
+$lang['shipping_updated'] = "配送已更新";
+
+// 客户 / 供应商
+$lang['datos_contacto'] = "联系信息";
+$lang['nombre_completo'] = "全名";
+$lang['correo_electronico'] = "电子邮件地址";
+$lang['direccion'] = "地址";
+$lang['provincia'] = "省";
+$lang['canton'] = "县";
+$lang['distrito'] = "区";
+$lang['barrio'] = "街道";
+$lang['telefono_sin_guiones'] = "电话（无连字符）";
+$lang['fax_sin_guiones'] = "传真（无连字符）";
+$lang['invalid_identify'] = "无效证件号码，只允许数字字符：";
+$lang['invalid_mail'] = "无效电子邮件";
+$lang['invalid_phone'] = "无效电话号码 – 必须为8位数字（例如：88880000）";
+$lang['agregar_proveedor_simplificado'] = "添加简化供应商";
+$lang['proveedor_simplificado'] = "简化供应商";
+$lang['facturado_a'] = "开票给";
+
+// 发票列
+$lang['col_cod'] = "代码";
+$lang['col_descripcion'] = "描述";
+$lang['col_precio'] = "价格";
+$lang['col_cantidad'] = "数量";
+$lang['col_total'] = "合计";
+$lang['col_unidad_medida'] = "单位";
+
+// 报表 / 控制台
+$lang['informe_ventas_diarias'] = "日销售报表";
+$lang['daily_report_desc'] = "打开此报表时显示今日销售情况；您可使用下方表单进行自定义搜索";
+$lang['monthly_sale_tax'] = "月度销售税";
+$lang['vendedor'] = "销售员";
+$lang['esta_semana'] = "本周";
+$lang['periodo_hoy'] = "今天";
+$lang['periodo_semana'] = "本周";
+$lang['periodo_mes'] = "本月";
+$lang['periodo_anio'] = "本年";
+$lang['vs_periodo_anterior'] = "与上期相比";
+$lang['ultimos_6m'] = "最近6个月";
+$lang['ultimos_12m'] = "最近12个月";
+$lang['promedio_dia'] = "日均";
+$lang['promedio_ventas_6m'] = "销售均值 – 最近6个月";
+$lang['proyeccion_mes'] = "月度预测";
+$lang['analisis_fin'] = "财务分析";
+$lang['analisis_financiero'] = "财务分析 – 最近12个月";
+$lang['top_productos_ingresos'] = "收入最高产品";
+$lang['top_prods_label'] = "收入最高产品";
+$lang['top_dias_venta'] = "最佳销售日";
+$lang['top_dias_label'] = "最佳销售日";
+$lang['sin_ventas_recientes'] = "无近期销售";
+$lang['ultimas_transacciones'] = "最新交易";
+$lang['total_facturado'] = "已开票合计";
+$lang['total_venta'] = "销售合计";
+$lang['total_ventas'] = "销售总计";
+$lang['total_venta_neta'] = "净销售合计";
+$lang['ventas_exentas'] = "免税销售";
+$lang['ventas_gravadas_con'] = "应税销售（税率）";
+$lang['ventas_fracciones'] = "份额销售";
+$lang['model_d104'] = "D-104 模板";
+$lang['model_d151'] = "D-151 模板";
+$lang['todas_tiendas'] = "所有门店";
+$lang['utilidad_bruta'] = "毛利润";
+$lang['utilidad_label'] = "利润";
+
+// 设置 — 选项卡
+$lang['settings_tab_general'] = "常规";
+$lang['settings_tab_general_sub'] = "企业、主题、PIN";
+$lang['settings_tab_emisor'] = "电子发票发行方";
+$lang['settings_tab_emisor_sub'] = "税务局、令牌、证书";
+$lang['settings_tab_pos'] = "POS / 收银机";
+$lang['settings_tab_pos_sub'] = "打印、按钮";
+$lang['settings_tab_avanzado'] = "高级";
+$lang['settings_tab_avanzado_sub'] = "搜索、分类等";
+$lang['settings_tab_email_sub'] = "SMTP、协议";
+$lang['general_settings_desc'] = "企业、主题、PIN";
+$lang['avanced_settings'] = "高级设置";
+$lang['avanzado_settings_desc'] = "搜索、分类等";
+$lang['email_settings_desc'] = "SMTP、协议";
+$lang['guardar_configuracion'] = "保存配置";
+
+// 设置 — POS 部分
+$lang['sec_comp_general_pos'] = "POS 常规行为";
+$lang['sec_impresion'] = "打印";
+$lang['sec_atajos_pos'] = "POS 快捷键 / 按钮";
+$lang['sec_registro_caja'] = "收银机与关闭";
+$lang['sec_numerales_moneda'] = "数字与货币格式";
+$lang['sec_impuesto_propina'] = "税费与小费";
+$lang['sec_busqueda_prod'] = "产品搜索";
+$lang['sec_cats_clientes'] = "分类与默认客户";
+
+// 设置 — 打印机
+$lang['ip_impresora'] = "打印机 IP";
+$lang['nombre_compartido_imp'] = "打印机共享名称";
+$lang['printer_help_windows'] = "Windows（USB、串口或并口）：共享打印机并输入共享名称，或通过 SMB 输入 smb://计算机名/名称";
+$lang['printer_help_linux'] = "Linux：并口 /dev/lp0、USB /dev/usb/lp1、USB转串口 /dev/ttyUSB0、串口 /dev/ttyS0";
+$lang['printer_port_hint'] = "大多数打印机的端口为 9100";
+$lang['ruta_sendmail'] = "服务器上 sendmail 程序路径";
+
+// 用户资料
+$lang['info_personal'] = "个人信息";
+$lang['foto'] = "照片";
+$lang['foto_de_perfil'] = "个人头像";
+$lang['horario'] = "班次";
+$lang['horario_usuario'] = "用户班次";
+$lang['hora_entrada'] = "上班时间";
+$lang['hora_salida'] = "下班时间";
+$lang['entrada_y_salida'] = "上下班时间";
+$lang['permiso_apertura'] = "开机权限";
+$lang['permiso_apertura_caja'] = "收银机开机权限";
+$lang['habilitar_apertura'] = "允许此用户开机？";
+$lang['si_habilitar'] = "是，允许";
+$lang['no_permitir'] = "不允许";
+$lang['acceso_y_permisos'] = "访问与权限";
+$lang['seguridad_cuenta'] = "账户安全";
+
+// 停车收据
+$lang['recibo_parqueo'] = "停车收据";
+$lang['no_pierda_ticket'] = "请勿丢失停车票";
+
+// 自定义字段
+$lang['bcf1'] = "账单字段 1";
+$lang['bcf2'] = "账单字段 2";
+$lang['bcf3'] = "账单字段 3";
+$lang['bcf4'] = "账单字段 4";
+$lang['bcf5'] = "账单字段 5";
+$lang['bcf6'] = "账单字段 6";
+$lang['ccf3'] = "客户字段 3";
+$lang['ccf4'] = "客户字段 4";
+$lang['ccf5'] = "客户字段 5";
+$lang['ccf6'] = "客户字段 6";
+$lang['stamp_sign'] = "印章 / 签名";
+
+// 礼品卡 / 充值
+$lang['card_expired'] = "卡已过期";
+$lang['card_is_used'] = "卡已使用";
+$lang['last_topups'] = "最近充值记录";
+
+// 其他
+$lang['view_abort'] = "取消查看";
+$lang['no_ref'] = "无参考";
+$lang['otros'] = "其他";
+$lang['otras_senas'] = "其他地址信息";
+$lang['Cedula Identidad'] = "身份证";
+$lang['Cedula Juridica'] = "企业证件";
+$lang['Dimex'] = "DIMEX";
+$lang['NITE'] = "NITE";
+$lang['Error'] = "错误";
+$lang['dias_restantes'] = "剩余天数";
+$lang['restante_label'] = "剩余";
+$lang['producto_col'] = "产品";
+$lang['Cheque'] = "支票";
+$lang['Success'] = "成功";
+$lang['cheque'] = "支票";
+$lang['cheque_no'] = "支票号";
+$lang['cheques'] = "支票";
+$lang['alert_x_printer'] = "您将删除此打印机，点击确定以删除";
+$lang['bill_note'] = "这是办公室备用副本，请凭销售编号索取收据/发票，谢谢。";
+$lang['type_hit_enter'] = "输入后按 Enter 在表格中搜索";
+$lang['paying_by'] = "付款方式";
+$lang['supplier'] = "供应商";
+
+// ─── 视图审计 — 2026-07-01 ───────────────────────────────────────────────────
+$lang['login_subtitle']      = "哥斯达黎加电子发票";
+$lang['login_feat_cert']     = "哈辛达 v4.4 证书";
+$lang['login_feat_seguro']   = "加密安全访问";
+$lang['login_feat_reportes'] = "实时报表";
+$lang['login_feat_fe']       = "电子收据与发票";
+$lang['login_btn']           = "登录";
+$lang['nueva_nota_debito']   = "新借记单";
+$lang['tipo_doc_referencia'] = "参考文件类型";
+$lang['tiquete_electronico'] = "电子收据";
+$lang['codigo_razon_nd']     = "原因代码（借记单）";
+$lang['razon_error_monto']   = "金额错误";
+$lang['razon_homologacion']  = "同质化";
+$lang['razon_texto_libre']   = "原因（自由文本）";
+$lang['agregar_linea']       = "添加行";
+$lang['guardar_nd']          = "保存借记单";
+$lang['presentacion_venta']  = "商品呈现方式";
+$lang['seccion']             = "区段";
+$lang['tramo']               = "行";
+$lang['eliminar_seccion']    = "删除区段";
+$lang['imagen_req']          = "最大文件大小 500 MB，最大尺寸 1000 px";
+$lang['total_descuentos']    = "折扣合计";
+$lang['total_impuesto_fec']  = "税额合计";
+$lang['total_exoneracion']   = "豁免合计";
+$lang['notas_label']         = "备注";
+$lang['expandir_menu']           = "展开/折叠菜单";
+$lang['buscar_en_sistema']       = "在 Neurix POS 中搜索...";
+$lang['ventas_suspendidas']      = "暂停销售";
+$lang['quitar_cliente']          = "移除客户";
+$lang['buscar_hacienda_btn']     = "在税务局搜索";
+$lang['consultar_hacienda_title']= "在税务局查询纳税人名称和经济活动";
+$lang['autocomplete_padron']     = "输入编号后自动填充税务局纳税人登记信息";
+$lang['cod_act_economica_label'] = "经济活动代码（税务局）";
+$lang['cod_act_economica_help']  = "仅适用于开具凭证的法人实体（义务接收方）。";
+$lang['actividad_seleccione']    = "经济活动 — 请选择正确的";
+$lang['cabys_label']             = "CABYS 代码（税务局分类器 — 13位）";
+$lang['buscar_cabys_placeholder']= "按代码或描述搜索...";
+$lang['buscar_cabys_desc_min3']  = "按描述搜索（至少3个字符）...";
+$lang['cabys_help_text']         = "按描述搜索或直接输入13位代码。";
+$lang['placeholder_cedula']      = "例：112340567";
+$lang['placeholder_cabys']       = "例：8101102000000";
+$lang['placeholder_cod_act']     = "例：811001";
+$lang['motivo_aceptacion']       = "接受、部分接受或拒绝电子凭证的原因";
+$lang['agregar_ubicacion']       = "添加位置";
+$lang['placeholder_dir_desc']    = "地址描述";
+$lang['placeholder_footer_fe']   = "电子发票页脚文本";
+$lang['placeholder_footer_nc']   = "贷记单页脚文本";
+$lang['placeholder_smtp_pass']   = "SMTP 密码";
+$lang['placeholder_fecha_emision']= "格式：2019-07-31 13:53:00";
+$lang['tipo_items']              = "商品类型";
+$lang['imprimir_recibo']         = "打印收据";
+$lang['ver_ocultar']             = "显示/隐藏";
+// 页脚 / 常规操作
+$lang['llamar']                  = "致电";
+$lang['enviar_correo']           = "发送邮件";
+$lang['scan_ean_placeholder']    = "点击按钮扫描EAN条码...";
+$lang['remove']                  = "删除";
+$lang['placeholder_email_login'] = "email@company.com";
+$lang['placeholder_smtp_user']   = "user@gmail.com";
+// 通用待处理键
+$lang['nombre_comercial']        = "商业名称";
+$lang['actividades_registradas'] = "活动对应于在Hacienda为此标识注册的活动。";
+$lang['notas_debito_electronicas'] = "电子借记单";
+$lang['mis_ventas']              = "我的销售";
+$lang['cliente_contado']         = "现金客户";
+$lang['aperturar_caja']          = "开启收银机";
+$lang['consulta_articulos']      = "商品查询";
+$lang['buscar_cod_producto']     = "按产品代码搜索";
+$lang['num_apartado']            = "定金单号";
+$lang['num_proforma']            = "形式发票号";
+$lang['pin_seguridad_help']      = "4至8位数字PIN，用于敏感操作";
+$lang['placeholder_pin']         = "4-8位数字";
+$lang['imagen_kb_req']           = "最大大小：500 KB · 最大尺寸：1000 × 1000 px";
+$lang['fecha_emision_label']     = "发行日期";
+$lang['documento_label']         = "文件";
+$lang['cedula_identidad']        = "身份证";
+$lang['cedula_juridica']         = "法人证件";
+$lang['pasaporte']               = "护照";
+$lang['please_select']           = "-- 请选择 --";
+// 上传文件 — 发行人数据
+$lang['condicion_impuesto']      = "税收条件";
+$lang['nombre_emisor_label']     = "发行人名称";
+$lang['tipo_doc_emisor_label']   = "发行人证件类型";
+$lang['numero_cedula_label']     = "证件号码";
+$lang['telefono_emisor_label']   = "发行人电话";
+$lang['correo_emisor_label']     = "发行人邮件";
+// 促销页面
+$lang['promo_page_title']        = "POS 促销页面";
+$lang['promo_gracias_visita']    = "感谢您的访问！";
+$lang['promo_vuelva']            = "欢迎再次光临。";
+$lang['promo_recomendacion']     = "如果您对我们的服务满意，请向朋友推荐！否则请告知我们以便改进。";
+
+// POS 屏幕
+$lang['caja']                    = "收银台";
+$lang['sucursal']                = "分店";
+$lang['unit_price_abbr']         = "单价";
+$lang['buscar_cliente_hint']     = "请输入客户姓名或身份证号码";
+$lang['autocompleta_hacienda_hint'] = "输入号码后将自动填充Hacienda的数据";
+$lang['exacto']                  = "精确";
+$lang['modal_producto_rapido']   = "快速产品";
+$lang['buscar_cabys']            = "搜索CABYS";
+$lang['transferencia_abr']       = "转账";
+
+// POS 屏幕 — JS 运行时 (pos-core.js / pos-enhanced.js)
+$lang['usando_precio_oferta']      = "正在使用优惠价格 — 点击恢复正常价格";
+$lang['precio_oferta_disponible']  = "有优惠价格可用 — 点击启用";
+$lang['error_obtener_producto']    = "获取产品时出错";
+$lang['error_busqueda']            = "搜索出错";
+$lang['error']                     = "错误";
+$lang['error_agregar_cliente']     = "添加客户时出错";
+$lang['buscar_cliente_placeholder'] = "搜索客户…";
+$lang['impresion_auto_on']         = "自动打印：开启（点击关闭）";
+$lang['impresion_auto_off_title']  = "自动打印：关闭（点击开启）";
+$lang['impresion_auto_desactivada'] = "自动打印已关闭";
+$lang['impresion_auto_activada']   = "自动打印已启用";
+$lang['kbd_cobrar']                = "收款";
+$lang['kbd_cancelar_busqueda']     = "取消搜索";
+$lang['kbd_navegar_lista']         = "浏览列表";
+$lang['kbd_agregar_producto']      = "添加产品";
+$lang['kbd_foco_busqueda']         = "快速聚焦搜索框";
+$lang['ingrese_nombre_producto']   = "请输入产品名称。";
+$lang['ingrese_cabys_valido']      = "请输入有效的CABYS代码（13位数字）。";
+$lang['ingrese_precio_valido']     = "请输入有效价格。";
+$lang['carrito_compras']           = "购物车";
+$lang['catalogo_productos']        = "产品目录";
+$lang['producto_agregado']         = "产品已添加";
+$lang['no_products_found']         = "未找到产品";
+$lang['atajos_hint']               = "Alt+S 搜索，Alt+P 支付，Alt+C 取消";
+$lang['js_disabled_notice']        = "您的浏览器似乎禁用了JavaScript。";
+$lang['js_disabled_notice2']       = "您必须在浏览器中启用JavaScript才能使用本网站的功能。";
+$lang['modern_browser_required']   = "请使用现代浏览器，因为本网站需要localStorage！";
+
+// 列表重新设计 (nx-tables) — 产品和系统表格
+$lang['de']                    = "/";
+$lang['mostrando']             = "显示";
+$lang['en_categorias']         = "共 %d 个分类";
+$lang['sin_resultados']        = "没有符合搜索条件的结果。";
+$lang['exportar']              = "导出";
+$lang['nuevo_producto']        = "新产品";
+$lang['buscar_nombre_codigo']  = "按名称或代码搜索…";
+$lang['todas']                 = "全部";
+$lang['productos_activos']     = "活跃产品";
+$lang['valor_inventario']      = "库存价值";
+$lang['a_precio_costo']        = "按成本价";
+$lang['stock_bajo']            = "库存不足";
+$lang['stock_bajo_tag']        = "不足";
+$lang['requieren_reorden']     = "需要补货";
+$lang['agotados']              = "缺货";
+$lang['agotado']               = "缺货";
+$lang['sin_existencias']       = "无库存";
+$lang['inventario_general']    = "总库存";
+
+// 全局搜索
+$lang['buscar_en_sistema']     = "系统中搜索…";
+$lang['dashboard']             = "仪表板";
+$lang['pos']                   = "POS";
+$lang['sales']                 = "销售";
+$lang['customers']             = "客户";
+$lang['products']              = "产品";
+$lang['categories']            = "分类";
+$lang['suppliers']             = "供应商";
+$lang['purchases']             = "采购";
+$lang['reports']               = "报告";
+$lang['creditnotes']           = "贷项凭单";
+$lang['debitnotes']            = "借项凭单";
+$lang['settings']              = "设置";
+$lang['alerts']                = "警报";
+$lang['price']                 = "价格";

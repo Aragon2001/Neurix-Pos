@@ -1,327 +1,142 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<script type="text/javascript">
-    $(document).ready(function () {
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('documents_upload'); ?>
+        <small><?= lang('list_results'); ?></small>
+    </div>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+        <label class="nxt-btn" for="nxtFiles" style="cursor:pointer">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1"/><path d="M9 15l3 -3l3 3"/><path d="M12 12l0 9"/></svg>
+            <?= lang('cargar_xml'); ?>
+        </label>
+        <input type="file" id="nxtFiles" accept=".xml" multiple style="display:none">
+    </div>
+</div>
 
-        function status(x) {
-            var a = 'No Procesado';
-            var b = 'Aceptado';
-            var c = 'Procesando';
-            var d = 'Error';
-            var e = 'Rechazado';
-            var f = 'Recibido';
-            var g = 'Enviado a Hacienda';
-            if (x == 'aceptado') {
-                return '<div class="text-center"><span class="sale_status label label-success">' + b + '</span></div>';
-            } else if (x == 'procesando') {
-                return '<div class="text-center"><span class="sale_status label label-primary">' + c + '</span></div>';
-            } else if (x == 'error') {
-                return '<div class="text-center"><span class="sale_status label label-danger">' + d + '</span></div>';
-            } else if (x == 'rechazado') {
-                return '<div class="text-center"><span class="sale_status label label-danger">' + e + '</span></div>';
-            } else if (x == 'recibido') {
-                return '<div class="text-center"><span class="sale_status label label-warning">' + f + '</span></div>';
-            } else if (x == '5') {
-                return '<div class="text-center"><span class="sale_status label label-info">' + g + '</span></div>';
-            } else {
-                return '<div class="text-center"><span class="sale_status label label-default">' + a + '</span></div>';
-            }
-        }
+<!-- Zona de arrastre -->
+<div class="nxt-card" id="nxtDrop" style="margin-bottom:20px;padding:26px;text-align:center;color:var(--nx-txt3);border-style:dashed;cursor:pointer;transition:border-color .2s,color .2s">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;margin-bottom:6px"><path d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1"/><path d="M9 15l3 -3l3 3"/><path d="M12 12l0 9"/></svg>
+    <div style="font-size:13.5px"><?= lang('arrastre_xml_aqui'); ?></div>
+</div>
 
-        var table = new Tabulator('#SLData', {
+<div id="nxtList"></div>
 
-            'ajax': {
-                url: '<?=site_url('cargadocumentos/get_purchases_h');?>', type: 'POST', "data": function (d) {
-                    d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-                }
-            },
-            "buttons": [
-                {extend: 'copyHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}},
-                {extend: 'excelHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}},
-                {extend: 'csvHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}},
-                {
-                    extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true,
-                    exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-                },
-                {extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-                {"data": "id_documento", "visible": false},
-                {"data": "documento"},
-                {"data": "ConsecutivoDocEmisor"},
-                {"data": "FechaEmisionDoc"},
-                {"data": "nombre_emisor"},
-                {"data": "NumeroCedulaEmisor"},
-                {"data": "CodigoMoneda"},
-                {"data": "TipoCambio"},
-                {"data": "MontoTotalImpuesto", "render": currencyFormat},
-                {"data": "TotalFactura", "render": currencyFormat},
-                {"data": "Estatus", "render": status},
-                {"data": "status_hacienda"},
-                {"data": "Actions", "searchable": false, "orderable": false}
-            ],  //("id_documento, MontoTotalImpuesto, documento, nombre_emisor, NumeroCedulaEmisor, TotalFactura, ConsecutivoDocEmisor, FechaEmisionDoc, Estatus, CodigoMoneda, TipoCambio");
-            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
-                nRow.id = aData.id;
-                return nRow;
-            },
-            "footerCallback": function (tfoot, data, start, end, display) {
-                var api = this.api(), data;
-                $(api.column(8).footer()).html(cf(api.column(8).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-                $(api.column(9).footer()).html(cf(api.column(9).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-            }
-        });
-
-        $('#search_table').on('keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search(this.value).draw();
-            }
-        });
-
-        table.columns().every(function () {
-            var self = this;
-            $('input.datepicker', this.footer()).on('dp.change', function (e) {
-                self.search(this.value).draw();
-            });
-            $('input:not(.datepicker)', this.footer()).on('keyup change', function (e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-                    self.search(this.value).draw();
-                }
-            });
-            $('select', this.footer()).on('change', function (e) {
-                self.search(this.value).draw();
-            });
-        });
-
-    });
-
-</script>
-<style>
-    /* layout.css Style */
-    .upload-drop-zone {
-        height: 100px;
-        border-width: 2px;
-        margin-bottom: 20px;
-    }
-
-    /* skin.css Style*/
-    .upload-drop-zone {
-        color: var(--nx-txt3);
-        border-style: dashed;
-        border-color: var(--nx-border);
-        line-height: 100px;
-        text-align: center
-    }
-
-    .upload-drop-zone.drop {
-        color: var(--nx-a1);
-        border-color: var(--nx-a1);
-    }
-</style>
-<section class="content">
-    <div class="row">
-        <div style="col-12">
-            <div class="card" style="margin-bottom: 0;">
-                <div class="card-body">
-
-                    <!-- Standar Form -->
-                    <h4 style="    text-align: center; width: 100%;">Select XML files from your computer</h4>
-                    <form action="/cargadocumentos" method="post" enctype="multipart/form-data"
-                          style="text-align: center" id="js-upload-form">
-                        <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>"
-                               value="<?php echo $this->security->get_csrf_hash(); ?>">
-                        <div class="form-inline">
-                            <div class="mb-3">
-                                <input type="file" name="userfiles[]" id="js-upload-files" multiple>
-                            </div>
-                            <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upload files
-                            </button>
-                        </div>
-                    </form>
-
-                    <!-- Drop Zone -->
-                    <h4>Or drag and drop XML files below</h4>
-                    <div class="upload-drop-zone" id="drop-zone">
-                        Just drag and drop XML files here
-                    </div>
-
-
-                </div>
+<!-- Modal de resultados de carga -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= lang('resultado_carga'); ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('list_results'); ?></h3>
-                </div>
-                <div class="box-body">
-                    <div class="table-responsive">
-                <div class="table-responsive">
-                        <table id="SLData" class="table table-striped table-bordered table-condensed table-hover">
-                            <thead>
-                            <tr class="active">
-                                <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                <th class="col-1"><?= lang("document_type"); ?></th>
-                                <th class="col-1"><?= lang("consecutive"); ?></th>
-                                <th class="col-2"><?= lang("date"); ?></th>
-                                <th class="col-2"><?= lang("customer"); ?></th>
-                                <th><?= lang("ccf2"); ?></th>
-                                <th><?= lang("Moneda"); ?></th>
-                                <th><?= lang("Tipo Cambio"); ?></th>
-                                <th><?= lang("tax"); ?></th>
-                                <th class="col-1"><?= lang("grand_total"); ?></th>
-                                <th class="col-1"><?= lang("status"); ?> de Hacienda</th>
-                                <th class="col-1">Respuesta Hacienda</th>
-                                <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td colspan="13" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-                            </tr>
-                            </tbody>
-                            <tfoot>
-                            <tr class="active">
-                                <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th><?= lang("tax"); ?></th>
-                                <th><?= lang("grand_total"); ?></th>
-                                <th></th>
-                                <th></th>
-                                <th style="min-width:115px; max-width:115px; text-align:center;"></th>
-                            </tr>
-                            <tr>
-                                <td colspan="13" class="p0"><input type="text" class="form-control b0"
-                                                                   name="search_table" id="search_table"
-                                                                   placeholder="<?= lang('type_hit_enter'); ?>"
-                                                                   style="width:100%;"></td>
-                            </tr>
-                            </tfoot>
-                        </table>
-                </div>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
+            <div class="modal-body">
+                <ol id="resultadoslist" style="overflow-y:auto;max-height:300px;padding-left:18px"></ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close'); ?></button>
             </div>
         </div>
     </div>
-    
-                    <!-- Modal -->
-                <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Resultado de la carga de documentos</h5>
-                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <ol id='resultadoslist' style='overflow-y: scroll;    max-height: 300px;' class='lista'>
+</div>
 
-                                </ol>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                    
-</section>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var EST = {
+        aceptado:   ['<?= lang('aceptado'); ?>', 'ok'],
+        recibido:   ['<?= lang('recibido'); ?>', 'warn'],
+        procesando: ['<?= lang('procesando'); ?>', 'info'],
+        rechazado:  ['<?= lang('rechazado'); ?>', 'err'],
+        error:      ['<?= lang('error'); ?>', 'err'],
+        '5':        ['<?= lang('enviado_hacienda'); ?>', 'info']
+    };
+    function estLabel(v) { return (EST[v] || ['<?= lang('no_procesado'); ?>', 'muted'])[0]; }
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
-        type="text/javascript"></script>
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('.datepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD',
-            showClear: true,
-            showClose: true,
-            useCurrent: false,
-            widgetPositioning: {horizontal: 'auto', vertical: 'bottom'},
-            widgetParent: $('.dataTable tfoot')
-        });
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('cargadocumentos/get_purchases_h'); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '1280px',
+        unit: '<?= lang('documents_upload'); ?>'.toLowerCase(),
+        exportName: 'documentos_recibidos',
+        search: ['documento', 'ConsecutivoDocEmisor', 'nombre_emisor', 'NumeroCedulaEmisor', 'FechaEmisionDoc'],
+        chips: { key: 'Estatus', all: '<?= lang('todas'); ?>', label: estLabel, sort: false },
+        totals: ['MontoTotalImpuesto', 'TotalFactura'],
+        map: function (r) { if (r.Estatus == null || r.Estatus === '') r.Estatus = 'noproc'; return r; },
+        columns: [
+            { key: 'documento', label: '<?= lang('documento_label'); ?>', render: function (r) {
+                return r.documento ? NxTable.badge(r.documento, 'violet') : '—';
+            } },
+            { key: 'ConsecutivoDocEmisor', label: '<?= lang('consecutive'); ?>', sortable: 'str', render: function (r) {
+                return r.ConsecutivoDocEmisor ? '<span class="nxt-code">' + NxTable.esc(r.ConsecutivoDocEmisor) + '</span>' : '—';
+            } },
+            { key: 'FechaEmisionDoc', label: '<?= lang('fecha_emision_label'); ?>', sortable: 'str', render: function (r) {
+                return '<span class="nxt-dim-mono">' + NxTable.esc(r.FechaEmisionDoc) + '</span>';
+            } },
+            { key: 'nombre_emisor', label: '<?= lang('supplier'); ?>', sortable: 'str', render: function (r) {
+                return '<span class="nxt-ent-name">' + NxTable.esc(r.nombre_emisor) + '</span>' +
+                    (r.NumeroCedulaEmisor ? '<div class="nxt-ent-meta">' + NxTable.esc(r.NumeroCedulaEmisor) + '</div>' : '');
+            } },
+            { key: 'CodigoMoneda', label: '<?= lang('moneda'); ?>', render: function (r) {
+                var tc = parseFloat(r.TipoCambio);
+                return '<span class="nxt-dim-mono">' + NxTable.esc(r.CodigoMoneda || '—') + (tc && tc !== 1 ? ' · ' + NxTable.num(tc) : '') + '</span>';
+            } },
+            { key: 'MontoTotalImpuesto', label: '<?= lang('tax'); ?>', className: 'num', sortable: 'num', render: function (r) {
+                return '<span class="nxt-cost">' + NxTable.money(r.MontoTotalImpuesto) + '</span>';
+            } },
+            { key: 'TotalFactura', label: '<?= lang('total'); ?>', className: 'num', sortable: 'num', render: function (r) {
+                return '<span class="nxt-price">' + NxTable.money(r.TotalFactura) + '</span>';
+            } },
+            { key: 'Estatus', label: '<?= lang('status'); ?>', render: function (r) {
+                var s = EST[r.Estatus] || ['<?= lang('no_procesado'); ?>', 'muted'];
+                return NxTable.badge(s[0], s[1]);
+            }, exportValue: function (r) { return estLabel(r.Estatus); } },
+            { key: 'status_hacienda', label: 'XML', actions: true },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '130px' }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
     });
-</script>
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
 
-<script type="text/javascript">
-    +function ($) {
-        'use strict';
-
-        // UPLOAD CLASS DEFINITION
-        // ======================
-
-        var dropZone = document.getElementById('drop-zone');
-        var uploadForm = document.getElementById('js-upload-form');
-
-        var startUpload = function (files) {
-            var csrfName = '<?php echo $this->security->get_csrf_token_name(); ?>';
-            var csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
-            var fd = new FormData(); // Create a FormData object
-            for (var i = 0; i < files.length; i++) { // Loop all files
-                fd.append('file_' + i, files[i]); // Create an append() method, one for each file dropped
-            }
-            fd.append('nbr_files', i); // The last append is the number of files
-            fd.append(csrfName, csrfHash);
-            $.ajax({ // JQuery Ajax
-                type: 'POST',
-                url: 'cargadocumentos', // URL to the PHP file which will insert new value in the database
-                data: fd, // We send the data string
-                processData: false,
-                contentType: false,
-                success: function(data) {
-                    $('#resultadoslist').html(data);
-                    $('#exampleModal').modal('show');
-                    new Tabulator('#SLData', ).ajax.reload();
-                },
-                xhrFields: { //
-                    onprogress: function (e) {
-                        if (e.lengthComputable) {
-                            var pourc = e.loaded / e.total * 100;
-                            $('.progress-bar').attr('style', 'width: ' + pourc + '%').attr('aria-valuenow', pourc).text(pourc + '%');
-                        }
-                    }
-                },
-            });
-
-        }
-
-        uploadForm.addEventListener('submit', function (e) {
-            var uploadFiles = document.getElementById('js-upload-files').files;
-            e.preventDefault()
-
-            startUpload(uploadFiles)
+    /* ── Carga de XML (input + drag & drop) → POST file_0..file_n al index ── */
+    function startUpload(files) {
+        if (!files || !files.length) return;
+        var fd = new FormData();
+        var i;
+        for (i = 0; i < files.length; i++) fd.append('file_' + i, files[i]);
+        fd.append('nbr_files', i);
+        fd.append('<?= $this->security->get_csrf_token_name(); ?>', '<?= $this->security->get_csrf_hash(); ?>');
+        fetch('<?= site_url('cargadocumentos'); ?>', {
+            method: 'POST', body: fd, credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-
-        dropZone.ondrop = function (e) {
-            e.preventDefault();
-            this.className = 'upload-drop-zone';
-
-            startUpload(e.dataTransfer.files)
-        }
-
-        dropZone.ondragover = function () {
-            this.className = 'upload-drop-zone drop';
-            return false;
-        }
-
-        dropZone.ondragleave = function () {
-            this.className = 'upload-drop-zone';
-            return false;
-        }
-
-    }(jQuery);
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+            document.getElementById('resultadoslist').innerHTML = html;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('uploadModal')).show();
+            t.load();
+        });
+    }
+    document.getElementById('nxtFiles').addEventListener('change', function () {
+        startUpload(this.files); this.value = '';
+    });
+    var drop = document.getElementById('nxtDrop');
+    drop.addEventListener('click', function () { document.getElementById('nxtFiles').click(); });
+    drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.style.borderColor = 'var(--nx-a1)'; drop.style.color = 'var(--nx-a1)'; });
+    drop.addEventListener('dragleave', function () { drop.style.borderColor = ''; drop.style.color = ''; });
+    drop.addEventListener('drop', function (e) {
+        e.preventDefault(); drop.style.borderColor = ''; drop.style.color = '';
+        startUpload(e.dataTransfer.files);
+    });
+});
 </script>
-

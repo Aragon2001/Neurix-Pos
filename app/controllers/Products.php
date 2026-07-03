@@ -38,13 +38,13 @@ class Products extends MY_Controller {
 
         $this->load->library('datatables');
         if ($this->Admin) {
-            $this->datatables->select($this->db->dbprefix('products') . ".id as pid, ubicacion, " . $this->db->dbprefix('products') . ".image as image, " . $this->db->dbprefix('products') . ".code as code, " . $this->db->dbprefix('products') . ".name as pname, type, " . $this->db->dbprefix('categories') . ".name as cname, psq.quantity, tax, tax_method, cost,"
+            $this->datatables->select($this->db->dbprefix('products') . ".id as pid, ubicacion, " . $this->db->dbprefix('products') . ".alert_quantity as alert_quantity, " . $this->db->dbprefix('products') . ".image as image, " . $this->db->dbprefix('products') . ".code as code, " . $this->db->dbprefix('products') . ".name as pname, type, " . $this->db->dbprefix('categories') . ".name as cname, psq.quantity, tax, tax_method, cost,"
                     . " (CASE WHEN psq.price > 0 THEN "
                     . "     CASE WHEN tax_method = 0 THEN psq.price ELSE psq.price + (psq.price * (tax / 100)) END  "
                     . "ELSE "
                     . "     CASE WHEN tax_method = 0 THEN {$this->db->dbprefix('products')}.price ELSE {$this->db->dbprefix('products')}.price + ({$this->db->dbprefix('products')}.price * (tax / 100)) END  END) as price, {$this->db->dbprefix('products')}.offer_price as offer_price, barcode_symbology", FALSE);
         } else {
-            $this->datatables->select($this->db->dbprefix('products') . ".id as pid, " . $this->db->dbprefix('products') . ".image as image, " . $this->db->dbprefix('products') . ".code as code, " . $this->db->dbprefix('products') . ".name as pname, type, " . $this->db->dbprefix('categories') . ".name as cname, psq.quantity, tax, tax_method, (CASE WHEN psq.price > 0 THEN psq.price ELSE {$this->db->dbprefix('products')}.price END) as price, {$this->db->dbprefix('products')}.offer_price as offer_price, barcode_symbology", FALSE);
+            $this->datatables->select($this->db->dbprefix('products') . ".id as pid, ubicacion, " . $this->db->dbprefix('products') . ".alert_quantity as alert_quantity, " . $this->db->dbprefix('products') . ".image as image, " . $this->db->dbprefix('products') . ".code as code, " . $this->db->dbprefix('products') . ".name as pname, type, " . $this->db->dbprefix('categories') . ".name as cname, psq.quantity, tax, tax_method, (CASE WHEN psq.price > 0 THEN psq.price ELSE {$this->db->dbprefix('products')}.price END) as price, {$this->db->dbprefix('products')}.offer_price as offer_price, barcode_symbology", FALSE);
         }
 
         $this->datatables->from('products')
@@ -62,7 +62,9 @@ class Products extends MY_Controller {
                 . "<a href='" . site_url('products/delete/$1') . "' data-confirm=\"" . lang('alert_x_product') . "\" title='" . lang("delete_product") . "' class='tip btn btn-danger btn-xs'>"
                 . "<i class='fa fa-trash-o'></i></a></div></div>", "pid, image, code, pname, barcode_symbology");
 
-        $this->datatables->unset_column('pid')->unset_column('barcode_symbology');
+        // pid se conserva en la respuesta: la vista rediseñada construye las acciones
+        // en el cliente y necesita el id del producto
+        $this->datatables->unset_column('barcode_symbology');
 
         echo $this->datatables->generate();
     }

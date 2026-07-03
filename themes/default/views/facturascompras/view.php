@@ -6,7 +6,7 @@
         PDF <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" role="menu2">
-        <li><a onclick="imprimir()"target="_blank">Ver PDF/Descargar PDF</a></li>
+        <li><a onclick="imprimir()"target="_blank"><?= lang('ver_pdf'); ?></a></li>
         </li>
         </ul>
     </div>
@@ -30,13 +30,11 @@
                                                              <?=$hacienda->consecutivo?></h4>
                                                         <i>
                                                             <? if ($inv->status == 'Unpaid') { ?>
-                                                            <h3 class="pluma alert float-start alert-danger">No
-                                                                Pagada</h3>
+                                                            <h3 class="pluma alert float-start alert-danger"><?= lang('no_pagada'); ?></h3>
                                                             <? }else if ($inv->status == 'Paid') { ?>
-                                                            <h3 class="pluma alert float-start alert-success">Pagada</h3>
+                                                            <h3 class="pluma alert float-start alert-success"><?= lang('pagada'); ?></h3>
                                                             <? } else if ($inv->status == 'Partially Paid') { ?>
-                                                            <h3 class="pluma alert float-start alert-info">Parcialmente
-                                                                Pagada</h3>
+                                                            <h3 class="pluma alert float-start alert-info"><?= lang('parcialmente_pagada'); ?></h3>
                                                             <? } else { ?>
                                                             <h3 class="pluma alert float-start alert-info"><?= $inv->status ?></h3>
                                                             <? } ?>
@@ -44,7 +42,7 @@
                                                         <br/>
                                                         <br/>
                                                         <br/>
-                                                        <h4><b>Mensaje de Hacienda:</b> <span
+                                                        <h4><b><?= lang('mensaje_hacienda'); ?>:</b> <span
                                                                     style="color: <?=$hacienda->estatus_hacienda != 'aceptado'? 'red' : 'green'?>;">Comprobante Electronico <?=$hacienda->estatus_hacienda?></span>
                                                         </h4>
                                                     </div>
@@ -62,8 +60,7 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="bill-to">
-                                                            <p class="h5 mb-xs text-dark text-semibold"><strong>Facturado
-                                                                    a:</strong></p>
+                                                            <p class="h5 mb-xs text-dark text-semibold"><strong><?= lang('facturado_a'); ?>:</strong></p>
                                                             <address>
                                                                 <?= $customer->name ?>
                                                                 <br>
@@ -71,11 +68,9 @@
                                                                 <?=$local['nombre_distrito']?> - <?=$local['nombre_canton']?>
                                                                 - <?=$local['nombre_provincia']?>.
                                                                 <br>
-                                                                <strong>Telefono(s)
-                                                                    :</strong> <?= $customer->phone ?>
+                                                                <strong><?= lang('phone'); ?>:</strong> <?= $customer->phone ?>
                                                                 <br>
-                                                                <strong>Correo
-                                                                    :</strong> <?= $customer->email?>
+                                                                <strong><?= lang('email'); ?>:</strong> <?= $customer->email?>
                                                             </address>
 
                                                         </div>
@@ -83,16 +78,13 @@
                                                     <div class="col-md-6">
                                                         <div class="bill-data text-right">
                                                             <p class="mb-none">
-                                                                <span class="text-dark">Fecha de la Factura:</span>
+                                                                <span class="text-dark"><?= lang('fecha_factura'); ?>:</span>
                                                                 <span class="value"><?= date('Y-m-d', strtotime($hacienda->fecha_emision)) ?></span>
                                                             </p>
-                                                            <h2> Importe Total:
-                                                              ¢ <?= number_format($inv->grand_total, 2, '.', '') ?></h2>
+                                                            <h2><?= lang('importe_total'); ?>:                 ¢ <?= number_format($inv->grand_total, 2, '.', '') ?></h2>
                                                             <? if ($inv->paid != '0.00') { ?>
-                                                            <h2> Total
-                                                                pagado: ¢ <?= number_format($inv->paid, 2, '.', '') ?> </h2>
-                                                            <h2> Monto
-                                                                adeudado:¢ <?= number_format($inv->grand_total - $inv->paid, 2, '.', '') ?> </h2>
+                                                            <h2><?= lang(\'total_pagado\'); ?>: ¢ <?= number_format($inv->paid, 2, '.', '') ?> </h2>
+                                                            <h2><?= lang(\'monto_adeudado\'); ?>:¢ <?= number_format($inv->grand_total - $inv->paid, 2, '.', '') ?> </h2>
                                                             <? } ?>
                                                         </div>
                                                     </div>
@@ -104,13 +96,13 @@
                                                     <thead>
                                                     <tr class="h4 text-dark">
                                                         <th id="cell-id" class="text-semibold">#</th>
-                                                        <th id="cell-item" class="text-semibold">Artículo</th>
-                                                        <th id="cell-price" class="text-center text-semibold">Precio</th>
-                                                        <th id="cell-qty" class="text-center text-semibold">Cant.</th>
-                                                        <th id="cell-total" class="text-center text-semibold">MontoTotal</th>
-                                                        <th id="cell-total" class="text-center text-semibold">Descuento</th>
-                                                        <th id="cell-total" class="text-center text-semibold">SubTotal</th>
-                                                        <th id="cell-total" class="text-center text-semibold">Imp.</th>
+                                                        <th id="cell-item" class="text-semibold"><?= lang('articulo'); ?></th>
+                                                        <th id="cell-price" class="text-center text-semibold"><?= lang('price'); ?></th>
+                                                        <th id="cell-qty" class="text-center text-semibold"><?= lang('cant'); ?></th>
+                                                        <th id="cell-total" class="text-center text-semibold"><?= lang('monto_total'); ?></th>
+                                                        <th id="cell-total" class="text-center text-semibold"><?= lang('discount'); ?></th>
+                                                        <th id="cell-total" class="text-center text-semibold"><?= lang('subtotal'); ?></th>
+                                                        <th id="cell-total" class="text-center text-semibold"><?= lang('imp'); ?></th>
 
                                                     </tr>
                                                     </thead>
@@ -146,55 +138,55 @@
                                                             <table class="table h5 text-dark">
                                                                 <tbody>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalServGravados</td>
+                                                                    <td colspan="2"><?= lang('total_serv_gravados'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalServGravados'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalServExentos</td>
+                                                                    <td colspan="2"><?= lang('total_serv_exentos'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalServExentos'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalServExonerado</td>
+                                                                    <td colspan="2"><?= lang('total_serv_exonerado'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalServExonerado'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalMercanciasGravadas</td>
+                                                                    <td colspan="2"><?= lang('total_merc_gravadas'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalMercanciasGravadas'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalMercanciasExentas</td>
+                                                                    <td colspan="2"><?= lang('total_merc_exentas'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalMercanciasExentas'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalMercExonerada</td>
+                                                                    <td colspan="2"><?= lang('total_merc_exonerada'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalMercExonerada'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalGravado</td>
+                                                                    <td colspan="2"><?= lang('total_gravado'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalGravado'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalExento</td>
+                                                                    <td colspan="2"><?= lang('total_exento'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalExento'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalExonerado</td>
+                                                                    <td colspan="2"><?= lang('total_exonerado'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalExonerado'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalVenta</td>
+                                                                    <td colspan="2"><?= lang('total_venta'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalVenta'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalDescuentos</td>
+                                                                    <td colspan="2"><?= lang('total_descuentos'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalDescuentos'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalImpuesto</td>
+                                                                    <td colspan="2"><?= lang('total_impuesto_fec'); ?></td>
                                                                     <td class="text-right">¢  <?= number_format($totales['TotalImpuesto'], 2,'.', '') ?></td>
                                                                 </tr>
                                                                 <tr class="b-top-none">
-                                                                    <td colspan="2">TotalComprobante</td>
+                                                                    <td colspan="2"><?= lang('total_comprobante'); ?></td>
                                                                     <td class="text-right"><b>¢  <?= number_format($totales['TotalComprobante'], 2,'.', '' ) ?></b></td>
                                                                 </tr>
 

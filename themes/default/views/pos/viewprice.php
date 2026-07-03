@@ -97,9 +97,9 @@ if ($modal) {
             <div id="wrapper">
                 <div class="row">
                     <div class="col-md-12">
-                        <h2 style="text-align: center; width: 100%; color: green;"><i>Consulta de Articulos</i> </h2>
+                        <h2 style="text-align: center; width: 100%; color: green;"><i><?= lang('consulta_articulos'); ?></i> </h2>
                         <div class="mb-3">
-                            <legend style="text-align: center">Busca por codigo del Producto *</legend>
+                            <legend style="text-align: center"><?= lang('buscar_cod_producto'); ?> *</legend>
                             <input id="search_code" class="form-control"/>
                         </div>
                         <label id="productoname"

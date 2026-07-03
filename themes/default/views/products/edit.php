@@ -82,24 +82,24 @@
                                     <?= form_input('cost', $product->cost, 'class="form-control tip" id="cost"  required="required"'); ?>
                                 </div>
                                 <div class="mb-3 st">
-                                    <b>Margen de ganancia</b> <i>indique el porcentaje sin el simbolo %</i>
+                                    <b><?= lang('margen_ganancia'); ?></b> <i>%</i>
                                     <?= form_input('margen', $product->margen, 'class="form-control tip" id = "margen"'); ?>
                                 </div>
 
 
                                 <?php if ($Settings->enable_fractions == 1) { ?> 
                                     <div class="mb-3">
-                                        <b>Presentacion de venta del Articulo</b><br/>
+                                        <b><?= lang('presentacion_venta'); ?></b><br/>
 
-                                        <b>Caja</b>
+                                        <b><?= lang('caja_col'); ?></b>
                                         <input type="checkbox" name="present_caja" <?= $product->present_caja == "1" ? "checked='checked'" : '' ?> checked value="<?= $product->present_caja ?>" class="form-control tip" id="present_caja" />
 
-                                        <b>Fraccion</b>
+                                        <b><?= lang('fraccion'); ?></b>
                                         <input type="checkbox" name="present_fraccion" <?= $product->present_fraccion == "1" ? "checked='checked'" : '' ?> checked value="<?= $product->present_fraccion ?>" class="form-control tip" id="present_fraccion" />
 
                                     </div>
                                     <div class="mb-3" <?= $product->present_fraccion == "1" ? '' : 'style="display: none;"' ?> id="div_fracciones">
-                                        <b>Cantidad de fracciones en la caja</b>
+                                        <b><?= lang('fracciones_caja'); ?></b>
                                         <?= form_input('caja_fraccionada', $product->caja_fraccionada, 'class="form-control tip" id = "caja_fraccionada" '); ?>
                                     </div>
                                 <?php } ?>
@@ -184,16 +184,16 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="cabys">Código CABYS <small>(Clasificador Hacienda — 13 dígitos)</small></label>
-                                    <input type="text" id="cabys-buscar" class="form-control tip" placeholder="Buscar por descripción (mín. 3 caracteres)..." autocomplete="off" style="margin-bottom:4px;">
-                                    <?= form_input('cabys', set_value('cabys', @$product->cabys), 'class="form-control tip" id="cabys" maxlength="13" placeholder="Ej: 8101102000000"'); ?>
+                                    <label for="cabys"><?= lang('cabys_label'); ?></label>
+                                    <input type="text" id="cabys-buscar" class="form-control tip" placeholder="<?= lang('buscar_cabys_desc_min3'); ?>" autocomplete="off" style="margin-bottom:4px;">
+                                    <?= form_input('cabys', set_value('cabys', @$product->cabys), 'class="form-control tip" id="cabys" maxlength="13" placeholder="' . lang('placeholder_cabys') . '"'); ?>
                                     <span id="cabys-info" class="help-block" style="display:none;color:var(--success);"></span>
-                                    <span class="help-block">Busque por descripción o escriba el código de 13 dígitos directamente.</span>
+                                    <span class="help-block"><?= lang('cabys_help_text'); ?></span>
                                 </div>
 
                                 <div class="mb-3">
                                     <?= lang('image', 'image'); ?>
-									<p>Tiene que tener un peso máximo de 500 MB y tamaño máximo de 1000 px</p>
+									<p><?= lang('imagen_req'); ?></p>
                                     <input type="file" name="userfile" id="image">
                                 </div>
                             </div>
@@ -270,7 +270,7 @@
                                             <div class="mb-3"
                                                 <?php if (!@$product->present_fraccion) { ?>style="display: none;"<?php } ?>
                                                  id="div_qty_fracc">
-                                                <b>Cantidad de Fracciones </b>
+                                                <b><?= lang('cantidad_fracciones'); ?></b>
                                             <?= form_input('qty_fracc', set_value('qty_fracc', $this->tec->formatDecimal(@$stores_quantities->qty_fracc ? @$stores_quantities->qty_fracc : 0)), 'class="form-control tip" id="qty_fracc"'); ?>
                                             </div>
                                     <?php } ?>
@@ -280,9 +280,9 @@
 <div class="st">
                                     <div class="mb-3">
                                         <?= lang('Ubicacion', 'Ubicacion'); ?>
-                                        <input id="seccion" class="form-control" placeholder="Seccion">
-                                        <input id="tramo" class="form-control" placeholder="Tramo">
-                                        <span  id='addubicacion' class="btn btn-success">Agregar Ubicacion</span>
+                                        <input id="seccion" class="form-control" placeholder="<?= lang('seccion'); ?>">
+                                        <input id="tramo" class="form-control" placeholder="<?= lang('tramo'); ?>">
+                                        <span  id='addubicacion' class="btn btn-success"><?= lang('agregar_ubicacion'); ?></span>
                                     </div>
                                 </div>
 
@@ -320,8 +320,8 @@
                                         <thead>
                                         <tr>
                                             <th></th>
-                                            <th>SECCION</th>
-                                            <th>TRAMO</th>
+                                            <th><?= lang('seccion'); ?></th>
+                                            <th><?= lang('tramo'); ?></th>
                                         </tr>
                                         </thead>
                                         <tbody id="tbodyubicacion">
@@ -336,21 +336,21 @@
                                         </tbody>
                                     </table>
                 </div>
-                                    <button type="button" class="delete-row btn btn-warning">Eliminar Seccion</button>
+                                    <button type="button" class="delete-row btn btn-warning"><?= lang('eliminar_seccion'); ?></button>
                                 </div>
                             </div>
                         </div>
                         <?php if($this->Settings->multiprice_enabled == 1): ?>
                         <div class="box box-info" style="margin:20px 0;">
-                            <div class="box-header"><h4 class="box-title"><i class="fa fa-dollar"></i> Configure los Precios</h4></div>
+                            <div class="box-header"><h4 class="box-title"><i class="fa fa-dollar"></i> <?= lang('configure_precios'); ?></h4></div>
                             <div class="box-body table-responsive">
                 <div class="table-responsive">
                             <table class="table table-bordered table-striped" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th class="text-center">Lista de Precio</th>
-                                        <th class="text-center">Margen de ganancia en base al costo</th>
-                                        <th class="text-center">Precio</th>
+                                        <th class="text-center"><?= lang('lista_de_precio'); ?></th>
+                                        <th class="text-center"><?= lang('margen_ganancia_costo'); ?></th>
+                                        <th class="text-center"><?= lang('price'); ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -568,7 +568,7 @@
                 tr_html = '<td><input name="combo_item_code[]" type="hidden" value="' + item.code + '"><span id="name_' + row_no + '">' + item.name + ' (' + item.code + ')</span></td>';
                 tr_html += '<td><input class="form-control text-center rqty" name="combo_item_quantity[]" type="text" value="' + formatDecimal(item.qty) + '" data-id="' + row_no + '" data-item="' + item.id + '" id="quantity_' + row_no + '" onClick="this.select();"></td>';
                 //tr_html += '<td><input class="form-control text-center rprice" name="combo_item_price[]" type="text" value="' + formatDecimal(item.price) + '" data-id="' + row_no + '" data-item="' + item.id + '" id="combo_item_price_' + row_no + '" onClick="this.select();"></td>';
-                tr_html += '<td class="text-center"><i class="fa fa-times tip del" id="' + row_no + '" title="Remove" style="cursor:pointer;"></i></td>';
+                tr_html += '<td class="text-center"><i class="fa fa-times tip del" id="' + row_no + '" title="<?= lang("remove"); ?>" style="cursor:pointer;"></i></td>';
                 newTr.html(tr_html);
                 newTr.prependTo("#prTable");
                 //price += formatDecimal(item.price*item.qty);

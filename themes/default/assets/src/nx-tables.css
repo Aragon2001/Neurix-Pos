@@ -1,0 +1,200 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NX-TABLES.CSS — Neurix POS Design System: listados / tablas de datos
+   Sistema reusable para TODAS las páginas con tablas (productos, clientes,
+   ventas, compras, reportes, etc.). Namespace: .nxt-*
+   Usa las variables de neurix-theme-vars.css → soporta dark/light automático.
+
+   Estructura tipo:
+   .nxt-head            → título de página + botones de acción
+   .nxt-kpis > .nxt-kpi → tarjetas resumen (opcional)
+   .nxt-card            → tarjeta glassmorphism que envuelve la tabla
+     .nxt-toolbar       → búsqueda + chips de filtro + contador
+     .nxt-table-wrap > table.nxt-table
+     .nxt-foot          → info + paginación
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Encabezado de página ── */
+.nxt-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.nxt-title{font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--nx-txt1)}
+.nxt-title small{display:block;font-size:12.5px;font-weight:400;color:var(--nx-txt3);margin-top:4px;letter-spacing:0}
+.nxt-head-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+.nxt-btn{
+  display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;text-decoration:none;
+  font:600 13.5px inherit;font-family:inherit;border-radius:10px;padding:10px 16px;
+  transition:var(--nx-transition);
+  color:#06121f;background:linear-gradient(135deg,var(--nx-a1),var(--nx-info));
+  box-shadow:0 6px 18px -6px rgba(56,189,248,.55);
+}
+.nxt-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px -6px rgba(56,189,248,.65);color:#06121f}
+[data-theme="light"] .nxt-btn{color:#fff}
+[data-theme="light"] .nxt-btn:hover{color:#fff}
+.nxt-btn-ghost{
+  background:var(--nx-card-bg2);color:var(--nx-txt2);border:1px solid var(--nx-border);box-shadow:none;
+}
+.nxt-btn-ghost:hover{border-color:var(--nx-border3);color:var(--nx-txt1);box-shadow:none;transform:translateY(-1px)}
+
+/* ── KPI strip ── */
+.nxt-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+.nxt-kpi{
+  position:relative;overflow:hidden;
+  background:var(--nx-card-bg2);border:1px solid var(--nx-border);border-radius:var(--nx-radius);
+  padding:15px 18px;backdrop-filter:blur(12px);
+}
+.nxt-kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--kpi-c,var(--nx-a1));border-radius:3px}
+.nxt-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--nx-txt3);display:flex;align-items:center;gap:7px}
+.nxt-kpi-label svg{color:var(--kpi-c,var(--nx-a1));flex-shrink:0}
+.nxt-kpi-value{font-size:23px;font-weight:700;margin-top:6px;letter-spacing:-.02em;color:var(--nx-txt1);font-variant-numeric:tabular-nums}
+.nxt-kpi-sub{font-size:12px;color:var(--nx-txt4);margin-top:2px}
+
+/* ── Tarjeta principal ── */
+.nxt-card{
+  background:var(--nx-card-bg);border:1px solid var(--nx-border);border-radius:var(--nx-radius-lg);
+  backdrop-filter:blur(16px);box-shadow:var(--nx-shadow-sm);overflow:hidden;
+}
+
+/* ── Toolbar ── */
+.nxt-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--nx-border)}
+.nxt-search{
+  flex:1 1 260px;display:flex;align-items:center;gap:9px;
+  background:var(--nx-input-bg);border:1px solid var(--nx-border);border-radius:10px;padding:8px 13px;
+  transition:var(--nx-transition);
+}
+.nxt-search:focus-within{border-color:var(--nx-border3);box-shadow:0 0 0 3px rgba(56,189,248,.14);background:var(--nx-input-focus)}
+.nxt-search svg{color:var(--nx-txt4);flex-shrink:0}
+.nxt-search input{flex:1;background:none;border:0;outline:0;color:var(--nx-txt1);font:400 13.5px inherit;font-family:inherit;min-width:0}
+.nxt-search input::placeholder{color:var(--nx-txt4)}
+
+.nxt-chips{display:flex;gap:8px;flex-wrap:wrap;max-width:100%}
+.nxt-chip{
+  border:1px solid var(--nx-border);background:var(--nx-card-bg2);color:var(--nx-txt3);
+  font:600 12px inherit;font-family:inherit;padding:7px 13px;border-radius:999px;cursor:pointer;
+  transition:var(--nx-transition);white-space:nowrap;
+}
+.nxt-chip:hover{color:var(--nx-txt1);border-color:var(--nx-border3)}
+.nxt-chip.active{background:var(--nx-active-bg);border-color:var(--nx-border3);color:var(--nx-a1)}
+.nxt-count{font-size:12.5px;color:var(--nx-txt4);margin-left:auto;white-space:nowrap}
+
+/* ── Tabla ── */
+.nxt-table-wrap{overflow-x:auto}
+.nxt-table{width:100%;border-collapse:collapse;margin:0}
+.nxt-table thead th{
+  position:sticky;top:0;z-index:2;
+  font:700 10.5px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.09em;color:var(--nx-txt4);
+  text-align:left;padding:11px 14px;background:var(--nx-card-bg);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--nx-border);user-select:none;white-space:nowrap;
+}
+.nxt-table thead th.sortable{cursor:pointer}
+.nxt-table thead th.sortable:hover{color:var(--nx-a1)}
+.nxt-table thead th .arrow{font-size:9px;margin-left:4px;opacity:.7}
+.nxt-table tbody td{padding:11px 14px;border-bottom:1px solid var(--nx-border2);vertical-align:middle;font-size:13.5px;color:var(--nx-txt2)}
+.nxt-table tbody tr{transition:background .14s}
+.nxt-table tbody tr:hover{background:var(--nx-hover-bg)}
+.nxt-table tbody tr:last-child td{border-bottom:0}
+.nxt-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.nxt-table th.num{text-align:right}
+.nxt-table .ctr{text-align:center}
+
+/* Celda producto/entidad (avatar + nombre + meta) */
+.nxt-ent{display:flex;align-items:center;gap:12px;min-width:210px}
+.nxt-avatar{
+  width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font:700 12.5px inherit;font-family:inherit;color:#fff;letter-spacing:.02em;flex-shrink:0;
+  background:linear-gradient(135deg,var(--av1,var(--nx-info)),var(--av2,var(--nx-a1)));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18), 0 4px 10px -4px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.nxt-avatar img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.nxt-ent-name{font-weight:600;line-height:1.25;color:var(--nx-txt1)}
+.nxt-ent-meta{font-size:11.5px;color:var(--nx-txt4);margin-top:2px}
+
+/* Código / referencia mono */
+.nxt-code{
+  font:600 11.5px 'Cascadia Code','SF Mono',Consolas,monospace;color:var(--nx-txt3);
+  background:var(--nx-card-bg2);border:1px solid var(--nx-border);
+  padding:4px 8px;border-radius:7px;white-space:nowrap;
+}
+
+/* Badge de categoría / estado con color dinámico (--cat-c) */
+.nxt-cat{
+  display:inline-flex;align-items:center;gap:6px;font:600 11.5px inherit;font-family:inherit;
+  padding:5px 11px;border-radius:999px;white-space:nowrap;
+  color:var(--cat-c,var(--nx-a1));
+  background:color-mix(in srgb, var(--cat-c,var(--nx-a1)) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--cat-c,var(--nx-a1)) 35%, transparent);
+}
+.nxt-cat::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cat-c,var(--nx-a1));flex-shrink:0}
+
+/* Stock con barra de progreso */
+.nxt-stock{min-width:110px}
+.nxt-stock-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:5px}
+.nxt-stock-n{font-weight:700;font-variant-numeric:tabular-nums;color:var(--nx-txt1)}
+.nxt-stock-state{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.nxt-bar{height:5px;border-radius:99px;background:var(--nx-border2);overflow:hidden}
+.nxt-bar i{display:block;height:100%;border-radius:99px;transition:width .5s ease}
+.s-ok  .nxt-stock-state{color:var(--nx-emerald)} .s-ok  .nxt-bar i{background:linear-gradient(90deg,var(--nx-ok),var(--nx-emerald))}
+.s-low .nxt-stock-state{color:var(--nx-amber)}   .s-low .nxt-bar i{background:linear-gradient(90deg,var(--nx-warn),var(--nx-amber))}
+.s-out .nxt-stock-state{color:var(--nx-err)}     .s-out .nxt-bar i{background:var(--nx-err)}
+
+/* Precios / dinero */
+.nxt-price{font-weight:700;font-variant-numeric:tabular-nums;color:var(--nx-txt1)}
+.nxt-cost{color:var(--nx-txt3);font-variant-numeric:tabular-nums}
+.nxt-offer{color:var(--nx-emerald);font-weight:700;font-variant-numeric:tabular-nums}
+.nxt-old{color:var(--nx-txt4);text-decoration:line-through;font-size:11.5px;display:block}
+
+/* Margen / porcentaje */
+.nxt-margin{
+  display:inline-block;font:700 11px 'Cascadia Code',Consolas,monospace;padding:3px 8px;border-radius:7px;
+  background:color-mix(in srgb, var(--nx-emerald) 12%, transparent);color:var(--nx-emerald);
+  border:1px solid color-mix(in srgb, var(--nx-emerald) 28%, transparent);
+}
+.nxt-margin.mid{
+  background:color-mix(in srgb, var(--nx-amber) 12%, transparent);color:var(--nx-amber);
+  border-color:color-mix(in srgb, var(--nx-amber) 28%, transparent);
+}
+.nxt-margin.low{
+  background:color-mix(in srgb, var(--nx-err) 12%, transparent);color:var(--nx-err);
+  border-color:color-mix(in srgb, var(--nx-err) 28%, transparent);
+}
+
+/* Valor secundario mono (IVA, tasas) */
+.nxt-dim-mono{font:600 11.5px 'Cascadia Code',Consolas,monospace;color:var(--nx-txt3)}
+
+/* Acciones */
+.nxt-actions{display:flex;gap:6px;justify-content:flex-end}
+.nxt-icon-btn{
+  width:31px;height:31px;border-radius:9px;border:1px solid var(--nx-border);
+  background:var(--nx-card-bg2);color:var(--nx-txt3);cursor:pointer;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;transition:var(--nx-transition);flex-shrink:0;
+}
+.nxt-icon-btn:hover{transform:translateY(-1px);color:var(--nx-a1);border-color:var(--nx-border3);background:var(--nx-active-bg)}
+.nxt-icon-btn.warn:hover{color:var(--nx-amber);border-color:color-mix(in srgb,var(--nx-amber) 50%,transparent);background:color-mix(in srgb,var(--nx-amber) 10%,transparent)}
+.nxt-icon-btn.danger:hover{color:var(--nx-err);border-color:color-mix(in srgb,var(--nx-err) 50%,transparent);background:color-mix(in srgb,var(--nx-err) 10%,transparent)}
+
+/* Footer / paginación */
+.nxt-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 18px;border-top:1px solid var(--nx-border);font-size:12.5px;color:var(--nx-txt4)}
+.nxt-pages{display:flex;gap:6px;flex-wrap:wrap}
+.nxt-page-btn{
+  min-width:30px;height:30px;padding:0 9px;border-radius:8px;border:1px solid var(--nx-border);
+  background:var(--nx-card-bg2);color:var(--nx-txt3);font:600 12px inherit;font-family:inherit;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;transition:var(--nx-transition);
+}
+.nxt-page-btn:hover:not(:disabled){color:var(--nx-txt1);border-color:var(--nx-border3)}
+.nxt-page-btn:disabled{opacity:.35;cursor:default}
+.nxt-page-btn.active{background:var(--nx-active-bg);border-color:var(--nx-border3);color:var(--nx-a1)}
+
+/* Estados vacío / cargando */
+.nxt-empty{padding:48px;text-align:center;color:var(--nx-txt4);font-size:14px}
+.nxt-loading{padding:48px;text-align:center;color:var(--nx-txt3);font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:10px}
+.nxt-loading svg{animation:nxt-spin 1s linear infinite;color:var(--nx-a1)}
+@keyframes nxt-spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:640px){
+  .nxt-title{font-size:20px}
+  .nxt-count{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .nxt-btn,.nxt-chip,.nxt-icon-btn,.nxt-page-btn,.nxt-bar i{transition:none!important}
+  .nxt-loading svg{animation:none!important}
+}

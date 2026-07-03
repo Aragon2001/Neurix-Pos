@@ -20,13 +20,13 @@ if ($this->input->post('end_date')) {
     $(document).ready(function () {
 
         function status(x) {
-            var a = 'No Procesado';
-            var b = 'Aceptado';
-            var c = 'Procesando';
-            var d = 'Error';
-            var e = 'Rechazado';
-            var f = 'Recibido';
-            var g = 'Enviado a Hacienda';
+            var a = '<?= lang('no_procesado'); ?>';
+            var b = '<?= lang('aceptado'); ?>';
+            var c = '<?= lang('procesando'); ?>';
+            var d = '<?= lang('error'); ?>';
+            var e = '<?= lang('rechazado'); ?>';
+            var f = '<?= lang('recibido'); ?>';
+            var g = '<?= lang('enviado_hacienda'); ?>';
             if (x == 'aceptado') {
                 return '<div class="text-center"><span class="sale_status label label-success">' + b + '</span></div>';
             } else if (x == 'procesando') {
@@ -193,7 +193,7 @@ if ($this->input->post('end_date')) {
                             <div class="row">
                                 <div class="col-sm-3">
                                     <div class="mb-3">
-                                        <label class="form-label" for="user">Vendedor</label>
+                                        <label class="form-label" for="user"><?= lang('vendedor'); ?></label>
                                         <?php
                                         $us[""] = "";
                                         foreach ($users as $user) {
@@ -206,12 +206,12 @@ if ($this->input->post('end_date')) {
 
                                 <div class="col-sm-3">
                                     <div class="mb-3">
-                                        <label class="form-label" for="start_date">Mes</label>
+                                        <label class="form-label" for="start_date"><?= lang('mes'); ?></label>
                                         <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"'); ?>
                                     </div>
                                 </div>
                                 <div class="col-sm-12">
-                                    <button type="submit" style="width: 100%" class="btn btn-primary">Buscar</button>
+                                    <button type="submit" style="width: 100%" class="btn btn-primary"><?= lang('buscar'); ?></button>
                                 </div>
                             </div>
                             <?= form_close(); ?>
@@ -232,23 +232,23 @@ if ($this->input->post('end_date')) {
                                     </tr>
                                     <tr class="active">
                                         <th class="col-2"><?= lang("date"); ?></th>
-                                        <th class="col-1"><?= lang("status"); ?> de Hacienda</th>
+                                        <th class="col-1"><?= lang('status_hacienda_col'); ?></th>
                                         <th class="col-1"><?= lang("document_type"); ?></th>
                                         <th class="col-1"><?= lang("consecutive"); ?></th>
-                                        <th class="col-2">Proveedor</th>
-                                        <th class="col-2">T. Doc</th>
-                                        <th class="col-2">N° Doc</th>
-                                        <th class="col-2">Correo</th>
-                                        <th class="col-2">Total Serv. Gravados</th>
-                                        <th class="col-2">Total Serv. Exentos</th>
-                                        <th class="col-2">Total Merc. Gravados</th>
-                                        <th class="col-2">Total Merc. Exentos</th>
-                                        <th class="col-2">Total Gravados</th>
-                                        <th class="col-2">Total Exentos</th>
-                                        <th>Monto Total Impuesto</th>
-                                        <th class="col-2">Total Compra</th>
-                                        <th class="col-2">Total Compra Neta</th>
-                                        <th class="col-2">Total Comprobante</th>
+                                        <th class="col-2"><?= lang('supplier'); ?></th>
+                                        <th class="col-2"><?= lang('t_doc'); ?></th>
+                                        <th class="col-2"><?= lang('n_doc'); ?></th>
+                                        <th class="col-2"><?= lang('email'); ?></th>
+                                        <th class="col-2"><?= lang('total_serv_gravados'); ?></th>
+                                        <th class="col-2"><?= lang('total_serv_exentos'); ?></th>
+                                        <th class="col-2"><?= lang('total_merc_gravados'); ?></th>
+                                        <th class="col-2"><?= lang('total_merc_exentos'); ?></th>
+                                        <th class="col-2"><?= lang('total_gravados'); ?></th>
+                                        <th class="col-2"><?= lang('total_exentos'); ?></th>
+                                        <th><?= lang('monto_total_impuesto'); ?></th>
+                                        <th class="col-2"><?= lang('total_compra'); ?></th>
+                                        <th class="col-2"><?= lang('total_compra_neta'); ?></th>
+                                        <th class="col-2"><?= lang('total_comprobante'); ?></th>
                                     </tr>
                                     </thead>
                                     <tbody>

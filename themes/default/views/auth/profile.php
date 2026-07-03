@@ -20,31 +20,31 @@
                                 <li class="active">
                                     <a href="#tab-info" data-toggle="pill">
                                         <i class="fa fa-user"></i>
-                                        <span class="nx-nav-label"><?= lang('edit'); ?><span class="nx-nav-sub">Información personal</span></span>
+                                        <span class="nx-nav-label"><?= lang('edit'); ?><span class="nx-nav-sub"><?= lang('info_personal'); ?></span></span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="#tab-avatar" data-toggle="pill">
                                         <i class="fa fa-image"></i>
-                                        <span class="nx-nav-label"><?= lang('avatar'); ?><span class="nx-nav-sub">Foto de perfil</span></span>
+                                        <span class="nx-nav-label"><?= lang('avatar'); ?><span class="nx-nav-sub"><?= lang('foto_de_perfil'); ?></span></span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="#tab-horario" data-toggle="pill">
                                         <i class="fa fa-clock-o"></i>
-                                        <span class="nx-nav-label">Horario<span class="nx-nav-sub">Entrada y salida</span></span>
+                                        <span class="nx-nav-label"><?= lang('horario'); ?><span class="nx-nav-sub"><?= lang('entrada_y_salida'); ?></span></span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="#tab-caja" data-toggle="pill">
                                         <i class="fa fa-unlock-alt"></i>
-                                        <span class="nx-nav-label">Apertura de Caja<span class="nx-nav-sub">Permiso de apertura</span></span>
+                                        <span class="nx-nav-label"><?= lang('apertura_caja'); ?><span class="nx-nav-sub"><?= lang('permiso_apertura'); ?></span></span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="#tab-password" data-toggle="pill">
                                         <i class="fa fa-lock"></i>
-                                        <span class="nx-nav-label"><?= lang('change_password'); ?><span class="nx-nav-sub">Seguridad de cuenta</span></span>
+                                        <span class="nx-nav-label"><?= lang('change_password'); ?><span class="nx-nav-sub"><?= lang('seguridad_cuenta'); ?></span></span>
                                     </a>
                                 </li>
                             </ul>
@@ -58,7 +58,7 @@
                                 <div id="tab-info" class="tab-pane active">
                                     <h4 style="margin-top:0; margin-bottom:20px; font-weight:600; color:var(--nx-txt1);">
                                         <i class="fa fa-user" style="color:var(--primary); margin-right:8px;"></i>
-                                        Información Personal
+                                        <?= lang('info_personal'); ?>
                                     </h4>
                                     <?= form_open('auth/edit_user/' . $user->id); ?>
                                     <div class="row">
@@ -95,7 +95,7 @@
                                     <hr style="border-color:var(--nx-border); margin: 20px 0;">
                                     <h5 style="font-weight:600; color:var(--nx-txt2); margin-bottom:16px;">
                                         <i class="fa fa-shield" style="color:var(--warning); margin-right:6px;"></i>
-                                        Acceso y Permisos
+                                        <?= lang('acceso_y_permisos'); ?>
                                     </h5>
                                     <div class="row">
                                         <div class="col-md-6">
@@ -180,7 +180,7 @@
                                 <div id="tab-avatar" class="tab-pane">
                                     <h4 style="margin-top:0; margin-bottom:20px; font-weight:600; color:var(--nx-txt1);">
                                         <i class="fa fa-image" style="color:var(--primary); margin-right:8px;"></i>
-                                        Foto de Perfil
+                                        <?= lang('foto_de_perfil'); ?>
                                     </h4>
                                     <div class="row">
                                         <div class="col-md-3" style="text-align:center; margin-bottom:20px;">
@@ -211,13 +211,13 @@
                                 <div id="tab-horario" class="tab-pane">
                                     <h4 style="margin-top:0; margin-bottom:20px; font-weight:600; color:var(--nx-txt1);">
                                         <i class="fa fa-clock-o" style="color:var(--primary); margin-right:8px;"></i>
-                                        Horario del Usuario
+                                        <?= lang('horario_usuario'); ?>
                                     </h4>
                                     <?= form_open('auth/edit_horario/' . $user->id); ?>
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label>Hora de Entrada</label>
+                                                <label><?= lang('hora_entrada'); ?></label>
                                                 <div class="input-group date" id="appointment_start_datetime">
                                                     <input type="text" value="<?= $user->hora_inicio ?>" name="hora_inicio" class="form-control" />
                                                     <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>
@@ -226,7 +226,7 @@
                                         </div>
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label>Hora de Salida</label>
+                                                <label><?= lang('hora_salida'); ?></label>
                                                 <div class="input-group date" id="appointment_end_datetime">
                                                     <input type="text" value="<?= $user->hora_fin ?>" name="hora_fin" class="form-control" />
                                                     <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>
@@ -246,14 +246,14 @@
                                 <div id="tab-caja" class="tab-pane">
                                     <h4 style="margin-top:0; margin-bottom:20px; font-weight:600; color:var(--nx-txt1);">
                                         <i class="fa fa-unlock-alt" style="color:var(--primary); margin-right:8px;"></i>
-                                        Permiso de Apertura de Caja
+                                        <?= lang('permiso_apertura_caja'); ?>
                                     </h4>
                                     <?= form_open('auth/auth_open_cash/' . $user->id); ?>
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label>¿Habilitar apertura de caja para este usuario?</label>
-                                                <?php $auth_open_options = array('1' => 'Sí, Habilitar', '0' => 'No permitir'); ?>
+                                                <label><?= lang('habilitar_apertura'); ?></label>
+                                                <?php $auth_open_options = array('1' => lang('si_habilitar'), '0' => lang('no_permitir')); ?>
                                                 <?= form_dropdown('auth_open', $auth_open_options, $user->auth_open, 'class="form-control select2" style="width:100%;" id="auth_open" required="required"'); ?>
                                             </div>
                                         </div>

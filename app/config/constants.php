@@ -109,3 +109,5 @@ define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 */
 define('AMBIENTE', 'test');
 define('DEMO', FALSE);
+
+define('APP_VERSION', 'v1.0');

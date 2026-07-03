@@ -191,32 +191,32 @@ if ($this->input->post('end_date')) {
                                     <thead>
                                     <tr class="active">
                                         <th style="max-width:30px;">Id</th>
-                                        <th class="col-sm-2">Identificaci&oacute;n</th>
-                                        <th class="col-sm-1">Nombre completo</th>
-                                        <th class="col-sm-1">Fecha factura</th>
-                                        <th class="col-sm-1">Codigo moneda</th>
-                                        <th class="col-sm-1">Tipo cambio</th>
-                                        <th class="col-sm-1">Credito compras</th>
-                                        <th class="col-sm-1">N&uacute;mero de factura</th>
-                                        <th class="col-sm-1">Total Servicios Gravados</th>
-                                        <th class="col-sm-1">Total Servicios Exentos</th>
-                                        <th class="col-sm-1">Total Mercancia Gravadas</th>
-                                        <th class="col-sm-1">Total Mercancia Exentas</th>
-                                        <th class="col-sm-1">Total Mercancia Exonerada</th>
-                                        <th class="col-sm-1">Total Servicio Exonerado</th>
-                                        <th class="col-sm-1">Total Gravado</th>
-                                        <th class="col-sm-1">Total Exento</th>
-                                        <th class="col-sm-1">Total Exonerado</th>
-                                        <th class="col-sm-1">Total Venta</th>
-                                        <th class="col-sm-1">Descuento Compra</th>
-                                        <th class="col-sm-1">Total Venta Neta</th>
-                                        <th class="col-sm-1">Full Tax Compra</th>
-                                        <th class="col-sm-1">Tarifa 0%</th>
-                                        <th class="col-sm-1">Tarifa 1%</th>
-                                        <th class="col-sm-1">Tarifa 2%</th>
-                                        <th class="col-sm-1">Tarifa 4%</th>
-                                        <th class="col-sm-1">Tarifa 13%</th>
-                                        <th class="col-sm-1">Total Comprobante</th>
+                                        <th class="col-sm-2"><?= lang('identificacion'); ?></th>
+                                        <th class="col-sm-1"><?= lang('nombre_completo'); ?></th>
+                                        <th class="col-sm-1"><?= lang('fecha_factura_col'); ?></th>
+                                        <th class="col-sm-1"><?= lang('codigo_moneda'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tipo_cambio_col'); ?></th>
+                                        <th class="col-sm-1"><?= lang('credito_compras'); ?></th>
+                                        <th class="col-sm-1"><?= lang('numero_factura'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_serv_gravados_f'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_serv_exentos_f'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_merc_gravadas'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_merc_exentas'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_merc_exonerada'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_serv_exonerado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_gravado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_exento'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_exonerado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_venta'); ?></th>
+                                        <th class="col-sm-1"><?= lang('descuento_compra'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_venta_neta'); ?></th>
+                                        <th class="col-sm-1"><?= lang('full_tax_col'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tarifa_0'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tarifa_1'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tarifa_2'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tarifa_4'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tarifa_13'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_comprobante'); ?></th>
    
                                     </tr>
                                     </thead>

@@ -91,8 +91,7 @@
 <noscript>
     <div class="global-site-notice noscript">
         <div class="notice-inner">
-            <p><strong>JavaScript seems to be disabled in your browser.</strong><br>You must have JavaScript enabled in
-                your browser to utilize the functionality of this website.</p>
+            <p><strong><?= lang('js_disabled_notice'); ?></strong><br><?= lang('js_disabled_notice2'); ?></p>
         </div>
     </div>
 </noscript>
@@ -295,7 +294,7 @@
         if (typeof (Storage) !== "undefined") {
             return localStorage.getItem(name);
         } else {
-            alert('Please use a modern browser as this site needs localstroage!');
+            alert('<?= addslashes(lang('modern_browser_required')); ?>');
         }
     }
 

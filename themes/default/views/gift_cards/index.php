@@ -1,81 +1,61 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-
-        var table = new Tabulator('#GCData', {
-
-            'ajax' : { url: '<?=site_url('gift_cards/get_gift_cards');?>', type: 'POST', "data": function ( d ) {
-                d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-            }},
-            "buttons": [
-            { extend: 'copyHtml5', 'footer': false, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'excelHtml5', 'footer': false, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'csvHtml5', 'footer': false, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': false,
-            exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-            { "data": "id", "visible": false },
-            { "data": "card_no" },
-            { "data": "value", "mRender": currencyFormat },
-            { "data": "balance", "mRender": currencyFormat },
-            { "data": "created_by" },
-            { "data": "expiry", "mRender": hrsd },
-            { "data": "Actions", "searchable": false, "orderable": false }
-            ]
-
-        });
-
-        $('#search_table').on( 'keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search( this.value ).draw();
-            }
-        });
-
-    });
-</script>
-
-<section class="content">
-    <div class="row">
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('list_results'); ?></h3>
-                </div>
-                <div class="box-body">
-                    <div class="table-responsive">
-                <div class="table-responsive">
-                        <table id="GCData" class="table table-bordered table-hover table-striped">
-                            <thead>
-                                <tr>
-                                    <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th><?= lang("card_no"); ?></th>
-                                    <th><?= lang("value"); ?></th>
-                                    <th><?= lang("balance"); ?></th>
-                                    <th><?= lang("created_by"); ?></th>
-                                    <th><?= lang("expiry"); ?></th>
-                                    <th style="width:75px;"><?= lang("actions"); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="7" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="7" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                </div>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('gift_cards'); ?>
+        <small><?= lang('list_results'); ?></small>
     </div>
-</section>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+        <a class="nxt-btn" href="<?= site_url('gift_cards/add'); ?>">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <?= lang('add_gift_card'); ?>
+        </a>
+    </div>
+</div>
+
+<div id="nxtList"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('gift_cards/get_gift_cards'); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '760px',
+        unit: '<?= lang('gift_cards'); ?>'.toLowerCase(),
+        exportName: 'tarjetas_regalo',
+        search: ['card_no', 'created_by'],
+        totals: ['value', 'balance'],
+        columns: [
+            { key: 'card_no', label: '<?= lang('card_no'); ?>', sortable: 'str', render: function (r) {
+                return '<span class="nxt-code">' + NxTable.esc(r.card_no) + '</span>';
+            } },
+            { key: 'value', label: '<?= lang('value'); ?>', className: 'num', sortable: 'num', render: function (r) {
+                return '<span class="nxt-cost">' + NxTable.money(r.value) + '</span>';
+            } },
+            { key: 'balance', label: '<?= lang('balance'); ?>', className: 'num', sortable: 'num', render: function (r) {
+                return '<span class="nxt-price">' + NxTable.money(r.balance) + '</span>';
+            } },
+            { key: 'created_by', label: '<?= lang('user'); ?>', render: function (r) {
+                return r.created_by ? NxTable.badge(r.created_by, 'info') : '—';
+            } },
+            { key: 'expiry', label: '<?= lang('expiry_date'); ?>', sortable: 'str', render: function (r) {
+                return r.expiry ? '<span class="nxt-dim-mono">' + NxTable.esc(r.expiry) + '</span>' : '—';
+            } },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '110px' }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
+    });
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
+});
+</script>

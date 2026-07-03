@@ -8,7 +8,7 @@
     <script>if (parent.frames.length !== 0) { top.location = '<?= site_url('login') ?>'; }</script>
     <?php } ?>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet">
+    <link href="<?= $assets ?>dist/css/www.min.css?v=<?= @filemtime(FCPATH.'themes/default/assets/dist/css/www.min.css') ?: '1'; ?>" rel="stylesheet">
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -124,24 +124,13 @@
     /* Logo icon */
     .nlx-logo-box {
         width: 74px; height: 74px; border-radius: 20px;
-        background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 60%, #38bdf8 100%);
+        background: transparent;
         display: flex; align-items: center; justify-content: center;
         margin-bottom: 30px;
-        box-shadow: 0 8px 36px rgba(56,189,248,.4), 0 2px 8px rgba(0,0,0,.35);
+        box-shadow: 0 8px 36px rgba(56,189,248,.35), 0 2px 8px rgba(0,0,0,.35);
         position: relative; overflow: hidden;
     }
-    .nlx-logo-box::after {
-        content: '';
-        position: absolute; top:-60%; left:-60%; width: 55%; height: 220%;
-        background: rgba(255,255,255,.18); transform: rotate(25deg);
-        animation: lshine 4s ease-in-out infinite;
-    }
-    @keyframes lshine {
-        0%,100% { left:-60%; opacity:0; }
-        45%     { opacity:1; }
-        65%     { left:160%; opacity:0; }
-    }
-    .nlx-logo-box img { width:44px; height:44px; object-fit:contain; }
+    .nlx-logo-box img { width:74px; height:74px; object-fit:cover; border-radius:20px; display:block; }
     .nlx-logo-letter  { color:#fff; font-size:34px; font-weight:800; line-height:1; }
 
     .nlx-bname {
@@ -344,48 +333,42 @@
 
             <div class="nlx-brand-top">
                 <div class="nlx-logo-box">
-                    <?php if ($Settings->theme_style === 'purple'): ?>
-                        <img src="<?= $assets ?>dist/css/base/logo1.png" alt="<?= $Settings->site_name; ?>">
-                    <?php elseif (!empty($Settings->logo)): ?>
-                        <img src="<?= base_url('uploads/' . $Settings->logo); ?>" alt="<?= $Settings->site_name; ?>">
-                    <?php else: ?>
-                        <span class="nlx-logo-letter"><?= mb_strtoupper(mb_substr($Settings->site_name, 0, 1)); ?></span>
-                    <?php endif; ?>
+                    <img src="<?= $assets ?>images/icon.png" alt="NEURIX POS">
                 </div>
 
-                <div class="nlx-bname"><?= $Settings->site_name; ?></div>
-                <div class="nlx-btag">Facturación Electrónica CR</div>
+                <div class="nlx-bname">NEURIX POS</div>
+                <div class="nlx-btag"><?= lang('login_subtitle'); ?></div>
 
                 <div class="nlx-feats">
                     <div class="nlx-feat">
                         <div class="nlx-ficon">
                             <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
                         </div>
-                        <span>Certificado Hacienda v4.4</span>
+                        <span><?= lang('login_feat_cert'); ?></span>
                     </div>
                     <div class="nlx-feat">
                         <div class="nlx-ficon">
                             <svg viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         </div>
-                        <span>Acceso Seguro con Cifrado</span>
+                        <span><?= lang('login_feat_seguro'); ?></span>
                     </div>
                     <div class="nlx-feat">
                         <div class="nlx-ficon">
                             <svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                         </div>
-                        <span>Reportes en Tiempo Real</span>
+                        <span><?= lang('login_feat_reportes'); ?></span>
                     </div>
                     <div class="nlx-feat">
                         <div class="nlx-ficon">
                             <svg viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                         </div>
-                        <span>Tiquetes y Facturas Electrónicas</span>
+                        <span><?= lang('login_feat_fe'); ?></span>
                     </div>
                 </div>
             </div>
 
             <div class="nlx-brand-bot">
-                <div class="nlx-bver">ARASOFT SOLUTIONS &middot; v4.4</div>
+                <div class="nlx-bver">&copy; <?= date('Y'); ?> NEURIX POS <?= APP_VERSION; ?> &mdash; ARASOFT SOLUTIONS</div>
             </div>
         </div>
 
@@ -394,10 +377,10 @@
             <div class="nlx-fhdr">
                 <div class="nlx-online">
                     <div class="nlx-dot"></div>
-                    <span class="nlx-online-txt">Sistema en línea</span>
+                    <span class="nlx-online-txt"><?= lang('sistema_en_linea'); ?></span>
                 </div>
                 <div class="nlx-ftitle"><?= lang('login_to_your_account'); ?></div>
-                <div class="nlx-fsub">Ingrese sus credenciales para continuar</div>
+                <div class="nlx-fsub"><?= lang('ingrese_credenciales'); ?></div>
             </div>
 
             <?php if ($error): ?>
@@ -422,7 +405,7 @@
                     </span>
                     <input class="nlx-inp" type="text" name="identity" id="identity"
                         value="<?= set_value('identity', DEMO ? 'arasoftsolutions@outlook.com' : ''); ?>"
-                        placeholder="correo@empresa.com"
+                        placeholder="<?= lang('placeholder_email_login'); ?>"
                         autocomplete="username">
                 </div>
             </div>
@@ -449,13 +432,12 @@
             </div>
 
             <button type="submit" class="nlx-btn">
-                <span><?= lang('sign_in'); ?></span>
+                <span><?= lang('login_btn'); ?></span>
                 <svg viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </button>
 
             <?= form_close(); ?>
 
-            <div class="nlx-foot">&copy; <?= date('Y'); ?> <?= $Settings->site_name; ?> &mdash; ARASOFT SOLUTIONS</div>
         </div>
 
     </div><!-- /.nlx-card -->

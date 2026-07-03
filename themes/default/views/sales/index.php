@@ -1,229 +1,163 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-
-        function status(x) {
-            var paid = '<?= lang('paid'); ?>';
-            var partial = '<?= lang('partial'); ?>';
-            var due = '<?= lang('due'); ?>';
-            if (x == 'paid') {
-                return '<div class="text-center"><span class="sale_status label label-success">'+paid+'</span></div>';
-            } else if (x == 'partial') {
-                return '<div class="text-center"><span class="sale_status label label-primary">'+partial+'</span></div>';
-            } else if (x == 'due') {
-                return '<div class="text-center"><span class="sale_status label label-danger">'+due+'</span></div>';
-            } else {
-                return '<div class="text-center"><span class="sale_status label label-default">'+x+'</span></div>';
-            }
-        }
-
-        function estatus_hacienda(x) {
-            var aceptado = 'Aceptado';
-            var recibido = 'Recibido';
-            var procesando = 'Procesando';
-            var rechazado = 'Rechazado';
-            var anulado = 'Anulado';
-            var error = 'error';
-            if (x == 'aceptado') {
-                return '<div class="text-center"><span class="sale_status label label-success">'+aceptado+'</span></div>';
-            } else if (x == 'recibido') {
-                return '<div class="text-center"><span class="sale_status label label-primary">'+recibido+'</span></div>';
-            } else if (x == 'procesando') {
-                return '<div class="text-center"><span class="sale_status label label-primary">'+procesando+'</span></div>';
-            } else if (x == 'rechazado') {
-                return '<div class="text-center"><span class="sale_status label label-danger">'+rechazado+'</span></div>';
-            }else if(x == 'anulado'){
-                return '<div class="text-center"><span class="sale_status label label-danger">'+anulado+'</span></div>';
-            } else {
-                return '<div class="text-center"><span class="sale_status label label-danger">No Enviado</span></div>';
-            }
-        }
-
-        var table = new Tabulator('#SLData', {
-
-            'ajax' : { url: '<?=site_url('sales/get_sales');?>', type: 'POST', "data": function ( d ) {
-                d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-            }},
-            "buttons": [
-                { extend: 'copyHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'excelHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'csvHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true,
-                    exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-                { "data": "consecutivo" },
-                { "data": "id", "visible": false },
-                { "data": "date", "render": hrld },
-                { "data": "customer_name" },
-                { "data": "total", "render": currencyFormat },
-                { "data": "total_tax", "render": currencyFormat },
-                { "data": "total_discount", "render": currencyFormat },
-                { "data": "grand_total", "render": currencyFormat },
-                { "data": "paid", "render": currencyFormat },
-                { "data": "status", "render": status },
-                { "data": "estatus_hacienda", "render": estatus_hacienda  },
-                { "data": "status_hacienda" },
-                { "data": "Actions", "searchable": false, "orderable": false }
-            ],
-            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
-                nRow.id = aData.id;
-                return nRow;
-            },
-            "footerCallback": function (  tfoot, data, start, end, display ) {
-                var api = this.api(), data;
-                $(api.column(3).footer()).html( cf(api.column(3).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(4).footer()).html( cf(api.column(4).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(5).footer()).html( cf(api.column(5).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(6).footer()).html( cf(api.column(6).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(7).footer()).html( cf(api.column(7).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-            }
-
-        });
-
-        $('#search_table').on( 'keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search( this.value ).draw();
-            }
-        });
-
-        table.columns().every(function () {
-            var self = this;
-            $( 'input.datepicker', this.footer() ).on('dp.change', function (e) {
-                self.search( this.value ).draw();
-            });
-            $( 'input:not(.datepicker)', this.footer() ).on('keyup change', function (e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-                    self.search( this.value ).draw();
-                }
-            });
-            $( 'select', this.footer() ).on( 'change', function (e) {
-                self.search( this.value ).draw();
-            });
-        });
-
-    });
-</script>
-
-<section class="content">
-    <div class="row">
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('list_results'); ?></h3>
-                </div>
-                <div class="box-body">
-                    <div class="table-responsive">
-                <div class="table-responsive">
-                        <table id="SLData" class="table table-striped table-bordered table-condensed table-hover">
-                            <thead>
-                            <tr class="active">
-                                <th class="col-1">Consecutivo</th>
-                                <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                <th class="col-2"><?= lang("date"); ?></th>
-                                <th><?= lang("customer"); ?></th>
-                                <th class="col-1"><?= lang("total"); ?></th>
-                                <th class="col-1"><?= lang("tax"); ?></th>
-                                <th class="col-1"><?= lang("discount"); ?></th>
-                                <th class="col-1"><?= lang("grand_total"); ?></th>
-                                <th class="col-1"><?= lang("paid"); ?></th>
-                                <th class="col-1"><?= lang("status"); ?></th>
-                                <th class="col-1">Estado Hacienda</th>
-                                <th class="col-1">Respuesta Hacienda</th>
-                                <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td colspan="11" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-                            </tr>
-                            </tbody>
-                            <tfoot>
-                            <tr class="active">
-                                <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
-                                <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('date'); ?>]"></span></th>
-                                <th class="col-sm-2"><input type="text" class="text_filter" placeholder="[<?= lang('customer'); ?>]"></th>
-                                <th class="col-sm-1"><?= lang("total"); ?></th>
-                                <th class="col-sm-1"><?= lang("tax"); ?></th>
-                                <th class="col-sm-1"><?= lang("discount"); ?></th>
-                                <th class="col-sm-2"><?= lang("grand_total"); ?></th>
-                                <th class="col-sm-1"><?= lang("paid"); ?></th>
-                                <th class="col-sm-1"><select class="tom-select select_filter"><option value=""><?= lang("all"); ?></option><option value="paid"><?= lang("paid"); ?></option><option value="partial"><?= lang("partial"); ?></option><option value="due"><?= lang("due"); ?></option></select></th>
-                                <th class="col-sm-1">
-                                    <select class="tom-select select_filter">
-                                        <option value=""><?= lang("all"); ?></option>
-                                        <option value="aceptado"><?= lang("Aceptado"); ?></option>
-                                        <option value="recibido"><?= lang("Recibido"); ?></option>
-                                        <option value="procesando"><?= lang("Procesando"); ?></option>
-                                        <option value="rechazado"><?= lang("Rechazado"); ?></option>
-                                        <option value="error"><?= lang("Error"); ?></option>
-                                    </select></th>
-
-                                <th class="col-sm-1"></th>
-                                <th class="col-sm-1"></th>
-                            </tr>
-                            <tr>
-                                <td colspan="12" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>
-                            </tr>
-                            </tfoot>
-                        </table>
-                </div>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('sales'); ?>
+        <small><?= lang('list_results'); ?></small>
     </div>
-</section>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+        <a class="nxt-btn" href="<?= site_url('pos'); ?>">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <?= lang('nueva_venta'); ?>
+        </a>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="nxt-kpis">
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-a1)">
+        <div class="nxt-kpi-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2"/></svg> <?= lang('sales'); ?></div>
+        <div class="nxt-kpi-value" id="kpiCount">—</div>
+        <div class="nxt-kpi-sub">&nbsp;</div>
+    </div>
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-emerald)">
+        <div class="nxt-kpi-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6l4 4l8-8"/><path d="M14 7h7v7"/></svg> <?= lang('grand_total'); ?></div>
+        <div class="nxt-kpi-value" id="kpiTotal">—</div>
+        <div class="nxt-kpi-sub" id="kpiPaid">&nbsp;</div>
+    </div>
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-amber)">
+        <div class="nxt-kpi-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> <?= lang('saldo_pendiente'); ?></div>
+        <div class="nxt-kpi-value" id="kpiDue">—</div>
+        <div class="nxt-kpi-sub" id="kpiDueCount">&nbsp;</div>
+    </div>
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-err)">
+        <div class="nxt-kpi-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.24 3.96l-8.13 14.05a2 2 0 0 0 1.73 3h16.32a2 2 0 0 0 1.73-3l-8.13-14.05a2 2 0 0 0-3.52 0z"/></svg> <?= lang('hacienda_pendientes'); ?></div>
+        <div class="nxt-kpi-value" id="kpiHac">—</div>
+        <div class="nxt-kpi-sub"><?= lang('sin_aceptar_hacienda'); ?></div>
+    </div>
+</div>
+
+<div id="nxtList"></div>
+
 <?php if ($Admin) { ?>
-    <div class="modal fade" id="stModal" tabindex="-1" role="dialog" aria-labelledby="stModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true"><i class="fa fa-times"></i></span></button>
-                    <h4 class="modal-title" id="stModalLabel"><?= lang('update_status'); ?> <span id="status-id"></span></h4>
-                </div>
-                <?= form_open('sales/status'); ?>
-                <div class="modal-body">
-                    <input type="hidden" value="" id="sale_id" name="sale_id" />
-                    <div class="mb-3">
-                        <?= lang('status', 'status'); ?>
-                        <?php $opts = array('paid' => lang('paid'), 'partial' => lang('partial'), 'due' => lang('due'))  ?>
-                        <?= form_dropdown('status', $opts, set_value('status'), 'class="form-control tom-select tip" id="status" required="required" style="width:100%;"'); ?>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal"><?= lang('close'); ?></button>
-                    <button type="submit" class="btn btn-primary"><?= lang('update'); ?></button>
-                </div>
-                <?= form_close(); ?>
+<div class="modal fade" id="stModal" tabindex="-1" aria-labelledby="stModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="stModalLabel"><?= lang('update_status'); ?> <span id="status-id"></span></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <?= form_open('sales/status'); ?>
+            <div class="modal-body">
+                <input type="hidden" value="" id="sale_id" name="sale_id" />
+                <div class="mb-3">
+                    <?= lang('status', 'status'); ?>
+                    <?php $opts = array('paid' => lang('paid'), 'partial' => lang('partial'), 'due' => lang('due')); ?>
+                    <?= form_dropdown('status', $opts, set_value('status'), 'class="form-select" id="status" required="required"'); ?>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close'); ?></button>
+                <button type="submit" class="btn btn-primary"><?= lang('update'); ?></button>
+            </div>
+            <?= form_close(); ?>
         </div>
     </div>
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $(document).on('click', '.sale_status', function() {
-                var sale_id = $(this).closest('tr').attr('id');
-                var curr_status = $(this).text();
-                var status = curr_status.toLowerCase();
-                $('#status-id').text('( <?= lang('sale_id'); ?> '+sale_id+' )');
-                $('#sale_id').val(sale_id);
-                $('#status').val(status);
-                $('#status').setValue(status);
-                $('#stModal').modal()
-            });
-        });
-    </script>
+</div>
 <?php } ?>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var IS_ADMIN = <?= $Admin ? 'true' : 'false'; ?>;
+    var ST = { paid: ['<?= lang('paid'); ?>', 'ok'], partial: ['<?= lang('partial'); ?>', 'info'], due: ['<?= lang('due'); ?>', 'err'] };
+    var HAC = {
+        aceptado:   ['Aceptado', 'ok'],
+        recibido:   ['Recibido', 'info'],
+        procesando: ['Procesando', 'info'],
+        rechazado:  ['Rechazado', 'err'],
+        anulado:    ['Anulado', 'muted'],
+        error:      ['Error', 'err']
+    };
+    function hacLabel(v) { return (HAC[v] || ['No Enviado', 'warn'])[0]; }
 
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('sales/get_sales'); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '1280px',
+        unit: '<?= lang('sales'); ?>'.toLowerCase(),
+        exportName: 'ventas',
+        search: ['consecutivo', 'customer_name', 'date'],
+        chips: { key: 'estatus_hacienda', all: '<?= lang('todas'); ?>', label: hacLabel, sort: false },
+        totals: ['total', 'total_tax', 'total_discount', 'grand_total', 'paid'],
+        map: function (r) { if (r.estatus_hacienda == null || r.estatus_hacienda === '') r.estatus_hacienda = 'noenviado'; return r; },
+        onData: function (rows) {
+            var total = 0, paid = 0, due = 0, dueCount = 0, hac = 0;
+            rows.forEach(function (r) {
+                var g = parseFloat(r.grand_total) || 0, p = parseFloat(r.paid) || 0;
+                total += g; paid += p;
+                if (r.status !== 'paid') { due += (g - p); dueCount++; }
+                if (r.estatus_hacienda !== 'aceptado' && r.estatus_hacienda !== 'anulado') hac++;
+            });
+            document.getElementById('kpiCount').textContent = rows.length;
+            document.getElementById('kpiTotal').textContent = NxTable.money(total);
+            document.getElementById('kpiPaid').textContent = '<?= lang('paid'); ?>: ' + NxTable.money(paid);
+            document.getElementById('kpiDue').textContent = NxTable.money(due);
+            document.getElementById('kpiDueCount').textContent = dueCount + ' <?= lang('facturas_pendientes'); ?>';
+            document.getElementById('kpiHac').textContent = hac;
+        },
+        columns: [
+            { key: 'consecutivo', label: '<?= lang('consecutive'); ?>', sortable: 'str', render: function (r) {
+                return r.consecutivo ? '<span class="nxt-code">' + NxTable.esc(r.consecutivo) + '</span>' : '—';
+            } },
+            { key: 'date', label: '<?= lang('date'); ?>', sortable: 'str', render: function (r) {
+                return '<span class="nxt-dim-mono">' + NxTable.esc(r.date) + '</span>';
+            } },
+            { key: 'customer_name', label: '<?= lang('customer'); ?>', sortable: 'str', render: function (r) {
+                return '<span class="nxt-ent-name">' + NxTable.esc(r.customer_name) + '</span>';
+            } },
+            { key: 'total', label: '<?= lang('total'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total) + '</span>'; } },
+            { key: 'total_tax', label: '<?= lang('tax'); ?>', className: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total_tax) + '</span>'; } },
+            { key: 'total_discount', label: '<?= lang('discount'); ?>', className: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total_discount) + '</span>'; } },
+            { key: 'grand_total', label: '<?= lang('grand_total'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.grand_total) + '</span>'; } },
+            { key: 'paid', label: '<?= lang('paid'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-offer">' + NxTable.money(r.paid) + '</span>'; } },
+            { key: 'status', label: '<?= lang('status'); ?>', render: function (r) {
+                var s = ST[r.status] || [r.status, 'muted'];
+                var b = NxTable.badge(s[0], s[1]);
+                return IS_ADMIN ? '<a href="#" class="js-status" data-id="' + NxTable.esc(r.id) + '" data-status="' + NxTable.esc(r.status) + '" style="text-decoration:none">' + b + '</a>' : b;
+            }, exportValue: function (r) { return (ST[r.status] || [r.status])[0]; } },
+            { key: 'estatus_hacienda', label: '<?= lang('estado_hacienda'); ?>', render: function (r) {
+                var h = HAC[r.estatus_hacienda] || ['No Enviado', 'warn'];
+                return NxTable.badge(h[0], h[1]);
+            }, exportValue: function (r) { return hacLabel(r.estatus_hacienda); } },
+            { key: 'status_hacienda', label: 'XML', actions: true },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '150px' }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_venta_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
     });
-</script>
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
 
+    <?php if ($Admin) { ?>
+    /* Cambio de estado de pago (click en badge) */
+    document.getElementById('nxtList').addEventListener('click', function (e) {
+        var a = e.target.closest('.js-status');
+        if (!a) return;
+        e.preventDefault();
+        document.getElementById('status-id').textContent = '( <?= lang('sale_id'); ?> ' + a.dataset.id + ' )';
+        document.getElementById('sale_id').value = a.dataset.id;
+        document.getElementById('status').value = a.dataset.status;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('stModal')).show();
+    });
+    <?php } ?>
+});
+</script>

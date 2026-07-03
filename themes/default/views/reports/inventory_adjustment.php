@@ -180,15 +180,15 @@ if ($this->input->post('end_date')) {
                                     <thead>
                                     <tr class="active">
                                         <th style="max-width:30px;">Id</th>
-                                        <th class="col-sm-1">Producto</th>
-                                        <th class="col-sm-2">Tipo movimiento</th>
-                                        <th class="col-sm-1">Descripción</th>
-                                        <th class="col-sm-1">Cantidad movida</th>
-                                        <th class="col-sm-1">Cantidad fraccionada movida</th>
-                                        <th class="col-sm-1">Precio Anterior</th>
-                                        <th class="col-sm-1">Precio Actual</th>
-                                        <th class="col-sm-1">Usuario</th>
-                                        <th class="col-sm-1">Fecha de movimiento</th>
+                                        <th class="col-sm-1"><?= lang('producto_col'); ?></th>
+                                        <th class="col-sm-2"><?= lang('tipo_movimiento'); ?></th>
+                                        <th class="col-sm-1"><?= lang('description'); ?></th>
+                                        <th class="col-sm-1"><?= lang('cantidad_movida'); ?></th>
+                                        <th class="col-sm-1"><?= lang('cantidad_fracc_movida'); ?></th>
+                                        <th class="col-sm-1"><?= lang('precio_anterior'); ?></th>
+                                        <th class="col-sm-1"><?= lang('precio_actual'); ?></th>
+                                        <th class="col-sm-1"><?= lang('user'); ?></th>
+                                        <th class="col-sm-1"><?= lang('fecha_movimiento'); ?></th>
    
                                     </tr>
                                     </thead>
@@ -196,15 +196,15 @@ if ($this->input->post('end_date')) {
                                     <tfoot>
                                         <tr class="active">
                                         <th style="max-width:30px;">Id</th>
-                                        <th class="col-sm-1">Producto</th>
-                                        <th class="col-sm-2">Tipo movimiento</th>
-                                        <th class="col-sm-1">Descripción</th>
-                                        <th class="col-sm-1">Cantidad movida</th>
-                                        <th class="col-sm-1">Cantidad fraccionada movida</th>
-                                        <th class="col-sm-1">Precio Anterior</th>
-                                        <th class="col-sm-1">Precio Actual</th>
-                                        <th class="col-sm-1">Usuario</th>
-                                        <th class="col-sm-1">Fecha de movimiento</th>
+                                        <th class="col-sm-1"><?= lang('producto_col'); ?></th>
+                                        <th class="col-sm-2"><?= lang('tipo_movimiento'); ?></th>
+                                        <th class="col-sm-1"><?= lang('description'); ?></th>
+                                        <th class="col-sm-1"><?= lang('cantidad_movida'); ?></th>
+                                        <th class="col-sm-1"><?= lang('cantidad_fracc_movida'); ?></th>
+                                        <th class="col-sm-1"><?= lang('precio_anterior'); ?></th>
+                                        <th class="col-sm-1"><?= lang('precio_actual'); ?></th>
+                                        <th class="col-sm-1"><?= lang('user'); ?></th>
+                                        <th class="col-sm-1"><?= lang('fecha_movimiento'); ?></th>
                                         
                                         </tr>
                                     </tfoot>

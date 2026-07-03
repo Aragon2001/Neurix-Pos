@@ -160,7 +160,7 @@ class POSEnhanced {
 
   showSearchResult(count, query) {
     if (query && count === 0) {
-      this.showToast('No se encontraron productos', 'warning');
+      this.showToast((window.lang || {}).no_products_found || 'No se encontraron productos', 'warning');
     }
   }
 
@@ -169,7 +169,7 @@ class POSEnhanced {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   showAddedNotification() {
-    this.showToast('✓ Producto agregado', 'success', 1500);
+    this.showToast('✓ ' + ((window.lang || {}).producto_agregado || 'Producto agregado'), 'success', 1500);
   }
 
   showToast(message, type = 'info', duration = 2000) {
@@ -274,7 +274,7 @@ class POSEnhanced {
     if (searchInput) {
       searchInput.focus();
       // Show hint
-      this.showToast('Alt+S para buscar, Alt+P para pagar, Alt+C para cancelar', 'info', 4000);
+      this.showToast((window.lang || {}).atajos_hint || 'Alt+S para buscar, Alt+P para pagar, Alt+C para cancelar', 'info', 4000);
     }
   }
 
@@ -291,18 +291,20 @@ class POSEnhanced {
       }
     });
 
+    const L = window.lang || {};
+
     // Add role to cart
     const cart = document.getElementById('posTable');
     if (cart) {
       cart.setAttribute('role', 'grid');
-      cart.setAttribute('aria-label', 'Carrito de compras');
+      cart.setAttribute('aria-label', L.carrito_compras || 'Carrito de compras');
     }
 
     // Add role to products
     const products = document.getElementById('item-list');
     if (products) {
       products.setAttribute('role', 'list');
-      products.setAttribute('aria-label', 'Catálogo de productos');
+      products.setAttribute('aria-label', L.catalogo_productos || 'Catálogo de productos');
     }
 
     // Make products keyboard accessible

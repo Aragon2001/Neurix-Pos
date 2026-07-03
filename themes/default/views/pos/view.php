@@ -144,7 +144,7 @@ if ($modal) {
                                 <? } ?>
                                 <?= lang("sales_person") . ': ' . @$created_by->first_name . " " . @$created_by->last_name; ?>
                                 <? }else{ ?>
-                                    <b>Regimen simplificado</b><br>
+                                    <b><?= lang('regimen_simplificado'); ?></b><br>
                                 <? } ?>
                                 <br>
                             </p>

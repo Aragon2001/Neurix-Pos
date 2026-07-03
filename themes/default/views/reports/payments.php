@@ -2,288 +2,122 @@
 
 <?php
 $v = "?v=1";
-
-if ($this->input->post('payment_ref')) {
-    $v .= "&payment_ref=" . $this->input->post('payment_ref');
-}
-if ($this->input->post('sale_no')) {
-    $v .= "&sale_no=" . $this->input->post('sale_no');
-}
-if ($this->input->post('customer')) {
-    $v .= "&customer=" . $this->input->post('customer');
-}
-if ($this->input->post('paid_by')) {
-    $v .= "&paid_by=" . $this->input->post('paid_by');
-}
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
+if ($this->input->post('payment_ref')) { $v .= "&payment_ref=" . $this->input->post('payment_ref'); }
+if ($this->input->post('sale_no')) { $v .= "&sale_no=" . $this->input->post('sale_no'); }
+if ($this->input->post('customer')) { $v .= "&customer=" . $this->input->post('customer'); }
+if ($this->input->post('paid_by')) { $v .= "&paid_by=" . $this->input->post('paid_by'); }
+if ($this->input->post('user')) { $v .= "&user=" . $this->input->post('user'); }
+if ($this->input->post('start_date')) { $v .= "&start_date=" . $this->input->post('start_date'); }
+if ($this->input->post('end_date')) { $v .= "&end_date=" . $this->input->post('end_date'); }
 ?>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-
-        var pb = ['<?=lang('cash')?>', '<?=lang('CC')?>', '<?=lang('Cheque')?>', '<?=lang('stripe')?>', '<?=lang('gift_card')?>'];
-
-        function paid_by(x) {
-            if (x == 'cash') {
-                return pb[0];
-            } else if (x == 'CC') {
-                return pb[1];
-            } else if (x == 'Cheque') {
-                return pb[2];
-            } else if (x == 'stripe') {
-                return pb[3];
-            } else if (x == 'gift_card') {
-                return pb[4];
-            } else {
-                return x;
-            }
-        }
-
-        var table = new Tabulator('#PayRData', {
-
-            'ajax' : { url: '<?=site_url('reports/get_payments/'. $v);?>', type: 'POST', "data": function ( d ) {
-                d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-            }},
-            "buttons": [
-            { extend: 'copyHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'excelHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'csvHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true,
-            exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-            { "data": "id", "visible": false },
-            { "data": "date", "render": hrld },
-            { "data": "ref" },
-            { "data": "sale_no" },
-            { "data": "paid_by", "render": paid_by },
-            { "data": "amount", "render": currencyFormat }
-            ],
-            "footerCallback": function (  tfoot, data, start, end, display ) {
-                var api = this.api(), data;
-                $(api.column(5).footer()).html( cf(api.column(5).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-            }
-
-        });
-
-        $('#search_table').on( 'keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search( this.value ).draw();
-            }
-        });
-
-        table.columns().every(function () {
-            var self = this;
-            $( 'input.datepicker', this.footer() ).on('dp.change', function (e) {
-                self.search( this.value ).draw();
-            });
-            $( 'input:not(.datepicker)', this.footer() ).on('keyup change', function (e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-                    self.search( this.value ).draw();
-                }
-            });
-            $( 'select', this.footer() ).on('change', function (e) {
-                self.search( this.value ).draw();
-            });
-        });
-
-    });
-</script>
-
-<script type="text/javascript">
-    $(document).ready(function(){
-        $('#form').hide();
-        $('.toggle_form').click(function(){
-            $("#form").slideToggle();
-            return false;
-        });
-    });
-</script>
-<style type="text/css">
-    .table td:nth-child(3) { text-align: center; }
-</style>
-<section class="content">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <a href="#" class="btn btn-default btn-sm toggle_form float-end"><?= lang("show_hide"); ?></a>
-                    <h3 class="box-title"><?= lang('customize_report'); ?><?php
-                        if ($this->input->post('start_date')) {
-                            echo "From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
-                        }
-                        ?></h3>
-                    </div>
-                    <div class="box-body">
-                        <div id="form" class="card border-warning">
-                            <div class="card-body">
-
-                                <?= form_open("reports/payments"); ?>
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <?= lang("payment_ref", "payment_ref"); ?>
-                                            <?= form_input('payment_ref', (isset($_POST['payment_ref']) ? $_POST['payment_ref'] : ""), 'class="form-control tip" id="payment_ref"'); ?>
-
-                                        </div>
-                                    </div>
-
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <?= lang("sale_no", "sale_no"); ?>
-                                            <?= form_input('sale_no', (isset($_POST['sale_no']) ? $_POST['sale_no'] : ""), 'class="form-control tip" id="sale_no"'); ?>
-
-                                        </div>
-                                    </div>
-
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <label class="form-label" for="customer"><?= lang("customer"); ?></label>
-                                            <?php
-                                            $cu[0] = lang("select")." ".lang("customer");
-                                            foreach($customers as $customer){
-                                                $cu[$customer->id] = $customer->name;
-                                            }
-                                            echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-control tom-select" style="width:100%" id="customer"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <label class="form-label" for="user"><?= lang("created_by"); ?></label>
-                                            <?php
-                                            $us[""] = "";
-                                            foreach ($users as $user) {
-                                                $us[$user->id] = $user->first_name . " " . $user->last_name;
-                                            }
-                                            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control tom-select" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
-                                            ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <?= lang("paid_by", "paid_by"); ?>
-                                            <select name="paid_by" id="paid_by" class="form-control paid_by tom-select" style="width:100%"
-                                            required="required">
-                                            <option value="cash"><?= lang("cash"); ?></option>
-                                            <option value="CC"><?= lang("cc"); ?></option>
-                                            <option value="Cheque"><?= lang("cheque"); ?></option>
-                                            <option value="gift_card"><?= lang("gift_card"); ?></option>
-                                            <?= isset($Settings->stripe) ? '<option value="stripe">' . lang("stripe") . '</option>' : ''; ?>
-                                            <option value="other"><?= lang("other"); ?></option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="mb-3">
-                                        <?= lang("start_date", "start_date"); ?>
-                                        <?= form_input('start_date', (isset($_POST['start_date']) ? $_POST['start_date'] : ""), 'class="form-control datetimepicker" id="start_date"'); ?>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="mb-3">
-                                        <?= lang("end_date", "end_date"); ?>
-                                        <?= form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetimepicker" id="end_date"'); ?>
-                                    </div>
-                                </div>
-
-                                <div class="col-sm-12">
-                                    <button type="submit" class="btn btn-primary"><?= lang("submit"); ?></button>
-                                </div>
-                            </div>
-                            <?= form_close(); ?>
-
-                        </div>
-                    </div>
-                    <div class="clearfix"></div>
-
-                    <div class="table-responsive">
-                <div class="table-responsive">
-                        <table id="PayRData" class="table table-bordered table-hover table-striped table-condensed reports-table">
-                            <thead>
-                                <tr>
-                                    <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-3"><?= lang("date"); ?></th>
-                                    <th class="col-3"><?= lang("payment_ref"); ?></th>
-                                    <th class="col-2"><?= lang("sale_no"); ?></th>
-                                    <th class="col-2"><?= lang("paid_by"); ?></th>
-                                    <th class="col-2"><?= lang("amount"); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="6" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr class="active">
-                                    <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
-                                    <th class="col-sm-3"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('date'); ?>]"></span></th>
-                                    <th class="col-sm-3"><input type="text" class="text_filter" placeholder="[<?= lang('payment_ref'); ?>]"></th>
-                                    <th class="col-2"><?= lang("sale_no"); ?></th>
-                                    <th class="col-2"><?= lang("paid_by"); ?></th>
-                                    <th class="col-2"><?= lang("amount"); ?></th>
-                                </tr>
-                                <tr>
-                                    <td colspan="6" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                </div>
-                    </div>
-                    <?php if ($this->input->post('customer')) { ?>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <button class="btn bg-purple btn-lg btn-block" style="cursor:default;">
-                                <strong><?= $this->tec->formatMoney($total_sales->number, 0); ?></strong>
-                                <?= lang("sales"); ?>
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-primary btn-lg btn-block" style="cursor:default;">
-                                <strong><?= $this->tec->formatMoney($total_sales->amount); ?></strong>
-                                <?= lang("amount"); ?>
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-success btn-lg btn-block" style="cursor:default;">
-                                <strong><?= $this->tec->formatMoney($total_sales->paid); ?></strong>
-                                <?= lang("paid"); ?>
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-warning btn-lg btn-block" style="cursor:default;">
-                                <strong><?= $this->tec->formatMoney($total_sales->amount-$total_sales->paid); ?></strong>
-                                <?= lang("due"); ?>
-                            </button>
-                        </div>
-                    </div>
-                    <?php } ?>
-                </div>
-            </div>
-        </div>
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('payments_report'); ?>
+        <small><?= lang('customize_report'); ?></small>
+    </div>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
     </div>
 </div>
+
+<!-- Filtros -->
+<div class="nxt-card" style="padding:16px 18px;margin-bottom:20px">
+    <?= form_open("reports/payments"); ?>
+    <div class="row g-3 align-items-end">
+        <div class="col-sm-3">
+            <label class="form-label" for="payment_ref"><?= lang('payment_ref'); ?></label>
+            <?= form_input('payment_ref', set_value('payment_ref'), 'class="form-control" id="payment_ref"'); ?>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="sale_no"><?= lang('sale_no'); ?></label>
+            <?= form_input('sale_no', set_value('sale_no'), 'class="form-control" id="sale_no"'); ?>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="customer"><?= lang('customer'); ?></label>
+            <?php
+            $cu[0] = lang("select") . " " . lang("customer");
+            foreach ($customers as $customer) { $cu[$customer->id] = $customer->name; }
+            echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-select" id="customer"');
+            ?>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="user"><?= lang('created_by'); ?></label>
+            <?php
+            $us[""] = "";
+            foreach ($users as $user) { $us[$user->id] = $user->first_name . " " . $user->last_name; }
+            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-select" id="user"');
+            ?>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="paid_by"><?= lang('paid_by'); ?></label>
+            <select name="paid_by" id="paid_by" class="form-select">
+                <option value=""><?= lang('todas'); ?></option>
+                <option value="cash"><?= lang('cash'); ?></option>
+                <option value="CC"><?= lang('cc'); ?></option>
+                <option value="Cheque"><?= lang('cheque'); ?></option>
+                <option value="gift_card"><?= lang('gift_card'); ?></option>
+                <?= isset($Settings->stripe) ? '<option value="stripe">' . lang("stripe") . '</option>' : ''; ?>
+                <option value="other"><?= lang('other'); ?></option>
+            </select>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="start_date"><?= lang('start_date'); ?></label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="<?= isset($_POST['start_date']) ? html_escape($_POST['start_date']) : ''; ?>">
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="end_date"><?= lang('end_date'); ?></label>
+            <input type="date" name="end_date" id="end_date" class="form-control" value="<?= isset($_POST['end_date']) ? html_escape($_POST['end_date']) : ''; ?>">
+        </div>
+        <div class="col-sm-3">
+            <button type="submit" class="nxt-btn" style="width:100%;justify-content:center"><?= lang('submit'); ?></button>
+        </div>
+    </div>
+    <?= form_close(); ?>
 </div>
-</section>
 
+<div id="nxtList"></div>
 
-
-<script type="text/javascript">
-    $(function () {
-        $('.datetimepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD HH:mm'
-        });
-        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var PB = {
+        cash: ['<?= lang('cash'); ?>', 'ok'],
+        CC: ['<?= lang('CC'); ?>', 'info'],
+        Cheque: ['<?= lang('Cheque'); ?>', 'violet'],
+        stripe: ['<?= lang('stripe'); ?>', 'violet'],
+        gift_card: ['<?= lang('gift_card'); ?>', 'orange']
+    };
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('reports/get_payments/' . $v); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '860px',
+        unit: '<?= lang('payments'); ?>'.toLowerCase(),
+        exportName: 'pagos',
+        search: ['date', 'ref', 'sale_no', 'paid_by'],
+        chips: { key: 'paid_by', all: '<?= lang('todas'); ?>', label: function (v) { return (PB[v] || [v])[0]; }, sort: false },
+        totals: ['amount'],
+        columns: [
+            { key: 'date', label: '<?= lang('date'); ?>', sortable: 'str', render: function (r) { return '<span class="nxt-dim-mono">' + NxTable.esc(r.date) + '</span>'; } },
+            { key: 'ref', label: '<?= lang('payment_ref'); ?>', render: function (r) { return r.ref ? '<span class="nxt-code">' + NxTable.esc(r.ref) + '</span>' : '—'; } },
+            { key: 'sale_no', label: '<?= lang('sale_no'); ?>', render: function (r) { return r.sale_no ? '<span class="nxt-code">#' + NxTable.esc(r.sale_no) + '</span>' : '—'; } },
+            { key: 'paid_by', label: '<?= lang('paid_by'); ?>', render: function (r) {
+                var p = PB[r.paid_by] || [r.paid_by, 'muted'];
+                return NxTable.badge(p[0], p[1]);
+            }, exportValue: function (r) { return (PB[r.paid_by] || [r.paid_by])[0]; } },
+            { key: 'amount', label: '<?= lang('amount'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.amount) + '</span>'; } }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
     });
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
+});
 </script>

@@ -145,11 +145,11 @@ if ($this->input->post('end_date')) {
                                        class="table table-striped table-bordered table-condensed table-hover">
                                     <thead>
                                     <tr class="active">
-                                        <th class="col-sm-3">Nombre</th>
-                                        <th class="col-sm-3">Identificaci&oacute;n</th>
-                                        <th class="col-sm-3">Concepto</th>
-                                        <th class="col-sm-3">Codigo</th>
-                                        <th class="col-sm-3">Subtotal(Sin impuesto)</th>
+                                        <th class="col-sm-3"><?= lang('name'); ?></th>
+                                        <th class="col-sm-3"><?= lang('identificacion'); ?></th>
+                                        <th class="col-sm-3"><?= lang('concepto'); ?></th>
+                                        <th class="col-sm-3"><?= lang('code'); ?></th>
+                                        <th class="col-sm-3"><?= lang('subtotal_sin_imp'); ?></th>
                                     </tr>
                                     </thead>
                                     <tbody>

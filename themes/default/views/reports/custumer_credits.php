@@ -276,7 +276,7 @@ if ($this->input->post('end_date')) {
                         </div>
 
                         <div class="box-header">
-                            <h3 class="box-title">Puede realizar el pago de deuda en el siguiente formulario</h3>
+                            <h3 class="box-title"><?= lang('pago_deuda_form'); ?></h3>
                         </div>
                         <div id="form" class="card border-warning ">
                             <div class="card-body">
@@ -306,7 +306,7 @@ if ($this->input->post('end_date')) {
                                                                 style="width:100%"
                                                                 required="required">
                                                             <option value="cash"><?= lang("cash"); ?></option>
-                                                            <option value="CC">Tarjeta</option>
+                                                            <option value="CC"><?= lang('tarjeta'); ?></option>
                                                             <option value="Cheque"><?= lang("cheque"); ?></option>
                                                         </select>
                                                     </div>
@@ -337,7 +337,7 @@ if ($this->input->post('end_date')) {
                                                             <select name="pcc_type" id="pcc_type" class="form-control pcc_type tom-select"
                                                                     style="width:100%"
                                                                     placeholder="<?= lang('card_type') ?>">
-                                                                <option value="Debito">Debito</option>
+                                                                <option value="Debito"><?= lang('debito'); ?></option>
                                                                 <option value="Visa"><?= lang("Visa"); ?></option>
                                                                 <option value="MasterCard"><?= lang("MasterCard"); ?></option>
                                                             </select>
@@ -367,7 +367,7 @@ if ($this->input->post('end_date')) {
 
 
                                 <div class="col-sm-12">
-                                    <button type="submit" class="btn btn-primary">Pagar deuda</button>
+                                    <button type="submit" class="btn btn-primary"><?= lang('pagar_deuda'); ?></button>
                                 </div>
 
                                 <?= form_close(); ?>

@@ -11,7 +11,7 @@
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="input-group">
-                                <input id="scanner_input" class="form-control" placeholder="Click the button to scan an EAN..." type="text" /> 
+                                <input id="scanner_input" class="form-control" placeholder="<?= lang('scan_ean_placeholder'); ?>" type="text" /> 
                                 <span class="input-group-btn"> 
                                     <button class="btn btn-default" onclick="$('#scanner_input').focus();" type="button">
                                         <i class="fa fa-barcode"></i>

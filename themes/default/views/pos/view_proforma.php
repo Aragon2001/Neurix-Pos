@@ -121,7 +121,7 @@ if ($modal) {
                                 ?>
                             </div>
                             <p>
-                                <b>Proforma</b><br>
+                                <b><?= lang('proforma'); ?></b><br>
                                 <?= lang("date") . ': ' . $this->tec->hrld($inv->date); ?> <br>
                                 <?= lang('Proforma N°') . ': ' . $inv->id; ?><br>
                                 <?= lang("customer") . ': ' . $inv->customer_name; ?> <br>

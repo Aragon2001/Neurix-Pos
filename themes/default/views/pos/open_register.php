@@ -21,11 +21,11 @@
                                         <?= form_input('cash_in_hand', '', 'id="cash_in_hand" class="form-control"'); ?>
                                     </div>
                                     <?php // echo form_submit('open_register', lang('open_register'), 'class="btn btn-primary"');   ?>
-                                    <span class="btn btn-primary" id="open_register">Aperturar Caja</span>
+                                    <span class="btn btn-primary" id="open_register"><?= lang('aperturar_caja'); ?></span>
                                     <?php echo form_close(); ?>
                                     <div class="clearfix"></div>
                                 <?php } else { ?>
-                                    <div>No puede aperturar nuevamente la caja sin autorizacion del administrador</div>
+                                    <div><?= lang('no_puede_aperturar'); ?></div>
 
                                     <div class="clearfix"></div>
                                 <?php } ?>

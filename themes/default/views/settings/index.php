@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <?php if ($error): ?>
 <div class="alert alert-danger alert-dismissible" role="alert">
@@ -75,31 +75,31 @@
                     <li class="active">
                         <a href="#tab-general" data-bs-toggle="pill">
                             <i class="fa fa-cog"></i>
-                            <span class="nx-nav-label">General<span class="nx-nav-sub">Negocio, tema, PIN</span></span>
+                            <span class="nx-nav-label"><?= lang('settings_tab_general'); ?><span class="nx-nav-sub"><?= lang('settings_tab_general_sub'); ?></span></span>
                         </a>
                     </li>
                     <li>
                         <a href="#tab-emisor" data-bs-toggle="pill">
                             <i class="fa fa-file-text-o"></i>
-                            <span class="nx-nav-label">Emisor FE<span class="nx-nav-sub">Hacienda, tokens, cert.</span></span>
+                            <span class="nx-nav-label"><?= lang('settings_tab_emisor'); ?><span class="nx-nav-sub"><?= lang('settings_tab_emisor_sub'); ?></span></span>
                         </a>
                     </li>
                     <li>
                         <a href="#tab-email" data-bs-toggle="pill">
                             <i class="fa fa-envelope"></i>
-                            <span class="nx-nav-label">Email<span class="nx-nav-sub">SMTP, protocolo</span></span>
+                            <span class="nx-nav-label"><?= lang('email'); ?><span class="nx-nav-sub"><?= lang('settings_tab_email_sub'); ?></span></span>
                         </a>
                     </li>
                     <li>
                         <a href="#tab-pos" data-bs-toggle="pill">
                             <i class="fa fa-shopping-cart"></i>
-                            <span class="nx-nav-label">POS / Caja<span class="nx-nav-sub">Impresión, botones</span></span>
+                            <span class="nx-nav-label"><?= lang('settings_tab_pos'); ?><span class="nx-nav-sub"><?= lang('settings_tab_pos_sub'); ?></span></span>
                         </a>
                     </li>
                     <li>
                         <a href="#tab-avanzado" data-bs-toggle="pill">
                             <i class="fa fa-wrench"></i>
-                            <span class="nx-nav-label">Avanzado<span class="nx-nav-sub">Búsqueda, categ., más</span></span>
+                            <span class="nx-nav-label"><?= lang('settings_tab_avanzado'); ?><span class="nx-nav-sub"><?= lang('settings_tab_avanzado_sub'); ?></span></span>
                         </a>
                     </li>
                 </ul>
@@ -154,8 +154,8 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="pin_code"><i class="fa fa-lock"></i> <?php echo lang('delete_code'); ?> (PIN)</label>
-                                    <input type="password" name="pin_code" id="pin_code" value="<?php echo htmlspecialchars($settings->pin_code ?? ''); ?>" class="form-control" pattern="[0-9]{4,8}" placeholder="4-8 dígitos numéricos">
-                                    <span class="help-block">PIN numérico de 4 a 8 dígitos para acciones sensibles</span>
+                                    <input type="password" name="pin_code" id="pin_code" value="<?php echo htmlspecialchars($settings->pin_code ?? ''); ?>" class="form-control" pattern="[0-9]{4,8}" placeholder="<?= lang('placeholder_pin'); ?>">
+                                    <span class="help-block"><?= lang('pin_seguridad_help'); ?></span>
                                 </div>
                                 <?php if (($settings->theme_style ?? '') != 'purple' && ($settings->theme_style ?? '') != 'green'): ?>
                                 <div class="mb-3">
@@ -185,10 +185,10 @@
                                     <span class="help-block"><i class="fa fa-info-circle"></i> GIF/JPG/PNG, máx 300x80px, 300KB</span>
                                 </div>
                                 <div class="mb-3">
-                                    <label><i class="fa fa-th-large"></i> Panel de categorías en POS</label>
+                                    <label><i class="fa fa-th-large"></i> <?= lang('panel_categorias_pos'); ?></label>
                                     <select name="show_categories" id="show_categories" class="form-control tom-select" style="width:100%;">
-                                        <option value="1" <?= (($settings->show_categories ?? '1') == '1') ? 'selected' : ''; ?>>Mostrar categorías</option>
-                                        <option value="0" <?= (($settings->show_categories ?? '1') == '0') ? 'selected' : ''; ?>>Ocultar categorías</option>
+                                        <option value="1" <?= (($settings->show_categories ?? '1') == '1') ? 'selected' : ''; ?>><?= lang('mostrar_categorias'); ?></option>
+                                        <option value="0" <?= (($settings->show_categories ?? '1') == '0') ? 'selected' : ''; ?>><?= lang('ocultar_categorias'); ?></option>
                                     </select>
                                 </div>
                             </div>
@@ -200,11 +200,11 @@
 
                         <?php if (($settings->block_hacienda ?? '0') == '1'): ?>
                         <div class="alert alert-warning" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                            <span><i class="fa fa-lock fa-lg"></i> <strong>Configuracion Hacienda bloqueada.</strong> Los datos del emisor son de solo lectura.</span>
+                            <span><i class="fa fa-lock fa-lg"></i> <?= lang('config_bloqueada_msg'); ?></span>
                             <a href="<?= site_url('settings/desbloquear_hacienda') ?>"
                                class="btn btn-warning btn-sm"
-                               onclick="return confirm('¿Seguro que desea desbloquear la configuracion de Hacienda?')">
-                                <i class="fa fa-unlock"></i> Desbloquear
+                               onclick="return confirm('<?= lang(''desbloquear_confirm''); ?>')">
+                                <i class="fa fa-unlock"></i> <?= lang('desbloquear'); ?>
                             </a>
                         </div>
                         <?php endif; ?>
@@ -213,23 +213,23 @@
 
                         <!-- AMBIENTE -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-exchange"></i> Ambiente Hacienda</div>
+                            <div class="card-header"><i class="fa fa-exchange"></i> <?= lang('ambiente_hacienda'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="ambiente"><i class="fa fa-server"></i> Ambiente activo</label>
+                                            <label for="ambiente"><i class="fa fa-server"></i> <?= lang('ambiente_activo_label'); ?></label>
                                             <?php
-                                            $amb_opts = ['test' => 'Pruebas (Sandbox)', 'prod' => 'Produccion'];
+                                            $amb_opts = ['test' => lang('pruebas_sandbox'), 'prod' => lang('produccion')];
                                             $amb_actual = $settings->ambiente ?? 'test';
                                             echo form_dropdown('ambiente', $amb_opts, $amb_actual, 'class="form-control tom-select" id="ambiente" style="width:100%;"');
                                             ?>
                                             <?php if ($amb_actual == 'prod'): ?>
-                                            <span class="label label-success" style="font-size:13px;padding:5px 10px;display:inline-block;margin-top:5px;"><i class="fa fa-check"></i> PRODUCCION activa</span>
+                                            <span class="label label-success" style="font-size:13px;padding:5px 10px;display:inline-block;margin-top:5px;"><i class="fa fa-check"></i> <?= lang('produccion_activa_label'); ?></span>
                                             <?php else: ?>
-                                            <span class="label label-warning" style="font-size:13px;padding:5px 10px;display:inline-block;margin-top:5px;"><i class="fa fa-flask"></i> PRUEBAS activa</span>
+                                            <span class="label label-warning" style="font-size:13px;padding:5px 10px;display:inline-block;margin-top:5px;"><i class="fa fa-flask"></i> <?= lang('pruebas_activa_label'); ?></span>
                                             <?php endif; ?>
-                                            <span class="help-block"><i class="fa fa-exclamation-triangle text-warning"></i> Cambie a <b>Produccion</b> solo con credenciales y certificado de produccion confirmados.</span>
+                                            <span class="help-block"><i class="fa fa-exclamation-triangle text-warning"></i> <?= lang('cambie_a_produccion'); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -238,57 +238,57 @@
 
                         <!-- IDENTIFICACION DEL EMISOR -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-id-card-o"></i> Identificacion del Emisor</div>
+                            <div class="card-header"><i class="fa fa-id-card-o"></i> <?= lang('identificacion_emisor'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="tipo_doc_emisor"><i class="fa fa-id-badge"></i> Tipo de Cedula / Documento</label>
+                                            <label for="tipo_doc_emisor"><i class="fa fa-id-badge"></i> <?= lang('tipo_doc_cedula'); ?></label>
                                             <?php
-                                            $tipo_doc_emisor = array("01" => "Cedula de Identidad", "02" => "Cedula Juridica", "03" => "DIMEX", "04" => "NITE");
+                                            $tipo_doc_emisor = array("01" => lang('Cedula Identidad'), "02" => lang('Cedula Juridica'), "03" => lang('Dimex'), "04" => lang('NITE'));
                                             echo form_dropdown('tipo_doc_emisor', $tipo_doc_emisor, $settings->tipo_doc_emisor ?? '02', 'class="form-control tom-select" id="tipo_doc_emisor" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="cedula_emisor"><i class="fa fa-hashtag"></i> Cedula / N° Documento</label>
+                                            <label for="cedula_emisor"><i class="fa fa-hashtag"></i> <?= lang('cedula_documento'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->cedula_emisor ?? '') ?>" class="form-control" id="cedula_emisor" name="cedula_emisor" type="text" placeholder="3101000000">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="nombre_emisor"><i class="fa fa-user"></i> Nombre del Obligado Tributario</label>
+                                            <label for="nombre_emisor"><i class="fa fa-user"></i> <?= lang('nombre_obligado'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->nombre_emisor ?? '') ?>" class="form-control" id="nombre_emisor" name="nombre_emisor" type="text">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="nombre_comercial"><i class="fa fa-briefcase"></i> Nombre Comercial / Fantasia</label>
+                                            <label for="nombre_comercial"><i class="fa fa-briefcase"></i> <?= lang('nombre_comercial_fantasia'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->nombre_comercial ?? '') ?>" class="form-control" id="nombre_comercial" name="nombre_comercial" type="text">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="email_emisor"><i class="fa fa-envelope-o"></i> Correo Electronico</label>
+                                            <label for="email_emisor"><i class="fa fa-envelope-o"></i> <?= lang('correo_electronico'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->email_emisor ?? '') ?>" class="form-control" id="email_emisor" name="email_emisor" type="email">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="mb-3">
-                                            <label for="cod_telefono_emisor"><i class="fa fa-flag"></i> Cod. Pais</label>
+                                            <label for="cod_telefono_emisor"><i class="fa fa-flag"></i> <?= lang('cod_pais'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->cod_telefono_emisor ?? '506') ?>" class="form-control" id="cod_telefono_emisor" name="cod_telefono_emisor" type="text" placeholder="506" maxlength="3">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="mb-3">
-                                            <label for="telefono_emisor"><i class="fa fa-phone"></i> Telefono <small>(sin guiones)</small></label>
+                                            <label for="telefono_emisor"><i class="fa fa-phone"></i> <?= lang('telefono_sin_guiones'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->telefono_emisor ?? '') ?>" class="form-control" id="telefono_emisor" name="telefono_emisor" type="text" placeholder="22220000">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="fax_emisor"><i class="fa fa-fax"></i> Fax <small>(sin guiones)</small></label>
+                                            <label for="fax_emisor"><i class="fa fa-fax"></i> <?= lang('fax_sin_guiones'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->fax_emisor ?? '') ?>" class="form-control" id="fax_emisor" name="fax_emisor" type="text" placeholder="22220000">
                                         </div>
                                     </div>
@@ -299,7 +299,7 @@
                         <!-- DIRECCION -->
                         <div class="card">
                             <div class="card-header">
-                                <i class="fa fa-map-marker"></i> Direccion del Tributario
+                                <i class="fa fa-map-marker"></i> <?= lang('direccion_tributario'); ?>
                                 <small><a target="_blank" href="https://tribunet.hacienda.go.cr/docs/esquemas/2016/v4.2/Codificacionubicacion_V4.2.zip"><i class="fa fa-download"></i> Codigos de ubicacion</a></small>
                             </div>
                             <div class="card-body">
@@ -330,8 +330,8 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="otras_senas"><i class="fa fa-home"></i> Otras Senas</label>
-                                            <input value="<?= htmlspecialchars($settings->otras_senas ?? '') ?>" class="form-control" id="otras_senas" name="otras_senas" type="text" placeholder="Descripcion de la direccion">
+                                            <label for="otras_senas"><i class="fa fa-home"></i> <?= lang('otras_senas_label'); ?></label>
+                                            <input value="<?= htmlspecialchars($settings->otras_senas ?? '') ?>" class="form-control" id="otras_senas" name="otras_senas" type="text" placeholder="<?= lang('placeholder_dir_desc'); ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -340,12 +340,12 @@
 
                         <!-- ACTIVIDAD ECONOMICA -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-industry"></i> Actividad Economica</div>
+                            <div class="card-header"><i class="fa fa-industry"></i> <?= lang('actividad_economica'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="default_actividad"><i class="fa fa-list-alt"></i> Actividad Predeterminada</label>
+                                            <label for="default_actividad"><i class="fa fa-list-alt"></i> <?= lang('actividad_predeterminada'); ?></label>
                                             <?php
                                             $act_opts = array();
                                             foreach ($actividadeconomica as $actividad) {
@@ -361,7 +361,7 @@
 
                         <!-- TOKENS API HACIENDA -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-key"></i> Tokens API Hacienda</div>
+                            <div class="card-header"><i class="fa fa-key"></i> <?= lang('tokens_api_hacienda'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <!-- PRUEBAS -->
@@ -370,17 +370,17 @@
                                     </div>
                                     <div class="col-md-5">
                                         <div class="mb-3">
-                                            <label for="user_token_test"><i class="fa fa-user-o"></i> Usuario Prueba</label>
+                                            <label for="user_token_test"><i class="fa fa-user-o"></i> <?= lang('usuario_prueba'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->user_token_test ?? '') ?>" class="form-control" id="user_token_test" name="user_token_test" type="text" placeholder="cpj-3-101-000000@stag.comprobanteselectronicos.go.cr">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="password_token_test"><i class="fa fa-lock"></i> Password Prueba</label>
+                                            <label for="password_token_test"><i class="fa fa-lock"></i> <?= lang('password_prueba'); ?></label>
                                             <div class="input-group">
-                                                <input value="<?= htmlspecialchars($settings->password_token_test ?? '') ?>" class="form-control" id="password_token_test" name="password_token_test" type="password" placeholder="Contrasena de prueba">
+                                                <input value="<?= htmlspecialchars($settings->password_token_test ?? '') ?>" class="form-control" id="password_token_test" name="password_token_test" type="password" placeholder="<?= lang('password_prueba'); ?>">
                                                 <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="password_token_test" title="Ver/ocultar"><i class="fa fa-eye"></i></button>
+                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="password_token_test" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -388,7 +388,7 @@
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label>&nbsp;</label><br>
-                                            <span id="comprueba_test" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> Probar credenciales prueba</span>
+                                            <span id="comprueba_test" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <?= lang('probar_cred_prueba'); ?></span>
                                         </div>
                                     </div>
 
@@ -398,17 +398,17 @@
                                     </div>
                                     <div class="col-md-5">
                                         <div class="mb-3">
-                                            <label for="user_token_prod"><i class="fa fa-user-o"></i> Usuario Produccion</label>
+                                            <label for="user_token_prod"><i class="fa fa-user-o"></i> <?= lang('usuario_produccion'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->user_token_prod ?? '') ?>" class="form-control" id="user_token_prod" name="user_token_prod" type="text" placeholder="cpj-3-101-000000@prod.comprobanteselectronicos.go.cr">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="password_token_prod"><i class="fa fa-lock"></i> Password Produccion</label>
+                                            <label for="password_token_prod"><i class="fa fa-lock"></i> <?= lang('password_produccion'); ?></label>
                                             <div class="input-group">
-                                                <input value="<?= htmlspecialchars($settings->password_token_prod ?? '') ?>" class="form-control" id="password_token_prod" name="password_token_prod" type="password" placeholder="Contrasena de produccion">
+                                                <input value="<?= htmlspecialchars($settings->password_token_prod ?? '') ?>" class="form-control" id="password_token_prod" name="password_token_prod" type="password" placeholder="<?= lang('password_produccion'); ?>">
                                                 <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="password_token_prod" title="Ver/ocultar"><i class="fa fa-eye"></i></button>
+                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="password_token_prod" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -416,7 +416,7 @@
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label>&nbsp;</label><br>
-                                            <span id="comprueba_prod" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> Probar credenciales produccion</span>
+                                            <span id="comprueba_prod" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <?= lang('probar_cred_prod'); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -425,44 +425,44 @@
 
                         <!-- CERTIFICADO DIGITAL -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-certificate"></i> Certificado Digital (.p12)</div>
+                            <div class="card-header"><i class="fa fa-certificate"></i> <?= lang('certificado_digital'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="certificado_ced"><i class="fa fa-file-o"></i> Nombre del Certificado <small>(sin la extension .p12)</small></label>
+                                            <label for="certificado_ced"><i class="fa fa-file-o"></i> <?= lang('nombre_certificado_label'); ?></label>
                                             <input value="<?= htmlspecialchars($settings->certificado_ced ?? '') ?>" class="form-control" id="certificado_ced" name="certificado_ced" type="text" placeholder="310100000000">
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="certificado_pin"><i class="fa fa-key"></i> PIN del Certificado <small>(longitud 4)</small></label>
+                                            <label for="certificado_pin"><i class="fa fa-key"></i> <?= lang('pin_certificado'); ?></label>
                                             <div class="input-group">
                                                 <input value="<?= htmlspecialchars($settings->certificado_pin ?? '') ?>" class="form-control" id="certificado_pin" name="certificado_pin" type="password" placeholder="0000">
                                                 <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="certificado_pin" title="Ver/ocultar"><i class="fa fa-eye"></i></button>
+                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="certificado_pin" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label><i class="fa fa-upload"></i> Subir Certificado .p12 <small>(Sobrescribe el actual)</small></label>
+                                            <label><i class="fa fa-upload"></i> <?= lang('subir_certificado_label'); ?></label>
                                             <?php
                                             $certFile = FCPATH . 'files/certificados/' . ($settings->ambiente ?? 'test') . '/' . ($settings->certificado_ced ?? '') . '.p12';
                                             $certExists = !empty($settings->certificado_ced) && file_exists($certFile);
                                             ?>
                                             <?php if ($certExists): ?>
-                                                <p class="text-success" style="margin:0 0 4px;"><i class="fa fa-check-circle"></i> Certificado cargado: <strong><?= htmlspecialchars($settings->certificado_ced) ?>.p12</strong></p>
+                                                <p class="text-success" style="margin:0 0 4px;"><i class="fa fa-check-circle"></i> <?= lang('certificado_cargado'); ?> <strong><?= htmlspecialchars($settings->certificado_ced) ?>.p12</strong></p>
                                             <?php else: ?>
-                                                <p class="text-warning" style="margin:0 0 4px;"><i class="fa fa-exclamation-triangle"></i> No hay certificado en el servidor.</p>
+                                                <p class="text-warning" style="margin:0 0 4px;"><i class="fa fa-exclamation-triangle"></i> <?= lang('no_hay_certificado'); ?></p>
                                             <?php endif; ?>
                                             <form action="<?= site_url('settings/upload_certificado') ?>" method="post" enctype="multipart/form-data" style="display:flex;gap:6px;align-items:center;">
                                                 <?php echo form_hidden($this->security->get_csrf_token_name(), $this->security->get_csrf_hash()); ?>
                                                 <input type="file" name="certificado_p12" accept=".p12" class="form-control" style="flex:1;" required>
-                                                <button type="submit" class="btn btn-warning btn-sm" style="white-space:nowrap;"><i class="fa fa-upload"></i> Subir</button>
+                                                <button type="submit" class="btn btn-warning btn-sm" style="white-space:nowrap;"><i class="fa fa-upload"></i> <?= lang('subir'); ?></button>
                                             </form>
-                                            <span class="help-block">Ambiente activo: <strong><?= htmlspecialchars($settings->ambiente ?? 'test') ?></strong></span>
+                                            <span class="help-block"><?= lang('ambiente_activo_info'); ?> <strong><?= htmlspecialchars($settings->ambiente ?? 'test') ?></strong></span>
                                         </div>
                                     </div>
                                 </div>
@@ -471,19 +471,19 @@
 
                         <!-- FOOTER FE -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-align-left"></i> Textos en comprobantes electronicos</div>
+                            <div class="card-header"><i class="fa fa-align-left"></i> <?= lang('textos_comprobantes'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="footer_hacienda_fe"><i class="fa fa-file-text"></i> Footer Factura Electronica</label>
-                                            <textarea name="footer_hacienda_fe" id="footer_hacienda_fe" class="form-control" rows="3" placeholder="Texto al pie de las facturas electronicas"><?= htmlspecialchars($settings->footer_hacienda_fe ?? '') ?></textarea>
+                                            <label for="footer_hacienda_fe"><i class="fa fa-file-text"></i> <?= lang('footer_fe_label'); ?></label>
+                                            <textarea name="footer_hacienda_fe" id="footer_hacienda_fe" class="form-control" rows="3" placeholder="<?= lang('placeholder_footer_fe'); ?>"><?= htmlspecialchars($settings->footer_hacienda_fe ?? '') ?></textarea>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="footer_hacienda_nc"><i class="fa fa-file-text-o"></i> Footer Nota de Credito</label>
-                                            <textarea name="footer_hacienda_nc" id="footer_hacienda_nc" class="form-control" rows="3" placeholder="Texto al pie de las notas de credito"><?= htmlspecialchars($settings->footer_hacienda_nc ?? '') ?></textarea>
+                                            <label for="footer_hacienda_nc"><i class="fa fa-file-text-o"></i> <?= lang('footer_nc_label'); ?></label>
+                                            <textarea name="footer_hacienda_nc" id="footer_hacienda_nc" class="form-control" rows="3" placeholder="<?= lang('placeholder_footer_nc'); ?>"><?= htmlspecialchars($settings->footer_hacienda_nc ?? '') ?></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -492,23 +492,23 @@
 
                         <!-- BLOQUEO / SINCRONIZACION CABYS -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-database"></i> Sincronizacion y Bloqueo</div>
+                            <div class="card-header"><i class="fa fa-database"></i> <?= lang('sincronizacion_bloqueo'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <h4><i class="fa fa-refresh"></i> Catalogo CABYS</h4>
-                                        <p>Si Hacienda publico una actualizacion del catalogo CABYS, limpie el cache local para consultar las versiones mas recientes.</p>
+                                        <h4><i class="fa fa-refresh"></i> <?= lang('catalogo_cabys_label'); ?></h4>
+                                        <p><?= lang('cabys_cache_info'); ?></p>
                                         <button type="button" id="btn-limpiar-cabys" class="btn btn-warning">
-                                            <i class="fa fa-refresh"></i> Limpiar cache CABYS
+                                            <i class="fa fa-refresh"></i> <?= lang('limpiar_cache_cabys'); ?>
                                         </button>
                                         <span id="cabys-sync-result" style="margin-left:10px;display:none;"></span>
                                     </div>
                                     <div class="col-md-6">
-                                        <h4><i class="fa fa-lock"></i> Bloqueo de Configuracion Hacienda</h4>
-                                        <p><small>Si ya probó la configuracion y esta 100% seguro de que todo funciona, bloquee para evitar cambios accidentales.</small></p>
+                                        <h4><i class="fa fa-lock"></i> <?= lang('bloqueo_config_hacienda'); ?></h4>
+                                        <p><small><?= lang('bloqueo_advertencia'); ?></small></p>
                                         <div class="mb-3">
                                             <?php
-                                            $block_opts = array(0 => "No bloqueada", 1 => "Bloquear Configuracion");
+                                            $block_opts = array(0 => lang('no_bloqueada'), 1 => lang('bloquear_configuracion'));
                                             echo form_dropdown('block_hacienda', $block_opts, $settings->block_hacienda ?? 0, 'class="form-control tom-select" id="block_hacienda" style="width:100%;"');
                                             ?>
                                         </div>
@@ -548,7 +548,7 @@
                                             <div class="mb-3">
                                                 <label for="mailpath"><i class="fa fa-folder-o"></i> <?php echo lang('mailpath'); ?></label>
                                                 <?php echo form_input('mailpath', $settings->mailpath ?? '/usr/sbin/sendmail', 'class="form-control" id="mailpath" placeholder="/usr/sbin/sendmail"'); ?>
-                                                <span class="help-block">Ruta al binario de sendmail en el servidor</span>
+                                                <span class="help-block"><?= lang('ruta_sendmail'); ?></span>
                                             </div>
                                         </div>
                                     </div>
@@ -571,16 +571,16 @@
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="smtp_user"><i class="fa fa-user-o"></i> <?php echo lang('smtp_user'); ?></label>
-                                                <?php echo form_input('smtp_user', $settings->smtp_user ?? '', 'class="form-control" id="smtp_user" placeholder="usuario@gmail.com"'); ?>
+                                                <?php echo form_input('smtp_user', $settings->smtp_user ?? '', 'class="form-control" id="smtp_user" placeholder="' . lang('placeholder_smtp_user') . '"'); ?>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="smtp_pass"><i class="fa fa-lock"></i> <?php echo lang('smtp_pass'); ?></label>
                                                 <div class="input-group">
-                                                    <input type="password" name="smtp_pass" id="smtp_pass" value="<?= htmlspecialchars($settings->smtp_pass ?? '') ?>" class="form-control" placeholder="Contrasena SMTP">
+                                                    <input type="password" name="smtp_pass" id="smtp_pass" value="<?= htmlspecialchars($settings->smtp_pass ?? '') ?>" class="form-control" placeholder="<?= lang('placeholder_smtp_pass'); ?>">
                                                     <span class="input-group-btn">
-                                                        <button type="button" class="btn btn-default btn-toggle-pw" data-target="smtp_pass" title="Ver/ocultar"><i class="fa fa-eye"></i></button>
+                                                        <button type="button" class="btn btn-default btn-toggle-pw" data-target="smtp_pass" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
                                                     </span>
                                                 </div>
                                             </div>
@@ -612,7 +612,7 @@
 
                         <!-- COMPORTAMIENTO POST-VENTA -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-cog"></i> Comportamiento General POS</div>
+                            <div class="card-header"><i class="fa fa-cog"></i> <?= lang('settings_tab_pos'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
@@ -637,7 +637,7 @@
                                         <div class="mb-3">
                                             <label for="display_product"><i class="fa fa-th"></i> <?php echo lang('display_product'); ?></label>
                                             <?php
-                                            $dprv = array('1' => 'Nombre', '2' => 'Foto', '3' => 'Ambos');
+                                            $dprv = array('1' => lang('name'), '2' => lang('foto'), '3' => lang('ambos'));
                                             echo form_dropdown('display_product', $dprv, $settings->bsty ?? '1', 'class="form-control tom-select" id="display_product" style="width:100%;" required="required"');
                                             ?>
                                         </div>
@@ -659,25 +659,25 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="focus_add_item"><i class="fa fa-crosshairs"></i> Atajo: Agregar item (focus)</label>
+                                            <label for="focus_add_item"><i class="fa fa-crosshairs"></i> <?= lang('atajo_agregar_item'); ?></label>
                                             <?php echo form_input('focus_add_item', $settings->focus_add_item ?? 'ALT+I', 'class="form-control" id="focus_add_item"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="edit_last_product"><i class="fa fa-edit"></i> Atajo: Editar ultimo producto</label>
+                                            <label for="edit_last_product"><i class="fa fa-edit"></i> <?= lang('atajo_editar_ultimo'); ?></label>
                                             <?php echo form_input('edit_last_product', $settings->edit_last_product ?? 'F1', 'class="form-control" id="edit_last_product"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="add_customer"><i class="fa fa-user-plus"></i> Atajo: Agregar cliente</label>
+                                            <label for="add_customer"><i class="fa fa-user-plus"></i> <?= lang('atajo_agregar_cliente'); ?></label>
                                             <?php echo form_input('add_customer', $settings->add_customer ?? 'ALT+C', 'class="form-control" id="add_customer"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="toggle_category_slider"><i class="fa fa-bars"></i> Atajo: Alternar categorias</label>
+                                            <label for="toggle_category_slider"><i class="fa fa-bars"></i> <?= lang('atajo_alternar_cats'); ?></label>
                                             <?php echo form_input('toggle_category_slider', $settings->toggle_category_slider ?? 'ALT+C', 'class="form-control" id="toggle_category_slider"'); ?>
                                         </div>
                                     </div>
@@ -687,54 +687,54 @@
 
                         <!-- BOTONES VISIBLES EN POS -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-th-list"></i> Atajos / Botones del POS</div>
+                            <div class="card-header"><i class="fa fa-th-list"></i> <?= lang('sec_atajos_pos'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="cancel_sale"><i class="fa fa-times-circle"></i> Atajo: Cancelar venta</label>
+                                            <label for="cancel_sale"><i class="fa fa-times-circle"></i> <?= lang('atajo_cancelar_venta'); ?></label>
                                             <?php echo form_input('cancel_sale', $settings->cancel_sale ?? 'F9', 'class="form-control" id="cancel_sale"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="suspend_sale"><i class="fa fa-pause-circle"></i> Atajo: Suspender venta</label>
+                                            <label for="suspend_sale"><i class="fa fa-pause-circle"></i> <?= lang('atajo_suspender_venta'); ?></label>
                                             <?php echo form_input('suspend_sale', $settings->suspend_sale ?? 'F5', 'class="form-control" id="suspend_sale"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="print_order"><i class="fa fa-print"></i> Atajo: Imprimir orden</label>
+                                            <label for="print_order"><i class="fa fa-print"></i> <?= lang('atajo_imprimir_orden'); ?></label>
                                             <?php echo form_input('print_order', $settings->print_order ?? '', 'class="form-control" id="print_order"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="print_bill"><i class="fa fa-file-text-o"></i> Atajo: Imprimir factura</label>
+                                            <label for="print_bill"><i class="fa fa-file-text-o"></i> <?= lang('atajo_imprimir_factura'); ?></label>
                                             <?php echo form_input('print_bill', $settings->print_bill ?? '', 'class="form-control" id="print_bill"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="finalize_sale"><i class="fa fa-check-circle"></i> Atajo: Finalizar venta</label>
+                                            <label for="finalize_sale"><i class="fa fa-check-circle"></i> <?= lang('atajo_finalizar_venta'); ?></label>
                                             <?php echo form_input('finalize_sale', $settings->finalize_sale ?? 'F12', 'class="form-control" id="finalize_sale"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="today_sale"><i class="fa fa-calendar-check-o"></i> Atajo: Ventas hoy</label>
+                                            <label for="today_sale"><i class="fa fa-calendar-check-o"></i> <?= lang('atajo_ventas_hoy'); ?></label>
                                             <?php echo form_input('today_sale', $settings->today_sale ?? 'ALT+V', 'class="form-control" id="today_sale"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="open_hold_bills"><i class="fa fa-folder-open-o"></i> Atajo: Retomar pendientes</label>
+                                            <label for="open_hold_bills"><i class="fa fa-folder-open-o"></i> <?= lang('atajo_retomar'); ?></label>
                                             <?php echo form_input('open_hold_bills', $settings->open_hold_bills ?? '', 'class="form-control" id="open_hold_bills"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="close_register"><i class="fa fa-sign-out"></i> Atajo: Cerrar caja</label>
+                                            <label for="close_register"><i class="fa fa-sign-out"></i> <?= lang('atajo_cerrar_caja'); ?></label>
                                             <?php echo form_input('close_register', $settings->close_register ?? 'ALT+R', 'class="form-control" id="close_register"'); ?>
                                         </div>
                                     </div>
@@ -744,7 +744,7 @@
 
                         <!-- INVENTARIO -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-cubes"></i> Inventario</div>
+                            <div class="card-header"><i class="fa fa-cubes"></i> <?= lang('inventory_label'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
@@ -758,9 +758,9 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_fractions"><i class="fa fa-percent"></i> Ventas en fracciones</label>
+                                            <label for="enable_fractions"><i class="fa fa-percent"></i> <?= lang('ventas_fracciones'); ?></label>
                                             <?php
-                                            $frac = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $frac = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('enable_fractions', $frac, $settings->enable_fractions ?? '0', 'class="form-control tom-select" id="enable_fractions" style="width:100%;" required="required"');
                                             ?>
                                         </div>
@@ -776,9 +776,9 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_fastedition"><i class="fa fa-pencil-square-o"></i> Edicion rapida de productos</label>
+                                            <label for="enable_fastedition"><i class="fa fa-pencil-square-o"></i> <?= lang('edicion_rapida_prod'); ?></label>
                                             <?php
-                                            $fe_opts = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $fe_opts = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('enable_fastedition', $fe_opts, $settings->enable_fastedition ?? '0', 'class="form-control tom-select" id="enable_fastedition" style="width:100%;" required="required"');
                                             ?>
                                         </div>
@@ -789,14 +789,14 @@
 
                         <!-- IMPRESION -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-print"></i> Impresion</div>
+                            <div class="card-header"><i class="fa fa-print"></i> <?= lang('sec_impresion'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="receipt_printer"><i class="fa fa-print"></i> <?php echo lang('receipt_printer'); ?></label>
                                             <?php
-                                            $printer_opts = array('' => '-- Sin impresora --');
+                                            $printer_opts = array('' => lang('none'));
                                             if (!empty($printers)) {
                                                 foreach ($printers as $printer) {
                                                     $printer_opts[$printer->id] = $printer->title;
@@ -808,13 +808,13 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="ip_printer"><i class="fa fa-wifi"></i> IP de Impresora</label>
+                                            <label for="ip_printer"><i class="fa fa-wifi"></i> <?= lang('ip_impresora'); ?></label>
                                             <?php echo form_input('ip_printer', $settings->ip_printer ?? '', 'class="form-control" id="ip_printer" placeholder="127.0.0.1"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="nombrecompartido"><i class="fa fa-share-alt"></i> Nombre compartido de impresora</label>
+                                            <label for="nombrecompartido"><i class="fa fa-share-alt"></i> <?= lang('nombre_compartido_imp'); ?></label>
                                             <?php echo form_input('nombrecompartido', $settings->nombrecompartido ?? '', 'class="form-control" id="nombrecompartido" placeholder="epsontm-t20"'); ?>
                                         </div>
                                     </div>
@@ -835,7 +835,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="barcode_symbology"><i class="fa fa-barcode"></i> Simbologia de codigos de barra</label>
+                                            <label for="barcode_symbology"><i class="fa fa-barcode"></i> <?= lang('simbologia_barras'); ?></label>
                                             <?php
                                             $bsyms = array('C128' => 'Code 128', 'C39' => 'Code 39', 'EAN13' => 'EAN-13', 'EAN8' => 'EAN-8', 'UPCA' => 'UPC-A', 'UPCE' => 'UPC-E');
                                             echo form_dropdown('barcode_symbology', $bsyms, $settings->barcode_symbology ?? 'C128', 'class="form-control tom-select" id="barcode_symbology" style="width:100%;"');
@@ -864,38 +864,38 @@
 
                         <!-- APARTADOS Y COTIZACIONES -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-bookmark"></i> Apartados, Cotizaciones y Envios</div>
+                            <div class="card-header"><i class="fa fa-bookmark"></i> <?= lang('sec_apartados'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_layaway"><i class="fa fa-bookmark-o"></i> Apartados</label>
+                                            <label for="enable_layaway"><i class="fa fa-bookmark-o"></i> <?= lang('apartados'); ?></label>
                                             <?php
-                                            $layw = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $layw = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('enable_layaway', $layw, $settings->enable_layaway ?? '0', 'class="form-control tom-select" id="enable_layaway" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="footer_apartado"><i class="fa fa-align-left"></i> Footer de Apartado</label>
+                                            <label for="footer_apartado"><i class="fa fa-align-left"></i> <?= lang('footer_apartado_label'); ?></label>
                                             <?php echo form_input('footer_apartado', $settings->footer_apartado ?? '', 'class="form-control" id="footer_apartado"'); ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_quote"><i class="fa fa-file-o"></i> Cotizaciones / Proformas</label>
+                                            <label for="enable_quote"><i class="fa fa-file-o"></i> <?= lang('cotizaciones'); ?></label>
                                             <?php
-                                            $qt_opts = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $qt_opts = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('enable_quote', $qt_opts, $settings->enable_quote ?? '0', 'class="form-control tom-select" id="enable_quote" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="is_shipping"><i class="fa fa-truck"></i> Metodo de Envio</label>
+                                            <label for="is_shipping"><i class="fa fa-truck"></i> <?= lang('metodo_envio'); ?></label>
                                             <?php
-                                            $ship_opts = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $ship_opts = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('is_shipping', $ship_opts, $settings->is_shipping ?? '0', 'class="form-control tom-select" id="is_shipping" style="width:100%;" required="required"');
                                             ?>
                                         </div>
@@ -906,7 +906,7 @@
 
                         <!-- NUMERALES / DECIMALES -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-hashtag"></i> Numerales y Formato de Moneda</div>
+                            <div class="card-header"><i class="fa fa-hashtag"></i> <?= lang('sec_numerales_moneda'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-3">
@@ -989,7 +989,7 @@
 
                         <!-- BUSQUEDA -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-search"></i> Busqueda de Productos</div>
+                            <div class="card-header"><i class="fa fa-search"></i> <?= lang('sec_busqueda_prod'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
@@ -1003,7 +1003,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="quantity_suggest"><i class="fa fa-list-ol"></i> Sugerencias a mostrar</label>
+                                            <label for="quantity_suggest"><i class="fa fa-list-ol"></i> <?= lang('sugerencias_mostrar'); ?></label>
                                             <?php
                                             $qsug = array('10' => '10', '25' => '25', '50' => '50', '100' => '100');
                                             echo form_dropdown('quantity_suggest', $qsug, $settings->quantity_suggest ?? '10', 'class="form-control tom-select" id="quantity_suggest" style="width:100%;" required="required"');
@@ -1025,7 +1025,7 @@
 
                         <!-- CATEGORIAS Y CLIENTES -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-tags"></i> Categorias y Clientes por Defecto</div>
+                            <div class="card-header"><i class="fa fa-tags"></i> <?= lang('sec_cats_clientes'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
@@ -1058,32 +1058,32 @@
 
                         <!-- REGISTRO Y CAJA -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-cash-register"></i> Registro y Cierre de Caja</div>
+                            <div class="card-header"><i class="fa fa-cash-register"></i> <?= lang('sec_registro_caja'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_detail_register"><i class="fa fa-list-alt"></i> Detalles del cierre de caja</label>
+                                            <label for="enable_detail_register"><i class="fa fa-list-alt"></i> <?= lang('detalles_cierre_caja'); ?></label>
                                             <?php
-                                            $dreg = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $dreg = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('enable_detail_register', $dreg, $settings->enable_detail_register ?? '0', 'class="form-control tom-select" id="enable_detail_register" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_detail_caschier"><i class="fa fa-user-circle-o"></i> Detalles al cajero</label>
+                                            <label for="enable_detail_caschier"><i class="fa fa-user-circle-o"></i> <?= lang('detalles_cajero'); ?></label>
                                             <?php
-                                            $dcash = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $dcash = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('enable_detail_caschier', $dcash, $settings->enable_detail_caschier ?? '0', 'class="form-control tom-select" id="enable_detail_caschier" style="width:100%;" required="required"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_auth_open"><i class="fa fa-key"></i> Cierre unico de caja</label>
+                                            <label for="enable_auth_open"><i class="fa fa-key"></i> <?= lang('cierre_unico'); ?></label>
                                             <?php
-                                            $authop = array('1' => 'Habilitada', '0' => 'Deshabilitada');
+                                            $authop = array('1' => lang('habilitada'), '0' => lang('deshabilitada'));
                                             echo form_dropdown('enable_auth_open', $authop, $settings->enable_auth_open ?? '0', 'class="form-control tom-select" id="enable_auth_open" style="width:100%;" required="required"');
                                             ?>
                                         </div>
@@ -1094,30 +1094,30 @@
 
                         <!-- IMPUESTO Y OTROS -->
                         <div class="card">
-                            <div class="card-header"><i class="fa fa-percent"></i> Impuesto y Propina</div>
+                            <div class="card-header"><i class="fa fa-percent"></i> <?= lang('sec_impuesto_propina'); ?></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="enable_show_tax"><i class="fa fa-percent"></i> Mostrar impuesto en recibo como</label>
+                                            <label for="enable_show_tax"><i class="fa fa-percent"></i> <?= lang('mostrar_imp_como'); ?></label>
                                             <?php
-                                            $stax = array('' => 'No mostrar', 'IVI' => 'IVI', 'IVA' => 'IVA', 'Impuesto' => 'Impuesto');
+                                            $stax = array('' => lang('no_mostrar'), 'IVI' => 'IVI', 'IVA' => 'IVA', 'Impuesto' => 'Impuesto');
                                             echo form_dropdown('enable_show_tax', $stax, $settings->enable_show_tax ?? '', 'class="form-control tom-select" id="enable_show_tax" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="propina_enable"><i class="fa fa-thumbs-up"></i> Propina</label>
+                                            <label for="propina_enable"><i class="fa fa-thumbs-up"></i> <?= lang('propina'); ?></label>
                                             <?php
-                                            $prop = array('0' => 'Deshabilitada', '1' => 'Habilitada');
+                                            $prop = array('0' => lang('deshabilitada'), '1' => lang('habilitada'));
                                             echo form_dropdown('propina_enable', $prop, $settings->propina_enable ?? '0', 'class="form-control tom-select" id="propina_enable" style="width:100%;"');
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="propina_rate"><i class="fa fa-percent"></i> Tasa de Propina (%)</label>
+                                            <label for="propina_rate"><i class="fa fa-percent"></i> <?= lang('tasa_propina'); ?></label>
                                             <input type="number" name="propina_rate" id="propina_rate" value="<?= htmlspecialchars($settings->propina_rate ?? '10') ?>" class="form-control" min="0" max="100" step="0.5">
                                         </div>
                                     </div>
@@ -1134,10 +1134,10 @@
             <!-- STICKY SAVE BUTTON -->
             <div class="box-footer" style="background:var(--nx-card-bg);border-top:2px solid var(--nx-border);padding:15px 20px;position:sticky;bottom:0;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.3);">
                 <button type="submit" name="update" class="btn btn-primary btn-lg">
-                    <i class="fa fa-save"></i> Guardar configuracion
+                    <i class="fa fa-save"></i> <?= lang('guardar_configuracion'); ?>
                 </button>
                 <a href="<?= site_url('settings') ?>" class="btn btn-default btn-lg" style="margin-left:10px;">
-                    <i class="fa fa-undo"></i> Cancelar
+                    <i class="fa fa-undo"></i> <?= lang('cancel'); ?>
                 </a>
             </div>
 
@@ -1207,7 +1207,7 @@ $(document).ready(function () {
         }).fail(function () {
             alert('Error de conexion al servidor de Hacienda.');
         }).always(function () {
-            $btn.prop('disabled', false).html('<i class="fa fa-check-circle"></i> Probar credenciales prueba');
+            $btn.prop('disabled', false).html('<i class="fa fa-check-circle"></i> <?= lang('probar_cred_prueba'); ?>');
         });
     });
 
@@ -1223,7 +1223,7 @@ $(document).ready(function () {
         }).fail(function () {
             alert('Error de conexion al servidor de Hacienda.');
         }).always(function () {
-            $btn.prop('disabled', false).html('<i class="fa fa-check-circle"></i> Probar credenciales produccion');
+            $btn.prop('disabled', false).html('<i class="fa fa-check-circle"></i> <?= lang('probar_cred_prod'); ?>');
         });
     });
 
@@ -1237,7 +1237,7 @@ $(document).ready(function () {
         }).fail(function () {
             $('#cabys-sync-result').html('<span class="text-danger"><i class="fa fa-times"></i> Error al limpiar cache</span>').show();
         }).always(function () {
-            $btn.prop('disabled', false).html('<i class="fa fa-refresh"></i> Limpiar cache CABYS');
+            $btn.prop('disabled', false).html('<i class="fa fa-refresh"></i> <?= lang('limpiar_cache_cabys'); ?>');
         });
     });
 

@@ -239,7 +239,7 @@ if ($this->input->post('shipping_method')) {
                                     </div>
                                 </div>
                                 <div class="col-sm-12">
-                                    <button type="submit" class="btn btn-primary">Buscar</button>
+                                    <button type="submit" class="btn btn-primary"><?= lang('buscar'); ?></button>
                                 </div>
                             </div>
                             <?= form_close(); ?>
@@ -256,7 +256,7 @@ if ($this->input->post('shipping_method')) {
                                     <thead>
                                         <tr class="active">
                                             <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                            <th class="col-sm-1">Sumar</th>
+                                            <th class="col-sm-1"><?= lang('sumar'); ?></th>
                                             <th class="col-sm-2"><?= lang("date"); ?></th>
                                             <th class="col-sm-2"><?= lang("customer"); ?></th>
                                             <th class="col-sm-1"><?= lang("total"); ?></th>
@@ -338,7 +338,7 @@ if ($this->input->post('shipping_method')) {
                         </div>
 
                         <div class="box-header">
-                            <h3 class="box-title">Puede realizar el pago de deuda en el siguiente formulario</h3>
+                            <h3 class="box-title"><?= lang('pago_deuda_form'); ?></h3>
                         </div>
                         <div id="form" class="card border-warning ">
                             <div class="card-body">
@@ -367,9 +367,9 @@ if ($this->input->post('shipping_method')) {
                                                         <?= lang("paying_by", "paid_by"); ?>
                                                         <select name="paid_by" id="paid_by" class="form-control paid_by tom-select" style="width:100%" required="required">
                                                             <option value="cash"><?= lang("cash"); ?></option>
-                                                            <option value="CC">Tarjeta</option>
+                                                            <option value="CC"><?= lang('tarjeta'); ?></option>
                                                             <option value="Cheque"><?= lang("cheque"); ?></option>
-                                                            <option value="deposito">Deposito</option>
+                                                            <option value="deposito"><?= lang('deposito'); ?></option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -394,7 +394,7 @@ if ($this->input->post('shipping_method')) {
                                                     <div class="col-sm-6">
                                                         <div class="mb-3">
                                                             <select name="pcc_type" id="pcc_type" class="form-control pcc_type tom-select" style="width:100%" placeholder="<?= lang('card_type') ?>">
-                                                                <option value="Debito">Debito</option>
+                                                                <option value="Debito"><?= lang('debito'); ?></option>
                                                                 <option value="Visa"><?= lang("Visa"); ?></option>
                                                                 <option value="MasterCard"><?= lang("MasterCard"); ?></option>
                                                             </select>
@@ -430,7 +430,7 @@ if ($this->input->post('shipping_method')) {
 
 
                                 <div class="col-sm-12">
-                                    <button type="submit" onclick="validar();" class="btn btn-primary">Pagar deuda</button>
+                                    <button type="submit" onclick="validar();" class="btn btn-primary"><?= lang('pagar_deuda'); ?></button>
                                 </div>
 
                                 <?= form_close(); ?>

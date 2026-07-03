@@ -45,21 +45,21 @@
                                 <? } ?>
                 </h1>
                 <p><b><?= $hacienda->consecutivo ?></b></p>
-                <h1>Clave</h1>
+                <h1><?= lang('clave'); ?></h1>
                 <p><b><?= $hacienda->clave ?></b></p>
-                <div class="date">Fecha: <?= $inv->date ?></div>
+                <div class="date"><?= lang('date'); ?>: <?= $inv->date ?></div>
             </div>
         </div>
                 <div class="table-responsive">
         <table border="0" cellspacing="0" cellpadding="0">
             <thead>
                 <tr>
-                    <th class="no">COD.</th>
-                    <th class="desc">DESCRIPCION</th>
-                    <th class="unit">PRECIO</th>
-                    <th class="qty">CANTIDAD</th>
-                    <th class="qty">UNIDAD MEDIDA</th>
-                    <th class="total">TOTAL</th>
+                    <th class="no"><?= lang('col_cod'); ?></th>
+                    <th class="desc"><?= lang('col_descripcion'); ?></th>
+                    <th class="unit"><?= lang('col_precio'); ?></th>
+                    <th class="qty"><?= lang('col_cantidad'); ?></th>
+                    <th class="qty"><?= lang('col_unidad_medida'); ?></th>
+                    <th class="total"><?= lang('col_total'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -83,7 +83,7 @@
 
                 <tr>
                     <td colspan="2"></td>
-                    <td colspan="2">Sub-Total</td>
+                    <td colspan="2"><?= lang('subtotal'); ?></td>
                     <td><?= number_format($inv->total, $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
                 </tr>
                 <?php if ($Settings->enable_show_tax) { ?>
@@ -96,13 +96,13 @@
                 <?php if ($inv->PorcentajeExoneracion>0) { ?>
                     <tr>
                         <td colspan="2"></td>
-                        <td colspan="2">Total Exoneracion</td>
+                        <td colspan="2"><?= lang('total_exoneracion'); ?></td>
                         <td><?= number_format(-$inv->MontoExoneracion, $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
                     </tr>
                 <?php } ?>
                 <tr>
                     <td colspan="2"></td>
-                    <td colspan="2">Total General</td>
+                    <td colspan="2"><?= lang('grand_total'); ?></td>
                     <td><?= number_format($inv->grand_total, $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
                 </tr>
             </tfoot>
@@ -113,7 +113,7 @@
 
         <?php if ($inv->note) { ?>
             <div id="notices">
-                <div>Notas:</div>
+                <div><?= lang('notas_label'); ?>:</div>
                 <div class="notice"><?= $inv->note ?></div>
             </div>
         <?php } ?>

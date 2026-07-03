@@ -90,23 +90,23 @@
 
 
                                 <div class="mb-3 st">
-                                    <b>Margen de ganancia</b> <i>indique el porcentaje sin el simbolo %</i>
+                                    <b><?= lang('margen_ganancia'); ?></b> <i>%</i>
                                     <?= form_input('margen', set_value('margen'), 'class="form-control tip" id = "margen"'); ?>
                                 </div>
 
                                 <?php if ($Settings->enable_fractions == 1) { ?>
                                     <div class="mb-3">
-                                        <b>Presentacion de venta del Articulo</b><br />
+                                        <b><?= lang('presentacion_venta'); ?></b><br />
 
-                                        <b>Caja</b>
+                                        <b><?= lang('caja_col'); ?></b>
                                         <?= form_checkbox('present_caja', set_value('present_caja'), 'class="form-control tip" id = "present_caja" '); ?>
 
-                                        <b>Fraccion</b>
+                                        <b><?= lang('fraccion'); ?></b>
                                         <?= form_checkbox('present_fraccion', set_value('present_fraccion'), 'class="form-control tip" id = "present_fraccion" '); ?>
 
                                     </div>
                                     <div class="mb-3" style="display: none;" id="div_fracciones">
-                                        <b>Cantidad de fracciones en la caja</b>
+                                        <b><?= lang('fracciones_caja'); ?></b>
                                         <?= form_input('caja_fraccionada', set_value('caja_fraccionada'), 'class="form-control tip" id = "caja_fraccionada" '); ?>
                                     </div>
                                 <?php } ?>
@@ -157,16 +157,16 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="cabys">Código CABYS <small>(Clasificador Hacienda — 13 dígitos)</small></label>
-                                    <input type="text" id="cabys-buscar" class="form-control tip" placeholder="Buscar por descripción (mín. 3 caracteres)..." autocomplete="off" style="margin-bottom:4px;">
-                                    <?= form_input('cabys', set_value('cabys'), 'class="form-control tip" id="cabys" maxlength="13" placeholder="Ej: 8101102000000"'); ?>
+                                    <label for="cabys"><?= lang('cabys_label'); ?></label>
+                                    <input type="text" id="cabys-buscar" class="form-control tip" placeholder="<?= lang('buscar_cabys_desc_min3'); ?>" autocomplete="off" style="margin-bottom:4px;">
+                                    <?= form_input('cabys', set_value('cabys'), 'class="form-control tip" id="cabys" maxlength="13" placeholder="' . lang('placeholder_cabys') . '"'); ?>
                                     <span id="cabys-info" class="help-block" style="display:none;color:var(--success);"></span>
-                                    <span class="help-block">Busque por descripción o escriba el código de 13 dígitos directamente.</span>
+                                    <span class="help-block"><?= lang('cabys_help_text'); ?></span>
                                 </div>
 
                                 <div class="mb-3">
                                     <?= lang('image', 'image'); ?>
-                                    <p class="help-block">Peso máximo: 500 KB · Dimensiones máximas: 1000 × 1000 px</p>
+                                    <p class="help-block"><?= lang('imagen_kb_req'); ?></p>
                                     <input type="file" name="userfile" id="image">
                                 </div>
                             </div>
@@ -225,7 +225,7 @@
                                         </div>
                                         <?php if ($Settings->enable_fractions == 1) { ?>
                                             <div class="mb-3" style="display: none;" id="div_qty_fracc">
-                                                <b>Cantidad de Fracciones</b>
+                                                <b><?= lang('cantidad_fracciones'); ?></b>
                                                 <?= form_input('qty_fracc', set_value('qty_fracc', 0), 'class="form-control tip" id = "qty_fracc"'); ?>
                                             </div>
                                         <?php } ?>
@@ -235,9 +235,9 @@
                                 <div class="st">
                                     <div class="mb-3">
                                         <?= lang('Ubicacion', 'Ubicacion'); ?>
-                                        <input id="seccion" class="form-control" placeholder="Seccion">
-                                        <input id="tramo" class="form-control" placeholder="Tramo">
-                                        <span id='addubicacion' class="btn btn-success">Agregar Ubicacion</span>
+                                        <input id="seccion" class="form-control" placeholder="<?= lang('seccion'); ?>">
+                                        <input id="tramo" class="form-control" placeholder="<?= lang('tramo'); ?>">
+                                        <span id='addubicacion' class="btn btn-success"><?= lang('agregar_ubicacion'); ?></span>
                                     </div>
                                 </div>
 
@@ -275,15 +275,15 @@
                                         <thead>
                                             <tr>
                                                 <th></th>
-                                                <th>SECCIÓN</th>
-                                                <th>TRAMO</th>
+                                                <th><?= lang('seccion'); ?></th>
+                                                <th><?= lang('tramo'); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody id="tbodyubicacion">
                                         </tbody>
                                     </table>
                 </div>
-                                    <button type="button" class="delete-row btn btn-warning">Eliminar Seccion</button>
+                                    <button type="button" class="delete-row btn btn-warning"><?= lang('eliminar_seccion'); ?></button>
                                 </div>
                             </div>
                         </div>
@@ -297,9 +297,9 @@
                             <table class="table table-bordered" style="margin:0;">
                                 <thead>
                                     <tr>
-                                        <th>Lista de Precio</th>
-                                        <th>Margen de ganancia (%)</th>
-                                        <th>Precio</th>
+                                        <th><?= lang('lista_de_precio'); ?></th>
+                                        <th><?= lang('margen_ganancia'); ?> (%)</th>
+                                        <th><?= lang('price'); ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -488,7 +488,7 @@
                 tr_html = '<td><input name="combo_item_id[]" type="hidden" value="' + item.id + '"><input name="combo_item_code[]" type="hidden" value="' + item.code + '"><input name="combo_item_name[]" type="hidden" value="' + item.name + '"><input name="combo_item_cost[]" type="hidden" value="' + item.cost + '"><span id="name_' + row_no + '">' + item.name + ' (' + item.code + ')</span></td>';
                 tr_html += '<td><input class="form-control text-center rqty" name="combo_item_quantity[]" type="text" value="' + formatDecimal(item.qty) + '" data-id="' + row_no + '" data-item="' + item.id + '" id="quantity_' + row_no + '" onClick="this.select();"></td>';
                 //tr_html += '<td><input class="form-control text-center rprice" name="combo_item_price[]" type="text" value="' + formatDecimal(item.price) + '" data-id="' + row_no + '" data-item="' + item.id + '" id="combo_item_price_' + row_no + '" onClick="this.select();"></td>';
-                tr_html += '<td class="text-center"><i class="fa fa-times tip del" id="' + row_no + '" title="Remove" style="cursor:pointer;"></i></td>';
+                tr_html += '<td class="text-center"><i class="fa fa-times tip del" id="' + row_no + '" title="<?= lang("remove"); ?>" style="cursor:pointer;"></i></td>';
                 newTr.html(tr_html);
                 newTr.prependTo("#prTable");
                 //price += formatDecimal(item.price*item.qty);

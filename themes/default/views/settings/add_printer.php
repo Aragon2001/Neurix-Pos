@@ -46,8 +46,8 @@
                                     <?= lang('path', 'path'); ?>
                                     <?= form_input('path', set_value('path'), 'class="form-control" id="path"'); ?>
                                     <span class="help-block">
-                                    <strong>For Windows:</strong> (Local USB, Serial or Parallel Printer): Share the printer and enter the share name for your printer here or for Server Message Block (SMB): enter as a smb:// url format such as <code>smb://computername/Receipt Printer</code><br>
-                                    <strong>For Linux:</strong> Parallel as <code>/dev/lp0</code>, USB as <code>/dev/usb/lp1</code>, USB-Serial as <code>/dev/ttyUSB0</code>, Serial as <code>/dev/ttyS0</code><br>
+                                    <?= lang('printer_help_windows'); ?><br>
+                                    <?= lang('printer_help_linux'); ?><br>
                                 </span>
                                 </div>
                             </div>
@@ -61,7 +61,7 @@
                                 <div class="mb-3">
                                     <?= lang('port', 'port'); ?>
                                     <?= form_input('port', set_value('port', '9100'), 'class="form-control" id="port"'); ?>
-                                    <span class="help-block">Most printers are open on port <strong>9100</strong></span>
+                                    <span class="help-block"><?= lang('printer_port_hint'); ?></span>
                                 </div>
                             </div>
                         </div>

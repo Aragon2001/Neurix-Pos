@@ -52,7 +52,7 @@
                                             style="width:100%"
                                             required="required">
                                         <option value="cash"><?= lang("cash"); ?></option>
-                                        <option value="CC">Tarjeta</option>
+                                        <option value="CC"><?= lang('tarjeta'); ?></option>
                                         <option value="Cheque"><?= lang("cheque"); ?></option>
                                         <!--                                    <option value="gift_card">-->
                                         <? //= lang("gift_card"); ?><!--</option>-->
@@ -88,7 +88,7 @@
                                         <select name="pcc_type" id="pcc_type" class="form-control pcc_type tom-select"
                                                 style="width:100%"
                                                 placeholder="<?= lang('card_type') ?>">
-                                            <option value="Debito">Debito</option>
+                                            <option value="Debito"><?= lang('debito'); ?></option>
                                             <option value="Visa"><?= lang("Visa"); ?></option>
                                             <option value="MasterCard"><?= lang("MasterCard"); ?></option>
                                         </select>

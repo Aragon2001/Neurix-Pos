@@ -22,18 +22,18 @@
 
         <div style='text-align: center;'>
 
-            <a target="_blank" href='pos/products_sales_in_register' class="btn btn-info">Imprimir articulos Vendidos</a>
-            <span id="print-register-details" class="btn btn-warning imprimeweb">Imprimir cierre via web</span>
-            <?php echo form_submit('close_register', "Cerrar Caja", 'class="btn btn-primary"'); ?>
+            <a target="_blank" href='pos/products_sales_in_register' class="btn btn-info"><?= lang('imprimir_articulos'); ?></a>
+            <span id="print-register-details" class="btn btn-warning imprimeweb"><?= lang('imprimir_cierre_web'); ?></span>
+            <?php echo form_submit('close_register', lang('cerrar_caja'), 'class="btn btn-primary"'); ?>
 
         </div>
         <?php }else{?>
             <?php echo form_open("reports/close_register/?user_id=" . $user_id."&date=".$register_open_time); ?>
 
         <div style='text-align: center;'>
-            <a target="_blank" href='pos/products_sales_in_register' class="btn btn-info">Imprimir articulos Vendidos</a>
-            <span id="print-register-details" class="btn btn-warning imprimeweb">Imprimir cierre via web</span>
-            <?php echo form_submit('close_register', "Imprimir Cierre Caja", 'class="btn btn-primary"'); ?>
+            <a target="_blank" href='pos/products_sales_in_register' class="btn btn-info"><?= lang('imprimir_articulos'); ?></a>
+            <span id="print-register-details" class="btn btn-warning imprimeweb"><?= lang('imprimir_cierre_web'); ?></span>
+            <?php echo form_submit('close_register', lang('imprimir_cierre_caja'), 'class="btn btn-primary"'); ?>
 
         </div>
         <?php }?>
@@ -148,14 +148,14 @@
                     <?php if ($Settings->enabled_tax_split == '1') { ?>
                     <? if ($gravadas1->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 1%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 1%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas1', @$gravadas1->total ? @$gravadas1->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas1->total ? $gravadas1->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 1%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 1%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas1', @$gravadas1->total ? @$gravadas1->total - (@$gravadas1->total / 1.01) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas1->total ? @$gravadas1->total - (@$gravadas1->total / 1.01) : '0.00'); ?></span>
@@ -166,14 +166,14 @@
 
                     <? if ($gravadas2->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 2%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 2%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas2', @$gravadas2->total ? @$gravadas2->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas2->total ? $gravadas2->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 2%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 2%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas2', @$gravadas2->total ? @$gravadas2->total - (@$gravadas2->total / 1.02) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas2->total ? @$gravadas2->total - (@$gravadas2->total / 1.02) : '0.00'); ?></span>
@@ -184,14 +184,14 @@
 
                     <? if ($gravadas3->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 3%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 3%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas3', @$gravadas3->total ? @$gravadas3->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas3->total ? $gravadas3->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 3%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 3%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas3', @$gravadas3->total ? @$gravadas3->total - (@$gravadas3->total / 1.03) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas3->total ? @$gravadas3->total - (@$gravadas3->total / 1.03) : '0.00'); ?></span>
@@ -202,14 +202,14 @@
 
                     <? if ($gravadas4->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 4%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 4%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas4', @$gravadas4->total ? @$gravadas4->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas4->total ? $gravadas4->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 4%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 4%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas4', @$gravadas4->total ? @$gravadas4->total - (@$gravadas4->total / 1.04) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas4->total ? @$gravadas4->total - (@$gravadas4->total / 1.04) : '0.00'); ?></span>
@@ -220,14 +220,14 @@
 
                     <? if ($gravadas5->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 5%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 5%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas5', @$gravadas5->total ? @$gravadas5->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas5->total ? $gravadas5->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 5%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 5%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas5', @$gravadas5->total ? @$gravadas5->total - (@$gravadas5->total / 1.05) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas5->total ? @$gravadas5->total - (@$gravadas5->total / 1.05) : '0.00'); ?></span>
@@ -238,14 +238,14 @@
 
                     <? if ($gravadas6->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 6%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 6%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas6', @$gravadas6->total ? @$gravadas6->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas6->total ? $gravadas6->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 6%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 6%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas6', @$gravadas6->total ? @$gravadas6->total - (@$gravadas6->total / 1.06) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas6->total ? @$gravadas6->total - (@$gravadas6->total / 1.06) : '0.00'); ?></span>
@@ -256,14 +256,14 @@
 
                     <? if ($gravadas7->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 7%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 7%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas7', @$gravadas7->total ? @$gravadas7->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas7->total ? $gravadas7->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 7%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 7%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas7', @$gravadas7->total ? @$gravadas7->total - (@$gravadas7->total / 1.07) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas7->total ? @$gravadas7->total - (@$gravadas7->total / 1.07) : '0.00'); ?></span>
@@ -274,14 +274,14 @@
 
                     <? if ($gravadas8->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 8%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 8%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas8', @$gravadas8->total ? @$gravadas8->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas8->total ? $gravadas8->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 8%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 8%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas8', @$gravadas8->total ? @$gravadas8->total - (@$gravadas8->total / 1.08) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas8->total ? @$gravadas8->total - (@$gravadas8->total / 1.08) : '0.00'); ?></span>
@@ -292,14 +292,14 @@
 
                     <? if ($gravadas9->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 8%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 8%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas9', @$gravadas9->total ? @$gravadas9->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas9->total ? $gravadas9->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 9%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 9%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas9', @$gravadas9->total ? @$gravadas9->total - (@$gravadas9->total / 1.09) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas9->total ? @$gravadas9->total - (@$gravadas9->total / 1.09) : '0.00'); ?></span>
@@ -310,14 +310,14 @@
 
                     <? if ($gravadas10->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 10%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 10%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas10', @$gravadas10->total ? @$gravadas10->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas10->total ? $gravadas10->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 10%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 10%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas10', @$gravadas10->total ? @$gravadas10->total - (@$gravadas10->total / 1.10) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas10->total ? @$gravadas10->total - (@$gravadas10->total / 1.10) : '0.00'); ?></span>
@@ -328,14 +328,14 @@
 
                     <? if ($gravadas11->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 11%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 11%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas11', @$gravadas11->total ? @$gravadas11->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas11->total ? $gravadas11->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 11%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 11%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas11', @$gravadas11->total ? @$gravadas11->total - (@$gravadas11->total / 1.11) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas11->total ? @$gravadas11->total - (@$gravadas11->total / 1.11) : '0.00'); ?></span>
@@ -346,14 +346,14 @@
 
                     <? if ($gravadas12->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 12%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 12%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas12', @$gravadas12->total ? @$gravadas12->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas12->total ? $gravadas12->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 12%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 12%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas12', @$gravadas12->total ? @$gravadas12->total - (@$gravadas12->total / 1.12) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas12->total ? @$gravadas12->total - (@$gravadas12->total / 1.12) : '0.00'); ?></span>
@@ -364,14 +364,14 @@
 
                     <? if ($gravadas13->total) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Gravadas con 13%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 13%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('gravadas13', @$gravadas13->total ? @$gravadas13->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas13->total ? $gravadas13->total : '0.00'); ?></span>
                                 </h4></td>
                         </tr>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Total impuesto del 13%:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 13%:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('impuestogravadas13', @$gravadas13->total ? @$gravadas13->total - (@$gravadas13->total / 1.13) : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney(@$gravadas13->total ? @$gravadas13->total - (@$gravadas13->total / 1.13) : '0.00'); ?></span>
@@ -384,14 +384,14 @@
 
 
                     <tr>
-                        <td style="border-bottom: 1px solid var(--nx-border);"><h4>Ventas Excentas:</h4></td>
+                        <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_exentas'); ?>:</h4></td>
                         <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                 <?php echo form_hidden('exentas', @$exentas->total ? @$exentas->total : '0.00'); ?>
                                 <span><?php echo $this->tec->formatMoney(@$exentas->total ? $exentas->total : '0.00'); ?></span>
                             </h4></td>
                     </tr>
                     <tr>
-                        <td style="border-bottom: 1px solid var(--nx-ok);"><h4>Total Exentas + Gravadas:</h4></td>
+                        <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('total_exentas_gravadas'); ?>:</h4></td>
                         <td style="text-align:right; border-bottom: 1px solid var(--nx-ok);"><h4>
                                 <?php echo form_hidden('tot_exentas_gravadas', @$exentas->total + $gravadasTotal ? @$exentas->total + $gravadasTotal : '0.00'); ?>
                                 <span><?php echo $this->tec->formatMoney(@$exentas->total + $gravadasTotal ? $exentas->total + $gravadasTotal : '0.00'); ?></span>
@@ -425,7 +425,7 @@
 
                     <?php if ($Settings->enable_layaway == 1) { ?>
                         <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4>Efectivo de Apartados:</h4></td>
+                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('efectivo_apartados'); ?>:</h4></td>
                             <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
                                     <?php echo form_hidden('cash_sale', $cashsalesApart->total ? $cashsalesApart->total : '0.00'); ?>
                                     <span><?php echo $this->tec->formatMoney($cashsalesApart->total ? $cashsalesApart->total : '0.00'); ?></span>
@@ -435,7 +435,7 @@
 
                         <tr>
                             <td style="border-bottom: 1px solid var(--nx-ok);">
-                                <h4>Tarjetas de Apartados:</h4></td>
+                                <h4><?= lang('tarjetas_apartados'); ?>:</h4></td>
                             <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><?php /* stripe ternary removed — was invalid CSS */ ?>
                                 <h4>
                                     <?php echo form_hidden('ccsalesApart', $ccsalesApart->total ? $ccsalesApart->total : '0.00'); ?>
@@ -446,7 +446,7 @@
                         <?php if ($Settings->propina_enable) { ?>
                             <tr>
                                 <td style="border-bottom: 1px solid var(--nx-ok);">
-                                    <h4>Servicio (<?= $Settings->propina_rate ?>%):</h4></td>
+                                    <h4><?= lang('servicio_propina'); ?> (<?= $Settings->propina_rate ?>%):</h4></td>
                                 <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><?php /* stripe ternary removed — was invalid CSS */ ?>
                                     <h4>
                                         <?php echo form_hidden('ccsalesTips', $ccsalesTips->total ? $ccsalesTips->total : '0.00'); ?>

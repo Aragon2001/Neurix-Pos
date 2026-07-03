@@ -48,7 +48,7 @@
                                     </div>
                                     
                                     <div class="mb-3 ">
-                                        <label for="Mensaje"> Condicion de Impuesto
+                                        <label for="Mensaje"> <?= lang('condicion_impuesto'); ?>
                                             <span class="asterix"> </span></label>
 
                                         <?php $condicion_opt = array(
@@ -123,7 +123,7 @@
                                             required><?php echo @$documento->DetalleMensaje ?></textarea>
                                         <div class="col-md-2">
                                             <a href="#" data-bs-toggle="tooltip" placement="left" class="tips"
-                                               title="Motivo por el cual Acepta, Acepta parcialmente o Rechaza, el Comprobante electronico"><i
+                                               title="<?= lang('motivo_aceptacion'); ?>"><i
                                                     class="icon-question2"></i></a>
                                         </div>
                                     </div>
@@ -138,33 +138,32 @@
 
                                     <div class="mb-3  ">
                                         <label for="Documento">
-                                            Documento </label>
+                                            <?= lang('documento_label'); ?> </label>
                                         <input readonly="readonly" name="documento"
                                                value="<?php echo @$documento->documento ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
-                                        <label for="Clave"> Clave </label>
+                                        <label for="Clave"> <?= lang('clave'); ?> </label>
                                         <input readonly="readonly" name="ClaveDocEmisor"
                                                value="<?php echo @$documento->ClaveDocEmisor ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
-                                        <label for="Fecha Emision"> Fecha
-                                            Emision </label>
+                                        <label for="Fecha Emision"> <?= lang('fecha_emision_label'); ?> </label>
                                         <input readonly="readonly" name="FechaEmisionDoc"
                                                value="<?php echo @$documento->FechaEmisionDoc ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
                                         <label for="MontoTotal Impuesto">
-                                            MontoTotal Impuesto </label>
+                                            <?= lang('monto_total_impuesto'); ?> </label>
                                         <input readonly="readonly" name="MontoTotalImpuesto"
                                                value="<?php echo @$documento->MontoTotalImpuesto ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
-                                        <label for="Total"> Total </label>
+                                        <label for="Total"> <?= lang('total'); ?> </label>
                                         <input readonly="readonly" name="TotalFactura"
                                                value="<?php echo @$documento->TotalFactura ?>"
                                                class="form-control" placeholder=""/>
@@ -178,36 +177,32 @@
                                     <input readonly="readonly" value="<?php echo $documento->id_documento ?>"
                                            name="id_documento" type="hidden"/>
                                     <div class="mb-3  ">
-                                        <label for="Nombre Emisor"> Nombre
-                                            Emisor </label>
+                                        <label for="Nombre Emisor"> <?= lang('nombre_emisor_label'); ?> </label>
                                         <input readonly="readonly" name="nombre_emisor"
                                                value="<?php echo @$documento->nombre_emisor ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
-                                        <label for="Tipo Doc Emisor"> Tipo
-                                            Doc Emisor </label>
+                                        <label for="Tipo Doc Emisor"> <?= lang('tipo_doc_emisor_label'); ?> </label>
                                         <input readonly="readonly" name="tipo_doc_emisor"
                                                value="<?php echo @$documento->tipo_doc_emisor ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
-                                        <label for="Numero Cedula"> Numero
-                                            Cedula </label>
+                                        <label for="Numero Cedula"> <?= lang('numero_cedula_label'); ?> </label>
                                         <input readonly="readonly" name="NumeroCedulaEmisor"
                                                value="<?php echo @$documento->NumeroCedulaEmisor ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
                                         <label for="Telefono Emisor">
-                                            Telefono Emisor </label>
+                                            <?= lang('telefono_emisor_label'); ?> </label>
                                         <input readonly="readonly" name="telefono_emisor"
                                                value="<?php echo @$documento->telefono_emisor ?>"
                                                class="form-control" placeholder=""/>
                                     </div>
                                     <div class="mb-3  ">
-                                        <label for="Correo Emisor"> Correo
-                                            Emisor </label>
+                                        <label for="Correo Emisor"> <?= lang('correo_emisor_label'); ?> </label>
                                         <input readonly="readonly" name="correo_emisor"
                                                value="<?php echo @$documento->correo_emisor ?>"
                                                class="form-control" placeholder=""/>

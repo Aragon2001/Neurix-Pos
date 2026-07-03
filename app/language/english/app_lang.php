@@ -666,3 +666,838 @@ $lang['rtl_support'] = "RTL Support";
 $lang['send_print_as'] = "Send print as";
 $lang['db'] = "Database restored";
 $lang['text'] = "Text";
+
+// ─── Missing keys — Full translation audit 2026-07-01 ───────────────────────
+
+// Search modes
+$lang['0_search'] = "Starts with";
+$lang['1_search'] = "Contains";
+$lang['2_search'] = "Ends with";
+$lang['3_search'] = "Exact";
+$lang['search_sensibility'] = "Search Sensitivity";
+$lang['sugerencias_mostrar'] = "Suggestions to show";
+
+// Navigation
+$lang['dashboard'] = "Dashboard";
+$lang['analitica'] = "Analytics";
+$lang['nav_comercial'] = "Commercial";
+$lang['nav_contactos'] = "Contacts";
+$lang['nav_gestion'] = "Management";
+$lang['nav_sistema'] = "System";
+
+// General UI
+$lang['buscar'] = "Search";
+$lang['siguiente'] = "Next";
+$lang['anterior'] = "Previous";
+$lang['actualizar'] = "Update";
+$lang['aplicar'] = "Apply";
+$lang['sumar'] = "Sum";
+$lang['subir'] = "Upload";
+$lang['ver_todas'] = "View All";
+$lang['ver_todas_label'] = "View all";
+$lang['sin_datos'] = "No data";
+$lang['activado'] = "Active";
+$lang['desactivado'] = "Inactive";
+$lang['habilitada'] = "Enabled";
+$lang['deshabilitada'] = "Disabled";
+$lang['ambos'] = "Both";
+$lang['razon'] = "Reason";
+$lang['no_mostrar'] = "Do not show";
+$lang['choose_file'] = "Choose File";
+$lang['no_file_selected'] = "No file selected";
+$lang['re_create'] = "Recreate";
+$lang['ver_pdf'] = "View PDF / Download PDF";
+$lang['notes'] = "Notes";
+$lang['no_ref'] = "No reference";
+$lang['sale_details'] = "Sale Details";
+$lang['serial'] = "Serial";
+$lang['cant'] = "Qty.";
+$lang['items'] = "Items";
+$lang['articulo'] = "Item";
+$lang['concepto'] = "Concept";
+$lang['actual'] = "Current";
+$lang['avance'] = "Progress";
+$lang['hora'] = "Hour";
+$lang['dia'] = "Day";
+$lang['mes'] = "Month";
+
+// Hacienda / Electronic Invoicing environment
+$lang['hacienda'] = "Hacienda";
+$lang['ambiente_hacienda'] = "Hacienda Environment";
+$lang['ambiente_activo_label'] = "Active environment";
+$lang['ambiente_activo_info'] = "Active environment:";
+$lang['produccion'] = "Production";
+$lang['pruebas_sandbox'] = "Sandbox (Test)";
+$lang['produccion_activa_label'] = "PRODUCTION active";
+$lang['pruebas_activa_label'] = "SANDBOX active";
+$lang['cambie_a_produccion'] = "Switch to Production only with confirmed credentials and certificate.";
+$lang['conexion_hacienda'] = "Hacienda Connection";
+$lang['estado_hacienda'] = "Hacienda Status";
+$lang['enviado_hacienda'] = "Sent to Hacienda";
+$lang['mensaje_hacienda'] = "Hacienda Message";
+$lang['respuesta_hacienda'] = "Hacienda Response";
+$lang['fe_hacienda_titulo'] = "Electronic Invoicing — Hacienda";
+$lang['tokens_api_hacienda'] = "Hacienda API Tokens";
+$lang['sistema_en_linea'] = "System Online";
+$lang['conectado'] = "Connected";
+
+// Hacienda — configuration lock
+$lang['bloqueo_config_hacienda'] = "Hacienda Configuration Lock";
+$lang['sincronizacion_bloqueo'] = "Synchronization & Lock";
+$lang['bloquear_configuracion'] = "Lock Configuration";
+$lang['desbloquear'] = "Unlock";
+$lang['desbloquear_confirm'] = "Are you sure you want to unlock the Hacienda configuration?";
+$lang['no_bloqueada'] = "Not locked";
+$lang['config_bloqueada_msg'] = "Hacienda configuration locked. Issuer data is read-only.";
+$lang['bloqueo_advertencia'] = "If you have tested the configuration and are 100% sure everything works, lock to prevent accidental changes.";
+
+// Hacienda — credentials
+$lang['usuario_produccion'] = "Production User";
+$lang['password_produccion'] = "Production Password";
+$lang['usuario_prueba'] = "Sandbox User";
+$lang['password_prueba'] = "Sandbox Password";
+$lang['probar_cred_prod'] = "Test production credentials";
+$lang['probar_cred_prueba'] = "Test sandbox credentials";
+$lang['ingrese_credenciales'] = "Enter your credentials to continue";
+
+// Hacienda — digital certificate
+$lang['certificado_digital'] = "Digital Certificate (.p12)";
+$lang['certificado_cargado'] = "Certificate loaded:";
+$lang['nombre_certificado_label'] = "Certificate Name (without .p12 extension)";
+$lang['subir_certificado_label'] = "Upload Certificate .p12 (Overwrites current)";
+$lang['no_hay_certificado'] = "No certificate on server.";
+$lang['pin_certificado'] = "Certificate PIN (4 digits)";
+
+// Hacienda — issuer data
+$lang['identificacion_emisor'] = "Issuer Identification";
+$lang['nombre_obligado'] = "Taxpayer Name";
+$lang['nombre_comercial_fantasia'] = "Trade Name / Brand";
+$lang['direccion_tributario'] = "Taxpayer Address";
+$lang['cod_act_economica'] = "Economic Act. Code";
+$lang['codigo_moneda'] = "Currency Code";
+$lang['cod_pais'] = "Country Code";
+$lang['otras_senas_label'] = "Other Details";
+$lang['otras_senas'] = "Other Details";
+
+// Hacienda — economic activity
+$lang['actividad_economica'] = "Economic Activity";
+$lang['actividad_predeterminada'] = "Default Activity";
+$lang['default_actividad'] = "Default Economic Activity";
+$lang['ecomic_activity'] = "Economic Activity";
+$lang['code_actividad'] = "Activity Code";
+$lang['actividad'] = "Activity";
+$lang['add_actividad'] = "Add Activity";
+$lang['edit_actividad'] = "Edit Activity";
+$lang['actividad_deleted'] = "Activity deleted";
+$lang['actividad_updated'] = "Activity updated";
+
+// Hacienda — electronic voucher
+$lang['comprobante_electronico'] = "Electronic Voucher";
+$lang['elect_fec'] = "Electronic Purchase Invoice";
+$lang['fec'] = "Electronic Purchase Invoice";
+$lang['add_fec'] = "Add Purchase Invoice";
+$lang['list_fec'] = "Purchase Invoice List";
+$lang['monthly_fec'] = "Monthly Purchase Invoices";
+$lang['clave'] = "Key";
+$lang['textos_comprobantes'] = "Electronic Voucher Texts";
+$lang['documentos_periodo'] = "documents in period";
+
+// Hacienda — CABYS catalog
+$lang['codigo_cabys'] = "CABYS Code";
+$lang['desc_cabys'] = "CABYS Description";
+$lang['catalogo_cabys_label'] = "CABYS Catalog";
+$lang['catalogo'] = "Catalog";
+$lang['limpiar_cache_cabys'] = "Clear CABYS Cache";
+$lang['cabys_cache_info'] = "If Hacienda published a CABYS catalog update, clear the local cache to retrieve the latest versions.";
+
+// Hacienda — exemption
+$lang['exoneracion'] = "Exemption";
+$lang['exoneracion_factura'] = "Invoice Exemption";
+$lang['add_exoneracion'] = "Add Exemption";
+$lang['agregar_exoneracion'] = "Add Exemption";
+$lang['apply_exoneracion'] = "Apply Exemption";
+$lang['exo_nombre_inst'] = "Name of institution that issued the exemption";
+$lang['exo_numero_doc'] = "Exemption or authorization document number";
+$lang['exo_fecha_emision'] = "Document Issue Date/Time (Format: 2019-07-31 13:53:00)";
+$lang['exo_porcentaje'] = "Exemption Percentage";
+
+// Hacienda — taxes / rates
+$lang['tipo_impuesto'] = "Tax Type";
+$lang['impuesto_producto'] = "Product Tax";
+$lang['impuesto_unit'] = "Unit Tax";
+$lang['impuestos_iva'] = "IVA Taxes";
+$lang['credito_iva'] = "IVA Credit";
+$lang['credito_compras'] = "Purchase Credit";
+$lang['credito_ventas'] = "Sales Credit";
+$lang['tarifa_0'] = "Rate 0%";
+$lang['tarifa_1'] = "Rate 1%";
+$lang['tarifa_2'] = "Rate 2%";
+$lang['tarifa_4'] = "Rate 4%";
+$lang['tarifa_13'] = "Rate 13%";
+$lang['tasa'] = "Rate";
+$lang['tasa_propina'] = "Tip Rate (%)";
+$lang['tasa_exito'] = "Success Rate";
+$lang['tasa_rechazo'] = "Rejection Rate";
+$lang['lleva_iva'] = "Has IVA?";
+$lang['imp'] = "Tax";
+$lang['mostrar_imp_como'] = "Show tax on receipt as";
+
+// Hacienda — currency / exchange
+$lang['tipo_cambio'] = "Exchange Rate";
+$lang['tipo_cambio_col'] = "Exchange Rate";
+$lang['colones'] = "Colones";
+$lang['dolares'] = "Dollars";
+$lang['codigo_moneda'] = "Currency Code";
+$lang['regimen_simplificado'] = "Simplified Tax Regime";
+
+// Anti-pattern keys (Spanish text used as key)
+$lang['Aceptado'] = "Accepted";
+$lang['Recibido'] = "Received";
+$lang['Procesando'] = "Processing";
+$lang['Rechazado'] = "Rejected";
+$lang['Emitido'] = "Issued";
+$lang['Fecha'] = "Date";
+$lang['Dia'] = "Day";
+$lang['Hora de entrada'] = "Entry Time";
+$lang['Faltante'] = "Shortfall";
+$lang['Producto'] = "Product";
+$lang['Seleccione'] = "Select";
+$lang['Moneda'] = "Currency";
+$lang['Identificacion'] = "Identification";
+$lang['Monto Exento'] = "Exempt Amount";
+$lang['Monto Gravado'] = "Taxable Amount";
+$lang['Tipo Cambio'] = "Exchange Rate";
+$lang['Ubicacion'] = "Location";
+$lang['Ubicación'] = "Location";
+$lang['Depositos'] = "Deposits";
+$lang['Apartados_sales'] = "Layaways";
+$lang['Quotes_sales'] = "Quotes";
+$lang['Factura Electronica'] = "Electronic Invoice";
+$lang['Nota de Credito Electronica'] = "Electronic Credit Note";
+$lang['Tiquete N°'] = "Ticket No.";
+$lang['N° Fctura'] = "Invoice No.";
+$lang['Consecutivo N°'] = "Consecutive No.";
+$lang['TipoDocumentoE'] = "Document Type";
+$lang['NumeroDocumentoE'] = "Document Number";
+$lang['FechaEmisionE'] = "Issue Date";
+$lang['NombreInstitucionE'] = "Institution Name";
+$lang['PorcentajeExoneracionE'] = "Exemption Percentage";
+$lang['Bienes de Capital'] = "Capital Goods";
+$lang['Gasto Corriente no genera credito'] = "Current Expense (no IVA credit)";
+$lang['Gastos / Retiros'] = "Expenses / Withdrawals";
+$lang['General Credito IVA'] = "General IVA Credit";
+$lang['General Credito parcial del IVA'] = "Partial IVA Credit";
+$lang['Proporcionalidad'] = "Proportionality";
+$lang['Servicios Profesionales'] = "Professional Services";
+$lang['Placa Vehiculo'] = "Vehicle Plate";
+$lang['Cedula Identidad'] = "Identity Card";
+$lang['Cedula Juridica'] = "Legal Entity ID";
+$lang['Dimex'] = "DIMEX";
+$lang['NITE'] = "NITE";
+$lang['Error'] = "Error";
+$lang['dias_restantes'] = "days remaining";
+$lang['restante_label'] = "Remaining";
+$lang['producto_col'] = "Product";
+
+// FE — voucher status
+$lang['status_hacienda_col'] = "Hacienda Status";
+$lang['aceptado'] = "Accepted";
+$lang['rechazado'] = "Rejected";
+$lang['recibido'] = "Received";
+$lang['procesando'] = "Processing";
+$lang['aceptadas_label'] = "accepted";
+$lang['rechazadas_label'] = "rejected";
+$lang['procesando_label'] = "processing";
+$lang['procesando_error'] = "Processing / Error";
+$lang['fe_aceptadas'] = "Accepted E-Invoices";
+$lang['fe_rechazadas'] = "Rejected E-Invoices";
+$lang['tiquetes_aprobados'] = "Approved Tickets";
+$lang['tiquetes_rechazados'] = "Rejected Tickets";
+$lang['no_procesado'] = "Not Processed";
+$lang['reenviar_rechazadas'] = "Resend Rejected";
+
+// FE — report columns
+$lang['t_doc'] = "Doc Type";
+$lang['n_doc'] = "Doc No.";
+$lang['tipo_col'] = "Type";
+$lang['fecha_factura'] = "Invoice Date";
+$lang['fecha_factura_col'] = "Invoice Date";
+$lang['numero_factura'] = "Invoice Number";
+$lang['full_tax_col'] = "Full Tax Purchase";
+$lang['subtotal_sin_imp'] = "Subtotal (Excl. Tax)";
+$lang['monto_total'] = "Total Amount";
+$lang['importe_total'] = "Total Amount";
+$lang['monto_total_impuesto'] = "Total Tax Amount";
+$lang['total_impuesto_del'] = "Total tax of";
+$lang['total_linea'] = "Line Total";
+$lang['total_comprobante'] = "Voucher Total";
+
+// FE — service / goods totals
+$lang['total_serv_gravados'] = "Total Taxable Services";
+$lang['total_serv_exentos'] = "Total Exempt Services";
+$lang['total_serv_exonerado'] = "Total Exempted Services";
+$lang['total_serv_gravados_f'] = "Total Taxable Services";
+$lang['total_serv_exentos_f'] = "Total Exempt Services";
+$lang['total_serv_gravados_v'] = "Total Taxable Services (Sales)";
+$lang['total_merc_gravadas'] = "Total Taxable Goods";
+$lang['total_merc_exentas'] = "Total Exempt Goods";
+$lang['total_merc_exonerada'] = "Total Exempted Goods";
+$lang['total_merc_gravados'] = "Total Taxable Goods";
+$lang['total_merc_exentos'] = "Total Exempt Goods";
+$lang['total_gravado'] = "Total Taxable";
+$lang['total_gravados'] = "Total Taxable";
+$lang['total_exento'] = "Total Exempt";
+$lang['total_exentos'] = "Total Exempt";
+$lang['total_exonerado'] = "Total Exempted";
+$lang['total_exentas_gravadas'] = "Total Exempt + Taxable";
+$lang['total_ventas_exoneradas'] = "Total Exempted Sales";
+$lang['total_emitidas'] = "Total Issued";
+$lang['tot_imp_0_cobrado'] = "Tax 0% Collected";
+$lang['tot_imp_1_cobrado'] = "Tax 1% Collected";
+$lang['tot_imp_2_cobrado'] = "Tax 2% Collected";
+$lang['tot_imp_4_cobrado'] = "Tax 4% Collected";
+$lang['tot_imp_13_cobrado'] = "Tax 13% Collected";
+$lang['tot_monto_sin_imp'] = "Total Amount excl. Tax";
+$lang['tot_monto_con_imp'] = "Total Amount incl. Tax";
+
+// FE — identification types
+$lang['tipo_doc_cedula'] = "ID / Document Type";
+$lang['cedula_documento'] = "ID / Document No.";
+$lang['n_identificacion'] = "ID No.";
+$lang['identificacion'] = "Identification";
+$lang['passaporte'] = "Passport";
+$lang['servicios_profesionales'] = "Professional Services";
+
+// XML document upload
+$lang['documents_upload'] = "Upload Documents MH";
+$lang['seleccionar_xml'] = "Select XML files from your computer";
+$lang['arrastrar_soltar_xml'] = "Or drag and drop XML files below";
+$lang['zona_arrastre_xml'] = "Drag and drop XML files here";
+$lang['subir_archivos'] = "Upload Files";
+$lang['resultado_carga'] = "Document Upload Result";
+$lang['backup_xml'] = "XML Backup";
+$lang['backup_xmls'] = "XML Backups";
+$lang['xml_backups'] = "XML Backups";
+$lang['xmls'] = "XMLs";
+
+// POS — interface
+$lang['nueva_venta'] = "New Sale";
+$lang['modo_oscuro'] = "Dark Mode";
+$lang['cambiar_tema'] = "Change Theme";
+$lang['mostrar_categorias'] = "Show Categories";
+$lang['ocultar_categorias'] = "Hide Categories";
+$lang['ocultar_formulario'] = "Hide Form";
+$lang['panel_categorias_pos'] = "POS Category Panel";
+$lang['agregar_carrito'] = "Add to Cart";
+$lang['cambiar_cliente'] = "Change Customer";
+$lang['impresion_auto_on'] = "Auto Print: ON";
+$lang['impresion_auto_off'] = "Auto Print: OFF";
+$lang['imprimir_articulos'] = "Print sold items";
+$lang['edicion_rapida'] = "Quick Edit";
+$lang['edicion_rapida_prod'] = "Quick Product Edit";
+$lang['producto_rapido'] = "Quick Product (F2)";
+$lang['desc_prod_servicio'] = "Product/service description";
+
+// POS — keyboard shortcuts
+$lang['atajos_teclado'] = "Keyboard Shortcuts";
+$lang['atajo_agregar_cliente'] = "Add Customer";
+$lang['atajo_agregar_item'] = "Add Item (focus)";
+$lang['atajo_alternar_cats'] = "Toggle Categories";
+$lang['atajo_cancelar_venta'] = "Cancel Sale";
+$lang['atajo_cerrar_caja'] = "Close Register";
+$lang['atajo_editar_ultimo'] = "Edit Last Product";
+$lang['atajo_finalizar_venta'] = "Finalize Sale";
+$lang['atajo_imprimir_factura'] = "Print Invoice";
+$lang['atajo_imprimir_orden'] = "Print Order";
+$lang['atajo_retomar'] = "Resume Pending";
+$lang['atajo_suspender_venta'] = "Suspend Sale";
+$lang['atajo_ventas_hoy'] = "Today's Sales";
+
+// POS — quick product modal
+$lang['precio_sin_impuesto'] = "Price (excl. tax)";
+$lang['precio_unit'] = "Unit price";
+$lang['total_linea'] = "Line Total";
+$lang['agregar_producto_manual'] = "Add Product Manually";
+$lang['error_busqueda_producto'] = "Product Search Error";
+$lang['producto_no_encontrado'] = "Product not found";
+$lang['producto_sin_codigo_msg'] = "The product you are trying to view was not found, it may be a product without a code.";
+
+// POS — cash register
+$lang['apertura_caja'] = "Cash Register Opening";
+$lang['cerrar_caja'] = "Close Register";
+$lang['detalles_cierre_caja'] = "Cash Close Details";
+$lang['imprimir_cierre_caja'] = "Print Cash Close";
+$lang['imprimir_cierre_web'] = "Print close via web";
+$lang['cierre_unico'] = "Single Cash Close";
+$lang['detalles_cajero'] = "Details to Cashier";
+$lang['closed_at'] = "Closed at";
+$lang['cobrado'] = "Collected";
+$lang['total_cash_submitted'] = "Total Cash Submitted";
+$lang['total_cheques_submitted'] = "Total Cheques Submitted";
+$lang['faltante'] = "Shortfall";
+$lang['no_puede_aperturar'] = "Cannot reopen the register without administrator authorization";
+
+// POS — tip
+$lang['propina'] = "Tip";
+$lang['servicio_propina'] = "Service";
+
+// POS — tables
+$lang['agregar_mesa'] = "Add Table";
+$lang['lista_mesas'] = "Table List";
+
+// Sales — layaways
+$lang['apartados'] = "Layaways";
+$lang['apartado_sale'] = "Layaway Sale";
+$lang['apartado_added'] = "Layaway added";
+$lang['list_apartado_sales'] = "Layaway List";
+$lang['view_apartado'] = "View Layaway";
+$lang['sec_apartados'] = "Layaways, Quotes & Shipping";
+$lang['efectivo_apartados'] = "Layaway Cash";
+$lang['tarjetas_apartados'] = "Layaway Cards";
+$lang['footer_apartado_label'] = "Layaway Footer";
+
+// Sales — quotes / proformas
+$lang['cotizaciones'] = "Quotes / Proformas";
+$lang['proforma'] = "Proforma";
+$lang['proformas'] = "Proformas";
+$lang['qoutes_sale'] = "Quote sale";
+$lang['view_quotes'] = "View Quotes";
+$lang['list_quotes_sales'] = "Quote List";
+$lang['quote_saved_to_opened_bill'] = "Quote saved to opened bill";
+$lang['quotes_sale_loaded'] = "Quote loaded";
+$lang['footer_nc_label'] = "Credit Note Footer";
+$lang['footer_fe_label'] = "Electronic Invoice Footer";
+
+// Sales — payment
+$lang['formulario_pago'] = "Payment Form";
+$lang['metodos_pago'] = "Payment Methods";
+$lang['metodos_pago_label'] = "Payment Methods";
+$lang['pagar_por'] = "Pay by";
+$lang['debito'] = "Debit";
+$lang['tarjeta'] = "Card";
+$lang['tarjeta_cd'] = "Credit/Debit Card";
+$lang['deposito'] = "Deposit";
+$lang['a_credito'] = "On Credit";
+$lang['tiempo_credito'] = "Select Credit Period";
+$lang['question_enable_credit'] = "Allow credit to customers?";
+$lang['question_print_inoice'] = "Print invoice after payment?";
+$lang['payment_received'] = "Payment Received";
+$lang['payment_reference'] = "Payment Reference";
+$lang['payment_returned'] = "Payment Returned";
+
+// Sales — payment status
+$lang['estado_pago'] = "Payment Status";
+$lang['pagada'] = "Paid";
+$lang['pagado_label'] = "Paid";
+$lang['no_pagada'] = "Unpaid";
+$lang['parcialmente_pagada'] = "Partially Paid";
+$lang['pendiente_pago'] = "Pending";
+$lang['pendientes_label'] = "pending";
+$lang['vencido'] = "Overdue";
+$lang['vencida_label'] = "Overdue";
+$lang['facturas_sin_saldar'] = "outstanding invoices";
+$lang['facturas_label'] = "invoices";
+$lang['notas_credito_label'] = "Credit Notes";
+$lang['notas_debito'] = "Debit Notes";
+$lang['ordenes_label'] = "Orders";
+$lang['ordenes_compra'] = "purchase orders";
+$lang['ventas_abiertas'] = "Open Sales";
+
+// Accounts receivable / payable
+$lang['cta_clientes'] = "Customer Accounts";
+$lang['cta_envios'] = "Shipping Accounts";
+$lang['monto_adeudado'] = "Amount Due";
+$lang['total_por_cobrar'] = "Total Receivable";
+$lang['total_por_pagar'] = "Total Payable";
+$lang['total_pagado'] = "Total Paid";
+$lang['total_credits_sales'] = "Total Credit Sales";
+$lang['pagar_deuda'] = "Pay Debt";
+$lang['pago_deuda_form'] = "You can make the debt payment in the following form";
+$lang['limitcredit'] = "Credit Limit";
+
+// Products
+$lang['tipo_producto'] = "Product Type";
+$lang['mercancia'] = "Merchandise";
+$lang['caja_col'] = "Box";
+$lang['fraccion'] = "Fraction";
+$lang['cantidad_fracciones'] = "Number of Fractions";
+$lang['fracciones_caja'] = "Number of fractions per box";
+$lang['lista_de_precio'] = "Price List";
+$lang['lista_de_precio2'] = "Price List";
+$lang['lista_precios'] = "Price Lists";
+$lang['agregar_precios'] = "Add Prices";
+$lang['configure_precios'] = "Configure Prices";
+$lang['precio_neto'] = "Net Price";
+$lang['precio_unitario_neto'] = "Net Unit Price";
+$lang['precio_venta_inv'] = "Sale Price";
+$lang['cost_inv'] = "Inventory Cost";
+$lang['cost_price'] = "Cost Price";
+$lang['costo_total'] = "Total Cost";
+$lang['margen'] = "Margin";
+$lang['margen_bruto'] = "Gross Margin";
+$lang['margen_bruto_inv'] = "Inventory Gross Margin";
+$lang['margen_ganancia'] = "Profit Margin";
+$lang['margen_ganancia_costo'] = "Profit Margin Based on Cost";
+$lang['update_price'] = "Update Price";
+$lang['descuento_producto'] = "Product Discount";
+$lang['min_stock'] = "Min";
+$lang['bajo_alerta'] = "below alert";
+$lang['sin_alertas_inv'] = "No inventory alerts";
+$lang['resumen_stock'] = "Stock Summary";
+$lang['stock'] = "Stock";
+$lang['productos_en_stock'] = "products in stock";
+$lang['products_quantity'] = "Products Quantity";
+$lang['simbologia_barras'] = "Barcode Symbology";
+
+// Units of measure
+$lang['unidad'] = "Unit";
+$lang['kilogramo'] = "Kilogram";
+$lang['galon'] = "Gallon";
+$lang['litro'] = "Litre";
+$lang['metro'] = "Metre";
+$lang['metro_cuadrado'] = "Square Metre";
+$lang['metro_cubico'] = "Cubic Metre";
+$lang['minuto'] = "Minute";
+$lang['tonelada'] = "Ton";
+
+// Inventory
+$lang['inventory_label'] = "Inventory";
+$lang['inventory_adjustment'] = "Inventory Adjustment";
+$lang['ajuste_inventario'] = "Inventory Adjustment";
+$lang['descripcion_ajuste'] = "Adjustment Description";
+$lang['tipo_movimiento'] = "Movement Type";
+$lang['fecha_movimiento'] = "Movement Date";
+$lang['cantidad_movida'] = "Qty Moved";
+$lang['cantidad_fracc_movida'] = "Fractional Qty Moved";
+$lang['precio_anterior'] = "Previous Price";
+$lang['precio_actual'] = "Current Price";
+
+// Purchases
+$lang['descuento_compra'] = "Purchase Discount";
+$lang['total_compra'] = "Purchase Total";
+$lang['total_compra_neta'] = "Net Purchase Total";
+$lang['compras_mensuales'] = "Monthly Purchases";
+$lang['agregar_articulo_comprado'] = "Add Purchased Item";
+$lang['items_factura'] = "Invoice Items";
+$lang['items_adicionales'] = "Additional items to invoice";
+
+// Shipping
+$lang['metodo_envio'] = "Shipping Method";
+$lang['shipping_method'] = "Shipping Method";
+$lang['code_shipping'] = "Shipping Code";
+$lang['add_shipping'] = "Add Shipping";
+$lang['edit_shipping'] = "Edit Shipping";
+$lang['shipping_deleted'] = "Shipping deleted";
+$lang['shipping_updated'] = "Shipping updated";
+
+// Customers / Suppliers
+$lang['datos_contacto'] = "Contact Details";
+$lang['nombre_completo'] = "Full Name";
+$lang['correo_electronico'] = "Email Address";
+$lang['direccion'] = "Address";
+$lang['provincia'] = "Province";
+$lang['canton'] = "Canton";
+$lang['distrito'] = "District";
+$lang['barrio'] = "District";
+$lang['telefono_sin_guiones'] = "Phone (no dashes)";
+$lang['fax_sin_guiones'] = "Fax (no dashes)";
+$lang['invalid_identify'] = "Invalid ID number, only numeric characters allowed:";
+$lang['invalid_mail'] = "Invalid Email";
+$lang['invalid_phone'] = "Invalid Phone – must be 8 digits (e.g., 88880000)";
+$lang['agregar_proveedor_simplificado'] = "Add Simplified Supplier";
+$lang['proveedor_simplificado'] = "Simplified Supplier";
+$lang['facturado_a'] = "Invoiced to";
+
+// Invoice columns
+$lang['col_cod'] = "CODE";
+$lang['col_descripcion'] = "DESCRIPTION";
+$lang['col_precio'] = "PRICE";
+$lang['col_cantidad'] = "QUANTITY";
+$lang['col_total'] = "TOTAL";
+$lang['col_unidad_medida'] = "UNIT";
+
+// Reports / Dashboard
+$lang['informe_ventas_diarias'] = "Daily Sales Report";
+$lang['daily_report_desc'] = "when this report is opened, today's daily sales are shown; you may use the form below to perform custom searches";
+$lang['monthly_sale_tax'] = "Monthly Sales Tax";
+$lang['vendedor'] = "Salesperson";
+$lang['esta_semana'] = "This week";
+$lang['periodo_hoy'] = "Today";
+$lang['periodo_semana'] = "Week";
+$lang['periodo_mes'] = "Month";
+$lang['periodo_anio'] = "Year";
+$lang['vs_periodo_anterior'] = "vs previous period";
+$lang['ultimos_6m'] = "last 6 months";
+$lang['ultimos_12m'] = "last 12 months";
+$lang['promedio_dia'] = "Daily Average";
+$lang['promedio_ventas_6m'] = "Sales Average – last 6 months";
+$lang['proyeccion_mes'] = "Monthly Projection";
+$lang['analisis_fin'] = "Financial Analysis";
+$lang['analisis_financiero'] = "Financial Analysis – last 12 months";
+$lang['top_productos_ingresos'] = "Top Products by Revenue";
+$lang['top_prods_label'] = "Top Products by Revenue";
+$lang['top_dias_venta'] = "Top Sales Days";
+$lang['top_dias_label'] = "Top Sales Days";
+$lang['sin_ventas_recientes'] = "No recent sales";
+$lang['ultimas_transacciones'] = "Latest Transactions";
+$lang['total_facturado'] = "Total Invoiced";
+$lang['total_venta'] = "Sale Total";
+$lang['total_ventas'] = "Total Sales";
+$lang['total_venta_neta'] = "Net Sale Total";
+$lang['ventas_exentas'] = "Exempt Sales";
+$lang['ventas_gravadas_con'] = "Taxable Sales at";
+$lang['ventas_fracciones'] = "Fractional Sales";
+$lang['model_d104'] = "D-104 Model";
+$lang['model_d151'] = "D-151 Model";
+$lang['todas_tiendas'] = "All Stores";
+$lang['utilidad_bruta'] = "Gross Profit";
+$lang['utilidad_label'] = "Profit";
+
+// Settings — tabs
+$lang['settings_tab_general'] = "General";
+$lang['settings_tab_general_sub'] = "Business, theme, PIN";
+$lang['settings_tab_emisor'] = "FE Issuer";
+$lang['settings_tab_emisor_sub'] = "Hacienda, tokens, cert.";
+$lang['settings_tab_pos'] = "POS / Register";
+$lang['settings_tab_pos_sub'] = "Printing, buttons";
+$lang['settings_tab_avanzado'] = "Advanced";
+$lang['settings_tab_avanzado_sub'] = "Search, categ., more";
+$lang['settings_tab_email_sub'] = "SMTP, protocol";
+$lang['general_settings_desc'] = "Business, theme, PIN";
+$lang['avanced_settings'] = "Advanced Settings";
+$lang['avanzado_settings_desc'] = "Search, categ., more";
+$lang['email_settings_desc'] = "SMTP, protocol";
+$lang['guardar_configuracion'] = "Save Configuration";
+
+// Settings — POS sections
+$lang['sec_comp_general_pos'] = "General POS Behavior";
+$lang['sec_impresion'] = "Printing";
+$lang['sec_atajos_pos'] = "POS Shortcuts / Buttons";
+$lang['sec_registro_caja'] = "Register & Cash Close";
+$lang['sec_numerales_moneda'] = "Numbers & Currency Format";
+$lang['sec_impuesto_propina'] = "Tax & Tip";
+$lang['sec_busqueda_prod'] = "Product Search";
+$lang['sec_cats_clientes'] = "Categories & Default Customers";
+
+// Settings — printers
+$lang['ip_impresora'] = "Printer IP";
+$lang['nombre_compartido_imp'] = "Shared Printer Name";
+$lang['printer_help_windows'] = "For Windows (USB, Serial or Parallel): share the printer and enter the share name, or for SMB enter as smb://computername/Name";
+$lang['printer_help_linux'] = "For Linux: Parallel /dev/lp0, USB /dev/usb/lp1, USB-Serial /dev/ttyUSB0, Serial /dev/ttyS0";
+$lang['printer_port_hint'] = "Most printers are open on port 9100";
+$lang['ruta_sendmail'] = "Path to sendmail binary on server";
+
+// User profile
+$lang['info_personal'] = "Personal Information";
+$lang['foto'] = "Photo";
+$lang['foto_de_perfil'] = "Profile Photo";
+$lang['horario'] = "Schedule";
+$lang['horario_usuario'] = "User Schedule";
+$lang['hora_entrada'] = "Entry Time";
+$lang['hora_salida'] = "Exit Time";
+$lang['entrada_y_salida'] = "Time In & Out";
+$lang['permiso_apertura'] = "Opening Permission";
+$lang['permiso_apertura_caja'] = "Register Opening Permission";
+$lang['habilitar_apertura'] = "Enable register opening for this user?";
+$lang['si_habilitar'] = "Yes, Enable";
+$lang['no_permitir'] = "Do not allow";
+$lang['acceso_y_permisos'] = "Access & Permissions";
+$lang['seguridad_cuenta'] = "Account Security";
+
+// Parking receipt
+$lang['recibo_parqueo'] = "Parking Receipt";
+$lang['no_pierda_ticket'] = "Do not lose your parking ticket";
+
+// Bill custom fields
+$lang['bcf1'] = "Bill Field 1";
+$lang['bcf2'] = "Bill Field 2";
+$lang['bcf3'] = "Bill Field 3";
+$lang['bcf4'] = "Bill Field 4";
+$lang['bcf5'] = "Bill Field 5";
+$lang['bcf6'] = "Bill Field 6";
+$lang['ccf3'] = "Customer Field 3";
+$lang['ccf4'] = "Customer Field 4";
+$lang['ccf5'] = "Customer Field 5";
+$lang['ccf6'] = "Customer Field 6";
+$lang['stamp_sign'] = "Sign & Stamp";
+
+// Gift cards / topups
+$lang['card_expired'] = "Card expired";
+$lang['card_is_used'] = "Card already used";
+$lang['last_topups'] = "Last Topups";
+
+// Misc
+$lang['view_abort'] = "Cancel View";
+$lang['sin_alertas_inv'] = "No inventory alerts";
+$lang['no_ref'] = "No reference";
+$lang['otras_senas'] = "Other Details";
+$lang['otros'] = "Other";
+
+// ─── View audit — 2026-07-01 ─────────────────────────────────────────────────
+$lang['login_subtitle']      = "Electronic Invoicing CR";
+$lang['login_feat_cert']     = "Hacienda v4.4 Certificate";
+$lang['login_feat_seguro']   = "Secure Encrypted Access";
+$lang['login_feat_reportes'] = "Real-Time Reports";
+$lang['login_feat_fe']       = "Electronic Tickets & Invoices";
+$lang['login_btn']           = "SIGN IN";
+$lang['nueva_nota_debito']   = "New Debit Note";
+$lang['tipo_doc_referencia'] = "Reference Document Type";
+$lang['tiquete_electronico'] = "Electronic Ticket";
+$lang['codigo_razon_nd']     = "Reason Code (Debit Note)";
+$lang['razon_error_monto']   = "Amount error";
+$lang['razon_homologacion']  = "Homologation";
+$lang['razon_texto_libre']   = "Reason (free text)";
+$lang['agregar_linea']       = "Add line";
+$lang['guardar_nd']          = "Save Debit Note";
+$lang['presentacion_venta']  = "Item Sales Presentation";
+$lang['seccion']             = "Section";
+$lang['tramo']               = "Row";
+$lang['eliminar_seccion']    = "Delete Section";
+$lang['imagen_req']          = "Max file size 500 MB, max dimensions 1000 px";
+$lang['total_descuentos']    = "Total Discounts";
+$lang['total_impuesto_fec']  = "Total Tax";
+$lang['total_exoneracion']   = "Total Exemption";
+$lang['notas_label']         = "Notes";
+$lang['expandir_menu']           = "Expand/Collapse menu";
+$lang['buscar_en_sistema']       = "Search in Neurix POS...";
+$lang['ventas_suspendidas']      = "Suspended sales";
+$lang['quitar_cliente']          = "Remove customer";
+$lang['buscar_hacienda_btn']     = "Search in Hacienda";
+$lang['consultar_hacienda_title']= "Look up taxpayer name and activities in Hacienda";
+$lang['autocomplete_padron']     = "Entering the ID auto-fills data from the Hacienda taxpayer registry";
+$lang['cod_act_economica_label'] = "Economic Activity Code (Hacienda)";
+$lang['cod_act_economica_help']  = "Only for legal entities that issue vouchers (mandatory receiver).";
+$lang['actividad_seleccione']    = "Economic Activity — select the correct one";
+$lang['cabys_label']             = "CABYS Code (Hacienda Classifier — 13 digits)";
+$lang['buscar_cabys_placeholder']= "Search by code or description...";
+$lang['buscar_cabys_desc_min3']  = "Search by description (min. 3 chars)...";
+$lang['cabys_help_text']         = "Search by description or enter the 13-digit code directly.";
+$lang['placeholder_cedula']      = "E.g.: 112340567";
+$lang['placeholder_cabys']       = "E.g.: 8101102000000";
+$lang['placeholder_cod_act']     = "E.g.: 811001";
+$lang['motivo_aceptacion']       = "Reason for Accepting, Partially Accepting, or Rejecting the electronic voucher";
+$lang['agregar_ubicacion']       = "Add Location";
+$lang['placeholder_dir_desc']    = "Address description";
+$lang['placeholder_footer_fe']   = "Text at the bottom of electronic invoices";
+$lang['placeholder_footer_nc']   = "Text at the bottom of credit notes";
+$lang['placeholder_smtp_pass']   = "SMTP Password";
+$lang['placeholder_fecha_emision']= "Format: 2019-07-31 13:53:00";
+$lang['tipo_items']              = "Item Type";
+$lang['imprimir_recibo']         = "Print Receipt";
+$lang['ver_ocultar']             = "Show/Hide";
+// Footer / general actions
+$lang['llamar']                  = "Call";
+$lang['enviar_correo']           = "Send email";
+$lang['scan_ean_placeholder']    = "Click the button to scan an EAN...";
+$lang['remove']                  = "Remove";
+$lang['placeholder_email_login'] = "email@company.com";
+$lang['placeholder_smtp_user']   = "user@gmail.com";
+// General pending keys
+$lang['nombre_comercial']        = "Business Name";
+$lang['actividades_registradas'] = "Activities correspond to those registered with Hacienda for this identification.";
+$lang['notas_debito_electronicas'] = "Electronic Debit Notes";
+$lang['mis_ventas']              = "My Sales";
+$lang['cliente_contado']         = "Cash Customer";
+$lang['aperturar_caja']          = "Open Register";
+$lang['consulta_articulos']      = "Product Lookup";
+$lang['buscar_cod_producto']     = "Search by Product Code";
+$lang['num_apartado']            = "Layaway Number";
+$lang['num_proforma']            = "Proforma Number";
+$lang['pin_seguridad_help']      = "Numeric PIN of 4 to 8 digits for sensitive actions";
+$lang['placeholder_pin']         = "4-8 numeric digits";
+$lang['imagen_kb_req']           = "Max size: 500 KB · Max dimensions: 1000 × 1000 px";
+$lang['fecha_emision_label']     = "Issue Date";
+$lang['documento_label']         = "Document";
+$lang['cedula_identidad']        = "Identity Card";
+$lang['cedula_juridica']         = "Legal Entity ID";
+$lang['pasaporte']               = "Passport";
+$lang['please_select']           = "-- Please Select --";
+// CargaDocumentos — issuer data
+$lang['condicion_impuesto']      = "Tax Condition";
+$lang['nombre_emisor_label']     = "Issuer Name";
+$lang['tipo_doc_emisor_label']   = "Issuer Doc Type";
+$lang['numero_cedula_label']     = "ID Number";
+$lang['telefono_emisor_label']   = "Issuer Phone";
+$lang['correo_emisor_label']     = "Issuer Email";
+// Promotions
+$lang['promo_page_title']        = "POS Promotional Page";
+$lang['promo_gracias_visita']    = "Thank you for your visit!!!";
+$lang['promo_vuelva']            = "Please come again.";
+$lang['promo_recomendacion']     = "If you are happy with our services, please tell to your friends otherwise let us know so that we can improve.";
+
+// POS screen
+$lang['caja']                    = "Register";
+$lang['sucursal']                = "Branch";
+$lang['unit_price_abbr']         = "U.P.";
+$lang['buscar_cliente_hint']     = "Type the customer's name or ID number";
+$lang['autocompleta_hacienda_hint'] = "Entering the number auto-fills data from Hacienda";
+$lang['exacto']                  = "Exact";
+$lang['modal_producto_rapido']   = "Quick product";
+$lang['buscar_cabys']            = "Search CABYS";
+$lang['transferencia_abr']       = "Transfer.";
+
+// POS screen — JS runtime (pos-core.js / pos-enhanced.js)
+$lang['usando_precio_oferta']      = "Using offer price — click for regular price";
+$lang['precio_oferta_disponible']  = "Offer price available — click to activate";
+$lang['error_obtener_producto']    = "Error retrieving product";
+$lang['error_busqueda']            = "Search error";
+$lang['error']                     = "Error";
+$lang['error_agregar_cliente']     = "Error adding customer";
+$lang['buscar_cliente_placeholder'] = "Search customer…";
+$lang['impresion_auto_on']         = "Auto-print: ON (click to turn off)";
+$lang['impresion_auto_off_title']  = "Auto-print: OFF (click to turn on)";
+$lang['impresion_auto_desactivada'] = "Auto-print disabled";
+$lang['impresion_auto_activada']   = "Auto-print enabled";
+$lang['kbd_cobrar']                = "Charge";
+$lang['kbd_cancelar_busqueda']     = "Cancel search";
+$lang['kbd_navegar_lista']         = "Navigate list";
+$lang['kbd_agregar_producto']      = "Add product";
+$lang['kbd_foco_busqueda']         = "Quick focus to search";
+$lang['ingrese_nombre_producto']   = "Enter the product name.";
+$lang['ingrese_cabys_valido']      = "Enter a valid CABYS code (13 digits).";
+$lang['ingrese_precio_valido']     = "Enter a valid price.";
+$lang['carrito_compras']           = "Shopping cart";
+$lang['catalogo_productos']        = "Product catalog";
+$lang['producto_agregado']         = "Product added";
+$lang['no_products_found']         = "No products found";
+$lang['atajos_hint']               = "Alt+S to search, Alt+P to pay, Alt+C to cancel";
+$lang['js_disabled_notice']        = "JavaScript seems to be disabled in your browser.";
+$lang['js_disabled_notice2']       = "You must have JavaScript enabled in your browser to use the functionality of this website.";
+$lang['modern_browser_required']   = "Please use a modern browser as this site needs localStorage!";
+
+// List redesign (nx-tables) — Products and system tables
+$lang['de']                    = "of";
+$lang['mostrando']             = "Showing";
+$lang['en_categorias']         = "in %d categories";
+$lang['sin_resultados']        = "No results match your search.";
+$lang['exportar']              = "Export";
+$lang['nuevo_producto']        = "New product";
+$lang['buscar_nombre_codigo']  = "Search by name or code…";
+$lang['todas']                 = "All";
+$lang['productos_activos']     = "Active products";
+$lang['valor_inventario']      = "Inventory value";
+$lang['a_precio_costo']        = "at cost price";
+$lang['stock_bajo']            = "Low stock";
+$lang['stock_bajo_tag']        = "Low";
+$lang['requieren_reorden']     = "need reordering";
+$lang['agotados']              = "Out of stock";
+$lang['agotado']               = "Out";
+$lang['sin_existencias']       = "no stock available";
+$lang['inventario_general']    = "General inventory";
+
+// Global search
+$lang['buscar_en_sistema']     = "Search in system…";
+$lang['dashboard']             = "Dashboard";
+$lang['pos']                   = "POS";
+$lang['sales']                 = "Sales";
+$lang['customers']             = "Customers";
+$lang['products']              = "Products";
+$lang['categories']            = "Categories";
+$lang['suppliers']             = "Suppliers";
+$lang['purchases']             = "Purchases";
+$lang['reports']               = "Reports";
+$lang['creditnotes']           = "Credit Notes";
+$lang['debitnotes']            = "Debit Notes";
+$lang['settings']              = "Settings";
+$lang['alerts']                = "Alerts";
+$lang['price']                 = "Price";

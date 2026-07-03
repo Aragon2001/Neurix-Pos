@@ -1,227 +1,98 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <?php
-
 $v = "?v=1";
-
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
-
+if ($this->input->post('user')) { $v .= "&user=" . $this->input->post('user'); }
+if ($this->input->post('start_date')) { $v .= "&start_date=" . $this->input->post('start_date'); }
+if ($this->input->post('end_date')) { $v .= "&end_date=" . $this->input->post('end_date'); }
 ?>
 
-<script type="text/javascript">
-    $(document).ready(function() {
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('registers_report'); ?>
+        <small><?php if ($this->input->post('start_date')) { echo html_escape($this->input->post('start_date') . ' — ' . $this->input->post('end_date')); } else { echo lang('customize_report'); } ?></small>
+    </div>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+    </div>
+</div>
 
-        function total_cash(x) {
-            if (x !== null) {
-                var y = x.split(' (');
-                var z = y[1].split(')');
-                return currencyFormat(y[0])+'<span class="text-success">'+currencyFormat(z[0])+'</span><span class="text-danger topborder">'+currencyFormat(y[0]-z[0])+'</span>';
-            }
-            return '';
-        }
-
-        function total_sub(x) {
-            if (x !== null) {
-                var y = x.split(' (');
-                var z = y[0].split(')');
-                return y[0]+'<br><span class="text-success">'+z[0]+'</span><span class="text-danger topborder"><div>'+(y[0]-z[0])+'</div></span>';
-            }
-            return '';
-        }
-
-        function closed_at(x) {
-            return (x !== null) ? hrld(x) : '';
-        }
-
-        var table = new Tabulator('#registerTable', {
-
-            'ajax' : { url: '<?=site_url('reports/get_register_logs/'. $v);?>', type: 'POST', "data": function ( d ) {
-                d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-            }},
-            "buttons": [
-            { extend: 'copyHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'excelHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'csvHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true,
-            exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-            { "data": "id", "visible": false },
-            { "data": "date", "render": hrld },
-            { "data": "closed_at", "render": hrld },
-            { "data": "user" },
-            { "data": "cash_in_hand" },
-            { "data": "cc_slips" },
-            { "data": "total_cheques" },
-            { "data": "total_cash", "render": currencyFormat },
-            { "data": "note" },
-            { "data": "Actions", "searchable": false, "orderable": false }
-            ],
-            "footerCallback": function (  tfoot, data, start, end, display ) {
-                var api = this.api(), data;
-                $(api.column(7).footer()).html( cf(api.column(7).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-            }
-
-        });
-
-        $('#search_table').on( 'keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search( this.value ).draw();
-            }
-        });
-
-        table.columns().every(function () {
-            var self = this;
-            $( 'input.datepicker', this.footer() ).on('dp.change', function (e) {
-                self.search( this.value ).draw();
-            });
-            $( 'input:not(.datepicker)', this.footer() ).on('keyup change', function (e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-                    self.search( this.value ).draw();
-                }
-            });
-            $( 'select', this.footer() ).on('change', function (e) {
-                self.search( this.value ).draw();
-            });
-        });
-
-    });
-</script>
-
-<script type="text/javascript">
-    $(document).ready(function(){
-        $('#form').hide();
-        $('.toggle_form').click(function(){
-            $("#form").slideToggle();
-            return false;
-        });
-    });
-</script>
-<style type="text/css">
-    .table td:nth-child(5), .table td:nth-child(6) { text-align: center; }
-    .topborder div { border-top: 1px solid var(--nx-border); }
-</style>
-<section class="content">
-    <div class="row">
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <a href="#" class="btn btn-default btn-sm toggle_form float-end"><?= lang("show_hide"); ?></a>
-                    <h3 class="box-title"><?= lang('customize_report'); ?><?php
-                        if ($this->input->post('start_date')) {
-                            echo "From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
-                        }
-                        ?></h3>
-                    </div>
-                    <div class="box-body">
-                        <div id="form" class="card border-warning">
-                            <div class="card-body">
-
-                                <?= form_open("reports/registers"); ?>
-                                <div class="row">
-
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <label class="form-label" for="user"><?= lang("user"); ?></label>
-                                            <?php
-                                            $us[""] = "";
-                                            foreach ($users as $user) {
-                                                $us[$user->id] = $user->first_name . " " . $user->last_name;
-                                            }
-                                            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control tom-select" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
-                                            ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <?= lang("start_date", "start_date"); ?>
-                                            <?= form_input('start_date', set_value('start_date'), 'class="form-control datetime datetimepicker" id="start_date"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <div class="mb-3">
-                                            <?= lang("end_date", "end_date"); ?>
-                                            <?= form_input('end_date', set_value('end_date', date('Y-m-d H:i')), 'class="form-control datetime datetimepicker" id="end_date"'); ?>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-sm-12">
-                                        <button type="submit" class="btn btn-primary"><?= lang("submit"); ?></button>
-                                    </div>
-                                </div>
-                                <?= form_close(); ?>
-
-                            </div>
-                        </div>
-                        <div class="clearfix"></div>
-
-                        <div class="table-responsive">
-                            <table id="registerTable" cellpadding="0" cellspacing="0" border="0"
-                            class="table table-bordered table-hover table-striped reports-table">
-                            <thead>
-                                <tr>
-                                    <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-2"><?= lang('open_time'); ?></th>
-                                    <th class="col-2"><?= lang('close_time'); ?></th>
-                                    <th class="col-1"><?= lang('user'); ?></th>
-                                    <th class="col-1"><?= lang('cash_in_hand'); ?></th>
-                                    <th class="col-1"><?= lang('cc_slips'); ?></th>
-                                    <th class="col-1"><?= lang('cheques'); ?></th>
-                                    <th class="col-1"><?= lang('total_cash'); ?></th>
-                                    <th class="col-3"><?= lang('note'); ?></th>
-                                    <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="9" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr class="active">
-                                    <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
-                                    <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('open_time'); ?>]"></span></th>
-                                    <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('closed_at'); ?>]"></span></th>
-                                    <th class="col-sm-1"><input type="text" class="text_filter" placeholder="[<?= lang('user'); ?>]"></th>
-                                    <th class="col-1"><?= lang('cash_in_hand'); ?></th>
-                                    <th class="col-1"><?= lang('cc_slips'); ?></th>
-                                    <th class="col-1"><?= lang('cheques'); ?></th>
-                                    <th class="col-1"><?= lang('total_cash'); ?></th>
-                                    <th class="col-3"><?= lang('note'); ?></th>
-
-                                </tr>
-                                <tr>
-                                    <td colspan="9" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                </div>
-                    </div>
-
-                </div>
-            </div>
+<!-- Filtros -->
+<div class="nxt-card" style="padding:16px 18px;margin-bottom:20px">
+    <?= form_open("reports/registers"); ?>
+    <div class="row g-3 align-items-end">
+        <div class="col-sm-4">
+            <label class="form-label" for="user"><?= lang('user'); ?></label>
+            <?php
+            $us[""] = "";
+            foreach ($users as $user) { $us[$user->id] = $user->first_name . " " . $user->last_name; }
+            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-select" id="user"');
+            ?>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="start_date"><?= lang('start_date'); ?></label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="<?= set_value('start_date'); ?>">
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="end_date"><?= lang('end_date'); ?></label>
+            <input type="date" name="end_date" id="end_date" class="form-control" value="<?= set_value('end_date'); ?>">
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="nxt-btn" style="width:100%;justify-content:center"><?= lang('submit'); ?></button>
         </div>
     </div>
-</section>
+    <?= form_close(); ?>
+</div>
 
+<div id="nxtList"></div>
 
-
-<script type="text/javascript">
-    $(function () {
-        $('.datetimepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD HH:mm'
-        });
-        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable')});
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    /* cash_in_hand / cc_slips / total_cheques vienen como "total (contado)" */
+    function splitCell(x) {
+        if (x == null || x === '') return '—';
+        var y = String(x).split(' (');
+        if (y.length < 2) return NxTable.esc(x);
+        var real = parseFloat(y[0]) || 0;
+        var counted = parseFloat(y[1]) || 0;
+        var diff = real - counted;
+        return '<span class="nxt-price">' + NxTable.money(real) + '</span>' +
+            '<div class="nxt-ent-meta"><span style="color:var(--nx-emerald)">' + NxTable.money(counted) + '</span>' +
+            ' · <span style="color:' + (diff ? 'var(--nx-err)' : 'var(--nx-txt4)') + '">' + NxTable.money(diff) + '</span></div>';
+    }
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('reports/get_register_logs/' . $v); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '1080px',
+        unit: '<?= lang('registers'); ?>'.toLowerCase(),
+        exportName: 'cierres_caja',
+        search: ['date', 'closed_at', 'user', 'note'],
+        totals: ['total_cash'],
+        columns: [
+            { key: 'date', label: '<?= lang('open_date'); ?>', sortable: 'str', render: function (r) { return '<span class="nxt-dim-mono">' + NxTable.esc(r.date) + '</span>'; } },
+            { key: 'closed_at', label: '<?= lang('close_date'); ?>', sortable: 'str', render: function (r) {
+                return r.closed_at ? '<span class="nxt-dim-mono">' + NxTable.esc(r.closed_at) + '</span>' : NxTable.badge('<?= lang('open'); ?>', 'ok');
+            } },
+            { key: 'user', label: '<?= lang('user'); ?>', render: function (r) { return r.user ? NxTable.badge(r.user, 'info') : '—'; } },
+            { key: 'cash_in_hand', label: '<?= lang('cash_in_hand'); ?>', className: 'num', render: function (r) { return splitCell(r.cash_in_hand); } },
+            { key: 'cc_slips', label: '<?= lang('total_cc_slips'); ?>', className: 'num', render: function (r) { return splitCell(r.cc_slips); } },
+            { key: 'total_cheques', label: '<?= lang('total_cheques'); ?>', className: 'num', render: function (r) { return splitCell(r.total_cheques); } },
+            { key: 'total_cash', label: '<?= lang('total_cash'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.total_cash) + '</span>'; } },
+            { key: 'note', label: '<?= lang('note'); ?>', render: function (r) { return r.note ? '<span class="nxt-ent-meta">' + NxTable.esc(r.note) + '</span>' : '—'; } },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '90px' }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
     });
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
+});
 </script>

@@ -121,7 +121,7 @@ if ($modal) {
                                 ?>
                             </div>
                             <p>
-                                <b>Recibo de paraqueo</b><br>
+                                <b><?= lang('recibo_parqueo'); ?></b><br>
                                 <?= lang("Fecha") . ': ' . $this->tec->hrld($inv->date); ?> <br>
                                 <?= lang('Tiquete N°') . ': ' . $inv->id; ?><br>
                                 <br>
@@ -152,7 +152,7 @@ if ($modal) {
                 </div>
                            
 
-                            <p style="margin-top:10px; text-align: center;">No pierda su ticket de estacionamiento</p>
+                            <p style="margin-top:10px; text-align: center;"><?= lang('no_pierda_ticket'); ?></p>
                            
                         </div>
                         <div style="clear:both;"></div>

@@ -150,15 +150,15 @@ if ($this->input->post('end_date')) {
                                        class="table table-striped table-bordered table-condensed table-hover">
                                     <thead>
                                     <tr class="active">
-                                        <th class="col-sm-1">Cliente</th>
-                                        <th class="col-sm-1">Tot. Imp. 0% Cobrado</th>
-                                        <th class="col-sm-1">Tot. Imp. 1% Cobrado</th>
-                                        <th class="col-sm-1">Tot. Imp. 2% Cobrado</th>
-                                        <th class="col-sm-1">Tot. Imp. 4% Cobrado</th>
-                                        <th class="col-sm-1">Tot. Imp. 13% Cobrado</th>
-                                        <th class="col-sm-1">Total ventas exoneradas</th>
-                                        <th class="col-sm-1">Tot Monto Cobrado sin impuesto</th>
-                                        <th class="col-sm-1">Tot Monto Cobrado mas impuesto</th>
+                                        <th class="col-sm-1"><?= lang('customer'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tot_imp_0_cobrado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tot_imp_1_cobrado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tot_imp_2_cobrado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tot_imp_4_cobrado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tot_imp_13_cobrado'); ?></th>
+                                        <th class="col-sm-1"><?= lang('total_ventas_exoneradas'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tot_monto_sin_imp'); ?></th>
+                                        <th class="col-sm-1"><?= lang('tot_monto_con_imp'); ?></th>
    
                                     </tr>
                                     </thead>

@@ -12,6 +12,14 @@ function copyStaticAssets() {
         resolve('themes/default/assets/src/pos-core.js'),
         resolve('themes/default/assets/dist/js/pos-core.js')
       )
+      // nx-sidebar.css se enlaza aparte en header.php (después de www.min.css
+      // para poder sobreescribirlo); emptyOutDir lo borra en cada build si no
+      // se vuelve a copiar desde src
+      mkdirSync('themes/default/assets/dist/css', { recursive: true })
+      copyFileSync(
+        resolve('themes/default/assets/src/nx-sidebar.css'),
+        resolve('themes/default/assets/dist/css/nx-sidebar.css')
+      )
     }
   }
 }

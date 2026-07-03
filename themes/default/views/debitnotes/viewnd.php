@@ -24,7 +24,7 @@
               <p><strong>Total:</strong> <?= number_format($nd->grand_total, 2) ?></p>
               <?php if ($hacienda): ?>
                 <p><strong>Estado Hacienda:</strong> <span class="label label-<?= $hacienda->estatus_hacienda === 'aceptado' ? 'success' : 'warning' ?>"><?= $hacienda->estatus_hacienda ?></span></p>
-                <p><strong>Consecutivo:</strong> <?= $hacienda->consecutivo ?></p>
+                <p><strong><?= lang('consecutive'); ?>:</strong> <?= $hacienda->consecutivo ?></p>
               <?php else: ?>
                 <a href="<?= site_url('Shacienda/generarND/' . $nd->id) ?>"
                    class="btn btn-warning"
@@ -37,7 +37,7 @@
           <hr>
                 <div class="table-responsive">
           <table class="table table-bordered table-condensed">
-            <thead><tr><th>Descripción</th><th>Cant.</th><th>Precio Unit.</th><th>IVA</th><th>Total</th></tr></thead>
+            <thead><tr><th><?= lang('description'); ?></th><th><?= lang('qty'); ?></th><th>Precio Unit.</th><th>IVA</th><th>Total</th></tr></thead>
             <tbody>
               <?php foreach ($items as $item): ?>
               <tr>

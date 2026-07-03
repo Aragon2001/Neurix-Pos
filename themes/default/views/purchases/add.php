@@ -39,7 +39,7 @@
                                             <th><?= lang('product'); ?></th>
                                             <th class="col-2"><?= lang('quantity'); ?></th>
                                             <th class="col-2"><?= lang('unit_cost'); ?></th>
-                                            <th class="col-2">Margen</th>
+                                            <th class="col-2"><?= lang('margen'); ?></th>
                                             <th class="col-2"><?= lang('price'); ?></th>
                                             <th class="col-2"><?= lang('subtotal'); ?></th>
                                             <th style="width:25px;"><i class="fa fa-trash-o"></i></th>

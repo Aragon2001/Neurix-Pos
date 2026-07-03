@@ -1,58 +1,70 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-        new Tabulator('#UTable', {
-            "dom": '<"row"r>t<"row"<"col-md-6"i><"col-md-6"p>><"clear">',
-            "order": [[ 0, "desc" ]],
-            "pageLength": Settings.rows_per_page,
-            "processing": false, "serverSide": false,
-            "buttons": []
-        });
-    });
-</script>
-
-<section class="content">
-    <div class="row">
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('list_results'); ?></h3>
-                </div>
-                <div class="box-body">
-                <div class="table-responsive">
-                    <table id="UTable" class="table table-bordered table-striped table-hover">
-                        <thead class="cf">
-                        <tr>
-                            <th><?php echo lang('first_name'); ?></th>
-                            <th><?php echo lang('last_name'); ?></th>
-                            <th><?php echo lang('email'); ?></th>
-                            <th><?php echo lang('group'); ?></th>
-                            <th><?php echo lang('store'); ?></th>
-                            <th style="width:100px;"><?php echo lang('status'); ?></th>
-                            <th style="width:80px;"><?php echo lang('actions'); ?></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php
-                        foreach ($users as $user) {
-                            echo '<tr>';
-                            echo '<td>' . $user->first_name . '</td>';
-                            echo '<td>' . $user->last_name . '</td>';
-                            echo '<td>' . $user->email . '</td>';
-                            echo '<td>' . $user->group . '</td>';
-                            echo '<td>' . $user->store . '</td>';
-                            echo '<td class="text-center" style="padding:6px;">' . ($user->active ? '<span class="label label-success">' . lang('active') . '</span' : '<span class="label label-danger">' . lang('inactive') . '</span>') . '</td>';
-                            echo '<td class="text-center" style="padding:6px;"><div class="btn-group btn-group-justified" role="group"><div class="btn-group btn-group-xs" role="group"><a class="tip btn btn-warning btn-xs" title="' . lang("profile") . '" href="' . site_url('users/profile/' . $user->id) . '"><i class="fa fa-edit"></i></a></div>
-                            <div class="btn-group btn-group-xs" role="group"><a class="tip btn btn-danger btn-xs" title="' . lang("delete_user") . '" href="' . site_url('auth/delete/' . $user->id) . '" onclick="return confirm(\''.lang('alert_x_user').'\')"><i class="fa fa-trash-o"></i></a></div></div></td>';
-                            echo '</tr>';
-                        }
-                        ?>
-                        </tbody>
-                    </table>
-                </div>
-                </div>
-            </div>
-        </div>
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('users'); ?>
+        <small><?= lang('list_results'); ?></small>
     </div>
-</section>
+    <div class="nxt-head-actions">
+        <a class="nxt-btn" href="<?= site_url('auth/create_user'); ?>">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <?= lang('create_user'); ?>
+        </a>
+    </div>
+</div>
+
+<div id="nxtList"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var USERS = <?php
+        $rows = array();
+        foreach ($users as $user) {
+            $rows[] = array(
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'group' => $user->group,
+                'store' => $user->store,
+                'active' => (int) $user->active,
+            );
+        }
+        echo json_encode($rows);
+    ?>;
+    var U = '<?= site_url(); ?>/';
+    new NxTable({
+        el: '#nxtList',
+        data: USERS,
+        minWidth: '820px',
+        unit: '<?= lang('users'); ?>'.toLowerCase(),
+        exportName: 'usuarios',
+        search: ['first_name', 'last_name', 'email', 'group', 'store'],
+        chips: { key: 'group', all: '<?= lang('todas'); ?>' },
+        columns: [
+            { key: 'first_name', label: '<?= lang('name'); ?>', sortable: 'str', render: function (r) {
+                return NxTable.entity((r.first_name + ' ' + (r.last_name || '')).trim(), r.email, r.email);
+            } },
+            { key: 'group', label: '<?= lang('group'); ?>', render: function (r) {
+                return NxTable.badge(r.group, r.group === 'admin' ? 'violet' : 'info');
+            } },
+            { key: 'store', label: '<?= lang('store'); ?>', render: function (r) {
+                return r.store ? '<span class="nxt-dim-mono">' + NxTable.esc(r.store) + '</span>' : '—';
+            } },
+            { key: 'active', label: '<?= lang('status'); ?>', render: function (r) {
+                return r.active ? NxTable.badge('<?= lang('active'); ?>', 'ok') : NxTable.badge('<?= lang('inactive'); ?>', 'err');
+            }, exportValue: function (r) { return r.active ? '<?= lang('active'); ?>' : '<?= lang('inactive'); ?>'; } },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', width: '100px', noExport: true, render: function (r) {
+                return '<div class="nxt-actions">' +
+                    '<a class="nxt-icon-btn warn" href="' + U + 'users/profile/' + r.id + '" title="<?= lang('profile'); ?>"><i class="fa fa-edit"></i></a>' +
+                    '<a class="nxt-icon-btn danger" href="' + U + 'auth/delete/' + r.id + '" data-confirm="<?= lang('alert_x_user'); ?>" title="<?= lang('delete_user'); ?>"><i class="fa fa-trash-o"></i></a></div>';
+            } }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>'
+        }
+    });
+});
+</script>

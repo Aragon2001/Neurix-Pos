@@ -31,7 +31,7 @@
                                     <td><?= lang($payment->paid_by); ?></td>
                                     <td>
                                         <div class="text-center">
-                                            <span style="cursor:pointer" class="imprimir" id="<?= $payment->id ?>" title="Imprimir Recibo"><i class="fa fa-print"></i></span>
+                                            <span style="cursor:pointer" class="imprimir" id="<?= $payment->id ?>" title="<?= lang('imprimir_recibo'); ?>"><i class="fa fa-print"></i></span>
                                         </div>
                                     </td>
                                 </tr>

@@ -1,129 +1,54 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-
-        var table = new Tabulator('#SLData', {
-
-            'ajax' : { url: '<?=site_url('sales/get_proformas');?>', type: 'POST', "data": function ( d ) {
-                d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-            }},
-            "buttons": [
-                { extend: 'copyHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'excelHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'csvHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true,
-                    exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-                { extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-                { "data": "id", "visible": true },
-                { "data": "date", "render": hrld },
-                { "data": "customer_name" },
-                { "data": "total", "render": currencyFormat },
-                { "data": "total_tax", "render": currencyFormat },
-                { "data": "total_discount", "visible": false },
-                { "data": "grand_total", "render": currencyFormat },
-                { "data": "Actions", "searchable": false, "orderable": false }
-            ],
-            "fnRowCallback": function (nRow, aData, iDisplayIndex) {
-                nRow.id = aData.id;
-                return nRow;
-            },
-            "footerCallback": function (  tfoot, data, start, end, display ) {
-                var api = this.api(), data;
-                $(api.column(3).footer()).html( cf(api.column(3).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(4).footer()).html( cf(api.column(4).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(5).footer()).html( cf(api.column(5).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(6).footer()).html( cf(api.column(6).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-            }
-
-        });
-
-        $('#search_table').on( 'keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search( this.value ).draw();
-            }
-        });
-
-        table.columns().every(function () {
-            var self = this;
-            $( 'input.datepicker', this.footer() ).on('dp.change', function (e) {
-                self.search( this.value ).draw();
-            });
-            $( 'input:not(.datepicker)', this.footer() ).on('keyup change', function (e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-                    self.search( this.value ).draw();
-                }
-            });
-            $( 'select', this.footer() ).on( 'change', function (e) {
-                self.search( this.value ).draw();
-            });
-        });
-
-    });
-</script>
-
-<section class="content">
-    <div class="row">
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('list_results'); ?></h3>
-                </div>
-                <div class="box-body">
-                    <div class="table-responsive">
-                <div class="table-responsive">
-                        <table id="SLData" class="table table-striped table-bordered table-condensed table-hover">
-                            <thead>
-                            <tr class="active">
-                                <th style="max-width:30px;">Numero de Proforma</th>
-                                <th class="col-2"><?= lang("date"); ?></th>
-                                <th><?= lang("customer"); ?></th>
-                                <th class="col-1"><?= lang("total"); ?></th>
-                                <th class="col-1"><?= lang("tax"); ?></th>
-                                <th class="col-1"><?= lang("discount"); ?></th>
-                                <th class="col-1"><?= lang("grand_total"); ?></th>
-                                <th style="min-width:115px; max-width:115px; text-align:center;"><?= lang("actions"); ?></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td colspan="9" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-                            </tr>
-                            </tbody>
-                            <tfoot>
-                            <tr class="active">
-                                <th style="max-width:30px;"><input type="text" class="text_filter" placeholder="[<?= lang('id'); ?>]"></th>
-                                <th class="col-sm-2"><span class="datepickercon"><input type="text" class="text_filter datepicker" placeholder="[<?= lang('date'); ?>]"></span></th>
-                                <th class="col-sm-2"><input type="text" class="text_filter" placeholder="[<?= lang('customer'); ?>]"></th>
-                                <th class="col-sm-1"><?= lang("total"); ?></th>
-                                <th class="col-sm-1"><?= lang("tax"); ?></th>
-                                <th class="col-sm-1"><?= lang("discount"); ?></th>
-                                <th class="col-sm-2"><?= lang("grand_total"); ?></th>
-                                <th class="col-sm-1"><?= lang("actions"); ?></th>
-                            </tr>
-                            <tr>
-                                <td colspan="11" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>
-                            </tr>
-                            </tfoot>
-                        </table>
-                </div>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('proformas'); ?>
+        <small><?= lang('list_results'); ?></small>
     </div>
-</section>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+    </div>
+</div>
 
+<div id="nxtList"></div>
 
-
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('.datepicker').tempusDominus = new TempusDominus({format: 'YYYY-MM-DD', showClear: true, showClose: true, useCurrent: false, widgetPositioning: {horizontal: 'auto', vertical: 'bottom'}, widgetParent: $('.dataTable tfoot')});
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('sales/get_proformas'); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '900px',
+        unit: '<?= lang('proformas'); ?>'.toLowerCase(),
+        exportName: 'proformas',
+        search: ['id', 'date', 'customer_name'],
+        totals: ['total', 'total_tax', 'grand_total'],
+        columns: [
+            { key: 'id', label: '<?= lang('num_proforma'); ?>', sortable: 'num', render: function (r) {
+                return '<span class="nxt-code">#' + NxTable.esc(r.id) + '</span>';
+            } },
+            { key: 'date', label: '<?= lang('date'); ?>', sortable: 'str', render: function (r) {
+                return '<span class="nxt-dim-mono">' + NxTable.esc(r.date) + '</span>';
+            } },
+            { key: 'customer_name', label: '<?= lang('customer'); ?>', sortable: 'str', render: function (r) {
+                return '<span class="nxt-ent-name">' + NxTable.esc(r.customer_name) + '</span>';
+            } },
+            { key: 'total', label: '<?= lang('total'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total) + '</span>'; } },
+            { key: 'total_tax', label: '<?= lang('tax'); ?>', className: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total_tax) + '</span>'; } },
+            { key: 'grand_total', label: '<?= lang('grand_total'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.grand_total) + '</span>'; } },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '150px' }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
     });
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
+});
 </script>
-

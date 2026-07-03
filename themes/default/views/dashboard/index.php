@@ -87,7 +87,7 @@ foreach (($top_days ?? []) as $r) { $topDayL[] = $r->label ?? ''; $topDayV[] = (
 $topPN = $topPV = [];
 foreach (($top_products ?? []) as $r) { $topPN[] = mb_substr($r->product_name ?? '', 0, 24); $topPV[] = (float)($r->revenue ?? 0); }
 
-$payMap = ['cash'=>'Efectivo','cc'=>'Tarjeta','cheque'=>'Cheque','gift_card'=>'Gift Card','stripe'=>'Stripe','other'=>'Otro'];
+$payMap = ['cash'=>lang('cash'),'cc'=>lang('cc'),'cheque'=>lang('cheque'),'gift_card'=>'Gift Card','stripe'=>'Stripe','other'=>lang('other')];
 $payL = $payV = [];
 foreach (($pay_methods ?? []) as $r) { $payL[] = $payMap[$r->paid_by] ?? ucfirst($r->paid_by); $payV[] = (float)$r->total; }
 
@@ -99,7 +99,7 @@ $baseUrl = site_url('dashboard');
 $storeParam = $current_store ? "&store={$current_store}" : '';
 function periodUrl($p, $base, $sp) { return $base . '?period=' . $p . $sp; }
 
-$periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' => 'Año'];
+$periodLabels = ['today' => lang('periodo_hoy'), 'week' => lang('periodo_semana'), 'month' => lang('periodo_mes'), 'year' => lang('periodo_anio')];
 ?>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.0/dist/apexcharts.min.js"></script>
 
@@ -246,7 +246,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     <div class="nx-toolbar-sec">
         <i class="fa fa-building-o" style="color:var(--nx-txt3);"></i>
         <select class="nx-store-sel" onchange="location.href=this.value">
-            <option value="<?= $baseUrl . '?period=' . $period; ?>">Todas las tiendas</option>
+            <option value="<?= $baseUrl . '?period=' . $period; ?>"><?= lang('todas_tiendas'); ?></option>
             <?php foreach (($stores ?? []) as $st): ?>
             <option value="<?= $baseUrl . '?period=' . $period . '&store=' . $st->id; ?>"
                     <?= $current_store == $st->id ? 'selected' : ''; ?>>
@@ -277,24 +277,24 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <span class="nx-date-sep">→</span>
             <input type="date" name="to" value="<?= $to; ?>">
             <button type="submit" class="btn btn-primary btn-xs" style="border-radius:8px !important;padding:6px 12px !important;">
-                <i class="fa fa-search"></i> Aplicar
+                <i class="fa fa-search"></i> <?= lang('aplicar'); ?>
             </button>
         </form>
     </div>
 
     <!-- Acciones -->
     <div class="nx-toolbar-sec" style="margin-left:auto;">
-        <button onclick="nxToggleTheme()" class="nx-theme-btn" title="Cambiar tema" style="border-radius:8px !important;">
+        <button onclick="nxToggleTheme()" class="nx-theme-btn" title="<?= lang('cambiar_tema'); ?>" style="border-radius:8px !important;">
             <i class="fa fa-adjust"></i>
         </button>
         <a href="<?= current_url() . '?' . ($_SERVER['QUERY_STRING'] ?? ''); ?>"
-           class="btn btn-default btn-xs" style="border-radius:8px !important;padding:6px 10px !important;" title="Actualizar">
+           class="btn btn-default btn-xs" style="border-radius:8px !important;padding:6px 10px !important;" title="<?= lang('actualizar'); ?>">
             <i class="fa fa-refresh"></i>
         </a>
         <span style="font-size:11px;color:var(--nx-txt3);padding-left:6px;">
             <?= date('d M Y'); ?> · <?php
-            if ($period === 'today')  echo 'Hoy';
-            elseif ($period === 'week')  echo 'Esta semana';
+            if ($period === 'today')  echo lang('periodo_hoy');
+            elseif ($period === 'week')  echo lang('esta_semana');
             elseif ($period === 'month') echo date('F Y');
             elseif ($period === 'year')  echo date('Y');
             else echo $from . ' → ' . $to;
@@ -348,16 +348,16 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div class="nx-kpi" style="border-top:3px solid var(--nx-a1);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
-                    <div class="nx-kpi-label"><i class="fa fa-line-chart"></i> &nbsp;Total ventas</div>
+                    <div class="nx-kpi-label"><i class="fa fa-line-chart"></i> &nbsp;<?= lang('total_ventas'); ?></div>
                     <div class="nx-kpi-value"><?= fmtC($sTotal); ?></div>
-                    <div class="nx-kpi-sub"><?= $sCount; ?> facturas</div>
+                    <div class="nx-kpi-sub"><?= $sCount; ?> <?= lang('facturas_label'); ?></div>
                     <div class="nx-kpi-foot">
                         <?php if ($sPct >= 0): ?>
                         <span class="nx-kpi-trend" style="color:var(--nx-ok);"><i class="fa fa-caret-up"></i> +<?= $sPct; ?>%</span>
                         <?php else: ?>
                         <span class="nx-kpi-trend" style="color:var(--nx-err);"><i class="fa fa-caret-down"></i> <?= $sPct; ?>%</span>
                         <?php endif; ?>
-                        <span style="font-size:11px;color:var(--nx-txt3);">vs período anterior</span>
+                        <span style="font-size:11px;color:var(--nx-txt3);"><?= lang('vs_periodo_anterior'); ?></span>
                     </div>
                 </div>
                 <div class="nx-kpi-donut" id="kd-ventas"></div>
@@ -366,15 +366,15 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="nx-kpi-statrow">
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-a1);"><?= $stPaidPct; ?>%</div>
-                    <div class="nx-kpi-stat-lbl">Cobrado</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('cobrado'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-warn);"><?= $stPendPct; ?>%</div>
-                    <div class="nx-kpi-stat-lbl">Pendiente</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('pendiente_pago'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-err);"><?= $stOverPct; ?>%</div>
-                    <div class="nx-kpi-stat-lbl">Vencido</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('vencido'); ?></div>
                 </div>
             </div>
         </div>
@@ -385,11 +385,11 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div class="nx-kpi" style="border-top:3px solid var(--nx-a2);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
-                    <div class="nx-kpi-label"><i class="fa fa-rocket"></i> &nbsp;Proyección mes</div>
+                    <div class="nx-kpi-label"><i class="fa fa-rocket"></i> &nbsp;<?= lang('proyeccion_mes'); ?></div>
                     <div class="nx-kpi-value"><?= fmtC($projection); ?></div>
-                    <div class="nx-kpi-sub">Promedio/día: <?= fmtC($dailyAvg); ?></div>
+                    <div class="nx-kpi-sub"><?= lang('promedio_dia'); ?>: <?= fmtC($dailyAvg); ?></div>
                     <div class="nx-kpi-foot">
-                        <span style="font-size:11px;color:var(--nx-txt3);"><?= $daysLeft; ?> días restantes</span>
+                        <span style="font-size:11px;color:var(--nx-txt3);"><?= $daysLeft; ?> <?= lang('dias_restantes'); ?></span>
                     </div>
                 </div>
                 <div class="nx-kpi-donut" id="kd-proj"></div>
@@ -398,15 +398,15 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="nx-kpi-statrow">
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-a2);"><?= $projPct; ?>%</div>
-                    <div class="nx-kpi-stat-lbl">Avance</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('avance'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-txt2);"><?= fmtC($sTotal); ?></div>
-                    <div class="nx-kpi-stat-lbl">Actual</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('actual'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-txt3);"><?= fmtC($projection - $sTotal); ?></div>
-                    <div class="nx-kpi-stat-lbl">Faltante</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('faltante'); ?></div>
                 </div>
             </div>
         </div>
@@ -417,11 +417,11 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div class="nx-kpi" style="border-top:3px solid var(--nx-warn);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
-                    <div class="nx-kpi-label"><i class="fa fa-truck"></i> &nbsp;Total por pagar</div>
+                    <div class="nx-kpi-label"><i class="fa fa-truck"></i> &nbsp;<?= lang('total_por_pagar'); ?></div>
                     <div class="nx-kpi-value" style="color:var(--nx-warn);"><?= fmtC($pTotal); ?></div>
-                    <div class="nx-kpi-sub"><?= $pCount; ?> órdenes de compra</div>
+                    <div class="nx-kpi-sub"><?= $pCount; ?> <?= lang('ordenes_compra'); ?></div>
                     <div class="nx-kpi-foot">
-                        <span style="font-size:11px;color:var(--nx-txt3);">Gastos: <?= fmtC((float)($expenses_kpi->total ?? 0)); ?></span>
+                        <span style="font-size:11px;color:var(--nx-txt3);"><?= lang('expenses'); ?>: <?= fmtC((float)($expenses_kpi->total ?? 0)); ?></span>
                     </div>
                 </div>
                 <div class="nx-kpi-donut" id="kd-pagar"></div>
@@ -430,15 +430,15 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="nx-kpi-statrow">
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-warn);"><?= fmtC($pTotal); ?></div>
-                    <div class="nx-kpi-stat-lbl">Compras</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('purchases'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-err);"><?= fmtC((float)($expenses_kpi->total ?? 0)); ?></div>
-                    <div class="nx-kpi-stat-lbl">Gastos</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('expenses'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val"><?= $pCount; ?></div>
-                    <div class="nx-kpi-stat-lbl">Órdenes</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('ordenes_label'); ?></div>
                 </div>
             </div>
         </div>
@@ -449,12 +449,12 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div class="nx-kpi" style="border-top:3px solid var(--nx-err);">
             <div class="nx-kpi-top">
                 <div class="nx-kpi-left">
-                    <div class="nx-kpi-label"><i class="fa fa-dollar"></i> &nbsp;Total por cobrar</div>
+                    <div class="nx-kpi-label"><i class="fa fa-dollar"></i> &nbsp;<?= lang('total_por_cobrar'); ?></div>
                     <div class="nx-kpi-value" style="color:var(--nx-err);"><?= fmtC($arBalance); ?></div>
-                    <div class="nx-kpi-sub"><?= $arCount; ?> facturas sin saldar</div>
+                    <div class="nx-kpi-sub"><?= $arCount; ?> <?= lang('facturas_sin_saldar'); ?></div>
                     <div class="nx-kpi-foot">
                         <span class="nx-kpi-badge" style="background:rgba(239,68,68,.1);color:#f87171;">
-                            <i class="fa fa-exclamation-circle"></i> <?= $arCount; ?> pendientes
+                            <i class="fa fa-exclamation-circle"></i> <?= $arCount; ?> <?= lang('pendientes_label'); ?>
                         </span>
                     </div>
                 </div>
@@ -464,15 +464,15 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="nx-kpi-statrow">
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-ok);"><?= $arPaidPct; ?>%</div>
-                    <div class="nx-kpi-stat-lbl">Cobrado</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('cobrado'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val" style="color:var(--nx-err);"><?= $arPendPct; ?>%</div>
-                    <div class="nx-kpi-stat-lbl">Pendiente</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('pendiente_pago'); ?></div>
                 </div>
                 <div class="nx-kpi-stat">
                     <div class="nx-kpi-stat-val"><?= fmtC($arTotal); ?></div>
-                    <div class="nx-kpi-stat-lbl">Total facturado</div>
+                    <div class="nx-kpi-stat-lbl"><?= lang('total_facturado'); ?></div>
                 </div>
             </div>
         </div>
@@ -487,12 +487,12 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;background:transparent;border-bottom:1px solid var(--nx-border);">
         <div style="display:flex;align-items:center;gap:8px;">
             <i class="fa fa-area-chart" style="color:var(--nx-a1);font-size:16px;"></i>
-            <span class="nx-section-title" style="margin:0;">Análisis financiero — últimos 12 meses</span>
+            <span class="nx-section-title" style="margin:0;"><?= lang('analisis_financiero'); ?></span>
         </div>
         <div style="display:flex;gap:16px;font-size:12px;">
-            <span style="color:var(--nx-a1);"><i class="fa fa-circle"></i> Ventas</span>
-            <span style="color:#818cf8;"><i class="fa fa-circle"></i> Compras</span>
-            <span style="color:#22c55e;"><i class="fa fa-circle"></i> Utilidad</span>
+            <span style="color:var(--nx-a1);"><i class="fa fa-circle"></i> <?= lang('sales'); ?></span>
+            <span style="color:#818cf8;"><i class="fa fa-circle"></i> <?= lang('purchases'); ?></span>
+            <span style="color:#22c55e;"><i class="fa fa-circle"></i> <?= lang('utilidad_label'); ?></span>
         </div>
     </div>
     <div class="card-body" style="padding:8px 14px 8px;">
@@ -507,11 +507,11 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;background:transparent;border-bottom:1px solid var(--nx-border);">
         <div style="display:flex;align-items:center;gap:8px;">
             <i class="fa fa-cloud" style="color:var(--nx-a3);font-size:16px;"></i>
-            <span class="nx-section-title" style="margin:0;">Facturación Electrónica — Hacienda</span>
+            <span class="nx-section-title" style="margin:0;"><?= lang('fe_hacienda_titulo'); ?></span>
         </div>
         <?php if ($feRech > 0): ?>
         <a href="<?= site_url('reports/sale_fe'); ?>" class="btn btn-sm btn-warning" style="border-radius:8px;">
-            <i class="fa fa-refresh"></i> Reenviar rechazadas (<?= $feRech; ?>)
+            <i class="fa fa-refresh"></i> <?= lang('reenviar_rechazadas'); ?> (<?= $feRech; ?>)
         </a>
         <?php endif; ?>
     </div>
@@ -521,31 +521,31 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
 
             <div style="background:var(--nx-bg4);border:1px solid var(--nx-border);border-radius:12px;padding:16px;">
-                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Total emitidas</div>
+                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;"><?= lang('total_emitidas'); ?></div>
                 <div style="font-size:30px;font-weight:900;color:var(--nx-txt1);line-height:1;"><?= number_format($feTotal); ?></div>
-                <div style="font-size:11px;color:var(--nx-txt3);margin-top:4px;">documentos en período</div>
+                <div style="font-size:11px;color:var(--nx-txt3);margin-top:4px;"><?= lang('documentos_periodo'); ?></div>
             </div>
 
             <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:16px;">
-                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Tasa de éxito</div>
+                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;"><?= lang('tasa_exito'); ?></div>
                 <div style="font-size:30px;font-weight:900;color:#4ade80;line-height:1;"><?= $feAcPct; ?>%</div>
                 <div class="nx-progbar"><div class="nx-progbar-fill" style="width:<?= $feAcPct; ?>%;background:linear-gradient(90deg,#166534,#22c55e);"></div></div>
-                <div style="font-size:11px;color:var(--nx-txt3);"><?= number_format($feAcept); ?> aceptadas</div>
+                <div style="font-size:11px;color:var(--nx-txt3);"><?= number_format($feAcept); ?> <?= lang('aceptadas_label'); ?></div>
             </div>
 
             <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:16px;">
-                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Tasa de rechazo</div>
+                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;"><?= lang('tasa_rechazo'); ?></div>
                 <div style="font-size:30px;font-weight:900;color:#f87171;line-height:1;"><?= $feRePct; ?>%</div>
                 <div class="nx-progbar"><div class="nx-progbar-fill" style="width:<?= $feRePct; ?>%;background:linear-gradient(90deg,#991b1b,#ef4444);"></div></div>
-                <div style="font-size:11px;color:var(--nx-txt3);"><?= number_format($feRech); ?> rechazadas</div>
+                <div style="font-size:11px;color:var(--nx-txt3);"><?= number_format($feRech); ?> <?= lang('rechazadas_label'); ?></div>
             </div>
 
             <div style="background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.2);border-radius:12px;padding:16px;">
-                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Procesando / Error</div>
+                <div style="font-size:11px;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;"><?= lang('procesando_error'); ?></div>
                 <div style="font-size:30px;font-weight:900;color:var(--nx-warn);line-height:1;"><?= $feProc + $feErr; ?></div>
                 <div style="font-size:11px;color:var(--nx-txt3);margin-top:8px;">
-                    <span style="color:#fde047;"><?= $feProc; ?> procesando</span> &nbsp;·&nbsp;
-                    <span style="color:#fb923c;"><?= $feErr; ?> error</span>
+                    <span style="color:#fde047;"><?= $feProc; ?> <?= lang('procesando_label'); ?></span> &nbsp;·&nbsp;
+                    <span style="color:#fb923c;"><?= $feErr; ?> <?= lang('error'); ?></span>
                 </div>
             </div>
 
@@ -556,23 +556,23 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 
             <div class="nx-fe-card" style="background:rgba(56,189,248,.07);border-color:rgba(56,189,248,.2);">
                 <div class="nx-fe-val" style="color:var(--nx-a1);"><?= number_format($feFE); ?></div>
-                <div class="nx-fe-lbl">FE Aceptadas<br><small>(Tipo 01)</small></div>
+                <div class="nx-fe-lbl"><?= lang('fe_aceptadas'); ?><br><small>(Tipo 01)</small></div>
             </div>
             <div class="nx-fe-card" style="background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2);">
                 <div class="nx-fe-val" style="color:#f87171;"><?= number_format($feFeRech); ?></div>
-                <div class="nx-fe-lbl">FE Rechazadas<br><small>(Tipo 01)</small></div>
+                <div class="nx-fe-lbl"><?= lang('fe_rechazadas'); ?><br><small>(Tipo 01)</small></div>
             </div>
             <div class="nx-fe-card" style="background:rgba(34,211,238,.07);border-color:rgba(34,211,238,.2);">
                 <div class="nx-fe-val" style="color:var(--nx-a3);"><?= number_format($feTiq); ?></div>
-                <div class="nx-fe-lbl">Tiquetes Aprobados<br><small>(Tipo 04)</small></div>
+                <div class="nx-fe-lbl"><?= lang('tiquetes_aprobados'); ?><br><small>(Tipo 04)</small></div>
             </div>
             <div class="nx-fe-card" style="background:rgba(249,115,22,.07);border-color:rgba(249,115,22,.2);">
                 <div class="nx-fe-val" style="color:#fb923c;"><?= number_format($feTiqR); ?></div>
-                <div class="nx-fe-lbl">Tiquetes Rechazados<br><small>(Tipo 04)</small></div>
+                <div class="nx-fe-lbl"><?= lang('tiquetes_rechazados'); ?><br><small>(Tipo 04)</small></div>
             </div>
             <div class="nx-fe-card" style="background:rgba(129,140,248,.07);border-color:rgba(129,140,248,.2);">
                 <div class="nx-fe-val" style="color:var(--nx-a2);"><?= number_format($feNC); ?></div>
-                <div class="nx-fe-lbl">Notas de Crédito<br><small>(Tipo 03)</small></div>
+                <div class="nx-fe-lbl"><?= lang('notas_credito_label'); ?><br><small>(Tipo 03)</small></div>
             </div>
 
         </div>
@@ -586,7 +586,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
 <div class="card" style="border-top:3px solid var(--nx-a2);margin-bottom:18px;background:var(--nx-bg3);border-color:var(--nx-border);">
     <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);">
         <i class="fa fa-cubes" style="color:var(--nx-a2);font-size:16px;margin-right:8px;"></i>
-        <span class="nx-section-title" style="margin:0;">Inventario</span>
+        <span class="nx-section-title" style="margin:0;"><?= lang('reports') . ' — ' . lang('products'); ?></span>
     </div>
     <div class="card-body">
 
@@ -596,25 +596,25 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="nx-inv-card" style="border-top:2px solid #818cf8;">
                 <div class="nx-inv-card-ico" style="color:#818cf8;"><i class="fa fa-money"></i></div>
                 <div class="nx-inv-card-val"><?= fmtC($invCost); ?></div>
-                <div class="nx-inv-card-lbl">Costo total</div>
+                <div class="nx-inv-card-lbl"><?= lang('costo_total'); ?></div>
             </div>
 
             <div class="nx-inv-card" style="border-top:2px solid var(--nx-warn);">
                 <div class="nx-inv-card-ico" style="color:var(--nx-warn);"><i class="fa fa-percent"></i></div>
                 <div class="nx-inv-card-val"><?= fmtC($invTax); ?></div>
-                <div class="nx-inv-card-lbl">Impuestos (IVA)</div>
+                <div class="nx-inv-card-lbl"><?= lang('impuestos_iva'); ?></div>
             </div>
 
             <div class="nx-inv-card" style="border-top:2px solid var(--nx-a1);">
                 <div class="nx-inv-card-ico" style="color:var(--nx-a1);"><i class="fa fa-tag"></i></div>
                 <div class="nx-inv-card-val"><?= fmtC($invPrice); ?></div>
-                <div class="nx-inv-card-lbl">Precio de venta</div>
+                <div class="nx-inv-card-lbl"><?= lang('precio_venta_inv'); ?></div>
             </div>
 
             <div class="nx-inv-card" style="border-top:2px solid var(--nx-ok);">
                 <div class="nx-inv-card-ico" style="color:var(--nx-ok);"><i class="fa fa-line-chart"></i></div>
                 <div class="nx-inv-card-val" style="color:var(--nx-ok);"><?= fmtC($invUtil); ?></div>
-                <div class="nx-inv-card-lbl">Utilidad bruta (<?= $invMarg; ?>%)</div>
+                <div class="nx-inv-card-lbl"><?= lang('utilidad_bruta'); ?> (<?= $invMarg; ?>%)</div>
             </div>
 
         </div>
@@ -622,16 +622,16 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <!-- Barra de margen -->
         <div style="background:var(--nx-bg4);border:1px solid var(--nx-border);border-radius:10px;padding:14px;margin-bottom:16px;">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                <span style="font-size:12px;color:var(--nx-txt2);font-weight:600;">Margen bruto del inventario</span>
+                <span style="font-size:12px;color:var(--nx-txt2);font-weight:600;"><?= lang('margen_bruto_inv'); ?></span>
                 <span style="font-size:14px;font-weight:800;color:var(--nx-ok);"><?= $invMarg; ?>%</span>
             </div>
             <div class="nx-progbar" style="height:8px;">
                 <div class="nx-progbar-fill" style="width:<?= min(100,$invMarg); ?>%;background:linear-gradient(90deg,#166534,#22c55e,#4ade80);"></div>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:var(--nx-txt3);">
-                <span>Costo: <?= fmtC($invCost); ?></span>
-                <span><?= $invProds; ?> productos en stock</span>
-                <span>Precio: <?= fmtC($invPrice); ?></span>
+                <span><?= lang('cost'); ?>: <?= fmtC($invCost); ?></span>
+                <span><?= $invProds; ?> <?= lang('productos_en_stock'); ?></span>
+                <span><?= lang('price'); ?>: <?= fmtC($invPrice); ?></span>
             </div>
         </div>
 
@@ -639,18 +639,18 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div class="row">
             <div class="col-md-8">
                 <div style="font-size:12px;font-weight:700;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">
-                    Promedio de ventas — últimos 6 meses
+                    <?= lang('promedio_ventas_6m'); ?>
                 </div>
                 <div id="nx-inv-avg6m" style="min-height:180px;"></div>
             </div>
             <div class="col-md-4">
                 <div style="font-size:12px;font-weight:700;color:var(--nx-txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">
-                    Resumen de stock <span style="color:var(--nx-err);"><?= $lowCnt > 0 ? "· $lowCnt bajo alerta" : ''; ?></span>
+                    <?= lang('resumen_stock'); ?> <span style="color:var(--nx-err);"><?= $lowCnt > 0 ? "· $lowCnt " . lang('bajo_alerta') : ''; ?></span>
                 </div>
                 <?php if (!empty($low_stock)): ?>
                 <div class="table-responsive">
                 <table class="nx-tbl" style="font-size:11.5px;">
-                    <thead><tr><th>Producto</th><th>Stock</th><th>Mín</th></tr></thead>
+                    <thead><tr><th><?= lang('product'); ?></th><th><?= lang('stock'); ?></th><th><?= lang('min_stock'); ?></th></tr></thead>
                     <tbody>
                     <?php foreach (array_slice($low_stock, 0, 6) as $ls): ?>
                     <tr>
@@ -665,14 +665,14 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                 <?php else: ?>
                 <div style="padding:20px;text-align:center;color:#4ade80;font-size:13px;">
                     <i class="fa fa-check-circle" style="font-size:22px;display:block;margin-bottom:6px;"></i>
-                    Sin alertas de inventario
+                    <?= lang('sin_alertas_inv'); ?>
                 </div>
                 <?php endif; ?>
                 <!-- Desglose por tasa IVA -->
                 <?php if (!empty($inv_by_tax)): ?>
                 <div class="table-responsive">
                 <table class="nx-tbl" style="margin-top:10px;font-size:11px;">
-                    <thead><tr><th>Tasa</th><th>Costo</th><th>Precio</th></tr></thead>
+                    <thead><tr><th><?= lang('tasa'); ?></th><th><?= lang('cost'); ?></th><th><?= lang('price'); ?></th></tr></thead>
                     <tbody>
                     <?php foreach ($inv_by_tax as $it): ?>
                     <tr>
@@ -700,7 +700,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div class="card" style="margin-bottom:0;background:var(--nx-bg3);border-color:var(--nx-border);border-top:2px solid var(--nx-ok);">
             <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);">
                 <i class="fa fa-calendar-check-o" style="color:var(--nx-ok);margin-right:8px;"></i>
-                <span style="font-weight:700;font-size:14px;">Top días de venta</span>
+                <span style="font-weight:700;font-size:14px;"><?= lang('top_dias_label'); ?></span>
             </div>
             <div class="card-body" style="padding:8px 14px 4px;">
                 <div id="nx-top-days" style="min-height:280px;"></div>
@@ -713,7 +713,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);display:flex;align-items:center;justify-content:space-between;">
                 <span>
                     <i class="fa fa-trophy" style="color:var(--nx-a1);margin-right:8px;"></i>
-                    <span style="font-weight:700;font-size:14px;">Top productos por ingresos</span>
+                    <span style="font-weight:700;font-size:14px;"><?= lang('top_prods_label'); ?></span>
                 </span>
                 <span style="font-size:11px;color:var(--nx-txt3);"><?= date('F Y'); ?></span>
             </div>
@@ -735,7 +735,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         <div class="card" style="background:var(--nx-bg3);border-color:var(--nx-border);border-top:2px solid var(--nx-warn);">
             <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);">
                 <i class="fa fa-credit-card" style="color:var(--nx-warn);margin-right:8px;"></i>
-                <span style="font-weight:700;font-size:14px;">Métodos de pago</span>
+                <span style="font-weight:700;font-size:14px;"><?= lang('metodos_pago_label'); ?></span>
             </div>
             <div class="card-body" style="padding:8px 14px 4px;">
                 <div id="nx-pay-donut" style="min-height:240px;"></div>
@@ -743,7 +743,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                 <div class="table-responsive">
                 <table class="nx-tbl" style="margin-top:6px;">
                     <?php
-                    $pmMap = ['cash'=>'Efectivo','cc'=>'Tarjeta','cheque'=>'Cheque','gift_card'=>'Gift Card','stripe'=>'Stripe','other'=>'Otro'];
+                    $pmMap = ['cash'=>lang('cash'),'cc'=>lang('cc'),'cheque'=>lang('cheque'),'gift_card'=>'Gift Card','stripe'=>'Stripe','other'=>lang('other')];
                     $pmTotal = array_sum($payV);
                     foreach ($pay_methods as $pm): ?>
                     <tr>
@@ -770,7 +770,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                 <?php if (!empty($top_customers)): ?>
                 <div class="table-responsive">
                 <table class="nx-tbl">
-                    <thead><tr><th>#</th><th>Cliente</th><th style="text-align:right;">Total</th></tr></thead>
+                    <thead><tr><th>#</th><th><?= lang('customer'); ?></th><th style="text-align:right;"><?= lang('total'); ?></th></tr></thead>
                     <tbody>
                     <?php $ci=1; foreach ($top_customers as $tc): ?>
                     <tr>
@@ -786,7 +786,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                 </table>
                 </div>
                 <?php else: ?>
-                <p style="padding:20px;text-align:center;color:var(--nx-txt3);">Sin datos</p>
+                <p style="padding:20px;text-align:center;color:var(--nx-txt3);"><?= lang('sin_datos'); ?></p>
                 <?php endif; ?>
             </div>
         </div>
@@ -798,14 +798,14 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
             <div class="card-header" style="background:transparent;border-bottom:1px solid var(--nx-border);display:flex;align-items:center;justify-content:space-between;">
                 <span>
                     <i class="fa fa-list-alt" style="color:var(--nx-a1);margin-right:8px;"></i>
-                    <span style="font-weight:700;font-size:14px;">Últimas transacciones</span>
+                    <span style="font-weight:700;font-size:14px;"><?= lang('ultimas_transacciones'); ?></span>
                 </span>
-                <a href="<?= site_url('sales'); ?>" class="btn btn-sm btn-outline-secondary">Ver todas</a>
+                <a href="<?= site_url('sales'); ?>" class="btn btn-sm btn-outline-secondary"><?= lang('ver_todas'); ?></a>
             </div>
             <div class="card-body" style="padding:0;overflow:hidden;">
                 <div class="table-responsive">
                 <table class="nx-tbl">
-                    <thead><tr><th>#</th><th>Cliente</th><th style="text-align:right;">Total</th><th>Estado</th><th>FE</th></tr></thead>
+                    <thead><tr><th>#</th><th><?= lang('customer'); ?></th><th style="text-align:right;"><?= lang('total'); ?></th><th><?= lang('status'); ?></th><th>FE</th></tr></thead>
                     <tbody>
                     <?php if (!empty($recent_sales)): ?>
                     <?php foreach ($recent_sales as $rs): ?>
@@ -817,7 +817,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                         </td>
                         <td style="text-align:right;font-weight:700;font-size:12px;">₡<?= number_format($rs->grand_total, 0); ?></td>
                         <td><?php
-                        $sb = ['paid'=>['#4ade80','rgba(34,197,94,.12)','Pagado'],'partial'=>['#fde047','rgba(234,179,8,.12)','Parcial'],'due'=>['#f87171','rgba(239,68,68,.1)','Pendiente'],'overdue'=>['#f87171','rgba(239,68,68,.18)','Vencida']];
+                        $sb = ['paid'=>['#4ade80','rgba(34,197,94,.12)',lang('pagado_label')],'partial'=>['#fde047','rgba(234,179,8,.12)',lang('partial')],'due'=>['#f87171','rgba(239,68,68,.1)',lang('pendiente_pago')],'overdue'=>['#f87171','rgba(239,68,68,.18)',lang('vencida_label')]];
                         $sc = $sb[$rs->status] ?? ['#94a3b8','rgba(148,163,184,.1)',ucfirst($rs->status)];
                         echo '<span style="background:'.$sc[1].';color:'.$sc[0].';border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;">'.$sc[2].'</span>';
                         ?></td>
@@ -831,7 +831,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
                     </tr>
                     <?php endforeach; ?>
                     <?php else: ?>
-                    <tr><td colspan="5" style="text-align:center;color:var(--nx-txt3);padding:24px;">Sin ventas recientes</td></tr>
+                    <tr><td colspan="5" style="text-align:center;color:var(--nx-txt3);padding:24px;"><?= lang('sin_ventas_recientes'); ?></td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -856,7 +856,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     var bg3    = dark ? '#111827' : '#ffffff';
     var tm     = dark ? 'dark' : 'light';
     var ff     = '-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif';
-    var noData = { text:'Sin datos', style:{ color:txt, fontSize:'12px' } };
+    var noData = { text:'<?= lang("sin_datos"); ?>', style:{ color:txt, fontSize:'12px' } };
     var stroke0= { colors:[bg3], width:2 };
     var yl0    = { labels:{ style:{ colors:txt, fontSize:'11px' }, formatter:function(v){ return v>=1000000?(v/1e6).toFixed(1)+'M':v>=1000?(v/1e3).toFixed(0)+'K':v; } } };
     var xl0    = { labels:{ style:{ colors:txt, fontSize:'10px' }, rotate:-30 }, axisBorder:{ color:grid }, axisTicks:{ color:grid } };
@@ -885,32 +885,32 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     /* ── KPI Donuts ── */
     mkDonut('#kd-ventas',
         [<?= $stPaid; ?>, <?= $stPending; ?>, <?= $stOver; ?>],
-        ['Cobrado','Pendiente','Vencido'],
-        ['#38bdf8','#eab308','#ef4444'], 115, '<?= fmtC($sTotal); ?>', 'Ventas');
+        ['<?= lang("cobrado"); ?>','<?= lang("pendiente_pago"); ?>','<?= lang("vencido"); ?>'],
+        ['#38bdf8','#eab308','#ef4444'], 115, '<?= fmtC($sTotal); ?>', '<?= lang("sales"); ?>');
 
     mkDonut('#kd-proj',
         [<?= $sTotal; ?>, <?= max(0,$projection-$sTotal); ?>],
-        ['Actual','Restante'],
-        ['#818cf8','rgba(129,140,248,.2)'], 115, '<?= $projPct; ?>%', 'Avance');
+        ['<?= lang("actual"); ?>','<?= lang("restante_label"); ?>'],
+        ['#818cf8','rgba(129,140,248,.2)'], 115, '<?= $projPct; ?>%', '<?= lang("avance"); ?>');
 
     mkDonut('#kd-pagar',
         [<?= max(0,$pTotal); ?>, <?= max(0,(float)($expenses_kpi->total??0)); ?>],
-        ['Compras','Gastos'],
-        ['#eab308','#ef4444'], 115, '<?= fmtC($pTotal+((float)($expenses_kpi->total??0))); ?>', 'Total');
+        ['<?= lang("purchases"); ?>','<?= lang("expenses"); ?>'],
+        ['#eab308','#ef4444'], 115, '<?= fmtC($pTotal+((float)($expenses_kpi->total??0))); ?>', '<?= lang("total"); ?>');
 
     mkDonut('#kd-cobrar',
         [<?= max(0,$arPaid); ?>, <?= max(0,$arBalance); ?>],
-        ['Cobrado','Pendiente'],
-        ['#22c55e','#ef4444'], 115, '<?= $arPendPct; ?>%', 'Pendiente');
+        ['<?= lang("cobrado"); ?>','<?= lang("pendiente_pago"); ?>'],
+        ['#22c55e','#ef4444'], 115, '<?= $arPendPct; ?>%', '<?= lang("pendiente_pago"); ?>');
 
     /* ── Análisis financiero 12 meses ── */
     new ApexCharts(document.querySelector('#nx-fin-12m'), {
         chart:{ type:'area', height:300, background:'transparent', toolbar:{ show:false }, fontFamily:ff, animations:{ speed:600 } },
         theme:{ mode:tm },
         series:[
-            { name:'Ventas',   data: <?= json_encode($fSales); ?>   },
-            { name:'Compras',  data: <?= json_encode($fPurch); ?>   },
-            { name:'Utilidad', data: <?= json_encode($fProfit); ?>  }
+            { name:'<?= lang("sales"); ?>',   data: <?= json_encode($fSales); ?>   },
+            { name:'<?= lang("purchases"); ?>',  data: <?= json_encode($fPurch); ?>   },
+            { name:'<?= lang("utilidad_label"); ?>', data: <?= json_encode($fProfit); ?>  }
         ],
         colors:['#38bdf8','#818cf8','#22c55e'],
         xaxis: Object.assign({ categories: <?= json_encode($fLabels); ?> }, xl0),
@@ -928,7 +928,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     new ApexCharts(document.querySelector('#nx-inv-avg6m'), {
         chart:{ type:'bar', height:180, background:'transparent', toolbar:{ show:false }, fontFamily:ff },
         theme:{ mode:tm },
-        series:[{ name:'Ventas', data: <?= json_encode($avgV); ?> }],
+        series:[{ name:'<?= lang("sales"); ?>', data: <?= json_encode($avgV); ?> }],
         colors:['#818cf8'],
         xaxis: Object.assign({ categories: <?= json_encode($avgL); ?> }, xl0, { labels:{ style:{ colors:txt, fontSize:'11px' }, rotate:0 } }),
         yaxis: yl0,
@@ -945,7 +945,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     new ApexCharts(document.querySelector('#nx-top-days'), {
         chart:{ type:'bar', height:280, background:'transparent', toolbar:{ show:false }, fontFamily:ff },
         theme:{ mode:tm },
-        series:[{ name:'Ventas', data:tdV }],
+        series:[{ name:'<?= lang("sales"); ?>', data:tdV }],
         colors:['#22c55e'],
         xaxis:{ categories:tdL, labels:{ style:{ colors:txt, fontSize:'10px' } } },
         yaxis: yl0,
@@ -962,7 +962,7 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
     new ApexCharts(document.querySelector('#nx-top-prods'), {
         chart:{ type:'bar', height:280, background:'transparent', toolbar:{ show:false }, fontFamily:ff },
         theme:{ mode:tm },
-        series:[{ name:'Ingresos', data:tpV }],
+        series:[{ name:'<?= lang("income"); ?>', data:tpV }],
         colors:['#38bdf8'],
         xaxis:{ categories:tpN, labels:{ style:{ colors:txt, fontSize:'10px' } } },
         yaxis: yl0,
@@ -978,12 +978,12 @@ $periodLabels = ['today' => 'Hoy', 'week' => 'Semana', 'month' => 'Mes', 'year' 
         chart:{ type:'donut', height:240, background:'transparent', fontFamily:ff },
         theme:{ mode:tm },
         series: <?= json_encode($payV ?: [1]); ?>,
-        labels: <?= json_encode($payL ?: ['Sin datos']); ?>,
+        labels: <?= json_encode($payL ?: [lang('sin_datos')]); ?>,
         colors:['#38bdf8','#818cf8','#22c55e','#eab308','#f97316','#94a3b8'],
         dataLabels:{ enabled:false },
         legend:{ show:false },
         plotOptions:{ pie:{ donut:{ size:'62%',
-            labels:{ show:true, total:{ show:true, label:'Total', color:txt, fontSize:'11px',
+            labels:{ show:true, total:{ show:true, label:'<?= lang("total"); ?>', color:txt, fontSize:'11px',
                 formatter:function(w){ var t=w.globals.seriesTotals.reduce(function(a,b){return a+b;},0); return t>=1000000?'₡'+(t/1e6).toFixed(1)+'M':'₡'+(t/1e3).toFixed(0)+'K'; } } } } } },
         stroke: stroke0,
         tooltip:{ theme:tm, style:{ fontSize:'12px' }, y:{ formatter:function(v){ return '₡ '+v.toLocaleString('es-CR'); } } },

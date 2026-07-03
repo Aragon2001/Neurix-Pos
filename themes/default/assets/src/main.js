@@ -3,7 +3,7 @@
 // (ver "main" en su package.json); el CSS hay que importarlo explícitamente o
 // nunca queda incluido en el bundle final (esto es lo que rompió toda la app).
 import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap'
+import * as bootstrap from 'bootstrap'
 import 'admin-lte/dist/css/adminlte.min.css'
 import 'admin-lte'
 import '@fortawesome/fontawesome-free/css/all.css'
@@ -15,6 +15,8 @@ import './neurix-theme-vars.css'
 import './neurix-adminlte4.css'
 // Estilos específicos del módulo POS (pos-container, product-card, pos-cart, etc.)
 import './pos-redesign.css'
+// Sistema de diseño para listados/tablas de datos (.nxt-*) — reusable en todos los módulos
+import './nx-tables.css'
 
 // Importar librerías modernas
 import TomSelect from 'tom-select'
@@ -24,6 +26,12 @@ import Swal from 'sweetalert2'
 
 // Importar mejoras del POS
 import { POSEnhanced } from './pos-enhanced'
+
+// Motor reusable de listados (window.NxTable) — diseño nx-tables
+import './nx-table'
+
+// Sistema de búsqueda global
+import './nx-search'
 
 // ═════════════════ TEMA OSCURO/CLARO (AdminLTE 4) ═════════════════
 const initTheme = () => {
@@ -35,9 +43,9 @@ const initTheme = () => {
 
 const updateThemeLabel = (theme) => {
   const label = document.getElementById('nxThemeLabel')
-  if (label) {
-    label.textContent = theme === 'dark' ? '🌙 Oscuro' : '☀️ Claro'
-  }
+  if (label) label.textContent = theme === 'dark' ? '🌙 Oscuro' : '☀️ Claro'
+  const dmLabel = document.getElementById('nxDmLabel')
+  if (dmLabel) dmLabel.textContent = theme === 'dark' ? 'Activado' : 'Desactivado'
 }
 
 // ═════════════════ INICIALIZACIÓN DE COMPONENTES ═════════════════
@@ -64,6 +72,9 @@ window.TomSelect = TomSelect
 window.Tabulator = Tabulator
 window.TempusDominus = TempusDominus
 window.Swal = Swal
+// Exponer Bootstrap 5 para uso programático (bootstrap.Modal, etc.) — pos-core.js
+// y las vistas lo consultan vía window.bootstrap; sin esto los modales fallan
+window.bootstrap = bootstrap
 
 // ═════════════════ MAIN - Ejecutar al cargar ═════════════════
 // Nota: treeview y sidebar toggle los maneja AdminLTE4 JS nativo
