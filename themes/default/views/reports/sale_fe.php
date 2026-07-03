@@ -2,212 +2,57 @@
 
 <?php
 $v = "?v=1";
-
-if ($this->input->post('customer')) {
-    $v .= "&customer=" . $this->input->post('customer');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
-
+if ($this->input->post('customer')) { $v .= "&customer=" . $this->input->post('customer'); }
+if ($this->input->post('start_date')) { $v .= "&start_date=" . $this->input->post('start_date'); }
+if ($this->input->post('end_date')) { $v .= "&end_date=" . $this->input->post('end_date'); }
 ?>
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        var table = new Tabulator('#SLRData', {
-
-            'ajax': {
-                url: '<?=site_url('reports/get_sale_fe/' . $v);?>', type: 'POST', "data": function (d) {
-                    d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-                }
-                
-            },
-            "buttons": [
-                {extend: 'copyHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7,8]}},
-                {extend: 'excelHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7,8]}},
-                // {extend: 'csvHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}},
-                // {extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}},
-                {extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-                {"data": "name"},
-                {"data": "tax_0", "render": currencyFormat},
-                {"data": "tax_1", "render": currencyFormat},
-                {"data": "tax_2", "render": currencyFormat},
-                {"data": "tax_4", "render": currencyFormat},
-                {"data": "tax_13", "render": currencyFormat},
-                {"data": "exonerado", "render": currencyFormat},
-                {"data": "subtotal", "render": currencyFormat},
-                {"data": "total", "render": currencyFormat}
-                
-
-            ],
-            'columnDefs': [
-                {
-                    "targets": 0, 
-                    "className": "text-center",
-                    "width": "50%"
-                },
-                {
-                    "targets": 1, 
-                    "className": "text-center",
-                    "width": "5%"
-                },
-                {
-                    "targets": 2, 
-                    "className": "text-center",
-                    "width": "20%"
-                },
-                {
-                    "targets": 3, 
-                    "className": "text-center",
-                    "width": "20%"
-                },
-                {
-                    "targets": 4, 
-                    "className": "text-center",
-                    "width": "20%"
-                },                
-                {
-                    "targets": 5,
-                    "className": "text-center",
-                    "width": "20%"
-                },                
-                {
-                    "targets": 6,
-                    "className": "text-center",
-                    "width": "20%"
-                },                
-                {
-                    "targets": 3, 
-                    "className": "text-center",
-                    "width": "20%"
-                }],
-            "footerCallback": function (tfoot, data, start, end, display ) {
-                var api = this.api(), data;
-                $(api.column(1).footer()).html( cf(api.column(1).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(2).footer()).html( cf(api.column(2).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(3).footer()).html( cf(api.column(3).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(4).footer()).html( cf(api.column(4).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(5).footer()).html( cf(api.column(5).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(6).footer()).html( cf(api.column(6).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-                $(api.column(7).footer()).html( cf(api.column(7).data().reduce( function (a, b) { return pf(a) + pf(b); }, 0)) );
-            }
-
-        });
-
-        $('#search_table').on('keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search(this.value).draw();
-            }
-        });
-
-        table.columns().every(function () {
-            var self = this;
-            $('input.datepicker', this.footer()).on('dp.change', function (e) {
-                self.search(this.value).draw();
-            });
-            $('input:not(.datepicker)', this.footer()).on('keyup change', function (e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-                    self.search(this.value).draw();
-                }
-            });
-            $('select', this.footer()).on('change', function (e) {
-                self.search(this.value).draw();
-            });
-        });
-
-    });
-</script>
-
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('.toggle_form').click(function () {
-            $("#form").slideToggle();
-            return false;
-        });
-    });
-</script>
-<section class="content">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <a href="#" class="btn btn-default btn-sm toggle_form float-end"><?= lang("show_hide"); ?></a>
-                    <h3 class="box-title"><?= lang('customize_report'); ?></h3>
-                </div>
-                <div class="box-body">
-                    <div class="clearfix"></div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="table-responsive">
-                                <table id="SLRData"
-                                       class="table table-striped table-bordered table-condensed table-hover">
-                                    <thead>
-                                    <tr class="active">
-                                        <th class="col-sm-1"><?= lang('customer'); ?></th>
-                                        <th class="col-sm-1"><?= lang('tot_imp_0_cobrado'); ?></th>
-                                        <th class="col-sm-1"><?= lang('tot_imp_1_cobrado'); ?></th>
-                                        <th class="col-sm-1"><?= lang('tot_imp_2_cobrado'); ?></th>
-                                        <th class="col-sm-1"><?= lang('tot_imp_4_cobrado'); ?></th>
-                                        <th class="col-sm-1"><?= lang('tot_imp_13_cobrado'); ?></th>
-                                        <th class="col-sm-1"><?= lang('total_ventas_exoneradas'); ?></th>
-                                        <th class="col-sm-1"><?= lang('tot_monto_sin_imp'); ?></th>
-                                        <th class="col-sm-1"><?= lang('tot_monto_con_imp'); ?></th>
-   
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tfoot>
-                                        <tr class="active">
-                                            <th style="max-width:30px;"></th>
-                                            <th class="col-sm-1"></th>
-                                            <th class="col-sm-2"></th>
-                                            <th class="col-sm-2"></th>
-                                            <th class="col-sm-2"></th>
-                                            <th class="col-sm-1"></th>
-                                            <th class="col-sm-2"></th>
-                                            <th class="col-sm-1"></th>
-                                            <th class="col-sm-1"></th>
-                                        </tr>
-                                    </tfoot>
-                                    <tr>
-                                        <td colspan="10"
-                                            class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-                                    </tr>
-                                    </tbody>
-      
-                                </table>
-                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('customize_report'); ?>
+        <small><?= lang('sales'); ?> FE</small>
     </div>
-</section>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+    </div>
+</div>
 
+<div id="nxtList"></div>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
-        type="text/javascript"></script>
-<script type="text/javascript">
-    $(function () {
-        $('.datetimepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD HH:mm'
-        });
-        $('.datepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD',
-            showClear: true,
-            showClose: true,
-            useCurrent: false,
-            widgetPositioning: {horizontal: 'auto', vertical: 'bottom'},
-            widgetParent: $('.dataTable tfoot')
-        });
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function m(k) { return function (r) { return '<span class="nxt-cost">' + NxTable.money(r[k]) + '</span>'; }; }
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('reports/get_sale_fe/' . $v); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '1100px',
+        unit: '<?= lang('customers'); ?>'.toLowerCase(),
+        exportName: 'ventas_fe',
+        search: ['name'],
+        totals: ['tax_0', 'tax_1', 'tax_2', 'tax_4', 'tax_13', 'exonerado', 'subtotal', 'total'],
+        columns: [
+            { key: 'name', label: '<?= lang('customer'); ?>', sortable: 'str', render: function (r) { return '<span class="nxt-ent-name">' + NxTable.esc(r.name) + '</span>'; } },
+            { key: 'tax_0', label: '<?= lang('tot_imp_0_cobrado'); ?>', className: 'num', render: m('tax_0') },
+            { key: 'tax_1', label: '<?= lang('tot_imp_1_cobrado'); ?>', className: 'num', render: m('tax_1') },
+            { key: 'tax_2', label: '<?= lang('tot_imp_2_cobrado'); ?>', className: 'num', render: m('tax_2') },
+            { key: 'tax_4', label: '<?= lang('tot_imp_4_cobrado'); ?>', className: 'num', render: m('tax_4') },
+            { key: 'tax_13', label: '<?= lang('tot_imp_13_cobrado'); ?>', className: 'num', render: m('tax_13') },
+            { key: 'exonerado', label: '<?= lang('total_ventas_exoneradas'); ?>', className: 'num', render: m('exonerado') },
+            { key: 'subtotal', label: '<?= lang('tot_monto_sin_imp'); ?>', className: 'num', sortable: 'num', render: m('subtotal') },
+            { key: 'total', label: '<?= lang('tot_monto_con_imp'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.total) + '</span>'; } }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
     });
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
+});
 </script>

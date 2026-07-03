@@ -77,50 +77,37 @@
 
 ---
 
-## 4. Auditoría: páginas del sistema que usan tablas de datos
+## 4. Auditoría y estado de migración — ✅ COMPLETADA (2026-07-03)
 
-40 vistas usan el patrón legacy (`new Tabulator` + config DataTables + jQuery). Todas deberían migrarse al diseño `nxt-*` siguiendo la receta del §2. Prioridad sugerida según uso diario en un minisúper/licorera:
+Las 40 vistas que usaban el patrón legacy (`new Tabulator` + config DataTables + jQuery, roto desde la migración a Vite) fueron migradas al diseño `nxt-*`. La migración masiva se hizo con un **motor JS reusable**: [`themes/default/assets/src/nx-table.js`](themes/default/assets/src/nx-table.js) (`window.NxTable`), que genera toolbar + tabla + paginación + export CSV + fila de totales desde una configuración declarativa, re-estiliza el HTML de acciones que generan los controladores (sin tocar el backend) y restaura el comportamiento global de `data-toggle="ajax-modal"` / `"ajax"` en vanilla JS.
 
-### Prioridad ALTA (operación diaria)
+### Migradas — operación diaria
 
-| Vista | Endpoint de datos | Notas |
-|---|---|---|
-| ~~`products/index.php`~~ | `products/get_products` | ✅ **Migrada (piloto)** |
-| `sales/index.php` | `sales/get_sales` | Listado principal de ventas/facturas. KPIs sugeridos: ventas del día, monto, pendientes Hacienda. |
-| `customers/index.php` | `customers/get_customers` | Avatar con iniciales; badge por tipo de cédula. |
-| `pos/sales` (vía `sales/*`) | — | Verificar variantes `opened.php`, `apartado.php`, `proforma.php`. |
-| `categories/index.php` | `categories/get_categories` | Tabla simple, migración rápida. |
-| `suppliers/index.php` | `suppliers/get_suppliers` | Igual a clientes. |
-
-### Prioridad MEDIA (gestión y facturación electrónica)
-
-| Vista | Notas |
+| Vista | Particularidades |
 |---|---|
-| `purchases/index.php` | Compras. |
-| `purchases/expenses.php` | Gastos. |
-| `facturascompras/index.php` | FE de compras — badge de estado Hacienda (aceptado/rechazado) con `.nxt-cat`. |
-| `creditnotes/index.php` | Notas de crédito. |
-| `debitnotes/index.php` | Notas de débito. |
-| `cargadocumentos/index.php` | Carga de documentos XML. |
-| `products/list_prices.php` | Listas de precios. |
-| `gift_cards/index.php` | Tarjetas regalo. |
-| `waiting_tables/index.php` | Mesas en espera. |
-| `auth/index.php` | Usuarios. |
+| `products/index.php` | Piloto: KPIs de inventario, chips por categoría, barra de stock, margen. |
+| `sales/index.php` | KPIs (facturado, cobrado, saldo, pendientes Hacienda), chips por estado Hacienda, totales, modal de cambio de estado (admin), botones XML. |
+| `customers/index.php` / `suppliers/index.php` | Avatar + chips por tipo de cédula. |
+| `categories/index.php` | Miniatura de imagen con zoom. |
+| `sales/opened.php`, `sales/apartado.php`, `sales/proforma.php` | Totales al pie; apartados con chips de estado de pago. |
 
-### Prioridad MEDIA-BAJA (reportes — 16 vistas)
+### Migradas — gestión y FE
 
-`reports/daily.php`, `reports/monthly.php`, `reports/monthly_fec.php`, `reports/monthly_sale_tax.php`, `reports/sales.php`, `reports/sale_fe.php`, `reports/payments.php`, `reports/products.php`, `reports/products_quantity.php`, `reports/registers.php`, `reports/custumer_credits.php`, `reports/shipping_credits.php`, `reports/compraselectronicas.php`, `reports/inventory_adjustment.php`, `reports/missing_inventory.php`, `reports/model_d151.php`, `reports/alerts.php`
+`purchases/index.php` (adjuntos), `purchases/expenses.php`, `facturascompras/index.php` (igual a ventas), `creditnotes/index.php`, `debitnotes/index.php`, `cargadocumentos/index.php` (**incluye la zona de carga XML drag&drop reescrita en vanilla + modal de resultados**), `products/list_prices.php`, `gift_cards/index.php`, `waiting_tables/index.php`, `auth/index.php` (usa el modo `data:` local de NxTable — tabla server-rendered sin endpoint).
 
-> En reportes conviene conservar el rango de fechas actual y añadir KPIs de totales arriba (ya se calculan en servidor en varios casos).
+### Migradas — reportes (16)
 
-### Prioridad BAJA (configuración)
+`daily`, `monthly`, `monthly_fec`, `monthly_sale_tax`, `sales`, `sale_fe`, `payments`, `products`, `products_quantity`, `registers`, `custumer_credits`, `shipping_credits`, `compraselectronicas`, `inventory_adjustment`, `missing_inventory`, `model_d151`, `alerts`.
 
-| Vista | Notas |
-|---|---|
-| `settings/stores.php` y `stores.php` | Tiendas (vista duplicada — unificar). |
-| `settings/printers.php` | Impresoras. |
-| `settings/shipping_method.php` | Métodos de envío. |
-| `settings/actividad.php` | Actividades económicas. |
+Notas de los reportes:
+- Los formularios de filtro se conservaron (restylados dentro de `.nxt-card`) y los campos de fecha pasaron de TempusDominus (cuya inicialización estaba rota) a **`<input type="date">` nativos** — mismo formato `YYYY-MM-DD` que espera el backend.
+- Los `footerCallback` de DataTables se reemplazaron por la opción `totals:` de NxTable (suma sobre lo filtrado).
+- `custumer_credits` y `shipping_credits` conservan el **formulario de abono a deuda**; la lógica jQuery (selección de facturas con checkbox, suma de balances, toggle de campos según método de pago) se reescribió en vanilla JS — antes estaba rota por falta de jQuery.
+- `alerts` reimplementa "agregar a orden de compra" (spoitems en localStorage) con fetch + toast de SweetAlert2.
+
+### Migradas — configuración
+
+`settings/stores.php`, `stores.php`, `settings/printers.php`, `settings/shipping_method.php`, `settings/actividad.php`.
 
 ### Fuera de alcance del rediseño de listados
 
@@ -129,12 +116,38 @@
 
 ---
 
-## 5. Estado de compilación
+## 5. API de NxTable (referencia rápida)
+
+```js
+new NxTable({
+  el: '#nxtList',                       // contenedor vacío; NxTable genera todo el markup
+  url: SITE + 'modulo/get_x',           // endpoint Ignited-Datatables (POST + CSRF)
+  csrf: { name, hash },
+  data: [...],                          // alternativa a url: datos locales (tabla estática)
+  columns: [{ key, label, className, width, sortable:'num'|'str',
+              render(r), exportValue(r), actions:true, noExport:true }],
+  search: ['campo1', 'campo2'],         // búsqueda instantánea client-side
+  chips: { key, all, label(v), sort },  // filtro por chips generado de los datos
+  totals: ['total', 'paid'],            // fila de totales sobre lo filtrado
+  perPage: 25, unit: 'ventas', exportName: 'ventas',
+  onData(rows) { ... },                 // hook para KPIs
+  map(raw) { ... },                     // normalizar fila cruda
+  i18n: { searchPlaceholder, loading, empty, showing, of, all, totals }
+})
+// Helpers: NxTable.esc, .money, .num, .qty, .badge(texto, tono), .entity(nombre, meta, seed)
+// Instancia: t.load() (recargar), t.exportCSV(), t.filtered()
+```
+
+Tonos de badge: `ok` (verde), `info` (azul), `warn` (ámbar), `err` (rojo), `muted`, `violet`, `orange`.
+
+---
+
+## 6. Estado de compilación
 
 ```
-npm run build  →  OK (vite 8)
+npm run build  →  OK (vite 8, 104 módulos)
 dist/css/www.min.css   (incluye nx-tables.css)
 dist/css/nx-sidebar.css (copiado desde src en cada build)
-dist/js/main.min.js    (expone window.bootstrap)
+dist/js/main.min.js    (expone window.bootstrap y window.NxTable)
 ```
-Lint PHP: `Products.php`, `products/index.php` y los 3 `app_lang.php` sin errores de sintaxis.
+Lint PHP de las 40 vistas migradas + controladores + 3 `app_lang.php`: sin errores. Se añadieron ~60 claves de idioma nuevas en español, inglés y chino (bloques al final de cada `app_lang.php`).

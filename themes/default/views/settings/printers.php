@@ -1,83 +1,47 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-
-        var table = new Tabulator('#PData', {
-
-            'ajax' : { url: '<?=site_url('settings/get_printers');?>', type: 'POST', "data": function ( d ) {
-                d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-            }},
-            "buttons": [
-            { extend: 'copyHtml5', 'footer': false, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'excelHtml5', 'footer': false, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'csvHtml5', 'footer': false, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': false,
-            exportOptions: { columns: [ 0, 1, 2, 3, 4, 5 ] } },
-            { extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-            { "data": "id", "visible": false },
-            { "data": "title" },
-            { "data": "type" },
-            { "data": "profile" },
-            { "data": "path" },
-            { "data": "ip_address" },
-            { "data": "port" },
-            { "data": "Actions", "searchable": false, "orderable": false }
-            ]
-
-        });
-
-        $('#search_table').on( 'keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search( this.value ).draw();
-            }
-        });
-
-    });
-</script>
-
-<section class="content">
-    <div class="row">
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('list_results'); ?></h3>
-                </div>
-                <div class="box-body">
-                    <div class="table-responsive">
-                <div class="table-responsive">
-                        <table id="PData" class="table table-bordered table-hover table-striped">
-                            <thead>
-                                <tr>
-                                    <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                    <th class="col-2"><?= lang("title"); ?></th>
-                                    <th class="col-1"><?= lang("type"); ?></th>
-                                    <th class="col-2"><?= lang("profile"); ?></th>
-                                    <th class="col-3"><?= lang("path"); ?></th>
-                                    <th class="col-2"><?= lang("ip_address"); ?></th>
-                                    <th class="col-1"><?= lang("port"); ?></th>
-                                    <th style="width:65px;"><?= lang("actions"); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="8" class="p0"><input type="text" class="form-control b0" name="search_table" id="search_table" placeholder="<?= lang('type_hit_enter'); ?>" style="width:100%;"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                </div>
-                    </div>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('printers'); ?>
+        <small><?= lang('list_results'); ?></small>
     </div>
-</section>
+    <div class="nxt-head-actions">
+        <a class="nxt-btn" href="<?= site_url('settings/add_printer'); ?>">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <?= lang('add_printer'); ?>
+        </a>
+    </div>
+</div>
+
+<div id="nxtList"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('settings/get_printers'); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '860px',
+        unit: '<?= lang('printers'); ?>'.toLowerCase(),
+        exportName: 'impresoras',
+        search: ['title', 'type', 'path', 'ip_address'],
+        columns: [
+            { key: 'title', label: '<?= lang('title'); ?>', sortable: 'str', render: function (r) {
+                return NxTable.entity(r.title, r.profile || '', r.title);
+            } },
+            { key: 'type', label: '<?= lang('type'); ?>', render: function (r) { return r.type ? NxTable.badge(r.type, 'info') : '—'; } },
+            { key: 'path', label: '<?= lang('path'); ?>', render: function (r) { return r.path ? '<span class="nxt-code">' + NxTable.esc(r.path) + '</span>' : '—'; } },
+            { key: 'ip_address', label: '<?= lang('ip_address'); ?>', render: function (r) {
+                return r.ip_address ? '<span class="nxt-dim-mono">' + NxTable.esc(r.ip_address) + (r.port ? ':' + NxTable.esc(r.port) : '') + '</span>' : '—';
+            } },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '110px' }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>'
+        }
+    });
+});
+</script>

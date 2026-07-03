@@ -2,470 +2,173 @@
 
 <?php
 $v = "?v=1";
-
-if ($this->input->post('customer')) {
-    $v .= "&customer=" . $this->input->post('customer');
-}
-if ($this->input->post('user')) {
-    $v .= "&user=" . $this->input->post('user');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
-
+if ($this->input->post('customer')) { $v .= "&customer=" . $this->input->post('customer'); }
+if ($this->input->post('user')) { $v .= "&user=" . $this->input->post('user'); }
+if ($this->input->post('start_date')) { $v .= "&start_date=" . $this->input->post('start_date'); }
+if ($this->input->post('end_date')) { $v .= "&end_date=" . $this->input->post('end_date'); }
 ?>
 
-<script type="text/javascript">
-    $(document).ready(function () {
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('creditos_clientes'); ?>
+        <small><?= lang('customize_report'); ?></small>
+    </div>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+    </div>
+</div>
 
-        function status(x) {
-            var paid = '<?= lang('paid'); ?>';
-            var partial = '<?= lang('partial'); ?>';
-            var due = '<?= lang('due'); ?>';
-            if (x == 'paid') {
-                return '<div class="text-center"><span class="sale_status label label-success">' + paid + '</span></div>';
-            } else if (x == 'partial') {
-                return '<div class="text-center"><span class="sale_status label label-primary">' + partial + '</span></div>';
-            } else if (x == 'due') {
-                return '<div class="text-center"><span class="sale_status label label-danger">' + due + '</span></div>';
-            } else {
-                return '<div class="text-center"><span class="sale_status label label-default">' + x + '</span></div>';
-            }
-        }
-
-        var table = new Tabulator('#SLRData', {
-
-            'ajax': {
-                url: '<?=site_url('reports/get_credit_customers/' . $v);?>', type: 'POST', "data": function (d) {
-                    d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-                }
-            },
-            "buttons": [
-                {extend: 'copyHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}},
-                {extend: 'excelHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}},
-                {extend: 'csvHtml5', 'footer': true, exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}},
-                {
-                    extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true,
-                    exportOptions: {columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
-                },
-                {extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-                {"data": "id", "visible": false},
-                {"data": "date", "render": hrld},
-                {"data": "customer_name"},
-                {"data": "total", "render": currencyFormat},
-                {"data": "total_tax", "render": currencyFormat},
-                {"data": "total_discount", "render": currencyFormat},
-                {"data": "grand_total", "render": currencyFormat},
-                {"data": "paid", "render": currencyFormat},
-                {"data": "balance", "render": currencyFormat},
-                {"data": "status", "render": status}
-            ],
-            "footerCallback": function (tfoot, data, start, end, display) {
-                var api = this.api(), data;
-                $(api.column(3).footer()).html(cf(api.column(3).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-                $(api.column(4).footer()).html(cf(api.column(4).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-                $(api.column(5).footer()).html(cf(api.column(5).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-                $(api.column(6).footer()).html(cf(api.column(6).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-                $(api.column(7).footer()).html(cf(api.column(7).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-                $(api.column(8).footer()).html(cf(api.column(8).data().reduce(function (a, b) {
-                    return pf(a) + pf(b);
-                }, 0)));
-            }
-
-        });
-
-        $('#search_table').on('keyup change', function (e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (((code == 13 && table.search() !== this.value) || (table.search() !== '' && this.value === ''))) {
-                table.search(this.value).draw();
-            }
-        });
-
-        table.columns().every(function () {
-            var self = this;
-            $('input.datepicker', this.footer()).on('dp.change', function (e) {
-                self.search(this.value).draw();
-            });
-            $('input:not(.datepicker)', this.footer()).on('keyup change', function (e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (((code == 13 && self.search() !== this.value) || (self.search() !== '' && this.value === ''))) {
-                    self.search(this.value).draw();
-                }
-            });
-            $('select', this.footer()).on('change', function (e) {
-                self.search(this.value).draw();
-            });
-        });
-
-    });
-</script>
-
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('.toggle_form').click(function () {
-            $("#form").slideToggle();
-            return false;
-        });
-    });
-</script>
-
-<section class="content">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <a href="#" class="btn btn-default btn-sm toggle_form float-end"><?= lang("show_hide"); ?></a>
-                    <h3 class="box-title"><?= lang('customize_report'); ?></h3>
-                </div>
-                <div class="box-body">
-                    <div id="form" class="card border-warning ">
-                        <div class="card-body">
-                            <?= form_open("reports/credit_customers"); ?>
-
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <div class="mb-3">
-                                        <label class="form-label" for="customer"><?= lang("customer"); ?></label>
-                                        <?php
-                                        $cu[0] = lang("select") . " " . lang("customer");
-                                        foreach ($customers as $customer) {
-                                            $cu[$customer->id] = $customer->name;
-                                        }
-                                        echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-control tom-select" style="width:100%" id="customer"'); ?>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="mb-3">
-                                        <label class="form-label" for="user"><?= lang("user"); ?></label>
-                                        <?php
-                                        $us[""] = "";
-                                        foreach ($users as $user) {
-                                            $us[$user->id] = $user->first_name . " " . $user->last_name;
-                                        }
-                                        echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-control tom-select" id="user" data-placeholder="' . lang("select") . " " . lang("user") . '" style="width:100%;"');
-                                        ?>
-                                    </div>
-                                </div>
-
-                                <div class="col-sm-3">
-                                    <div class="mb-3">
-                                        <label class="form-label" for="start_date"><?= lang("start_date"); ?></label>
-                                        <?= form_input('start_date', set_value('start_date'), 'class="form-control datetimepicker" id="start_date"'); ?>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="mb-3">
-                                        <label class="form-label" for="end_date"><?= lang("end_date"); ?></label>
-                                        <?= form_input('end_date', set_value('end_date'), 'class="form-control datetimepicker" id="end_date"'); ?>
-                                    </div>
-                                </div>
-                                <div class="col-sm-12">
-                                    <button type="submit" class="btn btn-primary"><?= lang("submit"); ?></button>
-                                </div>
-                            </div>
-                            <?= form_close(); ?>
-                        </div>
-                    </div>
-
-
-                    <div class="clearfix"></div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="table-responsive">
-                                <table id="SLRData"
-                                       class="table table-striped table-bordered table-condensed table-hover">
-                                    <thead>
-                                    <tr class="active">
-                                        <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                        <th class="col-sm-2"><?= lang("date"); ?></th>
-                                        <th class="col-sm-2"><?= lang("customer"); ?></th>
-                                        <th class="col-sm-1"><?= lang("total"); ?></th>
-                                        <th class="col-sm-1"><?= lang("tax"); ?></th>
-                                        <th class="col-sm-1"><?= lang("discount"); ?></th>
-                                        <th class="col-sm-2"><?= lang("grand_total"); ?></th>
-                                        <th class="col-sm-1"><?= lang("paid"); ?></th>
-                                        <th class="col-sm-1"><?= lang("balance"); ?></th>
-                                        <th class="col-sm-1"><?= lang("status"); ?></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td colspan="10"
-                                            class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-                                    </tr>
-                                    </tbody>
-                                    <tfoot>
-                                    <tr class="active">
-                                        <th style="max-width:30px;"><input type="text" class="text_filter"
-                                                                           placeholder="[<?= lang('id'); ?>]"></th>
-                                        <th class="col-sm-2"><span class="datepickercon"><input type="text"
-                                                                                                class="text_filter datepicker"
-                                                                                                placeholder="[<?= lang('date'); ?>]"></span>
-                                        </th>
-                                        <th class="col-sm-2"><input type="text" class="text_filter"
-                                                                    placeholder="[<?= lang('customer'); ?>]"></th>
-                                        <th class="col-sm-1"><?= lang("total"); ?></th>
-                                        <th class="col-sm-1"><?= lang("tax"); ?></th>
-                                        <th class="col-sm-1"><?= lang("discount"); ?></th>
-                                        <th class="col-sm-2"><?= lang("grand_total"); ?></th>
-                                        <th class="col-sm-1"><?= lang("paid"); ?></th>
-                                        <th class="col-sm-1"><?= lang("balance"); ?></th>
-                                        <th class="col-sm-1">
-                                            <select class="tom-select select_filter">
-                                                <option value=""><?= lang("all"); ?></option>
-                                                <option value="paid"><?= lang("paid"); ?></option>
-                                                <option value="partial"><?= lang("partial"); ?></option>
-                                                <option value="due"><?= lang("due"); ?></option>
-                                            </select>
-                                        </th>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="10" class="p0"><input type="text" class="form-control b0"
-                                                                           name="search_table" id="search_table"
-                                                                           placeholder="<?= lang('type_hit_enter'); ?>"
-                                                                           style="width:100%;"></td>
-                                    </tr>
-                                    </tfoot>
-                                </table>
-                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <?php if ($this->input->post('customer')) { ?>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <button class="btn bg-purple btn-lg btn-block" style="cursor:default;">
-                                    <strong><?= $this->tec->formatMoney($total_sales->number, 0); ?></strong>
-                                    <?= lang("sales"); ?>
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-primary btn-lg btn-block" style="cursor:default;">
-                                    <strong><?= $this->tec->formatMoney($total_sales->amount); ?></strong>
-                                    <?= lang("amount"); ?>
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-success btn-lg btn-block" style="cursor:default;">
-                                    <strong><?= $this->tec->formatMoney($total_sales->paid); ?></strong>
-                                    <?= lang("paid"); ?>
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-warning btn-lg btn-block" style="cursor:default;">
-                                    <strong><?= $this->tec->formatMoney($total_sales->amount - $total_sales->paid); ?></strong>
-                                    <?= lang("due"); ?>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="box-header">
-                            <h3 class="box-title"><?= lang('pago_deuda_form'); ?></h3>
-                        </div>
-                        <div id="form" class="card border-warning ">
-                            <div class="card-body">
-                                <?= form_open("reports/credit_customers/"); ?>
-
-                                <?= form_hidden("customer", $this->input->post('customer')) ?>
-
-                                <div id="payments">
-
-                                    <div class="well well-sm well">
-                                        <div class="col-sm-12">
-                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <div class="payment">
-                                                        <div class="mb-3">
-                                                            <?= lang("amount", "amount"); ?>
-                                                            <input name="amount-paid" type="text" id="amount"
-                                                                   value="<?= $total_sales->amount - $total_sales->paid ?>"
-                                                                   class="pa form-control kb-pad amount" required="required"/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-6">
-                                                    <div class="mb-3">
-                                                        <?= lang("paying_by", "paid_by"); ?>
-                                                        <select name="paid_by" id="paid_by" class="form-control paid_by tom-select"
-                                                                style="width:100%"
-                                                                required="required">
-                                                            <option value="cash"><?= lang("cash"); ?></option>
-                                                            <option value="CC"><?= lang('tarjeta'); ?></option>
-                                                            <option value="Cheque"><?= lang("cheque"); ?></option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                            <div class="clearfix"></div>
-                                            <div class="mb-3 gc" style="display: none;">
-                                                <?= lang("gift_card_no", "gift_card_no"); ?>
-                                                <input name="gift_card_no" type="text" id="gift_card_no" class="pa form-control kb-pad"/>
-
-                                                <div id="gc_details"></div>
-                                            </div>
-                                            <div class="pcc" style="display:none;">
-                                                <input type="hidden" id="swipe" class="form-control swipe swipe_input"
-                                                       placeholder="<?= lang('focus_swipe_here') ?>"/>
-
-                                                <div class="row">
-                                                    <input name="pcc_no" type="hidden" id="pcc_no" class="form-control"
-                                                           placeholder="<?= lang('cc_no') ?>"/>
-
-
-                                                    <input name="pcc_holder" type="hidden" id="pcc_holder" class="form-control"
-                                                           placeholder="<?= lang('cc_holder') ?>"/>
-
-                                                    <div class="col-sm-6">
-                                                        <div class="mb-3">
-                                                            <select name="pcc_type" id="pcc_type" class="form-control pcc_type tom-select"
-                                                                    style="width:100%"
-                                                                    placeholder="<?= lang('card_type') ?>">
-                                                                <option value="Debito"><?= lang('debito'); ?></option>
-                                                                <option value="Visa"><?= lang("Visa"); ?></option>
-                                                                <option value="MasterCard"><?= lang("MasterCard"); ?></option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <input name="pcc_month" type="hidden" id="pcc_month" class="form-control"
-                                                           placeholder="<?= lang('month') ?>"/>
-
-                                                    <input name="pcc_year" type="hidden" id="pcc_year" class="form-control"
-                                                           placeholder="<?= lang('year') ?>"/>
-
-                                                    <input name="pcc_ccv" type="hidden" id="pcc_cvv2" class="form-control"
-                                                           placeholder="<?= lang('cvv2') ?>"/>
-                                                </div>
-                                            </div>
-                                            <div class="pcheque" style="display:none;">
-                                                <div class="mb-3"><?= lang("cheque_no", "cheque_no"); ?>
-                                                    <input name="cheque_no" type="text" id="cheque_no" class="form-control cheque_no"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="clearfix"></div>
-                                    </div>
-
-                                </div>
-
-
-                                <div class="col-sm-12">
-                                    <button type="submit" class="btn btn-primary"><?= lang('pagar_deuda'); ?></button>
-                                </div>
-
-                                <?= form_close(); ?>
-                            </div>
-                        </div>
-                    <?php } ?>
-
-                </div>
-            </div>
+<!-- Filtros -->
+<div class="nxt-card" style="padding:16px 18px;margin-bottom:20px">
+    <?= form_open("reports/credit_customers"); ?>
+    <div class="row g-3 align-items-end">
+        <div class="col-sm-3">
+            <label class="form-label" for="customer"><?= lang('customer'); ?></label>
+            <?php
+            $cu[0] = lang("select") . " " . lang("customer");
+            foreach ($customers as $customer) { $cu[$customer->id] = $customer->name; }
+            echo form_dropdown('customer', $cu, set_value('customer'), 'class="form-select" id="customer"');
+            ?>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="user"><?= lang('user'); ?></label>
+            <?php
+            $us[""] = "";
+            foreach ($users as $user) { $us[$user->id] = $user->first_name . " " . $user->last_name; }
+            echo form_dropdown('user', $us, (isset($_POST['user']) ? $_POST['user'] : ""), 'class="form-select" id="user"');
+            ?>
+        </div>
+        <div class="col-sm-2">
+            <label class="form-label" for="start_date"><?= lang('start_date'); ?></label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="<?= set_value('start_date'); ?>">
+        </div>
+        <div class="col-sm-2">
+            <label class="form-label" for="end_date"><?= lang('end_date'); ?></label>
+            <input type="date" name="end_date" id="end_date" class="form-control" value="<?= set_value('end_date'); ?>">
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="nxt-btn" style="width:100%;justify-content:center"><?= lang('submit'); ?></button>
         </div>
     </div>
-</section>
+    <?= form_close(); ?>
+</div>
 
+<?php if ($this->input->post('customer') && isset($total_sales)) { ?>
+<div class="nxt-kpis">
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-violet)">
+        <div class="nxt-kpi-label"><?= lang('sales'); ?></div>
+        <div class="nxt-kpi-value"><?= $this->tec->formatMoney($total_sales->number, 0); ?></div>
+    </div>
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-a1)">
+        <div class="nxt-kpi-label"><?= lang('amount'); ?></div>
+        <div class="nxt-kpi-value"><?= $this->tec->formatMoney($total_sales->amount); ?></div>
+    </div>
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-emerald)">
+        <div class="nxt-kpi-label"><?= lang('paid'); ?></div>
+        <div class="nxt-kpi-value"><?= $this->tec->formatMoney($total_sales->paid); ?></div>
+    </div>
+    <div class="nxt-kpi" style="--kpi-c:var(--nx-amber)">
+        <div class="nxt-kpi-label"><?= lang('due'); ?></div>
+        <div class="nxt-kpi-value"><?= $this->tec->formatMoney($total_sales->amount - $total_sales->paid); ?></div>
+    </div>
+</div>
+<?php } ?>
 
-<script src="<?= $assets ?>plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"
-        type="text/javascript"></script>
-<script type="text/javascript">
-    $(function () {
-        $('.datetimepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD HH:mm'
-        });
-        $('.datepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD',
-            showClear: true,
-            showClose: true,
-            useCurrent: false,
-            widgetPositioning: {horizontal: 'auto', vertical: 'bottom'},
-            widgetParent: $('.dataTable tfoot')
-        });
+<div id="nxtList" style="margin-bottom:20px"></div>
+
+<?php if ($this->input->post('customer') && isset($total_sales)) { ?>
+<!-- Pago de deuda -->
+<div class="nxt-card" style="padding:16px 18px">
+    <h5 style="margin-bottom:14px;color:var(--nx-txt1)"><?= lang('pago_deuda_form'); ?></h5>
+    <?= form_open("reports/credit_customers/"); ?>
+    <?= form_hidden("customer", $this->input->post('customer')) ?>
+    <div class="row g-3 align-items-end">
+        <div class="col-sm-4">
+            <label class="form-label" for="amount"><?= lang('amount'); ?></label>
+            <input name="amount-paid" type="text" id="amount"
+                   value="<?= $total_sales->amount - $total_sales->paid ?>"
+                   class="form-control" required="required"/>
+        </div>
+        <div class="col-sm-4">
+            <label class="form-label" for="paid_by"><?= lang('paying_by'); ?></label>
+            <select name="paid_by" id="paid_by" class="form-select" required="required">
+                <option value="cash"><?= lang('cash'); ?></option>
+                <option value="CC"><?= lang('tarjeta'); ?></option>
+                <option value="Cheque"><?= lang('cheque'); ?></option>
+            </select>
+        </div>
+        <div class="col-sm-4 pcc" style="display:none;">
+            <label class="form-label" for="pcc_type"><?= lang('card_type'); ?></label>
+            <select name="pcc_type" id="pcc_type" class="form-select">
+                <option value="Debito"><?= lang('debito'); ?></option>
+                <option value="Visa"><?= lang('Visa'); ?></option>
+                <option value="MasterCard"><?= lang('MasterCard'); ?></option>
+            </select>
+            <input name="pcc_no" type="hidden" id="pcc_no"/>
+            <input name="pcc_holder" type="hidden" id="pcc_holder"/>
+            <input name="pcc_month" type="hidden" id="pcc_month"/>
+            <input name="pcc_year" type="hidden" id="pcc_year"/>
+            <input name="pcc_ccv" type="hidden" id="pcc_cvv2"/>
+        </div>
+        <div class="col-sm-4 pcheque" style="display:none;">
+            <label class="form-label" for="cheque_no"><?= lang('cheque_no'); ?></label>
+            <input name="cheque_no" type="text" id="cheque_no" class="form-control"/>
+        </div>
+        <div class="col-sm-4">
+            <button type="submit" class="nxt-btn" style="width:100%;justify-content:center"><?= lang('pagar_deuda'); ?></button>
+        </div>
+    </div>
+    <?= form_close(); ?>
+</div>
+<?php } ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var ST = { paid: ['<?= lang('paid'); ?>', 'ok'], partial: ['<?= lang('partial'); ?>', 'info'], due: ['<?= lang('due'); ?>', 'err'] };
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('reports/get_credit_customers/' . $v); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '1100px',
+        unit: '<?= lang('sales'); ?>'.toLowerCase(),
+        exportName: 'creditos_clientes',
+        search: ['date', 'customer_name'],
+        chips: { key: 'status', all: '<?= lang('todas'); ?>', label: function (v) { return (ST[v] || [v])[0]; }, sort: false },
+        totals: ['total', 'total_tax', 'total_discount', 'grand_total', 'paid', 'balance'],
+        columns: [
+            { key: 'date', label: '<?= lang('date'); ?>', sortable: 'str', render: function (r) { return '<span class="nxt-dim-mono">' + NxTable.esc(r.date) + '</span>'; } },
+            { key: 'customer_name', label: '<?= lang('customer'); ?>', sortable: 'str', render: function (r) { return '<span class="nxt-ent-name">' + NxTable.esc(r.customer_name) + '</span>'; } },
+            { key: 'total', label: '<?= lang('total'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total) + '</span>'; } },
+            { key: 'total_tax', label: '<?= lang('tax'); ?>', className: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total_tax) + '</span>'; } },
+            { key: 'total_discount', label: '<?= lang('discount'); ?>', className: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.total_discount) + '</span>'; } },
+            { key: 'grand_total', label: '<?= lang('grand_total'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.grand_total) + '</span>'; } },
+            { key: 'paid', label: '<?= lang('paid'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-offer">' + NxTable.money(r.paid) + '</span>'; } },
+            { key: 'balance', label: '<?= lang('balance'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.balance) + '</span>'; } },
+            { key: 'status', label: '<?= lang('status'); ?>', render: function (r) {
+                var s = ST[r.status] || [r.status, 'muted'];
+                return NxTable.badge(s[0], s[1]);
+            }, exportValue: function (r) { return (ST[r.status] || [r.status])[0]; } }
+        ],
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_ph'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>',
+            totals: '<?= lang('total'); ?>'
+        }
     });
-</script>
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
 
-
-<script type="text/javascript" charset="UTF-8">
-    $(document).ready(function () {
-
-        $('#gift_card_no').inputmask("9999 9999 9999 9999");
-        $(document).on('change', '.paid_by', function () {
-            var p_val = $(this).val();
-            if (p_val == 'gift_card') {
-                $('.gc').slideDown();
-                $('.ngc').slideUp('fast');
-                setTimeout(function () {
-                    $('#gift_card_no').focus();
-                }, 10);
-                $('#amount').attr('readonly', true);
-            } else {
-                $('.ngc').slideDown();
-                $('.gc').slideUp('fast');
-                $('#gc_details').html('');
-                $('#amount').attr('readonly', false);
-            }
-            if (p_val == 'cash' || p_val == 'other') {
-                $('.pcash').slideDown();
-                $('.pcheque').slideUp('fast');
-                $('.pcc').slideUp('fast');
-                setTimeout(function () {
-                    $('#amount').focus();
-                }, 10);
-            } else if (p_val == 'CC' || p_val == 'stripe') {
-                $('.pcc').slideDown();
-                $('.pcheque').slideUp('fast');
-                $('.pcash').slideUp('fast');
-                setTimeout(function () {
-                    $('#swipe').val('').focus();
-                }, 10);
-            } else if (p_val == 'Cheque') {
-                $('.pcheque').slideDown();
-                $('.pcc').slideUp('fast');
-                $('.pcash').slideUp('fast');
-                setTimeout(function () {
-                    $('#cheque_no').focus();
-                }, 10);
-            } else {
-                $('.pcheque').hide();
-                $('.pcc').hide();
-                $('.pcash').hide();
-            }
+    /* Mostrar campos según método de pago */
+    var pb = document.getElementById('paid_by');
+    if (pb) {
+        pb.addEventListener('change', function () {
+            document.querySelectorAll('.pcc').forEach(function (e) { e.style.display = pb.value === 'CC' ? '' : 'none'; });
+            document.querySelectorAll('.pcheque').forEach(function (e) { e.style.display = pb.value === 'Cheque' ? '' : 'none'; });
         });
-
-
-
-        $('#pcc_no').change(function (e) {
-            var cn = $(this).val();
-            var ccn1 = cn.charAt(0);
-            if (ccn1 == 4)
-                CardType = 'Visa';
-            else if (ccn1 == 5)
-                CardType = 'MasterCard';
-            else if (ccn1 == 3)
-                CardType = 'Amex';
-            else if (ccn1 == 6)
-                CardType = 'Discover';
-            else
-                CardType = 'Visa';
-
-            $('#pcc_type').setValue(CardType);
-        });
-
-    });
+    }
+});
 </script>

@@ -1,153 +1,96 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
-<input type="hidden" value="<?php echo strval($store->name) ?>" id="storename">
-<script type="text/javascript">
-        var storeName = $('#storename').val();
-        var today = new Date();
-        var dd = String(today.getDate()).padStart(2, '0');
-        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-        var yyyy = today.getFullYear();
-        today =  dd+ '-' + mm + '-' + yyyy;
-        var startdate =  $('#start_date').val()?$('#start_date').val(): today;
-    $(document).ready(function() {
-        function ptype(x) {
-            if (x == 'standard') {
-                return '<?= lang('standard'); ?>';
-            } else if (x == 'combo') {
-                return '<?= lang('combo'); ?>';
-            } else if (x == 'service') {
-                return '<?= lang('service'); ?>';
-            } else {
-                return x;
+
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('product_alerts'); ?>
+        <small><?= html_escape($store->name); ?> · <?= lang('requieren_reorden'); ?></small>
+    </div>
+    <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
+            <?= lang('exportar'); ?>
+        </button>
+        <a class="nxt-btn" href="<?= site_url('purchases/add'); ?>">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <?= lang('add_purchase'); ?>
+        </a>
+    </div>
+</div>
+
+<div id="nxtList"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var IS_ADMIN = <?= $Admin ? 'true' : 'false'; ?>;
+    var BASE = '<?= base_url(); ?>';
+    var TYPES = { standard: '<?= lang('standard'); ?>', combo: '<?= lang('combo'); ?>', service: '<?= lang('service'); ?>' };
+
+    var cols = [
+        { key: 'pname', label: '<?= lang('product'); ?>', sortable: 'str', render: function (r) {
+            if (r.image && r.image !== 'no_image.png') {
+                return '<div class="nxt-ent"><div class="nxt-avatar"><img src="' + BASE + 'uploads/thumbs/' + NxTable.esc(r.image) + '" alt="" loading="lazy"></div><div><div class="nxt-ent-name">' + NxTable.esc(r.pname) + '</div><div class="nxt-ent-meta">' + NxTable.esc(TYPES[r.type] || r.type) + '</div></div></div>';
             }
-        }
-        function image(n) {
-            if (n !== null) {
-                return '<div style="width:32px; margin: 0 auto;"><a href="<?=base_url();?>uploads/'+n+'" class="open-image"><img src="<?=base_url();?>uploads/thumbs/'+n+'" alt="" class="img-responsive"></a></div>';
-            }
-            return '';
-        }
-        function method(n) {
-            return (n == 0) ? '<span class="label label-primary"><?= lang('inclusive'); ?></span>' : '<span class="label label-warning"><?= lang('exclusive'); ?></span>';
-        }
-        var table = new Tabulator('#fileData', {
+            return NxTable.entity(r.pname, TYPES[r.type] || r.type, r.cname);
+        } },
+        { key: 'code', label: '<?= lang('code'); ?>', sortable: 'str', render: function (r) { return '<span class="nxt-code">' + NxTable.esc(r.code) + '</span>'; } },
+        { key: 'cname', label: '<?= lang('category'); ?>', render: function (r) { return r.cname ? NxTable.badge(r.cname, 'info') : '—'; } },
+        { key: 'quantity', label: '<?= lang('quantity'); ?>', className: 'num', sortable: 'num', render: function (r) {
+            var qty = parseFloat(r.quantity) || 0;
+            var min = parseFloat(r.alert_quantity) || 0;
+            var st = qty <= 0 ? 's-out' : 's-low';
+            var lbl = qty <= 0 ? '<?= lang('agotado'); ?>' : '<?= lang('stock_bajo_tag'); ?>';
+            var pct = min > 0 ? Math.max(6, Math.min(100, qty / (min * 3) * 100)) : 0;
+            return '<div class="nxt-stock ' + st + '"><div class="nxt-stock-top"><span class="nxt-stock-n">' + NxTable.qty(qty) + '</span><span class="nxt-stock-state">' + lbl + '</span></div><div class="nxt-bar"><i style="width:' + pct + '%"></i></div></div>';
+        } },
+        { key: 'alert_quantity', label: '<?= lang('alert_quantity'); ?>', className: 'num', render: function (r) { return '<span class="nxt-dim-mono">' + NxTable.qty(r.alert_quantity) + '</span>'; } }
+    ];
+    if (IS_ADMIN) {
+        cols.push({ key: 'cost', label: '<?= lang('cost'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-cost">' + NxTable.money(r.cost) + '</span>'; } });
+    }
+    cols.push({ key: 'price', label: '<?= lang('price'); ?>', className: 'num', sortable: 'num', render: function (r) { return '<span class="nxt-price">' + NxTable.money(r.price) + '</span>'; } });
+    cols.push({ key: 'Actions', label: '<?= lang('actions'); ?>', noExport: true, render: function (r) {
+        return '<div class="nxt-actions"><a href="#" class="nxt-icon-btn js-ap" data-id="' + NxTable.esc(r.id) + '" title="<?= lang('add_to_purcahse_order'); ?>"><i class="fa fa-plus"></i></a></div>';
+    } });
 
-            'ajax' : { url: '<?=site_url('reports/get_alerts');?>', type: 'POST', "data": function ( d ) {
-                d.<?=$this->security->get_csrf_token_name();?> = "<?=$this->security->get_csrf_hash()?>";
-            }},
-            "buttons": [
-            { extend: 'copyHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'excelHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'csvHtml5', 'footer': true, exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'pdfHtml5', orientation: 'landscape', pageSize: 'A4', 'footer': true,
-            exportOptions: { columns: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ] } },
-            { extend: 'colvis', text: 'Columns'},
-            ],
-            "columns": [
-            { "data": "id", "visible": false },
-            { "data": "image", "render": image },
-            { "data": "code" },
-            { "data": "pname" },
-            { "data": "type" },
-            { "data": "cname" },
-            { "data": "quantity", "render": quantityFormat },
-            { "data": "alert_quanity", "render": quantityFormat },
-            { "data": "tax" },
-            { "data": "tax_method", "render": method },
-            { "data": "cost", "render": currencyFormat, "searchable": false },
-            { "data": "price", "render": currencyFormat, "searchable": false },
-            { "data": "Actions", "searchable": false, "orderable": false }
-            ],
-        });
+    var t = new NxTable({
+        el: '#nxtList',
+        url: '<?= site_url('reports/get_alerts'); ?>',
+        csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
+        minWidth: '1000px',
+        unit: '<?= lang('products'); ?>'.toLowerCase(),
+        exportName: 'alertas_stock',
+        search: ['code', 'pname', 'cname'],
+        chips: { key: 'cname', all: '<?= lang('todas'); ?>' },
+        columns: cols,
+        i18n: {
+            searchPlaceholder: '<?= lang('buscar_nombre_codigo'); ?>',
+            loading: '<?= lang('loading_data_from_server'); ?>',
+            empty: '<?= lang('sin_resultados'); ?>',
+            showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>'
+        }
+    });
+    document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
 
-        $('#fileData').on('click', '.open-image', function() {
-            var a_href = $(this).attr('href');
-            $('#product_image').attr('src',a_href);
-            $('#picModal').modal();
-            return false;
-        });
-
-        $('#fileData').on('click', '.ap', function() {
-            var id = $(this).attr('data-id');
-            $.get( "<?= site_url('purchases/suggestions'); ?>/"+id )
-            .done(function( data ) {
-                var item = JSON.parse(data);
-                if (get('spoitems')) {
-                    var spoitems = JSON.parse(get('spoitems'));
-                } else {
-                    var spoitems = {};
-                }
-                var item_id = Settings.item_addition == 1 ? item.item_id : item.id;
+    /* Agregar a orden de compra (spoitems en localStorage, igual que purchases/add) */
+    document.getElementById('nxtList').addEventListener('click', function (e) {
+        var a = e.target.closest('.js-ap');
+        if (!a) return;
+        e.preventDefault();
+        fetch('<?= site_url('purchases/suggestions'); ?>/' + a.dataset.id, { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (item) {
+                var S = window._appSettings || {};
+                var spoitems = {};
+                try { spoitems = JSON.parse(localStorage.getItem('spoitems')) || {}; } catch (err) {}
+                var item_id = S.item_addition == 1 ? item.item_id : item.id;
                 if (spoitems[item_id]) {
                     spoitems[item_id].row.qty = parseFloat(spoitems[item_id].row.qty) + 1;
                 } else {
                     spoitems[item_id] = item;
                 }
-                store('spoitems', JSON.stringify(spoitems));
-                $('#custom-alerts').find('.alert').addClass('alert-success');
-                $('#custom-alerts').find('.custom-msg').text('<?= lang('po_item_added'); ?> '+spoitems[item_id].label+' = '+spoitems[item_id].row.qty);
-                setin$('#custom-alerts').show();
+                localStorage.setItem('spoitems', JSON.stringify(spoitems));
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '<?= lang('po_item_added'); ?> ' + spoitems[item_id].label + ' = ' + spoitems[item_id].row.qty, showConfirmButton: false, timer: 2500 });
             });
-            return false;
-        });
-
     });
-
+});
 </script>
-<style type="text/css">
-    .table td:first-child { padding: 1px; }
-    .table td:nth-child(6), .table td:nth-child(7), .table td:nth-child(8), .table td:nth-child(9) { text-align: center; }
-    .table td:nth-child(10), .table td:nth-child(11) { text-align: right; }
-</style>
-<section class="content">
-    <div class="row">
-        <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('list_results'); ?></h3>
-                </div>
-                <div class="box-body">
-                        <div class="table-responsive">
-                <div class="table-responsive">
-                        <table id="fileData" class="table table-striped table-bordered table-hover" style="margin-bottom:5px;">
-                            <thead>
-                            <tr class="active">
-                                <th style="max-width:30px;"><?= lang("id"); ?></th>
-                                <th style="max-width:30px;"><?= lang("image"); ?></th>
-                                <th class="col-1"><?= lang("code"); ?></th>
-                                <th><?= lang("name"); ?></th>
-                                <th class="col-1"><?= lang("type"); ?></th>
-                                <th class="col-1"><?= lang("category"); ?></th>
-                                <th class="col-1"><?= lang("quantity"); ?></th>
-                                <th class="col-1"><?= lang("alert_quanity"); ?></th>
-                                <th class="col-1"><?= lang("tax"); ?></th>
-                                <th class="col-1"><?= lang("method"); ?></th>
-                                <th class="col-1"><?= lang("cost"); ?></th>
-                                <th class="col-1"><?= lang("price"); ?></th>
-                                <th style="width:35px;"><?= lang("actions"); ?></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td colspan="13" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                </div>
-                        </div>
-
-                        <div class="modal fade" id="picModal" tabindex="-1" role="dialog" aria-labelledby="picModalLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-sm">
-                                <div class="modal-content">
-                                    <div class="modal-body text-center">
-                                        <img id="product_image" src="" alt="" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
