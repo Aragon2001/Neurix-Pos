@@ -147,18 +147,18 @@ class Search extends MY_Controller
      */
     private function _search_sales($query)
     {
-        $this->db->select('s.id, s.customer_name, s.total, s.date, h.numero_comprobante');
+        $this->db->select('s.id, s.customer_name, s.total, s.date, h.consecutivo');
         $this->db->from('sales s');
         $this->db->join('hacienda_tiketes h', 'h.sale_id = s.id', 'left');
 
-        $this->db->where('(CAST(s.id AS CHAR) LIKE ? OR s.customer_name LIKE ? OR h.numero_comprobante LIKE ?)',
+        $this->db->where('(CAST(s.id AS CHAR) LIKE ? OR s.customer_name LIKE ? OR h.consecutivo LIKE ?)',
                         ["%{$query}%", "%{$query}%", "%{$query}%"], false);
         $this->db->limit(8);
         $sales = $this->db->get()->result();
 
         $results = [];
         foreach ($sales as $sale) {
-            $numero = $sale->numero_comprobante ? $sale->numero_comprobante : '#' . $sale->id;
+            $numero = $sale->consecutivo ? $sale->consecutivo : '#' . $sale->id;
             $formatted_total = $this->settings->currency_prefix . ' ' .
                 number_format($sale->total, $this->settings->decimals,
                 $this->settings->decimals_sep, $this->settings->thousands_sep);
