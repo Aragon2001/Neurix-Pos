@@ -73,6 +73,9 @@ CREATE TABLE `tec_users` (
   `store_id` INT(11) DEFAULT 1,
   `group_id` INT(11) DEFAULT NULL,
   `auth_open` TINYINT(1) NOT NULL DEFAULT 0,   -- add_column MY_Controller.php:108
+  `last_ip_address` VARCHAR(45) DEFAULT NULL,  -- confirmada Auth_model.php:1095
+  `avatar` VARCHAR(150) DEFAULT NULL,          -- confirmada Auth_model.php:1469
+  `gender` VARCHAR(20) DEFAULT NULL,           -- confirmada Auth_model.php:1135
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

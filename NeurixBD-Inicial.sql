@@ -57,6 +57,9 @@ CREATE TABLE `tec_users` (
   `store_id` INT(11) DEFAULT 1,
   `group_id` INT(11) DEFAULT NULL,
   `auth_open` TINYINT(1) NOT NULL DEFAULT 0,
+  `last_ip_address` VARCHAR(45) DEFAULT NULL,
+  `avatar` VARCHAR(150) DEFAULT NULL,
+  `gender` VARCHAR(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
