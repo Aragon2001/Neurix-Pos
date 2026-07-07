@@ -51,7 +51,6 @@ class PosRegister extends MY_Controller
 
     function close_register($user_id = NULL) {
 
-        $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         if (!$this->Admin) {
             $user_id = $this->session->userdata('user_id');
         }

@@ -82,7 +82,14 @@ export class NxGlobalSearch {
 
   async search(query) {
     try {
-      const response = await fetch(`${window.base_url}search/global_search?q=${encodeURIComponent(query)}`)
+      // El backend exige is_ajax_request() (X-Requested-With) — fetch() nativo,
+      // a diferencia de jQuery.ajax(), no lo agrega automáticamente. Sin esto
+      // el servidor respondía 400 {"error":"Solo AJAX"} y el panel quedaba
+      // vacío en silencio (esa forma de respuesta no calza con ninguna
+      // categoría esperada en renderResults, así que nunca se veía el error).
+      const response = await fetch(`${window.base_url}search/global_search?q=${encodeURIComponent(query)}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      })
       const data = await response.json()
 
       this.renderResults(data, query)
@@ -105,6 +112,12 @@ export class NxGlobalSearch {
       { key: 'products', label: '📦 Productos', icon: 'package' },
       { key: 'customers', label: '👥 Clientes', icon: 'users' },
       { key: 'sales', label: '🛒 Ventas', icon: 'cart' },
+      { key: 'creditnotes', label: '📄 Notas de crédito', icon: 'file-text' },
+      { key: 'debitnotes', label: '📄 Notas de débito', icon: 'file-text' },
+      { key: 'purchases', label: '🛍️ Compras', icon: 'shopping-bag' },
+      { key: 'suppliers', label: '🚚 Proveedores', icon: 'truck' },
+      { key: 'categories', label: '🏷️ Categorías', icon: 'tags' },
+      { key: 'users', label: '👤 Usuarios', icon: 'user' },
     ]
 
     for (const cat of categories) {
@@ -175,6 +188,16 @@ export class NxGlobalSearch {
       'file-text': '📄',
       'settings': '⚙️',
       'user': '👤',
+      'supplier': '🚚',
+      'category': '🏷️',
+      'creditnote': '📄',
+      'debitnote': '📄',
+      'purchase': '🛍️',
+      'cloud': '☁️',
+      'coin': '🪙',
+      'briefcase': '💼',
+      'store': '🏬',
+      'database': '🗄️',
     }
     return icons[type] || '📌'
   }

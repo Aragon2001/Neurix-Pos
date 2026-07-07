@@ -38,7 +38,6 @@ class PosView extends MY_Controller
         $this->data['modal'] = $noprint ? true : false;
         $this->data['payments'] = $this->pos_model->getAllSalePayments($sale_id);
         $this->data['created_by'] = $this->site->getUser($inv->created_by);
-        $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         //$this->data['store'] = $this->site->getStoreByID($inv->store_id);
         $this->data['page_title'] = lang("invoice");
         $this->data['hacienda'] = $this->hacienda_model->getInvoice($sale_id);
@@ -76,7 +75,6 @@ class PosView extends MY_Controller
         $this->data['modal'] = $noprint ? true : false;
         $this->data['payments'] = null;
         $this->data['created_by'] = $this->site->getUser($inv->created_by);
-        $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         $this->data['store'] = $this->site->getStoreByID($inv->store_id);
         $this->data['page_title'] = lang("invoice");
 
@@ -110,7 +108,6 @@ class PosView extends MY_Controller
         $this->data['noprint'] = $noprint;
         $this->data['modal'] = $noprint ? true : false;
         $this->data['created_by'] = $this->site->getUser($inv->created_by);
-        $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         $this->data['store'] = $this->site->getStoreByID($inv->store_id);
         $this->data['page_title'] = lang("invoice");
         $this->data['hacienda'] = $this->hacienda_model->getCN($id_cn);

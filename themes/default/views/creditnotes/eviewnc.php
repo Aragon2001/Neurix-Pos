@@ -1,4 +1,5 @@
 ﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php $type_document = 3; ?>
 
 <?php
 if ($modal) {
@@ -203,15 +204,7 @@ if ($modal) {
                             <?php if ($modal) { ?>
                             <div class="btn-group btn-group-justified" role="group" aria-label="...">
                                 <div class="btn-group" role="group">
-                                    <?php
-                                    if ( ! $Settings->remote_printing) {
-                                        echo '<button data-receipt="'.$inv->id.'" onclick="return print_receipt(0)" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                                    } elseif ($Settings->remote_printing == 1) {
-                                        echo '<button onclick="window.print();" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                                    } else {
-                                        echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                                    }
-                                    ?>
+                                    <button onclick="return printReceipt()" class="btn btn-block btn-primary"><?= lang("print"); ?></button>
                                 </div>
                                 <div class="btn-group" role="group">
                                     <a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a>
@@ -222,17 +215,8 @@ if ($modal) {
                             </div>
                             <?php } else { ?>
                             <span class="float-end col-12">
-                                <?php
-                                if ( ! $Settings->remote_printing) {
-                                    echo '<button data-receipt="'.$inv->id.'" onclick="return print_receipt(1)" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                                    echo '<a href="'.site_url('pos/open_drawer/').'" class="btn btn-block btn-default">'.lang("open_cash_drawer").'</a>';
-                                } elseif ($Settings->remote_printing == 1) {
-                                    echo '<button onclick="window.print();" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                                } else {
-                                    echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                                    echo '<button onclick="return openCashDrawer()" class="btn btn-block btn-default">'.lang("open_cash_drawer").'</button>';
-                                }
-                                ?>
+                                <button onclick="return printReceipt()" class="btn btn-block btn-primary"><?= lang("print"); ?></button>
+                                <button onclick="return openCashDrawer()" class="btn btn-block btn-default"><?= lang("open_cash_drawer"); ?></button>
                             </span>
                             <span class="float-start col-12"><a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a></span>
                             <span class="col-12">
@@ -290,7 +274,7 @@ if ($modal) {
                         });
                     });
                 </script>
-                <?php include 'remote_printing.php'; ?>
+                <?php include FCPATH.'themes/default/views/pos/remote_printing.php'; ?>
                 <?php
                 if ($modal) {
                     ?>

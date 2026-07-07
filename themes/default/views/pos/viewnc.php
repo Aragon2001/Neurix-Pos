@@ -1,4 +1,5 @@
 ﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php $type_document = 3; ?>
 
 <?php
 if ($modal) {
@@ -256,15 +257,7 @@ if ($modal) {
                         <?php if ($modal) { ?>
                             <div class="btn-group btn-group-justified" role="group" aria-label="...">
                                 <div class="btn-group" role="group">
-                                    <?php
-                                    if (!$Settings->remote_printing) {
-                                        echo '<a href="' . site_url('creditnotes/print_receipt/' . $inv->id . '/0') . '" id="print" class="btn btn-block btn-primary">' . lang("print") . '</a>';
-                                    } elseif ($Settings->remote_printing == 1) {
-                                        echo '<button onclick="window.print();" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                    } else {
-                                        echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                    }
-                                    ?>
+                                    <button onclick="return printReceipt()" class="btn btn-block btn-primary"><?= lang("print"); ?></button>
                                 </div>
                                 <div class="btn-group" role="group">
                                     <a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a>
@@ -276,17 +269,8 @@ if ($modal) {
                             </div>
                         <?php } else { ?>
                             <span class="float-end col-12">
-                                <?php
-                                if (!$Settings->remote_printing) {
-                                    echo '<a href="' . site_url('creditnotes/print_receipt/' . $inv->id . '/null') . '" id="print" class="btn btn-block btn-primary">' . lang("print") . '</a>';
-                                    echo '<a href="' . site_url('creditnotes/open_drawer/') . '" class="btn btn-block btn-default">' . lang("open_cash_drawer") . '</a>';
-                                } elseif ($Settings->remote_printing == 1) {
-                                    echo '<button onclick="window.print();" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                } else {
-                                    echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                    echo '<button onclick="return openCashDrawer()" class="btn btn-block btn-default">' . lang("open_cash_drawer") . '</button>';
-                                }
-                                ?>
+                                <button onclick="return printReceipt()" class="btn btn-block btn-primary"><?= lang("print"); ?></button>
+                                <button onclick="return openCashDrawer()" class="btn btn-block btn-default"><?= lang("open_cash_drawer"); ?></button>
                             </span>
                             <span class="float-start col-12"><a class="btn btn-block btn-success" href="#"
                                                                  id="email"><?= lang("email"); ?></a></span>
@@ -317,6 +301,7 @@ if ($modal) {
                 <?php
             }
             ?>
+            <?php include 'remote_printing.php'; ?>
             <script type="text/javascript">
                 $(document).ready(function () {
                     $('#print').click(function (e) {

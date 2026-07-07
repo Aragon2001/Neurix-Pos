@@ -451,6 +451,72 @@ class PosPrint extends MY_Controller
         }
     }
 
+    /**
+     * Gathers sale/items/payments/store/created_by for a receipt, shared by
+     * print_receipt() (legacy direct-connector printing) and receipt_bytes()
+     * (QZ Tray flow: bytes generated here, printed by the browser).
+     */
+    private function _load_receipt_context($id, $type_document, $haciendaInvo) {
+        if ($type_document == 3) {
+            $sale = $this->pos_model->getCreditNoteByID($id);
+            $sale->hacienda = $this->hacienda_model->getCN($id);
+            $sale->type_doc = lang("elect_credit_note");
+            $sale->footerhacienda = $this->Settings->footer_hacienda_nc;
+            $items = $this->pos_model->getAllCreditNotesItems($id);
+            // La NC debe referenciar la factura original en el ticket físico
+            // (obligatorio para Hacienda); derivarla aquí si no vino dada.
+            if (!$haciendaInvo) {
+                $haciendaInvo = $this->hacienda_model->getInvoice($sale->sale_id);
+            }
+        } else if ($type_document == 1) {
+            $sale = $this->pos_model->getSaleByID($id);
+            $sale->hacienda = $this->hacienda_model->getInvoice($id);
+            $sale->type_doc = lang('electronic_bill');
+            $sale->footerhacienda = $this->Settings->footer_hacienda_fe;
+            $items = $this->pos_model->getAllSaleItems($id);
+        } else if ($type_document == 20) {
+            $sale = $this->pos_model->getApartadoSalesID($id);
+            $sale->hacienda = null;
+            $sale->type_doc = "Recibo de apartado";
+            $sale->footerhacienda = $this->Settings->footer_apartado;
+            $items = $this->pos_model->getApartadoSaleItems($id);
+        } else if ($type_document == 21) {
+            $sale = $this->pos_model->getQuotesSalesID($id);
+            $sale->hacienda = null;
+            $sale->type_doc = "Proforma";
+            $sale->footerhacienda = $this->Settings->footer_apartado;
+            $items = $this->pos_model->getQuotesSaleItems($id);
+        } else if ($type_document == 22) {
+            $sale = $this->pos_model->getSuspendedSaleByID($id);
+            $sale->hacienda = null;
+            $sale->type_doc = "Recibo de estacionamiento";
+            $items = $this->pos_model->getSuspendedSaleItems($id);
+        } else if ($type_document == 23) {
+            $sale = $this->pos_model->getSuspendedSaleByID($id);
+            $sale->hacienda = null;
+            $sale->type_doc = "Comanda Cocina";
+            $items = $this->pos_model->getSuspendedSaleItems($id);
+        }
+        if ($type_document != 20 and $type_document != 21 and $type_document != 22) {
+            $sale->invice_barcode = $this->invice_barcode_2($sale->hacienda->consecutivo, 'code128', 60);
+            $payments = $this->pos_model->getAllSalePayments($id);
+        } else {
+            $sale->invice_barcode = "";
+            $payments = $this->pos_model->getAllApartadoPayments($id);
+        }
+
+        $sale->customer = $this->pos_model->getCustomerByID($sale->customer_id);
+        $sale->haciendaInvo = $haciendaInvo;
+
+        return array(
+            'store' => $this->site->getStoreByID($sale->store_id),
+            'sale' => $sale,
+            'items' => $items,
+            'payments' => $payments,
+            'created_by' => $this->site->getUser($sale->created_by),
+        );
+    }
+
     function print_receipt($id, $open_drawer = false, $type_document = 1, $haciendaInvo = null) {
         $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
 
@@ -463,59 +529,27 @@ class PosPrint extends MY_Controller
                 redirect($redirect_to);
             }
         } else {
-            if ($type_document == 3) {
-                $sale = $this->pos_model->getCreditNoteByID($id);
-                $sale->hacienda = $this->hacienda_model->getCN($id);
-                // $sale->hacienda->tipo_doc = "3";
-                $sale->type_doc = lang("elect_credit_note");
-                $sale->footerhacienda = $this->Settings->footer_hacienda_nc;
-                $items = $this->pos_model->getAllCreditNotesItems($id);
-            } else if ($type_document == 1) {
-                $sale = $this->pos_model->getSaleByID($id);
-                $sale->hacienda = $this->hacienda_model->getInvoice($id);
-                $sale->type_doc = lang('electronic_bill');
-                $sale->footerhacienda = $this->Settings->footer_hacienda_fe;
-                $items = $this->pos_model->getAllSaleItems($id);
-            } else if ($type_document == 20) {
-                $sale = $this->pos_model->getApartadoSalesID($id);
-                $sale->hacienda = null;
-                $sale->type_doc = "Recibo de apartado";
-                $sale->footerhacienda = $this->Settings->footer_apartado;
-                $items = $this->pos_model->getApartadoSaleItems($id);
-            } else if ($type_document == 21) {
-                $sale = $this->pos_model->getQuotesSalesID($id);
-                $sale->hacienda = null;
-                $sale->type_doc = "Proforma";
-                $sale->footerhacienda = $this->Settings->footer_apartado;
-                $items = $this->pos_model->getQuotesSaleItems($id);
-            } else if ($type_document == 22) {
-                $sale = $this->pos_model->getSuspendedSaleByID($id);
-                $sale->hacienda = null;
-                $sale->type_doc = "Recibo de estacionamiento";
-                $items = $this->pos_model->getSuspendedSaleItems($id);
-            } else if ($type_document == 23) {
-                $sale = $this->pos_model->getSuspendedSaleByID($id);
-                $sale->hacienda = null;
-                $sale->type_doc = "Comanda Cocina";
-                $items = $this->pos_model->getSuspendedSaleItems($id);
-            }
-            if ($type_document != 20 and $type_document != 21 and $type_document != 22) {
-                $sale->invice_barcode = $this->invice_barcode_2($sale->hacienda->consecutivo, 'code128', 60);
-                $payments = $this->pos_model->getAllSalePayments($id);
-            } else {
-                $sale->invice_barcode = "";
-                $payments = $this->pos_model->getAllApartadoPayments($id);
-            }
-
-            $sale->customer = $this->pos_model->getCustomerByID($sale->customer_id);
-
-            $store = $this->site->getStoreByID($sale->store_id);
-            $created_by = $this->site->getUser($sale->created_by);
-            $sale->haciendaInvo = $haciendaInvo;
+            $ctx = $this->_load_receipt_context($id, $type_document, $haciendaInvo);
             $this->load->library('escpos');
             $this->escpos->load($printer);
-            $this->escpos->print_receipt($store, $sale, $items, $payments, $created_by, $open_drawer);
+            $this->escpos->print_receipt($ctx['store'], $ctx['sale'], $ctx['items'], $ctx['payments'], $ctx['created_by'], $open_drawer);
         }
+    }
+
+    /**
+     * Renders a receipt to raw ESC/POS bytes (base64) instead of sending it
+     * to a physical connector, so the browser can print it via QZ Tray on
+     * whichever printer this terminal has configured locally.
+     */
+    function receipt_bytes($id, $type_document = 1, $haciendaInvo = null) {
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_content_type('application/json')->set_output(json_encode(['status' => 0]));
+        }
+        $ctx = $this->_load_receipt_context($id, $type_document, $haciendaInvo);
+        $this->load->library('escpos');
+        $this->escpos->loadBuffer();
+        $this->escpos->print_receipt($ctx['store'], $ctx['sale'], $ctx['items'], $ctx['payments'], $ctx['created_by'], false);
+        echo json_encode(['status' => 1, 'bytes' => $this->escpos->getBufferedData()]);
     }
 
     function print_cuenta($id, $open_drawer = false, $type_document = 1, $haciendaInvo = null) {
@@ -534,28 +568,76 @@ class PosPrint extends MY_Controller
         $this->escpos->print_receipt_suspended($store, $sale, $items, $payments, $created_by, $open_drawer);
     }
 
-    function receipt_img() {
-
-        $data = $this->input->post('img', TRUE);
-        $filename = date('Y-m-d-H-i-s-') . uniqid() . '.png';
-        $cd = !empty($this->input->post('cd')) ? true : false;
-        $imgData = str_replace(' ', '+', $data);
-        $imgData = base64_decode($imgData);
-        file_put_contents('files/receipts/' . $filename, $imgData);
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
+    /**
+     * QZ Tray variant of print_cuenta(): returns raw ESC/POS bytes (base64)
+     * instead of printing directly.
+     */
+    function cuenta_bytes($id) {
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_content_type('application/json')->set_output(json_encode(['status' => 0]));
+        }
+        $sale = $this->pos_model->getSuspendedSaleByID($id);
+        $sale->hacienda = null;
+        $sale->type_doc = "Comanda Cocina";
+        $items = $this->pos_model->getSuspendedSaleItems($id);
+        $sale->customer = $this->pos_model->getCustomerByID($sale->customer_id);
+        $store = $this->site->getStoreByID($sale->store_id);
+        $created_by = $this->site->getUser($sale->created_by);
+        $sale->haciendaInvo = null;
         $this->load->library('escpos');
-        $this->escpos->load($printer);
-        $this->escpos->print_img($filename, $cd);
+        $this->escpos->loadBuffer();
+        $this->escpos->print_receipt_suspended($store, $sale, $items, null, $created_by, false);
+        echo json_encode(['status' => 1, 'bytes' => $this->escpos->getBufferedData()]);
     }
 
-    function open_drawer() {
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        if (!$printer) return;
-        $printer->ip = $this->Settings->ip_printer;
-        $printer->nombrecompartido = $this->Settings->nombrecompartido;
+    /**
+     * Cash-drawer pulse for the routine "open drawer to give change" button
+     * shown right after a sale — no PIN required, same as the legacy
+     * open_drawer() behavior. The PIN-gated quick command lives in
+     * verify_drawer_pin(), used by the standalone POS toolbar button.
+     */
+    function drawer_bytes() {
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_content_type('application/json')->set_output(json_encode(['status' => 0]));
+        }
         $this->load->library('escpos');
-        $this->escpos->load($printer);
+        $this->escpos->loadBuffer();
         $this->escpos->open_drawer();
+        echo json_encode(['status' => 1, 'bytes' => $this->escpos->getBufferedData()]);
+    }
+
+    /**
+     * Validates a cash-drawer PIN against every admin user with one
+     * configured, and returns the ESC/POS pulse bytes for QZ Tray to print
+     * on success. Every attempt (success or failure) is audited via
+     * AuditLog_model so any admin's PIN usage is traceable.
+     */
+    function verify_drawer_pin() {
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_content_type('application/json')->set_output(json_encode(['status' => 0]));
+        }
+        $this->load->model('AuditLog_model', 'audit_log');
+        $pin = trim((string) $this->input->post('pin'));
+        $matched = null;
+        if ($pin !== '') {
+            foreach ($this->site->getAdminUsersWithDrawerPin() as $admin) {
+                if (password_verify($pin, $admin->drawer_pin)) {
+                    $matched = $admin;
+                    break;
+                }
+            }
+        }
+
+        if ($matched) {
+            $this->audit_log->log('drawer_open_success', 'drawer', (int) $this->session->userdata('user_id'), 'PIN de ' . $matched->username);
+            $this->load->library('escpos');
+            $this->escpos->loadBuffer();
+            $this->escpos->open_drawer();
+            echo json_encode(['status' => 1, 'bytes' => $this->escpos->getBufferedData()]);
+        } else {
+            $this->audit_log->log('drawer_open_failed', 'drawer', (int) $this->session->userdata('user_id'), 'PIN invalido');
+            echo json_encode(['status' => 0, 'msg' => lang('wrong_pin')]);
+        }
     }
 
     function p($bo = 'order') {

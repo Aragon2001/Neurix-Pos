@@ -1,4 +1,5 @@
 ﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php $type_document = 21; ?>
 
 <?php
 if ($modal) {
@@ -238,15 +239,7 @@ if ($modal) {
                         <?php if ($modal) { ?>
                             <div class="btn-group btn-group-justified" role="group" aria-label="...">
                                 <div class="btn-group" role="group">
-                                    <?php
-                                    if (!$Settings->remote_printing) {
-                                        echo '<a href="' . site_url('pos/print_receipt/' . $inv->id . '/0') . '" id="print" class="btn btn-block btn-primary">' . lang("print") . '</a>';
-                                    } elseif ($Settings->remote_printing == 1) {
-                                        echo '<button onclick="window.print();" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                    } else {
-                                        echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                    }
-                                    ?>
+                                    <button onclick="return printReceipt()" class="btn btn-block btn-primary"><?= lang("print"); ?></button>
                                 </div>
                                 <div class="btn-group" role="group">
                                     <a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a>
@@ -258,15 +251,7 @@ if ($modal) {
                             </div>
                         <?php } else { ?>
                             <span class="float-end col-12">
-                                <?php
-                                if ($printer->type == "windows") {
-                                    echo '<a href="' . site_url('pos/print_receipt/' . $inv->id . '/true/21') . '" id="print" class="btn btn-block btn-primary">' . lang("print") . '</a>';
-                                } elseif ($printer->type == "web") {
-                                    echo '<button onclick="window.print();" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                } else {
-                                    echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">' . lang("print") . '</button>';
-                                }
-                                ?>
+                                <button onclick="return printReceipt()" class="btn btn-block btn-primary"><?= lang("print"); ?></button>
                             </span>
                             <span class="float-start col-12"><a class="btn btn-block btn-success" href="#"
                                                                  id="email"><?= lang("email"); ?></a></span>

@@ -40,25 +40,28 @@
 </section>
 
 <script>
-    $(function () {
-        $('#cash_in_hand').keypress(function (event) {
+    (function () {
+        var cashInput = document.getElementById('cash_in_hand');
+        var openBtn = document.getElementById('open_register');
+        var form = document.getElementById('open-register-form');
+
+        if (!cashInput || !openBtn || !form) {
+            return;
+        }
+
+        cashInput.addEventListener('keypress', function (event) {
             if (event.keyCode === 10 || event.keyCode === 13) {
                 event.preventDefault();
                 return false;
             }
         });
 
-
-        $('#open_register').on('click', function () {
-            if ($('#cash_in_hand').val()) {
-                cih = $('#cash_in_hand').val();
-                if (is_numeric(cih)) {
-                    $('#open-register-form').submit();
-                    $('#open_register').css('display', 'none');
-                }
+        openBtn.addEventListener('click', function () {
+            var cih = cashInput.value;
+            if (cih && is_numeric(cih)) {
+                form.submit();
+                openBtn.style.display = 'none';
             }
         });
-
-    });
-
+    })();
 </script>

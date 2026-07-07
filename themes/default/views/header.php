@@ -23,9 +23,14 @@
     <?= $Settings->rtl ? '<link href="' . base_url('themes/default/assets/dist/css/rtl.css') . '" rel="stylesheet">' : ''; ?>
     <script>
     (function(){
+        // document.body todavía no existe aquí (estamos en <head>) — solo tocar
+        // document.documentElement, que sí está disponible desde el inicio del parseo.
+        // Antes esto intentaba document.body.setAttribute(...) y lanzaba TypeError,
+        // lo que abortaba el resto de este <script> y dejaba window.base_url sin
+        // definir — rompiendo en silencio cualquier fetch() que dependiera de él
+        // (p.ej. la búsqueda global, que terminaba pidiendo "undefinedsearch/...").
         var t = localStorage.getItem('nx-theme') || 'dark';
         document.documentElement.setAttribute('data-bs-theme', t);
-        document.body.setAttribute('data-theme', t);
     })();
     // Exponer URL base para AJAX
     window.base_url = '<?= base_url(); ?>';
@@ -33,6 +38,7 @@
     <script src="<?= $nx_v('themes/default/assets/dist/js/main.min.js'); ?>" defer></script>
 </head>
 <body class="layout-fixed sidebar-expand-lg">
+<script>document.body.setAttribute('data-theme', localStorage.getItem('nx-theme') || 'dark')</script>
 <div class="app-wrapper">
 
 <?php
@@ -486,8 +492,6 @@ $ti = [
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item" id="settings_index"><a href="<?= site_url('settings'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['settings'], 14); ?></span><p><?= lang('settings'); ?></p></a></li>
-                        <li class="nav-item" id="settings_actividad"><a href="<?= site_url('settings/actividad'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['briefcase'], 14); ?></span><p><?= lang('actividad'); ?></p></a></li>
-                        <li class="nav-item" id="settings_actividad_add"><a href="<?= site_url('settings/add_actividad'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['plus'], 14); ?></span><p><?= lang('add_actividad'); ?></p></a></li>
                         <?php if ($Settings->is_shipping == 1): ?>
                         <li class="nav-item" id="settings_shipping"><a href="<?= site_url('settings/shipping'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['truck'], 14); ?></span><p><?= lang('shipping_method'); ?></p></a></li>
                         <li class="nav-item" id="settings_shipping_add"><a href="<?= site_url('settings/add_shipping'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['plus'], 14); ?></span><p><?= lang('add_shipping'); ?></p></a></li>
@@ -500,8 +504,6 @@ $ti = [
                         <?php if ($Settings->multi_store): ?>
                         <li class="nav-item" id="settings_add_store"><a href="<?= site_url('settings/add_store'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['plus'], 14); ?></span><p><?= lang('add_store'); ?></p></a></li>
                         <?php endif; ?>
-                        <li class="nav-item" id="settings_printers"><a href="<?= site_url('settings/printers'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['printer'], 14); ?></span><p><?= lang('printers'); ?></p></a></li>
-                        <li class="nav-item" id="settings_add_printer"><a href="<?= site_url('settings/add_printer'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['plus'], 14); ?></span><p><?= lang('add_printer'); ?></p></a></li>
                         <?php if ($this->db->dbdriver != 'sqlite3'): ?>
                         <li class="nav-item" id="settings_backups"><a href="<?= site_url('settings/backups'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['database'], 14); ?></span><p><?= lang('backups'); ?></p></a></li>
                         <li class="nav-item"><a href="<?= site_url('settings/getDownloadxml'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['filecode'], 14); ?></span><p><?= lang('backup_xmls'); ?></p></a></li>

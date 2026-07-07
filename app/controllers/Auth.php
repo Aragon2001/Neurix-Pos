@@ -578,6 +578,11 @@ class Auth extends MY_Controller {
 
                     $data['password'] = $this->input->post('password');
                 }
+                // Cash-drawer PIN: only settable by the admin who owns it (self-edit),
+                // never assignable by one admin onto another user's account.
+                if ($id == $this->session->userdata('user_id') && $this->input->post('drawer_pin')) {
+                    $data['drawer_pin'] = password_hash($this->input->post('drawer_pin'), PASSWORD_DEFAULT);
+                }
             }
             //$this->sma->print_arrays($data);
         }

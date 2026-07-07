@@ -83,8 +83,6 @@ class Settings extends MY_Controller
                 'smtp_port' => $this->input->post('smtp_port'),
                 'smtp_crypto' => $this->input->post('smtp_crypto'),
                 'pin_code' => $this->input->post('pin_code') ? $this->input->post('pin_code') : NULL,
-                // 'receipt_printer' => $this->input->post('receipt_printer'),
-                'cash_drawer_codes' => $this->input->post('cash_drawer_codes'),
                 'focus_add_item' => $this->input->post('focus_add_item'),
                 'edit_last_product' => $this->input->post('edit_last_product'),
                 'add_customer' => $this->input->post('add_customer'),
@@ -117,15 +115,10 @@ class Settings extends MY_Controller
                 'qty_decimals' => $this->input->post('qty_decimals'),
                 'display_symbol' => $this->input->post('display_symbol'),
                 'symbol' => $this->input->post('symbol'),
-                'printer' => $this->input->post('receipt_printer'),
                 'order_printers' => json_encode($this->input->post('order_printers')),
                 'auto_print' => $this->input->post('auto_print'),
-                'remote_printing' => DEMO ? 1 : $this->input->post('remote_printing'),
-                'local_printers' => $this->input->post('local_printers'),
                 'rtl' => $this->input->post('rtl'),
                 'print_img' => $this->input->post('print_img'),
-                'nombrecompartido' => $this->input->post('nombrecompartido'),
-                'ip_printer' => $this->input->post('ip_printer'),
                 'sensibility_search' => $this->input->post('sensibility_search'),
                 'enable_credit' => $this->input->post('enable_credit'),
                 'prt_invo_after' => $this->input->post('prt_invo_after'),
@@ -258,11 +251,67 @@ class Settings extends MY_Controller
             $this->data['actividadeconomica'] = $this->site->getAllActividades();
             $this->data['categories'] = $this->site->getAllCategories();
             $this->data['printers'] = $this->site->getAllPrinters();
+
+            $this->data['provincias'] = $this->db->select('codigo_provincia as codigo, nombre_provincia as nombre')
+                ->order_by('nombre_provincia', 'ASC')->get('tec_provincia_cr')->result();
+            $this->data['cantones_actuales'] = array();
+            $this->data['distritos_actuales'] = array();
+            $this->data['barrios_actuales'] = array();
+            if (!empty($this->Settings->cod_provincia)) {
+                $this->data['cantones_actuales'] = $this->db->select('codigo_canton as codigo, nombre_canton as nombre')
+                    ->where('codigo_provincia', $this->Settings->cod_provincia)
+                    ->order_by('nombre_canton', 'ASC')->get('tec_canton_cr')->result();
+            }
+            if (!empty($this->Settings->cod_canton)) {
+                $this->data['distritos_actuales'] = $this->db->select('codigo_distrito as codigo, nombre_distrito as nombre')
+                    ->where('codigo_provincia', $this->Settings->cod_provincia)
+                    ->where('codigo_canton', $this->Settings->cod_canton)
+                    ->order_by('nombre_distrito', 'ASC')->get('tec_distrito_cr')->result();
+            }
+            if (!empty($this->Settings->cod_distrito)) {
+                $this->data['barrios_actuales'] = $this->db->select('codigo_barrio as codigo, nombre_barrio as nombre')
+                    ->where('codigo_provincia', $this->Settings->cod_provincia)
+                    ->where('codigo_canton', $this->Settings->cod_canton)
+                    ->where('codigo_distrito', $this->Settings->cod_distrito)
+                    ->order_by('nombre_barrio', 'ASC')->get('tec_barrio_cr')->result();
+            }
+
             $this->data['page_title'] = lang('settings');
             $bc = array(array('link' => '#', 'page' => lang('settings')));
             $meta = array('page_title' => lang('settings'), 'bc' => $bc);
             $this->page_construct('settings/index', $this->data, $meta);
         }
+    }
+
+    // AJAX: ubicaciones en cascada (provincia -> canton -> distrito -> barrio)
+    function get_cantones($codigo_provincia = '')
+    {
+        $rows = $this->db->select('codigo_canton as codigo, nombre_canton as nombre')
+            ->where('codigo_provincia', $codigo_provincia)
+            ->order_by('nombre_canton', 'ASC')->get('tec_canton_cr')->result();
+        header('Content-Type: application/json');
+        echo json_encode($rows);
+    }
+
+    function get_distritos($codigo_provincia = '', $codigo_canton = '')
+    {
+        $rows = $this->db->select('codigo_distrito as codigo, nombre_distrito as nombre')
+            ->where('codigo_provincia', $codigo_provincia)
+            ->where('codigo_canton', $codigo_canton)
+            ->order_by('nombre_distrito', 'ASC')->get('tec_distrito_cr')->result();
+        header('Content-Type: application/json');
+        echo json_encode($rows);
+    }
+
+    function get_barrios($codigo_provincia = '', $codigo_canton = '', $codigo_distrito = '')
+    {
+        $rows = $this->db->select('codigo_barrio as codigo, nombre_barrio as nombre')
+            ->where('codigo_provincia', $codigo_provincia)
+            ->where('codigo_canton', $codigo_canton)
+            ->where('codigo_distrito', $codigo_distrito)
+            ->order_by('nombre_barrio', 'ASC')->get('tec_barrio_cr')->result();
+        header('Content-Type: application/json');
+        echo json_encode($rows);
     }
 
     function upload_certificado()
@@ -696,121 +745,6 @@ class Settings extends MY_Controller
         // }
     }
 
-    function actividad()
-    {
-
-        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-        $this->data['page_title'] = lang('actividad');
-        $bc = array(array('link' => '#', 'page' => lang('actividad')));
-        $meta = array('page_title' => lang('actividad'), 'bc' => $bc);
-        $this->page_construct('settings/actividad', $this->data, $meta);
-    }
-
-
-    function get_actividad()
-    {
-
-        $this->load->library('datatables');
-        $this->datatables
-            ->select("id_actividad, descripcion")
-            ->from("actividadeconomica")
-            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_actividad/$1') . "' class='tip' title='Modificar'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_actividad/$1') . "' class='tip' title='Eliminar'><i class='fa fa-trash-o'></i></a></div>", "id_actividad");
-        // <a href='" . site_url('settings/delete_store/$1') . "' onClick=\"return confirm('". $this->lang->line('alert_x_store') ."')\" class='tip btn btn-danger btn-xs' title='".$this->lang->line("delete_store")."'><i class='fa fa-trash-o'></i></a>
-        echo $this->datatables->generate();
-    }
-
-    function add_actividad($id = NULL)
-    {
-        if (!$this->Admin) {
-            $this->session->set_flashdata('error', $this->lang->line('access_denied'));
-            redirect('pos');
-        }
-        $this->form_validation->set_rules('id_actividad', $this->lang->line("code_actividad"), 'required');
-        $this->form_validation->set_rules('descripcion', $this->lang->line("description"), 'required');
-        $json = file_get_contents('https://api.hacienda.go.cr/fe/ae?identificacion=' . $this->Settings->cedula_emisor);
-        $obj = json_decode($json);
-        if ($this->form_validation->run() == true) {
-
-            $data = array(
-                'id_actividad' => $this->input->post('id_actividad'),
-                'descripcion' => $this->input->post('descripcion')
-            );
-            $this->settings_model->addActividad($data);
-            $this->session->set_flashdata('message', $this->lang->line("actividad_updated"));
-            redirect("settings/actividad");
-        } else if (!$this->settings_model->getActividadByID($obj->actividades[0]->codigo)) {
-            $data = array(
-                'id_actividad' => $obj->actividades[0]->codigo,
-                'descripcion'  => $obj->actividades[0]->descripcion
-            );
-            $this->settings_model->addActividad($data);
-            $this->session->set_flashdata('message', $this->lang->line("actividad_updated"));
-            redirect("settings/actividad");
-        } else {
-
-            $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-            $this->data['page_title'] = lang('add_actividad');
-            $bc = array(array('link' => site_url('settings'), 'page' => lang('settings')), array('link' => site_url('settings/actividad'), 'page' => lang('actividad')), array('link' => '#', 'page' => lang('add_actividad')));
-            $meta = array('page_title' => lang('add_actividad'), 'bc' => $bc);
-            $this->page_construct('settings/add_actividad', $this->data, $meta);
-        }
-    }
-
-    function edit_actividad($id = NULL)
-    {
-        if (!$this->Admin) {
-            $this->session->set_flashdata('error', $this->lang->line('access_denied'));
-            redirect('pos');
-        }
-        if ($this->input->get('id_actividad')) {
-            $id = $this->input->get('id_actividad', TRUE);
-        }
-
-        $actividad = $this->settings_model->getActividadByID($id);
-        $this->form_validation->set_rules('id_actividad', $this->lang->line("code_actividad"), 'required');
-        $this->form_validation->set_rules('descripcion', $this->lang->line("description"), 'required');
-
-        if ($this->form_validation->run() == true) {
-
-            $data = array(
-                'id_actividad' => $this->input->post('id_actividad'),
-                'descripcion' => $this->input->post('descripcion')
-            );
-        }
-
-        if ($this->form_validation->run() == true && $this->settings_model->updateActividad($id, $data)) {
-
-            $this->session->set_flashdata('message', $this->lang->line("actividad_updated"));
-            redirect("settings/actividad");
-        } else {
-
-            $this->data['actividad'] = $actividad;
-            $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-            $this->data['page_title'] = lang('edit_actividad');
-            $bc = array(array('link' => site_url('settings'), 'page' => lang('settings')), array('link' => site_url('settings/actividad'), 'page' => lang('actividad')), array('link' => '#', 'page' => lang('edit_actividad')));
-            $meta = array('page_title' => lang('edit_actividad'), 'bc' => $bc);
-            $this->page_construct('settings/edit_actividad', $this->data, $meta);
-        }
-    }
-
-
-    function delete_actividad($id = NULL)
-    {
-        if (DEMO) {
-            $this->session->set_flashdata('error', $this->lang->line("disabled_in_demo"));
-            redirect('pos');
-        }
-
-        if ($this->input->get('id_actividad')) {
-            $id = $this->input->get('id_actividad', TRUE);
-        }
-
-        if ($this->settings_model->deleteActividad($id)) {
-            $this->session->set_flashdata('message', lang("actividad_deleted"));
-            redirect("settings/actividad");
-        }
-    }
-
     function shipping()
     {
 
@@ -827,7 +761,7 @@ class Settings extends MY_Controller
         $this->datatables
             ->select("id_shipping_method, name")
             ->from("shipping_method")
-            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_shipping/$1') . "' class='tip' title='Modificar'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_shipping/$1') . "' class='tip' title='Eliminar'><i class='fa fa-trash-o'></i></a></div>", "id_shipping_method");
+            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_shipping/$1') . "' class='tip' title='Modificar'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_shipping/$1') . "' data-confirm=\"" . $this->lang->line('alert_x_shipping') . "\" class='tip' title='Eliminar'><i class='fa fa-trash-o'></i></a></div>", "id_shipping_method");
         echo $this->datatables->generate();
     }
 

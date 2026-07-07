@@ -7,6 +7,10 @@ import * as bootstrap from 'bootstrap'
 import 'admin-lte/dist/css/adminlte.min.css'
 import 'admin-lte'
 import '@fortawesome/fontawesome-free/css/all.css'
+// Shims de compatibilidad v4: la app usa nombres de iconos antiguos (fa-building-o,
+// fa-clock-o, fa-money, fa-file-text-o, etc.) por todas las vistas; sin este import
+// esos nombres no existen en FA7 y el icono se renderiza vacío.
+import '@fortawesome/fontawesome-free/css/v4-shims.css'
 
 // Sistema de variables CSS de Neurix (--nx-a1, --nx-txt3, --nx-card-bg, etc.)
 // Debe ir ANTES de neurix-adminlte4.css para que las variables existan cuando se usen
@@ -23,6 +27,7 @@ import TomSelect from 'tom-select'
 import { Tabulator } from 'tabulator-tables'
 import { TempusDominus } from '@eonasdan/tempus-dominus'
 import Swal from 'sweetalert2'
+import qz from 'qz-tray'
 
 // Importar mejoras del POS
 import { POSEnhanced } from './pos-enhanced'
@@ -75,6 +80,12 @@ window.Swal = Swal
 // Exponer Bootstrap 5 para uso programático (bootstrap.Modal, etc.) — pos-core.js
 // y las vistas lo consultan vía window.bootstrap; sin esto los modales fallan
 window.bootstrap = bootstrap
+// QZ Tray: puente local (una instalación por terminal/computadora) que permite
+// listar las impresoras del sistema operativo de ESA PC e imprimir ESC/POS crudo
+// sin diálogo del navegador. v1 corre sin firma de certificado (qz.io/download) —
+// migrar a modo firmado más adelante si se requiere eliminar el diálogo nativo
+// de "Allow always" que QZ Tray muestra una sola vez por origen.
+window.qz = qz
 
 // ═════════════════ MAIN - Ejecutar al cargar ═════════════════
 // Nota: treeview y sidebar toggle los maneja AdminLTE4 JS nativo
@@ -103,5 +114,15 @@ window.switchTheme = (theme) => {
 
 // Alias para compatibilidad legacy
 window.nxToggleTheme = () => switchTheme()
+
+// ═════════════════ HELPERS LEGACY (emulan funciones PHP usadas en vistas inline) ═════════════════
+// is_numeric: usado por pos/open_register.php; vivía en themes/default/assets/dev/js/custom.js,
+// que ya no se carga desde la migración a Vite/Bootstrap5 — sin esto el botón "Aperturar Caja"
+// lanzaba ReferenceError y no hacía nada.
+window.is_numeric = (mixed_var) => {
+  const whitespace = ' \n\r\t\f\x0b\xa0           ​  　'
+  return (typeof mixed_var === 'number' || (typeof mixed_var === 'string' && whitespace.indexOf(mixed_var.slice(-1)) === -1)) &&
+    mixed_var !== '' && !isNaN(mixed_var)
+}
 
 export { TomSelect, Tabulator, TempusDominus, Swal }

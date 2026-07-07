@@ -9,6 +9,7 @@
     <?php } ?>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link href="<?= $assets ?>dist/css/www.min.css?v=<?= @filemtime(FCPATH.'themes/default/assets/dist/css/www.min.css') ?: '1'; ?>" rel="stylesheet">
+    <script src="<?= $assets ?>dist/js/main.min.js?v=<?= @filemtime(FCPATH.'themes/default/assets/dist/js/main.min.js') ?: '1'; ?>" defer></script>
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet">' : ''; ?>
     <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -210,12 +211,6 @@
     }
     .nlx-fsub { font-size:14px; color:var(--txt2); }
 
-    /* Alerts */
-    .nlx-alert {
-        border-radius: 11px; padding: 11px 14px;
-        font-size: 13px; margin-bottom: 18px; border: none;
-    }
-
     /* Fields */
     .nlx-field { margin-bottom: 20px; }
     .nlx-lbl {
@@ -383,18 +378,6 @@
                 <div class="nlx-fsub"><?= lang('ingrese_credenciales'); ?></div>
             </div>
 
-            <?php if ($error): ?>
-            <div class="nlx-alert alert alert-danger alert-dismissable">
-                <button data-bs-dismiss="alert" class="close" type="button">&times;</button>
-                <?= $error; ?>
-            </div>
-            <?php endif; if ($message): ?>
-            <div class="nlx-alert alert alert-success alert-dismissable">
-                <button data-bs-dismiss="alert" class="close" type="button">&times;</button>
-                <?= $message; ?>
-            </div>
-            <?php endif; ?>
-
             <?= form_open("auth/login"); ?>
 
             <div class="nlx-field">
@@ -543,6 +526,16 @@
     /* ── Auto-focus ── */
     var id = document.getElementById('identity');
     if (id) { if (id.value) pwd && pwd.focus(); else id.focus(); }
+
+    /* ── Alertas de login (SweetAlert2) ── */
+    document.addEventListener('DOMContentLoaded', function () {
+        <?php if ($error): ?>
+        Swal.fire({ icon: 'error', html: <?= json_encode($error) ?>, confirmButtonColor: '#0369a1' });
+        <?php endif; ?>
+        <?php if ($message): ?>
+        Swal.fire({ icon: 'success', html: <?= json_encode($message) ?>, confirmButtonColor: '#0369a1' });
+        <?php endif; ?>
+    });
 })();
 </script>
 </body>

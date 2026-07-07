@@ -271,6 +271,19 @@ class Site extends CI_Model
         return FALSE;
     }
  
+    /**
+     * Admin-group users with a drawer PIN configured, for the cash-drawer
+     * PIN verification endpoint (PosPrint::verify_drawer_pin).
+     */
+    public function getAdminUsersWithDrawerPin() {
+        $this->db->select('users.id, users.username, users.drawer_pin');
+        $this->db->join('groups', 'groups.id = users.group_id');
+        $this->db->where('groups.name', 'admin');
+        $this->db->where('users.drawer_pin IS NOT NULL', null, false);
+        $this->db->where('users.active', 1);
+        return $this->db->get('users')->result();
+    }
+
     public function getUserSuspenedSales() {
         $user_id = $this->session->userdata('user_id');
         $this->db->select('id, date, customer_name, hold_ref,id_waiting_tables, note')

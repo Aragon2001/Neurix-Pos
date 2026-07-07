@@ -45,27 +45,12 @@ class Settings_model extends CI_Model
         return FALSE;
     }
 
-    public function getActividadByID($id) {
-        $q = $this->db->get_where('actividadeconomica', array('id_actividad' => $id), 1);
-        if( $q->num_rows() > 0 ) {
-            return $q->row();
-        }
-        return FALSE;
-    }
-
     public function getShippingByID($id) {
         $q = $this->db->get_where('shipping_method', array('id_shipping_method' => $id), 1);
         if( $q->num_rows() > 0 ) {
             return $q->row();
         }
         return FALSE;
-    }
-
-    public function addActividad($data = array()) {
-        if($this->db->insert('actividadeconomica', $data)) {
-            return $this->db->insert_id();
-        }
-        return false;
     }
 
     public function addShipping($data = array()) {
@@ -75,25 +60,11 @@ class Settings_model extends CI_Model
         return false;
     }
 
-    public function updateActividad($id, $data = array()) {
-        if($this->db->update('actividadeconomica', $data, array('id_actividad' => $id))) {
-            return true;
-        }
-        return false;
-    }
-
     public function updateShipping($id, $data = array()) {
         if($this->db->update('shipping_method', $data, array('id_shipping_method' => $id))) {
             return true;
         }
         return false;
-    }
-
-    public function deleteActividad($id) {
-        if($this->db->delete('actividadeconomica', array('id_actividad' => $id))) {
-            return true;
-        }
-        return FALSE;
     }
 
     public function deleteShipping($id) {

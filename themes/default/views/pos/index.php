@@ -310,6 +310,16 @@
                 <?= pos_ti($pos_ti['calculator'], 17) ?>
             </a>
 
+            <!-- Configurar impresora de esta computadora (QZ Tray) -->
+            <button class="pos-topbar-btn" id="printerConfigBtn" title="<?= lang('configurar_impresora'); ?>" data-bs-toggle="modal" data-bs-target="#printerConfigModal">
+                <?= pos_ti($pos_ti['settings'], 17) ?>
+            </button>
+
+            <!-- Abrir cajón (requiere PIN de administrador) -->
+            <button class="pos-topbar-btn" id="drawerBtn" title="<?= lang('abrir_cajon'); ?>" data-bs-toggle="modal" data-bs-target="#drawerPinModal">
+                <?= pos_ti($pos_ti['cash'], 17) ?>
+            </button>
+
             <!-- Historial ventas -->
             <a href="<?= site_url('sales') ?>" class="pos-topbar-btn" title="<?= lang('sales') ?>">
                 <?= pos_ti($pos_ti['receipt'], 17) ?>
@@ -904,6 +914,97 @@
 </div>
 
 <!-- ════════════════════════════════════════════════
+     MODAL: Configurar impresora de esta computadora (QZ Tray)
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="printerConfigModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center gap-2"><?= pos_ti($pos_ti['printer'], 16) ?><?= lang('configurar_impresora'); ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="font-size:.85rem;"><?= lang('printer_config_help'); ?></p>
+                <div class="form-group">
+                    <label class="form-label fw-semibold"><?= lang('impresora'); ?></label>
+                    <select id="qzPrinterSelect" class="form-control"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('cancel'); ?></button>
+                <button type="button" class="btn btn-primary" id="printerConfigSaveBtn"><?= lang('save'); ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     MODAL: Abrir cajón (PIN de administrador)
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="drawerPinModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center gap-2"><?= pos_ti($pos_ti['cash'], 16) ?><?= lang('abrir_cajon'); ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" id="drawerPinError"></div>
+                <div class="form-group">
+                    <label class="form-label fw-semibold"><?= lang('pin_cajon'); ?></label>
+                    <input type="password" class="form-control" id="drawerPinInput" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('cancel'); ?></button>
+                <button type="button" class="btn btn-danger" id="drawerPinConfirmBtn"><?= lang('abrir_cajon'); ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     OVERLAY: bloqueo total mientras QZ Tray no esté conectado
+     (una instalación por terminal — ver qz.io/download)
+════════════════════════════════════════════════ -->
+<div id="qzBlockOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.9);color:#fff;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;">
+    <div class="spinner-border text-light mb-3" role="status" style="width:3rem;height:3rem;"></div>
+
+    <!-- Estado: revisando conexión (arranque, muy breve) -->
+    <div id="qzPanelChecking">
+        <h4><?= lang('qz_verificando'); ?></h4>
+    </div>
+
+    <!-- Estado: QZ Tray instalado, esperando que el usuario acepte su ventana de permiso -->
+    <div id="qzPanelWaiting" style="display:none;">
+        <h4><?= lang('qz_esperando_permiso'); ?></h4>
+        <p style="max-width:420px;opacity:.85;"><?= lang('qz_esperando_permiso_ayuda'); ?></p>
+    </div>
+
+    <!-- Estado: QZ Tray no detectado, ofrecer instalación -->
+    <div id="qzPanelInstall" style="display:none;">
+        <h4><?= lang('qz_desconectado'); ?></h4>
+        <p style="max-width:420px;opacity:.85;">
+            <?= lang('qz_desconectado_ayuda'); ?>
+        </p>
+
+        <div style="background:#fff; color:#222; border-radius:14px; padding:26px 30px; max-width:380px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,.4);">
+            <div style="font-size:2.4rem; line-height:1;">🖨️</div>
+            <a href="<?= $assets ?>instalar-qz-tray.bat" download class="btn btn-primary btn-lg" style="width:100%; font-weight:700; margin:14px 0;">
+                ⬇ <?= lang('descargar_e_instalar'); ?>
+            </a>
+            <ol style="text-align:left; font-size:.95rem; padding-left:20px; margin:0; color:#444;">
+                <li><?= lang('qz_paso_1'); ?></li>
+                <li><?= lang('qz_paso_2'); ?></li>
+                <li><?= lang('qz_paso_3'); ?></li>
+            </ol>
+        </div>
+
+        <p style="max-width:420px; opacity:.6; font-size:.8rem; margin-top:16px;"><?= lang('qz_instalar_una_vez'); ?></p>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
      INLINE PHP → JS VARIABLES
 ════════════════════════════════════════════════ -->
 <script type="text/javascript">
@@ -912,6 +1013,9 @@
 
     var Settings = <?= json_encode($Settings); ?>;
     var username = '<?= addslashes($this->session->userdata('username')); ?>';
+
+    window.CSRF_NAME = '<?= $this->security->get_csrf_token_name(); ?>';
+    window.CSRF_HASH = '<?= $this->security->get_csrf_hash(); ?>';
 
     window._pos_cat_id  = <?= (int)$Settings->default_category; ?>;
     window._pos_tcp     = <?= (int)$tcp; ?>;

@@ -1,4 +1,5 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php $type_document = 1; ?>
 
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -155,15 +156,7 @@
             <div id="buttons" style="padding-top:10px; text-transform:uppercase;" class="no-print">
                 <div class="btn-group btn-group-justified" role="group" aria-label="...">
                     <div class="btn-group" role="group">
-                    <?php
-                    if ( ! $Settings->remote_printing) {
-                        echo '<a href="'.site_url('pos/print_receipt/'.$inv->id.'/1').'" id="print" class="btn btn-block btn-primary">'.lang("print").'</a>';
-                    } elseif ($Settings->remote_printing == 1) {
-                        echo '<button onclick="window.print();" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                    } else {
-                        echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">'.lang("print").'</button>';
-                    }
-                    ?>
+                    <button onclick="return printReceipt()" class="btn btn-block btn-primary"><?= lang("print"); ?></button>
                     </div>
                     <div class="btn-group" role="group">
                         <a class="btn btn-block btn-success" href="#" id="email"><?= lang("email"); ?></a>

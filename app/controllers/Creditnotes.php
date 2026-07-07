@@ -79,7 +79,6 @@ class CreditNotes extends MY_Controller
         $this->data['noprint'] = $noprint;
         $this->data['modal'] = $noprint ? true : false;
         $this->data['created_by'] = $this->site->getUser($inv->created_by);
-        $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         $this->data['store'] = $this->site->getStoreByID($inv->store_id);
         $this->data['page_title'] = lang("invoice");
         $this->data['hacienda'] = $this->hacienda_model->getCN($id_cn);
@@ -87,43 +86,6 @@ class CreditNotes extends MY_Controller
         $this->data['invoicebarcode'] = $this->invice_barcode($this->data['hacienda']->consecutivo, 'code128', 60);
 
         $this->load->view($this->theme . 'creditnotes/' . ($this->Settings->print_img ? 'eviewnc' : 'viewnc'), $this->data);
-
-    }
-
-    function open_drawer()
-    {
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        if (!$printer) { redirect($_SERVER['HTTP_REFERER']); return; }
-        $printer->ip = $this->Settings->ip_printer;
-        $printer->nombrecompartido = $this->Settings->nombrecompartido;
-        $this->load->library('escpos');
-        $this->escpos->load($printer);
-        $this->escpos->open_drawer();
-        redirect($_SERVER['HTTP_REFERER']);
-
-    }
-
-
-    function print_receipt($id, $open_drawer = false, $type_document = 3)
-    {
-        if ($type_document == 3) {
-            $sale = $this->pos_model->getCreditNoteByID($id);
-            $sale->hacienda = $this->hacienda_model->getCN($id);
-            $sale->type_doc = lang("elect_credit_note");
-            $sale->footerhacienda = $this->Settings->footer_hacienda_nc;
-            $items = $this->pos_model->getAllCreditNotesItems($id);
-
-        }
-        $haciendaInvo = $this->hacienda_model->getInvoice($sale->sale_id);
-        $sale->invice_barcode = $this->invice_barcode_2($sale->hacienda->consecutivo, 'code128', 60);
-        $sale->haciendaInvo = $haciendaInvo;
-        $payments = $this->pos_model->getAllSalePayments($id);
-        $store = $this->site->getStoreByID($sale->store_id);
-        $created_by = $this->site->getUser($sale->created_by);
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        $this->load->library('escpos');
-        $this->escpos->load($printer);
-        $this->escpos->print_receipt($store, $sale, $items, $payments, $created_by, $open_drawer);
 
     }
 

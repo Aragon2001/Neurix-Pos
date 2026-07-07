@@ -91,6 +91,23 @@
                                         </div>
                                     </div>
 
+                                    <?php if ($Admin && $id == $this->session->userdata('user_id')): ?>
+                                    <hr style="border-color:var(--nx-border); margin: 20px 0;">
+                                    <h5 style="font-weight:600; color:var(--nx-txt2); margin-bottom:16px;">
+                                        <i class="fa fa-lock" style="color:var(--warning); margin-right:6px;"></i>
+                                        <?= lang('pin_cajon'); ?>
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label><?= lang('pin_cajon_nuevo'); ?></label>
+                                                <input type="password" name="drawer_pin" class="form-control" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="8" autocomplete="new-password" placeholder="••••">
+                                                <small class="form-text text-muted"><?= lang('pin_cajon_ayuda'); ?></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+
                                     <?php if ($Admin && $id != $this->session->userdata('user_id')): ?>
                                     <hr style="border-color:var(--nx-border); margin: 20px 0;">
                                     <h5 style="font-weight:600; color:var(--nx-txt2); margin-bottom:16px;">

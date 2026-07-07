@@ -1303,6 +1303,178 @@
   }
 
   /* ──────────────────────────────────────────────────────
+     QZ TRAY: puente local de impresión/cajón por computadora.
+     Bloqueo total del POS mientras no haya conexión, con
+     reconexión automática en segundo plano (sin intervención
+     del cajero). La impresora elegida vive en localStorage de
+     ESTA computadora/navegador, nunca en el servidor.
+  ────────────────────────────────────────────────────── */
+  // Estados del aviso: 'checking' (arranque, muy breve), 'waiting' (QZ Tray
+  // instalado y corriendo, pero su propia ventana nativa está pidiendo
+  // permiso al usuario) e 'install' (QZ Tray no responde, ofrecer descarga).
+  function showQzOverlay(state) {
+    var el = $('qzBlockOverlay');
+    if (!el) return;
+    el.style.display = 'flex';
+    var panels = { checking: $('qzPanelChecking'), waiting: $('qzPanelWaiting'), install: $('qzPanelInstall') };
+    Object.keys(panels).forEach(function (key) {
+      if (panels[key]) panels[key].style.display = (key === state) ? '' : 'none';
+    });
+  }
+
+  function hideQzOverlay() {
+    var el = $('qzBlockOverlay');
+    if (el) el.style.display = 'none';
+  }
+
+  function qzConnect() {
+    if (!window.qz) { setTimeout(qzConnect, 1000); return; }
+    if (qz.websocket.isActive()) { hideQzOverlay(); return; }
+
+    var settled = false;
+    // Si no resuelve rápido, casi siempre es porque QZ Tray SÍ está
+    // instalado y está mostrando su propia ventana nativa de "permitir este
+    // sitio" — no que falte instalarlo. Avisamos eso en vez de pedir
+    // instalar de nuevo.
+    var waitingTimer = setTimeout(function () {
+      if (!settled) showQzOverlay('waiting');
+    }, 1200);
+
+    qz.websocket.connect().then(function () {
+      settled = true;
+      clearTimeout(waitingTimer);
+      hideQzOverlay();
+    }).catch(function () {
+      settled = true;
+      clearTimeout(waitingTimer);
+      showQzOverlay('install');
+      setTimeout(qzConnect, 3000);
+    });
+  }
+
+  function initQzGate() {
+    if (!window.qz) return;
+    // Modo sin firma de certificado (v1): evita el diálogo nativo de
+    // "sitio no confiable" en cada request, a costa de mostrar un único
+    // aviso de "Allow always" en la primera conexión por origen.
+    qz.security.setCertificatePromise(function (resolve) { resolve(); });
+    qz.security.setSignaturePromise(function () {
+      return function (resolve) { resolve(); };
+    });
+    qz.websocket.setClosedCallbacks(function () {
+      qzConnect();
+    });
+    showQzOverlay('checking');
+    qzConnect();
+  }
+
+  /* ──────────────────────────────────────────────────────
+     CONFIGURAR IMPRESORA por computadora (Fase 12 — QZ Tray)
+  ────────────────────────────────────────────────────── */
+  function initPrinterConfigModal() {
+    var modalEl = $('printerConfigModal');
+    var select = $('qzPrinterSelect');
+    var saveBtn = $('printerConfigSaveBtn');
+    if (!modalEl || !select) return;
+
+    modalEl.addEventListener('show.bs.modal', function () {
+      select.innerHTML = '<option value="">' + t('cargando', 'Cargando…') + '</option>';
+      if (!window.qz || !qz.websocket.isActive()) {
+        select.innerHTML = '<option value="">' + t('qz_desconectado', 'QZ Tray no conectado') + '</option>';
+        return;
+      }
+      qz.printers.find().then(function (list) {
+        var names = Array.isArray(list) ? list : [list];
+        var current = get('nx-qz-printer');
+        select.innerHTML = '';
+        names.forEach(function (name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          if (name === current) opt.selected = true;
+          select.appendChild(opt);
+        });
+      }).catch(function () {
+        select.innerHTML = '<option value="">' + t('error_listar_impresoras', 'Error al listar impresoras') + '</option>';
+      });
+    });
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        if (select.value) {
+          store('nx-qz-printer', select.value);
+          showToast(t('impresora_guardada', 'Impresora configurada para esta computadora'), 'fa-print');
+        }
+        if (window.bootstrap) {
+          var modal = window.bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+        }
+      });
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────
+     ABRIR CAJÓN con PIN de administrador (Fase 12 — QZ Tray)
+  ────────────────────────────────────────────────────── */
+  function initDrawerButton() {
+    var modalEl = $('drawerPinModal');
+    var input = $('drawerPinInput');
+    var confirmBtn = $('drawerPinConfirmBtn');
+    var errEl = $('drawerPinError');
+    if (!modalEl || !input || !confirmBtn) return;
+
+    modalEl.addEventListener('shown.bs.modal', function () {
+      input.value = '';
+      if (errEl) errEl.classList.add('d-none');
+      input.focus();
+    });
+
+    function submitPin() {
+      var pin = input.value.trim();
+      if (!pin) return;
+      var body = new URLSearchParams();
+      body.set('pin', pin);
+      if (window.CSRF_NAME) body.set(window.CSRF_NAME, window.CSRF_HASH);
+      confirmBtn.disabled = true;
+      fetch(window.base_url + 'posprint/verify_drawer_pin', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          confirmBtn.disabled = false;
+          if (res.status === 1) {
+            if (window.bootstrap) {
+              var modal = window.bootstrap.Modal.getInstance(modalEl);
+              if (modal) modal.hide();
+            }
+            var printerName = get('nx-qz-printer');
+            if (window.qz && qz.websocket.isActive() && printerName) {
+              var config = qz.configs.create(printerName);
+              qz.print(config, [{ type: 'raw', format: 'command', flavor: 'base64', data: res.bytes }])
+                .catch(function () { showAlert(t('pos_print_error', 'Error al imprimir')); });
+            }
+            showToast(t('cajon_abierto', 'Cajón abierto'), 'fa-unlock');
+          } else {
+            if (errEl) { errEl.textContent = res.msg || t('wrong_pin', 'PIN incorrecto'); errEl.classList.remove('d-none'); }
+            input.value = '';
+            input.focus();
+          }
+        })
+        .catch(function () {
+          confirmBtn.disabled = false;
+          showAlert(t('ajax_request_failed', 'Error de conexión'));
+        });
+    }
+
+    confirmBtn.addEventListener('click', submitPin);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); submitPin(); }
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────
      TOGGLE DE IMPRESIÓN AUTOMÁTICA (Fase 7)
   ────────────────────────────────────────────────────── */
   function initPrintToggle() {
@@ -1650,6 +1822,9 @@
     initPrintToggle();
     initKeyboardPopover();
     initAdHocProduct();
+    initQzGate();
+    initPrinterConfigModal();
+    initDrawerButton();
 
     // Renderizar carrito al cargar
     loadItems();

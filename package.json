@@ -33,6 +33,7 @@
     "@fortawesome/fontawesome-free": "^7.3.0",
     "admin-lte": "^4.0.2",
     "bootstrap": "^5.3.8",
+    "qz-tray": "^2.2.6",
     "sweetalert2": "^11.26.25",
     "tabulator-tables": "^6.5.2",
     "tom-select": "^2.6.1"

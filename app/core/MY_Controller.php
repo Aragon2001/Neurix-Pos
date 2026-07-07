@@ -46,7 +46,7 @@ class MY_Controller extends CI_Controller
         $this->load->dbforge();
 
 
-        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 60) { // actualizar a max_version+2 al agregar nuevas migraciones
+        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 61) { // actualizar a max_version+2 al agregar nuevas migraciones
 
         $versionInitial = false;
         if (!$this->db->field_exists('versionPOS', 'settings')) {
@@ -2308,6 +2308,14 @@ class MY_Controller extends CI_Controller
             $versionInitial = true;
         }
 
+        if ($this->Settings->versionPOS == "60" || $versionInitial) {
+            $u = $this->db->dbprefix('users');
+            if (!$this->db->field_exists('drawer_pin', 'users'))
+                $this->db->query("ALTER TABLE `{$u}` ADD COLUMN `drawer_pin` VARCHAR(255) NULL DEFAULT NULL");
+            $this->db->update('settings', array('versionPOS' => '61'));
+            $versionInitial = true;
+        }
+
         } // end migration guard
     }
 
@@ -2319,6 +2327,9 @@ class MY_Controller extends CI_Controller
         $meta['message'] = isset($data['message']) ? $data['message'] : $this->session->flashdata('message');
         $meta['error'] = isset($data['error']) ? $data['error'] : $this->session->flashdata('error');
         $meta['warning'] = isset($data['warning']) ? $data['warning'] : $this->session->flashdata('warning');
+        // Una vez leídos para mostrarse, se eliminan de inmediato de la sesión para
+        // que nunca puedan reaparecer en una recarga o navegación posterior.
+        $this->session->unset_userdata(array('message', 'error', 'warning'));
         $meta['ip_address'] = $this->input->ip_address();
         $meta['Admin'] = $data['Admin'];
         $meta['loggedIn'] = $data['loggedIn'];

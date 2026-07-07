@@ -39,7 +39,6 @@ class Pos extends PosPrint {
         ini_set( 'max_input_vars' , 4000 );
         $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
 
-        $this->data['printer_default'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         $this->data['is_suspender'] = 'N';
         if (!$this->Settings->multi_store) {
             $this->session->set_userdata('store_id', 1);
@@ -1256,7 +1255,6 @@ class Pos extends PosPrint {
             $this->data['suspended_sales'] = $this->site->getUserSuspenedSales();
             // $this->data['quotes_sales'] = $this->site->getUserQuotesSales();
 
-            $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
             $printers = array();
             if (!empty($order_printers = json_decode($this->Settings->order_printers))) {
                 foreach ($order_printers as $printer_id) {

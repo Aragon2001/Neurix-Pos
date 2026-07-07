@@ -396,9 +396,10 @@ class Reports extends MY_Controller
         $this->datatables->select($this->db->dbprefix('products') . ".id as id, " . $this->db->dbprefix('products') . ".image as image, " . $this->db->dbprefix('products') . ".code as code, " . $this->db->dbprefix('products') . ".name as pname, type, " . $this->db->dbprefix('categories') . ".name as cname, (CASE WHEN psq.quantity IS NULL THEN 0 ELSE psq.quantity END) as quantity, alert_quantity, tax, tax_method, cost, (CASE WHEN psq.price > 0 THEN psq.price ELSE {$this->db->dbprefix('products')}.price END) as price", FALSE)
             ->from('products')
             ->join('categories', 'categories.id=products.category_id')
-            ->join("( SELECT * from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$this->session->userdata('store_id')}) psq", 'products.id=psq.product_id', 'left')
-            ->where("(CASE WHEN psq.quantity IS NULL THEN 0 ELSE psq.quantity END) < {$this->db->dbprefix('products')}.alert_quantity", NULL, FALSE)
-            ->group_by('products.id');
+            ->join("( SELECT product_id, SUM(quantity) as quantity, MAX(price) as price FROM {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$this->session->userdata('store_id')} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left')
+            ->where("(CASE WHEN psq.quantity IS NULL THEN 0 ELSE psq.quantity END) < {$this->db->dbprefix('products')}.alert_quantity", NULL, FALSE);
+            // psq subquery already aggregates 1 row por producto — no hace falta GROUP BY externo
+            // (mismo patrón que Products::get_products(), evita el error 1055 de ONLY_FULL_GROUP_BY)
         $this->datatables->add_column("Actions", "<div class='text-center'><a href='#' class='btn btn-xs btn-primary ap tip' data-id='$1' title='" . lang('add_to_purcahse_order') . "'><i class='fa fa-plus'></i></a></div>", "id");
         // $this->datatables->unset_column('id');
         echo $this->datatables->generate();
@@ -917,7 +918,6 @@ class Reports extends MY_Controller
         }
         $this->load->model('pos_model');
         $this->load->library('form_validation');
-        $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         $this->form_validation->set_rules('total_cash', lang("total_cash"), 'trim|required|numeric');
         $this->form_validation->set_rules('total_cheques', lang("total_cheques"), 'trim|required|numeric');
         if ($this->form_validation->run() == true) {

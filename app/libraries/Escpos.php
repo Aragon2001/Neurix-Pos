@@ -20,10 +20,13 @@ use Mike42\Escpos\ImagickEscposImage;
 use Mike42\Escpos\Imagick;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 
+require_once __DIR__ . '/EscposBufferConnector.php';
+
 class Escpos
 {
 
     public $printer;
+    public $connector;
     public $char_per_line;
     private $barcodeprinter = true;
 
@@ -68,6 +71,29 @@ class Escpos
         $this->char_per_line = $printer->char_per_line;
         $profile = CapabilityProfile::load($printer->profile);
         $this->printer = new Printer($connector, $profile);
+    }
+
+    /**
+     * Load a printer that accumulates ESC/POS bytes in memory instead of
+     * writing to a physical connector, so the caller can hand the bytes to
+     * the browser (QZ Tray) to print on whichever printer the terminal has
+     * configured locally. Chars-per-line stays the fixed system default
+     * since there is no per-computer printer row to read it from.
+     */
+    function loadBuffer($profile = 'default')
+    {
+        $this->connector = new EscposBufferConnector();
+        $this->char_per_line = get_printer_chars_per_line();
+        $capabilityProfile = CapabilityProfile::load($profile);
+        $this->printer = new Printer($this->connector, $capabilityProfile);
+    }
+
+    /**
+     * @return string Base64-encoded ESC/POS bytes accumulated by loadBuffer().
+     */
+    function getBufferedData()
+    {
+        return base64_encode($this->connector->getData());
     }
 
     function print_img($img, $cd = false)

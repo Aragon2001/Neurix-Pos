@@ -455,7 +455,6 @@ class FacturasCompras extends MY_Controller {
             $this->data['modal'] = $noprint ? true : false;
             $this->data['payments'] = $this->FEC_model->getAllFecPayments($sale_id);
             $this->data['created_by'] = $this->site->getUser($inv->created_by);
-            $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
             //$this->data['store'] = $this->site->getStoreByID($inv->store_id);
             $this->data['totales'] =$totales;
             $this->data['page_title'] = lang("invoice");

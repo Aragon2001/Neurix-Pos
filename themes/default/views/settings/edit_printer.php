@@ -3,69 +3,63 @@
 <section class="content">
     <div class="row">
         <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('update_info'); ?></h3>
-                </div>
-                <div class="box-body">
+            <div class="card">
+                <div class="card-header"><i class="fa fa-print"></i> <?= lang('update_info'); ?></div>
+                <div class="card-body">
                     <?php echo form_open_multipart("settings/edit_printer/" . $printer->id); ?>
-
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label" for="title"><?= $this->lang->line("title"); ?></label>
-                            <?= form_input('title', set_value('title', $printer->title), 'class="form-control input-sm" id="title"'); ?>
-                        </div>
-
-                        <div class="mb-3">
-                            <?= lang('type', 'type'); ?>
-                            <?php
-                            $topts = array('windows' => lang('windows'), 'web' => 'web');
-                            ?>
-                            <?= form_dropdown('type', $topts, set_value('type', $printer->type), 'class="form-control tom-select" id="type" required="required" style="width:100%;"'); ?>
-                        </div>
-
-                        <div class="path">
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="mb-3">
-                                <?= lang('profile', 'profile'); ?>
-                                <?php
-                                $popts = array('default' => lang('default'), 'simple' => lang('simple'), 'SP2000' => lang('star_branded'), 'TEP-200M' => lang('epson_tep'), 'P822D' => lang('P822D'));
-                                ?>
+                                <label class="form-label" for="title"><?= lang("title"); ?></label>
+                                <?= form_input('title', set_value('title', $printer->title), 'class="form-control" id="title" required="required"'); ?>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="type"><?= lang('type'); ?></label>
+                                <?php $topts = array('windows' => lang('windows'), 'web' => 'web'); ?>
+                                <?= form_dropdown('type', $topts, set_value('type', $printer->type), 'class="form-control tom-select" id="type" required="required" style="width:100%;"'); ?>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="profile"><?= lang('profile'); ?></label>
+                                <?php $popts = array('default' => lang('default'), 'simple' => lang('simple'), 'SP2000' => lang('star_branded'), 'TEP-200M' => lang('epson_tep'), 'P822D' => lang('P822D')); ?>
                                 <?= form_dropdown('profile', $popts, set_value('profile', $printer->profile), 'class="form-control tom-select" id="profile" required="required" style="width:100%;"'); ?>
                             </div>
 
                             <div class="mb-3">
-                                <?= lang('char_per_line', 'char_per_line'); ?>
+                                <label class="form-label" for="char_per_line"><?= lang('char_per_line'); ?></label>
                                 <?= form_input('char_per_line', $printer->char_per_line, 'class="form-control" id="char_per_line" required="required"'); ?>
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <?= lang('ip_address', 'ip_address'); ?>
-                                <?= form_input('ip_address', $printer->ip_address, 'class="form-control" id="ip_address"'); ?>
-                            </div>
-
-                            <div class="path" style="display:none;">
+                        <div class="col-md-6">
+                            <div id="printer-path-fields">
                                 <div class="mb-3">
-                                    <?= lang('path', 'path'); ?>
+                                    <label class="form-label" for="ip_address"><?= lang('ip_address'); ?></label>
+                                    <?= form_input('ip_address', $printer->ip_address, 'class="form-control" id="ip_address"'); ?>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="path"><?= lang('path'); ?></label>
                                     <?= form_input('path', $printer->path, 'class="form-control" id="path"'); ?>
-                                    <span class="help-block">
-                                    <?= lang('printer_help_windows'); ?><br>
-                                    <?= lang('printer_help_linux'); ?><br>
-                                </span>
+                                    <small class="form-text text-muted">
+                                        <?= lang('printer_help_windows'); ?><br>
+                                        <?= lang('printer_help_linux'); ?>
+                                    </small>
                                 </div>
                             </div>
 
-                            <div class="network"  style="display:none;">
+                            <div id="printer-network-fields" style="display:none;">
                                 <div class="mb-3">
-                                    <?= lang('port', 'port'); ?>
+                                    <label class="form-label" for="port"><?= lang('port'); ?></label>
                                     <?= form_input('port', set_value('port', $printer->port), 'class="form-control" id="port"'); ?>
-                                    <span class="help-block"><?= lang('printer_port_hint'); ?></span>
+                                    <small class="form-text text-muted"><?= lang('printer_port_hint'); ?></small>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            <?php echo form_submit('update_printer', $this->lang->line("update_printer"), 'class="btn btn-primary"'); ?>
-                        </div>
+                    <div class="mb-3">
+                        <?php echo form_submit('update_printer', lang("update_printer"), 'class="btn btn-primary"'); ?>
                     </div>
                     <?php echo form_close(); ?>
                 </div>
@@ -75,24 +69,23 @@
 </section>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $('#type').change(function () {
-            var type = $(this).val();
-            if (type == 'web') {
-                $('.network').slideDown();
-                $('.path').slideUp();
-            } else {
-                $('.network').slideUp();
-                $('.path').slideDown();
-            }
-        });
-        var type = $('#type').val();
-        if (type == 'network') {
-            $('.network').slideDown();
-            $('.path').slideUp();
+document.addEventListener('DOMContentLoaded', function () {
+    var typeSelect = document.getElementById('type');
+    var pathFields = document.getElementById('printer-path-fields');
+    var networkFields = document.getElementById('printer-network-fields');
+    if (!typeSelect || !pathFields || !networkFields) return;
+
+    function toggleFields() {
+        if (typeSelect.value === 'web') {
+            networkFields.style.display = '';
+            pathFields.style.display = 'none';
         } else {
-            $('.network').slideUp();
-            $('.path').slideDown();
+            networkFields.style.display = 'none';
+            pathFields.style.display = '';
         }
-    });
+    }
+
+    typeSelect.addEventListener('change', toggleFields);
+    toggleFields();
+});
 </script>

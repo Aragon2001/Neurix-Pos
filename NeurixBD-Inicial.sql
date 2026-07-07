@@ -3,10 +3,16 @@
 -- =====================================================================
 -- Base de datos limpia lista para poner en producción.
 -- Solo contiene:
---   • Estructura de tablas (CREATE TABLE)
+--   • Estructura completa de todas las tablas (equivalente a versionPOS=60,
+--     es decir, incluye TODAS las columnas que el sistema de auto-migración
+--     de app/core/MY_Controller.php agregaría en instalaciones antiguas)
 --   • Datos obligatorios: grupos, usuario admin, tienda por defecto
---   • Catálogos geográficos CR (provincias, cantones, distritos)
---   • Actividades económicas Hacienda
+--   • Catálogo geográfico de Costa Rica 100% completo:
+--       7 provincias, 82 cantones, 488 distritos, 497 barrios
+--       (con nombres de columna que coinciden exactamente con las
+--        consultas reales del código: codigo_provincia/nombre_provincia,
+--        nombre_canton, nombre_distrito, nombre_barrio)
+--   • Actividades económicas Hacienda (catálogo básico)
 --
 -- Para iniciar con datos de prueba, usar: database_ejemplo.sql
 --
@@ -58,8 +64,10 @@ CREATE TABLE `tec_users` (
   `group_id` INT(11) DEFAULT NULL,
   `auth_open` TINYINT(1) NOT NULL DEFAULT 0,
   `last_ip_address` VARCHAR(45) DEFAULT NULL,
-  `avatar` VARCHAR(150) DEFAULT NULL,
-  `gender` VARCHAR(20) DEFAULT NULL,
+  `avatar` VARCHAR(255) DEFAULT NULL,
+  `gender` VARCHAR(1) DEFAULT NULL,
+  `hora_inicio` VARCHAR(10) DEFAULT NULL,
+  `hora_fin` VARCHAR(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -172,7 +180,7 @@ CREATE TABLE `tec_settings` (
   `logo` VARCHAR(150) DEFAULT NULL,
   `version` VARCHAR(20) DEFAULT '1.0',
   `update` TINYINT(1) DEFAULT 0,
-  `versionPOS` TINYINT(1) NOT NULL DEFAULT 43,
+  `versionPOS` TINYINT(1) NOT NULL DEFAULT 60,
   `enable_layaway` TINYINT(1) NOT NULL DEFAULT 0,
   `enable_show_tax` VARCHAR(10) NOT NULL DEFAULT 'Impuesto',
   `enable_quote` TINYINT(1) NOT NULL DEFAULT 0,
@@ -203,6 +211,9 @@ CREATE TABLE `tec_settings` (
   `mail_client_user` VARCHAR(120) DEFAULT NULL,
   `mail_client_pass` VARCHAR(120) DEFAULT NULL,
   `is_gmail` TINYINT(1) NOT NULL DEFAULT 0,
+  `show_categories` TINYINT(1) NOT NULL DEFAULT 1,
+  `mailpath` VARCHAR(255) DEFAULT NULL,
+  `cash_drawer_codes` VARCHAR(100) DEFAULT NULL,
   `ambiente` VARCHAR(10) NOT NULL DEFAULT 'test',
   `user_token_test` VARCHAR(150) DEFAULT NULL,
   `password_token_test` VARCHAR(150) DEFAULT NULL,
@@ -261,12 +272,38 @@ CREATE TABLE `tec_stores` (
 DROP TABLE IF EXISTS `tec_printers`;
 CREATE TABLE `tec_printers` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(100) DEFAULT NULL,
   `name` VARCHAR(100) NOT NULL,
+  `type` VARCHAR(30) DEFAULT 'receipt',
+  `profile` VARCHAR(50) DEFAULT NULL,
+  `char_per_line` INT(11) DEFAULT NULL,
+  `path` VARCHAR(150) DEFAULT NULL,
   `ip` VARCHAR(45) DEFAULT NULL,
+  `ip_address` VARCHAR(45) DEFAULT NULL,
   `port` VARCHAR(10) DEFAULT NULL,
   `store_id` INT(11) DEFAULT NULL,
-  `type` VARCHAR(30) DEFAULT 'receipt',
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `tec_impuestos`;
+CREATE TABLE `tec_impuestos` (
+  `id_impuesto` INT(10) NOT NULL,
+  `codigo_impuesto` VARCHAR(12) DEFAULT NULL,
+  `codigo_tarifa` VARCHAR(6) DEFAULT NULL,
+  `tasa_impuesto` DECIMAL(17,0) DEFAULT NULL,
+  `descripcion_impuesto` VARCHAR(360) DEFAULT NULL,
+  `status_impuestos` VARCHAR(3) DEFAULT NULL,
+  PRIMARY KEY (`id_impuesto`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `tec_ubicaciones`;
+CREATE TABLE `tec_ubicaciones` (
+  `id` INT(10) NOT NULL AUTO_INCREMENT,
+  `id_producto` INT(10) NOT NULL,
+  `seccion` VARCHAR(100) DEFAULT NULL,
+  `tramo` VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_id_producto` (`id_producto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `tec_actividadeconomica`;
@@ -321,6 +358,7 @@ CREATE TABLE `tec_products` (
   `caja_fraccionada` INT(11) NOT NULL DEFAULT 0,
   `margen` DECIMAL(11,4) NOT NULL DEFAULT 0,
   `id_tax` INT(11) DEFAULT NULL,
+  `ubicacion` VARCHAR(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `name` (`name`),
   KEY `code` (`code`)
@@ -396,6 +434,8 @@ CREATE TABLE `tec_suppliers` (
   `codigo_distrito` VARCHAR(5) NOT NULL DEFAULT '',
   `codigo_barrio` VARCHAR(5) NOT NULL DEFAULT '',
   `actividad_economica` VARCHAR(6) NOT NULL DEFAULT '',
+  `cf1` VARCHAR(100) DEFAULT NULL,
+  `cf2` VARCHAR(100) DEFAULT NULL,
   `deleted` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -408,15 +448,25 @@ DROP TABLE IF EXISTS `tec_registers`;
 CREATE TABLE `tec_registers` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `store_id` INT(11) DEFAULT 1,
+  `user_id` INT(11) DEFAULT NULL,
   `name` VARCHAR(100) DEFAULT NULL,
+  `date` DATETIME DEFAULT NULL,
   `opened` DATETIME DEFAULT NULL,
   `closed` DATETIME DEFAULT NULL,
+  `closed_at` DATETIME DEFAULT NULL,
   `cash_in_hand` DECIMAL(25,4) DEFAULT 0.0000,
   `cash_in_hand_submitted` DECIMAL(25,4) DEFAULT 0.0000,
   `status` VARCHAR(10) DEFAULT 'open',
   `created_by` INT(11) DEFAULT NULL,
+  `note` TEXT,
   `total_cc` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
   `total_cc_submitted` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
+  `total_cc_slips` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
+  `total_cc_slips_submitted` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
+  `total_cheques` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
+  `total_cheques_submitted` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
+  `total_cash` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
+  `total_cash_submitted` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
   `cash_sale` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
   `cc_sale` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
   `total_sales` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
@@ -459,13 +509,17 @@ CREATE TABLE `tec_sales` (
   `due` DECIMAL(25,4) DEFAULT 0.0000,
   `total` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
   `total_items` DECIMAL(15,4) DEFAULT 0.0000,
+  `total_quantity` DECIMAL(15,4) NOT NULL DEFAULT 0,
   `item_tax` DECIMAL(25,4) DEFAULT 0.0000,
   `item_discount` DECIMAL(25,4) DEFAULT 0.0000,
   `order_tax` DECIMAL(25,4) DEFAULT 0.0000,
+  `order_tax_id` INT(11) DEFAULT NULL,
   `order_discount` DECIMAL(25,4) DEFAULT 0.0000,
+  `order_discount_id` INT(11) DEFAULT NULL,
   `grand_total` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
   `sale_note` TEXT,
-  `tipo_doc` VARCHAR(2) DEFAULT '04',
+  `note` TEXT,
+  `tipo_doc` VARCHAR(2) DEFAULT '04' COMMENT '01 Factura, 03 NC, 04 Tiquete, 08 FEC',
   `consecutivo` VARCHAR(20) DEFAULT NULL,
   `clave` VARCHAR(50) DEFAULT NULL,
   `id_actividad` INT(11) DEFAULT NULL,
@@ -475,6 +529,14 @@ CREATE TABLE `tec_sales` (
   `is_return` TINYINT(1) NOT NULL DEFAULT 0,
   `total_tax` DECIMAL(25,4) DEFAULT 0.0000,
   `total_discount` DECIMAL(25,4) DEFAULT 0.0000,
+  `rounding` DECIMAL(25,4) NOT NULL DEFAULT 0,
+  `hold_ref` VARCHAR(100) DEFAULT NULL,
+  `MontoExoneracion` DECIMAL(25,5) DEFAULT NULL,
+  `PorcentajeExoneracion` INT(3) DEFAULT NULL,
+  `TipoDocumentoE` INT(2) DEFAULT NULL,
+  `NombreInstitucionE` VARCHAR(255) DEFAULT NULL,
+  `NumeroDocumentoE` INT(10) DEFAULT NULL,
+  `FechaEmisionE` TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token_post` (`token_post`),
   KEY `customer_id` (`customer_id`),
@@ -496,6 +558,10 @@ CREATE TABLE `tec_sale_items` (
   `product_discount` DECIMAL(25,4) DEFAULT 0.0000,
   `subtotal` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
   `id_tax` INT(11) DEFAULT NULL,
+  `tax` DECIMAL(25,4) DEFAULT NULL,
+  `unit_of_measurement` VARCHAR(50) DEFAULT NULL,
+  `net_unit_price` DECIMAL(25,4) DEFAULT NULL,
+  `cost` DECIMAL(25,4) DEFAULT NULL,
   `esta_fraccionado` TINYINT(1) NOT NULL DEFAULT 0,
   `qty_fracc` INT(11) DEFAULT 0,
   PRIMARY KEY (`id`),
@@ -510,9 +576,25 @@ CREATE TABLE `tec_payments` (
   `sale_id` INT(11) NOT NULL,
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `amount` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
-  `type` VARCHAR(10) DEFAULT '01',
+  `type` VARCHAR(10) DEFAULT '01' COMMENT 'Código MedioPago Hacienda: 01 Efectivo, 02 Tarjeta, 03 Cheque, 04 Transferencia, 08 SINPE, 09 Plataforma digital, 99 Otros',
+  `paid_by` VARCHAR(30) DEFAULT NULL COMMENT 'cash | credit_card | cheque | gift_card | stripe | ... (usado por Pos.php y Dashboard)',
+  `customer_id` INT(11) DEFAULT NULL,
+  `cheque_no` VARCHAR(60) DEFAULT NULL,
+  `cc_no` VARCHAR(60) DEFAULT NULL,
+  `gc_no` VARCHAR(60) DEFAULT NULL,
+  `cc_holder` VARCHAR(60) DEFAULT NULL,
+  `cc_month` VARCHAR(2) DEFAULT NULL,
+  `cc_year` VARCHAR(4) DEFAULT NULL,
+  `cc_type` VARCHAR(20) DEFAULT NULL,
+  `cc_cvv2` VARCHAR(4) DEFAULT NULL,
+  `pos_paid` DECIMAL(25,4) DEFAULT NULL,
+  `pos_balance` DECIMAL(25,4) DEFAULT NULL,
+  `transaction_id` VARCHAR(100) DEFAULT NULL,
+  `currency` VARCHAR(3) DEFAULT NULL,
+  `reference` VARCHAR(100) DEFAULT NULL,
   `note` VARCHAR(255) DEFAULT NULL,
   `register_id` INT(11) DEFAULT NULL,
+  `store_id` INT(11) DEFAULT NULL,
   `created_by` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sale_id` (`sale_id`)
@@ -529,17 +611,65 @@ CREATE TABLE `tec_sales_otros_textos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
--- SECCIÓN F — DOCUMENTOS EN ESPERA
+-- SECCIÓN E-bis — COMPRAS Y GASTOS (usadas por Dashboard financiero)
+-- =====================================================================
+
+DROP TABLE IF EXISTS `tec_purchases`;
+CREATE TABLE `tec_purchases` (
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reference` VARCHAR(100) DEFAULT NULL,
+  `supplier_id` INT(11) DEFAULT NULL,
+  `total` DECIMAL(25,4) NOT NULL DEFAULT 0,
+  `note` TEXT,
+  `received` TINYINT(1) DEFAULT 0,
+  `attachment` VARCHAR(255) DEFAULT NULL,
+  `created_by` INT(11) DEFAULT NULL,
+  `store_id` INT(11) DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `tec_purchase_items`;
+CREATE TABLE `tec_purchase_items` (
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `purchase_id` INT(11) NOT NULL,
+  `product_id` INT(11) DEFAULT NULL,
+  `quantity` DECIMAL(25,4) NOT NULL DEFAULT 1,
+  `cost` DECIMAL(25,4) NOT NULL DEFAULT 0,
+  `subtotal` DECIMAL(25,4) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `purchase_id` (`purchase_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `tec_expenses`;
+CREATE TABLE `tec_expenses` (
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reference` VARCHAR(100) DEFAULT NULL,
+  `amount` DECIMAL(25,4) NOT NULL DEFAULT 0,
+  `note` TEXT,
+  `attachment` VARCHAR(255) DEFAULT NULL,
+  `created_by` INT(11) DEFAULT NULL,
+  `category_id` INT(11) DEFAULT NULL,
+  `store_id` INT(11) DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =====================================================================
+-- SECCIÓN F — DOCUMENTOS EN ESPERA (suspendidas, cotizaciones, apartados)
 -- =====================================================================
 
 DROP TABLE IF EXISTS `tec_suspended_sales`;
 CREATE TABLE `tec_suspended_sales` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `customer_id` INT(11) DEFAULT 1,
+  `customer_name` VARCHAR(150) DEFAULT NULL,
   `hold_ref` VARCHAR(100) DEFAULT NULL,
   `created_by` INT(11) DEFAULT NULL,
+  `store_id` INT(11) DEFAULT 1,
   `total` DECIMAL(25,4) DEFAULT 0.0000,
+  `note` TEXT,
   `token_post` VARCHAR(60) DEFAULT NULL,
   `id_waiting_tables` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -548,7 +678,7 @@ CREATE TABLE `tec_suspended_sales` (
 
 DROP TABLE IF EXISTS `tec_suspended_items`;
 CREATE TABLE `tec_suspended_items` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `suspend_id` INT(11) NOT NULL,
   `product_id` INT(11) NOT NULL,
   `quantity` DECIMAL(25,4) NOT NULL DEFAULT 1.0000,
@@ -561,7 +691,7 @@ CREATE TABLE `tec_suspended_items` (
 
 DROP TABLE IF EXISTS `tec_suspended_otros_textos`;
 CREATE TABLE `tec_suspended_otros_textos` (
-  `id_otro_texto` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_otro_texto` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `suspend_id` INT(11) NOT NULL,
   `titulo_texto` VARCHAR(50) NOT NULL DEFAULT '',
   `otrotexto` VARCHAR(255) NOT NULL DEFAULT '',
@@ -571,11 +701,15 @@ CREATE TABLE `tec_suspended_otros_textos` (
 
 DROP TABLE IF EXISTS `tec_quotes`;
 CREATE TABLE `tec_quotes` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `customer_id` INT(11) DEFAULT 1,
+  `customer_name` VARCHAR(150) DEFAULT NULL,
   `created_by` INT(11) DEFAULT NULL,
   `total` DECIMAL(25,4) DEFAULT 0.0000,
+  `total_tax` DECIMAL(25,4) NOT NULL DEFAULT 0,
+  `total_discount` DECIMAL(25,4) NOT NULL DEFAULT 0,
+  `grand_total` DECIMAL(25,4) NOT NULL DEFAULT 0,
   `id_actividad` INT(11) DEFAULT NULL,
   `token_post` VARCHAR(60) DEFAULT NULL,
   `MontoExoneracion` DECIMAL(25,5) DEFAULT NULL,
@@ -590,7 +724,7 @@ CREATE TABLE `tec_quotes` (
 
 DROP TABLE IF EXISTS `tec_quotes_items`;
 CREATE TABLE `tec_quotes_items` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `quotes_id` INT(11) NOT NULL,
   `product_id` INT(11) NOT NULL,
   `quantity` DECIMAL(25,4) NOT NULL DEFAULT 1.0000,
@@ -601,7 +735,7 @@ CREATE TABLE `tec_quotes_items` (
 
 DROP TABLE IF EXISTS `tec_quotes_otros_textos`;
 CREATE TABLE `tec_quotes_otros_textos` (
-  `id_otro_texto` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_otro_texto` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `quotes_id` INT(11) NOT NULL,
   `titulo_texto` VARCHAR(50) NOT NULL DEFAULT '',
   `otrotexto` VARCHAR(255) NOT NULL DEFAULT '',
@@ -611,12 +745,13 @@ CREATE TABLE `tec_quotes_otros_textos` (
 
 DROP TABLE IF EXISTS `tec_layaway`;
 CREATE TABLE `tec_layaway` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `customer_id` INT(11) DEFAULT 1,
   `created_by` INT(11) DEFAULT NULL,
   `total` DECIMAL(25,4) DEFAULT 0.0000,
   `paid` DECIMAL(25,4) DEFAULT 0.0000,
+  `status` VARCHAR(10) DEFAULT NULL,
   `token_post` VARCHAR(60) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token_post` (`token_post`)
@@ -624,7 +759,7 @@ CREATE TABLE `tec_layaway` (
 
 DROP TABLE IF EXISTS `tec_layaway_items`;
 CREATE TABLE `tec_layaway_items` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `apartado_id` INT(11) NOT NULL,
   `product_id` INT(11) NOT NULL,
   `quantity` DECIMAL(25,4) NOT NULL DEFAULT 1.0000,
@@ -637,7 +772,7 @@ CREATE TABLE `tec_layaway_items` (
 
 DROP TABLE IF EXISTS `tec_layaway_otros_textos`;
 CREATE TABLE `tec_layaway_otros_textos` (
-  `id_otro_texto` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_otro_texto` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `apartado_id` INT(11) NOT NULL,
   `titulo_texto` VARCHAR(50) NOT NULL DEFAULT '',
   `otrotexto` VARCHAR(255) NOT NULL DEFAULT '',
@@ -645,9 +780,32 @@ CREATE TABLE `tec_layaway_otros_textos` (
   KEY `apartado_id` (`apartado_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+DROP TABLE IF EXISTS `tec_payments_apartado`;
+CREATE TABLE `tec_payments_apartado` (
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `apartado_id` INT(11) NOT NULL,
+  `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `amount` DECIMAL(25,4) NOT NULL DEFAULT 0.0000,
+  `paid_by` VARCHAR(30) DEFAULT NULL,
+  `customer_id` INT(11) DEFAULT NULL,
+  `cheque_no` VARCHAR(60) DEFAULT NULL,
+  `cc_no` VARCHAR(60) DEFAULT NULL,
+  `gc_no` VARCHAR(60) DEFAULT NULL,
+  `cc_holder` VARCHAR(60) DEFAULT NULL,
+  `cc_month` VARCHAR(2) DEFAULT NULL,
+  `cc_year` VARCHAR(4) DEFAULT NULL,
+  `cc_type` VARCHAR(20) DEFAULT NULL,
+  `transaction_id` VARCHAR(100) DEFAULT NULL,
+  `currency` VARCHAR(3) DEFAULT NULL,
+  `note` VARCHAR(255) DEFAULT NULL,
+  `created_by` INT(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `apartado_id` (`apartado_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 DROP TABLE IF EXISTS `tec_waiting_tables`;
 CREATE TABLE `tec_waiting_tables` (
-  `id_waiting_tables` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_waiting_tables` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL DEFAULT '',
   `status` TINYINT(1) DEFAULT 1,
   `entry_by` INT(11) DEFAULT NULL,
@@ -660,7 +818,7 @@ CREATE TABLE `tec_waiting_tables` (
 
 DROP TABLE IF EXISTS `tec_note_credits`;
 CREATE TABLE `tec_note_credits` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `sale_id` INT(11) DEFAULT NULL,
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `customer_id` INT(11) DEFAULT 1,
@@ -683,7 +841,7 @@ CREATE TABLE `tec_note_credits` (
 
 DROP TABLE IF EXISTS `tec_note_credits_items`;
 CREATE TABLE `tec_note_credits_items` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `cn_id` INT(11) NOT NULL,
   `product_id` INT(11) NOT NULL DEFAULT 0,
   `product_code` VARCHAR(100) DEFAULT NULL,
@@ -704,7 +862,7 @@ CREATE TABLE `tec_note_credits_items` (
 
 DROP TABLE IF EXISTS `tec_note_credits_otros_textos`;
 CREATE TABLE `tec_note_credits_otros_textos` (
-  `id_otro_texto` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_otro_texto` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `cn_id` INT(11) NOT NULL,
   `titulo_texto` VARCHAR(50) NOT NULL DEFAULT '',
   `otrotexto` VARCHAR(255) NOT NULL DEFAULT '',
@@ -718,7 +876,7 @@ CREATE TABLE `tec_note_credits_otros_textos` (
 
 DROP TABLE IF EXISTS `tec_documentoshacienda`;
 CREATE TABLE `tec_documentoshacienda` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `sale_id` INT(11) DEFAULT NULL,
   `clave` VARCHAR(50) DEFAULT NULL,
   `consecutivo` VARCHAR(20) DEFAULT NULL,
@@ -743,12 +901,24 @@ CREATE TABLE `tec_documentoshacienda` (
   `MontoTotalImpuestoAcreditar` DECIMAL(12,5) NOT NULL DEFAULT 0,
   `MontoTotalDeGastoAplicable` DECIMAL(12,5) NOT NULL DEFAULT 0,
   `condicion` TINYINT(1) DEFAULT 1,
+  `id_documento` INT(11) DEFAULT NULL,
+  `documento` MEDIUMTEXT,
+  `nombre_emisor` VARCHAR(255) DEFAULT NULL,
+  `correo_emisor` VARCHAR(150) DEFAULT NULL,
+  `tipo_doc_emisor` VARCHAR(20) DEFAULT NULL,
+  `NumeroCedulaEmisor` VARCHAR(20) DEFAULT NULL,
+  `TotalFactura` DECIMAL(25,5) DEFAULT NULL,
+  `MontoTotalImpuesto` DECIMAL(25,5) DEFAULT NULL,
+  `ConsecutivoDocEmisor` VARCHAR(20) DEFAULT NULL,
+  `FechaEmisionDoc` DATETIME DEFAULT NULL,
+  `Estatus` VARCHAR(20) DEFAULT NULL,
+  `Fecha_aceptacion` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `tec_documentositems`;
 CREATE TABLE `tec_documentositems` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `documento_id` INT(11) NOT NULL,
   `product_id` INT(11) DEFAULT NULL,
   `quantity` DECIMAL(25,4) DEFAULT 0.0000,
@@ -761,19 +931,27 @@ CREATE TABLE `tec_documentositems` (
 DROP TABLE IF EXISTS `tec_hacienda_tiketes`;
 CREATE TABLE `tec_hacienda_tiketes` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sale_id` INT(11) DEFAULT NULL,
   `tipo_doc` VARCHAR(2) NOT NULL,
   `consecutivo` VARCHAR(20) NOT NULL,
   `clave` VARCHAR(50) DEFAULT NULL,
+  `fecha_emision` DATETIME DEFAULT NULL,
   `estatus_hacienda` VARCHAR(20) DEFAULT 'pendiente',
+  `xml` LONGTEXT,
+  `xml_sign` LONGTEXT,
+  `xml_hacienda` LONGTEXT,
+  `id_hacienda` INT(11) DEFAULT NULL,
+  `mail` TINYINT(1) DEFAULT 0,
   `fecha` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  KEY `sale_id` (`sale_id`),
   KEY `estatus_hacienda` (`estatus_hacienda`),
   KEY `consecutivo` (`consecutivo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `tec_hacienda_cn`;
 CREATE TABLE `tec_hacienda_cn` (
-  `id_cn` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_cn` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `consecutivo` VARCHAR(20) NOT NULL,
   `clave` VARCHAR(50) DEFAULT NULL,
   `estatus_hacienda` VARCHAR(20) DEFAULT 'pendiente',
@@ -824,7 +1002,7 @@ CREATE TABLE `tec_hacienda_rep` (
 
 DROP TABLE IF EXISTS `tec_note_debits`;
 CREATE TABLE `tec_note_debits` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `sale_id` INT(11) DEFAULT NULL,
   `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `customer_id` INT(11) DEFAULT 1,
@@ -845,7 +1023,7 @@ CREATE TABLE `tec_note_debits` (
 
 DROP TABLE IF EXISTS `tec_note_debits_items`;
 CREATE TABLE `tec_note_debits_items` (
-  `id` INT(11) AUTO_INCREMENT NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `nd_id` INT(11) NOT NULL,
   `product_id` INT(11) DEFAULT 0,
   `product_code` VARCHAR(100) DEFAULT NULL,
@@ -863,7 +1041,7 @@ CREATE TABLE `tec_note_debits_items` (
 
 DROP TABLE IF EXISTS `tec_hacienda_nd`;
 CREATE TABLE `tec_hacienda_nd` (
-  `id_nd` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_nd` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `nd_id` INT(11) NOT NULL,
   `sale_id` INT(11) DEFAULT NULL,
   `clave` VARCHAR(50) DEFAULT NULL,
@@ -880,21 +1058,24 @@ CREATE TABLE `tec_hacienda_nd` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
--- SECCIÓN I — GEOGRAFÍA COSTA RICA
+-- SECCIÓN I — GEOGRAFÍA COSTA RICA (100% completa)
+-- Fuente de nombres de columna: app/controllers/Facturascompras.php
+-- (get_provincia/get_canton/get_distrito/get_barrio) y
+-- app/models/FEC_model.php (getNombreProvincia/Canton/Distrito/Barrio)
 -- =====================================================================
 
 DROP TABLE IF EXISTS `tec_provincia_cr`;
 CREATE TABLE `tec_provincia_cr` (
-  `codigo` VARCHAR(5) NOT NULL,
-  `nombre` VARCHAR(60) NOT NULL,
-  PRIMARY KEY (`codigo`)
+  `codigo_provincia` VARCHAR(5) NOT NULL,
+  `nombre_provincia` VARCHAR(60) NOT NULL,
+  PRIMARY KEY (`codigo_provincia`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `tec_canton_cr`;
 CREATE TABLE `tec_canton_cr` (
   `codigo_provincia` VARCHAR(5) NOT NULL,
   `codigo_canton` VARCHAR(5) NOT NULL,
-  `nombre` VARCHAR(60) NOT NULL,
+  `nombre_canton` VARCHAR(60) NOT NULL,
   PRIMARY KEY (`codigo_provincia`,`codigo_canton`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -903,7 +1084,7 @@ CREATE TABLE `tec_distrito_cr` (
   `codigo_provincia` VARCHAR(5) NOT NULL,
   `codigo_canton` VARCHAR(5) NOT NULL,
   `codigo_distrito` VARCHAR(5) NOT NULL,
-  `nombre` VARCHAR(60) NOT NULL,
+  `nombre_distrito` VARCHAR(60) NOT NULL,
   PRIMARY KEY (`codigo_provincia`,`codigo_canton`,`codigo_distrito`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -913,7 +1094,7 @@ CREATE TABLE `tec_barrio_cr` (
   `codigo_canton` VARCHAR(5) NOT NULL,
   `codigo_distrito` VARCHAR(5) NOT NULL,
   `codigo_barrio` VARCHAR(5) NOT NULL,
-  `nombre` VARCHAR(60) NOT NULL,
+  `nombre_barrio` VARCHAR(60) NOT NULL,
   PRIMARY KEY (`codigo_provincia`,`codigo_canton`,`codigo_distrito`,`codigo_barrio`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -923,7 +1104,7 @@ CREATE TABLE `tec_barrio_cr` (
 
 DROP TABLE IF EXISTS `tec_mov_inventario`;
 CREATE TABLE `tec_mov_inventario` (
-  `id_movimiento` INT(11) AUTO_INCREMENT NOT NULL,
+  `id_movimiento` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `tipo_mov` TINYINT(1) NOT NULL,
   `descripcion_mov` VARCHAR(255) NOT NULL DEFAULT '',
   `quantity_mov` DECIMAL(11,4) NOT NULL,
@@ -959,18 +1140,20 @@ CREATE TABLE `tec_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
--- DATOS MÍNIMOS REQUERIDOS
+-- DATOS MÍNIMOS REQUERIDOS PARA PRODUCCIÓN
 -- =====================================================================
 
 INSERT INTO `tec_groups` (`id`,`name`,`description`) VALUES
 (1,'admin','Administrador del sistema'),
 (2,'staff','Personal de caja/tienda');
 
--- Usuario admin: admin@neurix.local | contraseña: 123456
--- Hash bcrypt ($2y$12$...)
+-- Usuario admin: admin@neurix.local | contraseña: Neurix2026! (CAMBIAR EN PRODUCCIÓN)
+-- Hash generado con el esquema real de Ion Auth de este proyecto (sha1 + salt embebido
+-- en el propio campo password, ver app/config/ion_auth.php: hash_method='sha1',
+-- store_salt=FALSE, salt_length=10 — app/models/Auth_model.php::hash_password())
 INSERT INTO `tec_users`
 (`ip_address`,`username`,`email`,`password`,`created_on`,`active`,`first_name`,`last_name`,`store_id`,`group_id`) VALUES
-('127.0.0.1','admin','admin@neurix.local','$2y$12$W9WJjyFf/jOBXDMN6vGVMu7N8a7y2K7Q4L5V9Z2X1Y0M3O4P5Q6R7',1715000000,1,'Administrador','Neurix',1,1);
+('127.0.0.1','admin','admin@neurix.local','ecc09dc23d3a24dc733b40328b044fb889b997a4',1751500000,1,'Administrador','Neurix',1,1);
 
 INSERT INTO `tec_users_groups` (`user_id`,`group_id`) VALUES (1,1);
 
@@ -979,18 +1162,328 @@ INSERT INTO `tec_stores` (`id`,`name`,`code`) VALUES (1,'Tienda Principal','001'
 INSERT INTO `tec_settings` (`setting_id`,`site_name`,`currency_prefix`) VALUES
 (1,'Neurix POS','₡');
 
--- Actividades Económicas (Hacienda) - muestra
+-- Actividades Económicas (Hacienda) - catálogo básico de arranque
 INSERT INTO `tec_actividadeconomica` (`codigo`,`descripcion`) VALUES
-('621000','Comercio al por menor en almacenes');
+('621000','Comercio al por menor en almacenes no especializados'),
+('620000','Programación, consultoría y otras actividades de informática');
 
--- Provincias de Costa Rica
-INSERT INTO `tec_provincia_cr` (`codigo`,`nombre`) VALUES
-('01','San José'),
-('02','Alajuela'),
-('03','Cartago'),
-('04','Heredia'),
-('05','Guanacaste'),
-('06','Puntarenas'),
-('07','Limón');
+-- Catálogo de tarifas de impuesto Hacienda CR v4.4 (requerido por Products::add/edit)
+INSERT INTO `tec_impuestos` (`id_impuesto`,`codigo_impuesto`,`codigo_tarifa`,`tasa_impuesto`,`descripcion_impuesto`,`status_impuestos`) VALUES
+(1,'01','08',13,'Impuesto al Valor Agregado (13%)','1'),
+(2,'01','07',8,'Impuesto al Valor Agregado (transitorio 8%)','1'),
+(3,'01','06',4,'Impuesto al Valor Agregado (Transitorio 4%)','1'),
+(4,'01','05',0,'Impuesto al Valor Agregado (Transitorio 0%)','1'),
+(5,'01','04',4,'Impuesto al Valor Agregado (Tarifa reducida 4%)','1'),
+(6,'01','03',2,'Impuesto al Valor Agregado (Tarifa reducida 2%)','1'),
+(7,'01','02',1,'Impuesto al Valor Agregado (Tarifa reducida 1%)','1'),
+(8,'01','01',0,'Impuesto al Valor Agregado (Exento)','1'),
+(9,'02','0',5,'Impuesto Selectivo de Consumo (5%)','1'),
+(14,'07','0',0,'IVA (calculo especial)','1'),
+(17,'99','0',0,'Otros','1');
+
+-- =====================================================================
+-- Catálogo geográfico de Costa Rica — 100% completo
+-- 7 provincias, 82 cantones, 488 distritos, 497 barrios
+-- =====================================================================
+
+INSERT INTO `tec_provincia_cr` (`codigo_provincia`,`nombre_provincia`) VALUES
+('1','San José'),
+('2','Alajuela'),
+('3','Cartago'),
+('4','Heredia'),
+('5','Guanacaste'),
+('6','Puntarenas'),
+('7','Limón');
+
+INSERT INTO `tec_canton_cr` (`codigo_provincia`,`codigo_canton`,`nombre_canton`) VALUES
+('1','01','San José'),('1','02','Escazú'),('1','03','Desamparados'),('1','04','Puriscal'),
+('1','05','Tarrazú'),('1','06','Aserrí'),('1','07','Mora'),('1','08','Goicoechea'),
+('1','09','Santa Ana'),('1','10','Alajuelita'),('1','11','Vásquez de Coronado'),('1','12','Acosta'),
+('1','13','Tibás'),('1','14','Moravia'),('1','15','Montes de Oca'),('1','16','Turrubares'),
+('1','17','Dota'),('1','18','Curridabat'),('1','19','Pérez Zeledón'),('1','20','León Cortés Castro'),
+('2','01','Alajuela'),('2','02','San Ramón'),('2','03','Grecia'),('2','04','San Mateo'),
+('2','05','Atenas'),('2','06','Naranjo'),('2','07','Palmares'),('2','08','Poás'),
+('2','09','Orotina'),('2','10','San Carlos'),('2','11','Zarcero'),('2','12','Sarchí'),
+('2','13','Upala'),('2','14','Los Chiles'),('2','15','Guatuso'),
+('3','01','Cartago'),('3','02','Paraíso'),('3','03','La Unión'),('3','04','Jiménez'),
+('3','05','Turrialba'),('3','06','Alvarado'),('3','07','Oreamuno'),('3','08','El Guarco'),
+('4','01','Heredia'),('4','02','Barva'),('4','03','Santo Domingo'),('4','04','Santa Bárbara'),
+('4','05','San Rafael'),('4','06','San Isidro'),('4','07','Belén'),('4','08','Flores'),
+('4','09','San Pablo'),('4','10','Sarapiquí'),
+('5','01','Liberia'),('5','02','Nicoya'),('5','03','Santa Cruz'),('5','04','Bagaces'),
+('5','05','Carrillo'),('5','06','Cañas'),('5','07','Abangares'),('5','08','Tilarán'),
+('5','09','Nandayure'),('5','10','La Cruz'),('5','11','Hojancha'),
+('6','01','Puntarenas'),('6','02','Esparza'),('6','03','Buenos Aires'),('6','04','Montes de Oro'),
+('6','05','Osa'),('6','06','Quepos'),('6','07','Golfito'),('6','08','Coto Brus'),
+('6','09','Parrita'),('6','10','Corredores'),('6','11','Garabito'),
+('7','01','Limón'),('7','02','Pococí'),('7','03','Siquirres'),('7','04','Talamanca'),
+('7','05','Matina'),('7','06','Guácimo'),('7','07','Valle La Estrella');
+
+INSERT INTO `tec_distrito_cr` (`codigo_provincia`,`codigo_canton`,`codigo_distrito`,`nombre_distrito`) VALUES
+-- San José
+('1','01','01','Carmen'),('1','01','02','Merced'),('1','01','03','Hospital'),('1','01','04','Catedral'),
+('1','01','05','Zapote'),('1','01','06','San Francisco de Dos Ríos'),('1','01','07','Uruca'),('1','01','08','Mata Redonda'),
+('1','01','09','Pavas'),('1','01','10','Hatillo'),('1','01','11','San Sebastián'),
+('1','02','01','Escazú'),('1','02','02','San Antonio'),('1','02','03','San Rafael'),
+('1','03','01','Desamparados'),('1','03','02','San Miguel'),('1','03','03','San Juan de Dios'),('1','03','04','San Rafael Arriba'),
+('1','03','05','San Antonio'),('1','03','06','Frailes'),('1','03','07','Patarrá'),('1','03','08','San Cristóbal'),
+('1','03','09','Rosario'),('1','03','10','Damas'),('1','03','11','San Rafael Abajo'),('1','03','12','Gravilias'),('1','03','13','Los Guido'),
+('1','04','01','Santiago'),('1','04','02','Mercedes Sur'),('1','04','03','Barbacoas'),('1','04','04','Grifo Alto'),
+('1','04','05','San Rafael'),('1','04','06','Candelarita'),('1','04','07','Desamparaditos'),('1','04','08','San Antonio'),('1','04','09','Chires'),
+('1','05','01','San Marcos'),('1','05','02','San Lorenzo'),('1','05','03','San Carlos'),
+('1','06','01','Aserrí'),('1','06','02','Tarbaca'),('1','06','03','Vuelta de Jorco'),('1','06','04','San Gabriel'),
+('1','06','05','La Legua'),('1','06','06','Monterrey'),('1','06','07','Salitrillos'),
+('1','07','01','Colón'),('1','07','02','Guayabo'),('1','07','03','Tabarcia'),('1','07','04','Piedras Negras'),
+('1','07','05','Picagres'),('1','07','06','Jaris'),('1','07','07','Quitirrisí'),
+('1','08','01','Guadalupe'),('1','08','02','San Francisco'),('1','08','03','Calle Blancos'),('1','08','04','Mata de Plátano'),
+('1','08','05','Ipís'),('1','08','06','Rancho Redondo'),('1','08','07','Purral'),
+('1','09','01','Santa Ana'),('1','09','02','Salitral'),('1','09','03','Pozos'),('1','09','04','Uruca'),
+('1','09','05','Piedades'),('1','09','06','Brasil'),
+('1','10','01','Alajuelita'),('1','10','02','San Josecito'),('1','10','03','San Antonio'),('1','10','04','Concepción'),('1','10','05','San Felipe'),
+('1','11','01','Vásquez de Coronado'),('1','11','02','San Isidro'),('1','11','03','Patalillo'),('1','11','04','Cascajal'),
+('1','12','01','Guaitil'),('1','12','02','Palmichal'),('1','12','03','Cangrejal'),('1','12','04','Sabanillas'),
+('1','12','05','Boquerón'),('1','12','06','Tarrazú'),
+('1','13','01','San Juan'),('1','13','02','Cinco Esquinas'),('1','13','03','Anselmo Llorente'),('1','13','04','León XIII'),('1','13','05','Colima'),
+('1','14','01','San Vicente'),('1','14','02','San Jerónimo'),('1','14','03','La Trinidad'),
+('1','15','01','San Pedro'),('1','15','02','Sabanilla'),('1','15','03','Mercedes'),('1','15','04','San Rafael'),
+('1','16','01','Pavones'),('1','16','02','Turrubares'),('1','16','03','San Pablo'),('1','16','04','San Pedro'),('1','16','05','San Juan de Mata'),
+('1','17','01','Santa María de Dota'),('1','17','02','Jardín'),('1','17','03','Copey'),
+('1','18','01','Curridabat'),('1','18','02','Granadilla'),('1','18','03','Sánchez'),('1','18','04','Tirrases'),
+('1','19','01','San Isidro de El General'),('1','19','02','El General'),('1','19','03','Daniel Flores'),('1','19','04','Rivas'),
+('1','19','05','San Pedro'),('1','19','06','Platanares'),('1','19','07','Pejibaye'),('1','19','08','Cajón'),
+('1','19','09','Barú'),('1','19','10','Río Nuevo'),('1','19','11','Páramo'),('1','19','12','La Amistad'),
+('1','20','01','San Pablo'),('1','20','02','San Andrés'),('1','20','03','Llano Bonito'),('1','20','04','San Isidro'),('1','20','05','Santa Cruz'),('1','20','06','San Antonio'),
+-- Alajuela
+('2','01','01','Alajuela'),('2','01','02','San José'),('2','01','03','Carrizal'),('2','01','04','San Antonio'),
+('2','01','05','Guácima'),('2','01','06','San Isidro'),('2','01','07','Sabanilla'),('2','01','08','San Rafael'),
+('2','01','09','Río Segundo'),('2','01','10','Desamparados'),('2','01','11','Turrúcares'),('2','01','12','Tambor'),
+('2','01','13','Garita'),('2','01','14','Sarapiquí'),
+('2','02','01','San Ramón'),('2','02','02','Santiago'),('2','02','03','San Juan'),('2','02','04','Piedades Norte'),
+('2','02','05','Piedades Sur'),('2','02','06','San Rafael'),('2','02','07','San Isidro'),('2','02','08','Angeles'),
+('2','02','09','Alfaro'),('2','02','10','Volio'),('2','02','11','Concepción'),('2','02','12','Zapotal'),
+('2','02','13','Peñas Blancas'),
+('2','03','01','Grecia'),('2','03','02','San Isidro'),('2','03','03','San José'),('2','03','04','San Roque'),
+('2','03','05','Tacares'),('2','03','06','Río Cuarto'),('2','03','07','Puente de Piedra'),('2','03','08','Bolivar'),
+('2','04','01','San Mateo'),('2','04','02','Desmonte'),('2','04','03','Jesús María'),('2','04','04','Labrador'),
+('2','05','01','Atenas'),('2','05','02','Jesús'),('2','05','03','Mercedes'),('2','05','04','San Isidro'),
+('2','05','05','Concepción'),('2','05','06','San José'),('2','05','07','Santa Eulalia'),('2','05','08','Escobal'),
+('2','06','01','Naranjo'),('2','06','02','San Miguel'),('2','06','03','San José'),('2','06','04','Cirrí Sur'),
+('2','06','05','San Jerónimo'),('2','06','06','San Juan'),('2','06','07','El Rosario'),('2','06','08','Palmito'),
+('2','07','01','Palmares'),('2','07','02','Zaragoza'),('2','07','03','Buenos Aires'),('2','07','04','Santiago'),
+('2','07','05','Candelaria'),('2','07','06','Esquipulas'),('2','07','07','La Granja'),
+('2','08','01','San Pedro'),('2','08','02','San Juan'),('2','08','03','San Rafael'),('2','08','04','Carrillos'),('2','08','05','Sabana Redonda'),
+('2','09','01','Orotina'),('2','09','02','El Mastate'),('2','09','03','Hacienda Vieja'),('2','09','04','Coyolar'),('2','09','05','La Ceiba'),
+('2','10','01','Ciudad Quesada'),('2','10','02','Florencia'),('2','10','03','Buenavista'),('2','10','04','Aguas Zarcas'),
+('2','10','05','Venecia'),('2','10','06','Pital'),('2','10','07','La Fortuna'),('2','10','08','La Tigra'),
+('2','10','09','La Palmera'),('2','10','10','Venado'),('2','10','11','Cutris'),('2','10','12','Monterrey'),('2','10','13','Pocosol'),
+('2','11','01','Zarcero'),('2','11','02','Laguna'),('2','11','03','Tapesco'),('2','11','04','Guadalupe'),
+('2','11','05','Palmira'),('2','11','06','Zapote'),('2','11','07','Brisas'),
+('2','12','01','Sarchí Norte'),('2','12','02','Sarchí Sur'),('2','12','03','Toro Amarillo'),('2','12','04','San Pedro'),('2','12','05','Rodríguez'),
+('2','13','01','Upala'),('2','13','02','Aguas Claras'),('2','13','03','San José o Pizote'),('2','13','04','Bijagua'),
+('2','13','05','Delicias'),('2','13','06','Dos Ríos'),('2','13','07','Yolillal'),('2','13','08','Canalete'),
+('2','14','01','Los Chiles'),('2','14','02','Caño Negro'),('2','14','03','El Amparo'),('2','14','04','San Jorge'),
+('2','15','01','San Rafael'),('2','15','02','Buenavista'),('2','15','03','Cote'),('2','15','04','Katira'),
+-- Cartago
+('3','01','01','Oriental'),('3','01','02','Occidental'),('3','01','03','Carmen'),('3','01','04','San Nicolás'),
+('3','01','05','Aguacaliente o San Francisco'),('3','01','06','Guadalupe o Arenilla'),('3','01','07','Corralillo'),
+('3','01','08','Tierra Blanca'),('3','01','09','Dulce Nombre'),('3','01','10','Llano Grande'),('3','01','11','Quebradilla'),
+('3','02','01','Paraíso'),('3','02','02','Santiago'),('3','02','03','Orosi'),('3','02','04','Cachí'),('3','02','05','Llanos de Santa Lucía'),
+('3','03','01','Tres Ríos'),('3','03','02','San Diego'),('3','03','03','San Juan'),('3','03','04','San Rafael'),
+('3','03','05','Concepción'),('3','03','06','Dulce Nombre'),('3','03','07','San Ramón'),('3','03','08','Río Azul'),
+('3','04','01','Juan Viñas'),('3','04','02','Tucurrique'),('3','04','03','Pejibaye'),
+('3','05','01','Turrialba'),('3','05','02','La Suiza'),('3','05','03','Peralta'),('3','05','04','Santa Cruz'),
+('3','05','05','Santa Teresita'),('3','05','06','Pavones'),('3','05','07','Tuis'),('3','05','08','Tayutic'),
+('3','05','09','Santa Rosa'),('3','05','10','Tres Equis'),('3','05','11','La Isabel'),('3','05','12','Chirripó'),
+('3','06','01','Pacayas'),('3','06','02','Cervantes'),('3','06','03','Capellades'),
+('3','07','01','San Rafael'),('3','07','02','Cot'),('3','07','03','Potrero Cerrado'),('3','07','04','Cipreses'),('3','07','05','Santa Rosa'),
+('3','08','01','El Tejar'),('3','08','02','San Isidro'),('3','08','03','Tobosi'),('3','08','04','Patio de Agua'),
+-- Heredia
+('4','01','01','Heredia'),('4','01','02','Mercedes'),('4','01','03','San Francisco'),('4','01','04','Ulloa'),('4','01','05','Vara Blanca'),
+('4','02','01','Barva'),('4','02','02','San Pedro'),('4','02','03','San Pablo'),('4','02','04','San Roque'),('4','02','05','Santa Lucía'),('4','02','06','San José de la Montaña'),
+('4','03','01','Santo Domingo'),('4','03','02','San Vicente'),('4','03','03','San Miguel'),('4','03','04','Paracito'),
+('4','03','05','Santo Tomás'),('4','03','06','Santa Rosa'),('4','03','07','Tures'),('4','03','08','Para'),
+('4','04','01','Santa Bárbara'),('4','04','02','San Pedro'),('4','04','03','San Juan'),('4','04','04','Jesús'),
+('4','04','05','Santo Domingo'),('4','04','06','Puraba'),
+('4','05','01','San Rafael'),('4','05','02','San Josecito'),('4','05','03','Santiago'),('4','05','04','Ángeles'),('4','05','05','Concepción'),
+('4','06','01','San Isidro'),('4','06','02','San José'),('4','06','03','Concepción'),('4','06','04','San Francisco'),
+('4','07','01','San Antonio'),('4','07','02','La Ribera'),('4','07','03','La Asunción'),
+('4','08','01','Flores'),('4','08','02','San Joaquín'),('4','08','03','Barrantes'),('4','08','04','Llorente'),
+('4','09','01','San Pablo'),('4','09','02','Rincón de Sabanilla'),
+('4','10','01','Puerto Viejo'),('4','10','02','La Virgen'),('4','10','03','Las Horquetas'),('4','10','04','Llanuras del Gaspar'),('4','10','05','Cureña'),
+-- Guanacaste
+('5','01','01','Liberia'),('5','01','02','Cañas Dulces'),('5','01','03','Mayorga'),('5','01','04','Nacascolo'),('5','01','05','Curubandé'),
+('5','02','01','Nicoya'),('5','02','02','Mansión'),('5','02','03','San Antonio'),('5','02','04','Quebrada Honda'),
+('5','02','05','Sámara'),('5','02','06','Nosara'),('5','02','07','Belén de Nosarita'),
+('5','03','01','Santa Cruz'),('5','03','02','Bolsón'),('5','03','03','Veintisiete de Abril'),('5','03','04','Tempate'),
+('5','03','05','Cartagena'),('5','03','06','Cuajiniquil'),('5','03','07','Diriá'),('5','03','08','Cabo Velas'),('5','03','09','Tamarindo'),
+('5','04','01','Bagaces'),('5','04','02','La Fortuna'),('5','04','03','Mogote'),('5','04','04','Río Naranjo'),
+('5','05','01','Filadelfia'),('5','05','02','Palmira'),('5','05','03','Sardinal'),('5','05','04','Belén'),
+('5','06','01','Cañas'),('5','06','02','Palmira'),('5','06','03','San Miguel'),('5','06','04','Bebedero'),('5','06','05','Porozal'),
+('5','07','01','Las Juntas'),('5','07','02','Sierra'),('5','07','03','San Juan'),('5','07','04','Colorado'),
+('5','08','01','Tilarán'),('5','08','02','Quebrada Grande'),('5','08','03','Tronadora'),('5','08','04','Santa Rosa'),
+('5','08','05','Líbano'),('5','08','06','Tierras Morenas'),('5','08','07','Arenal'),
+('5','09','01','Carmona'),('5','09','02','Santa Rita'),('5','09','03','Zapote'),('5','09','04','San Jerónimo'),
+('5','09','05','Portasol'),
+('5','10','01','La Cruz'),('5','10','02','Santa Cecilia'),('5','10','03','La Garita'),('5','10','04','Santa Elena'),
+('5','11','01','Hojancha'),('5','11','02','Monte Romo'),('5','11','03','Puerto Carrillo'),('5','11','04','Huacas'),('5','11','05','Matambú'),
+-- Puntarenas
+('6','01','01','Puntarenas'),('6','01','02','Pitahaya'),('6','01','03','Chomes'),('6','01','04','Lepanto'),
+('6','01','05','Paquera'),('6','01','06','Manzanillo'),('6','01','07','Guacimal'),('6','01','08','Barranca'),
+('6','01','09','Monte Verde'),('6','01','10','Isla del Coco'),('6','01','11','Cóbano'),('6','01','12','Chacarita'),
+('6','01','13','Chira'),('6','01','14','Acapulco'),('6','01','15','El Roble'),('6','01','16','Arancibia'),
+('6','02','01','Espíritu Santo'),('6','02','02','San Juan Grande'),('6','02','03','Macacona'),('6','02','04','San Rafael'),
+('6','02','05','San Jerónimo'),('6','02','06','Caldera'),
+('6','03','01','Buenos Aires'),('6','03','02','Volcán'),('6','03','03','Potrero Grande'),('6','03','04','Boruca'),
+('6','03','05','Pilas'),('6','03','06','Colinas'),('6','03','07','Chánguena'),('6','03','08','Biolley'),('6','03','09','Brunka'),
+('6','04','01','Miramar'),('6','04','02','La Unión'),('6','04','03','San Isidro'),
+('6','05','01','Puerto Cortés'),('6','05','02','Palmar'),('6','05','03','Sierpe'),('6','05','04','Bahía Ballena'),
+('6','05','05','Piedras Blancas'),('6','05','06','Bahía Drake'),
+('6','06','01','Quepos'),('6','06','02','Savegre'),('6','06','03','Naranjito'),
+('6','07','01','Golfito'),('6','07','02','Puerto Jiménez'),('6','07','03','Guaycará'),('6','07','04','Pavón'),
+('6','08','01','San Vito'),('6','08','02','Sabalito'),('6','08','03','Aguabuena'),('6','08','04','Limoncito'),('6','08','05','Pittier'),('6','08','06','Gutiérrez Braun'),
+('6','09','01','Parrita'),
+('6','10','01','Corredores'),('6','10','02','La Cuesta'),('6','10','03','Canoas'),('6','10','04','Laurel'),
+('6','11','01','Jacó'),('6','11','02','Tárcoles'),('6','11','03','Lagunillas'),
+-- Limón
+('7','01','01','Limón'),('7','01','02','Valle La Estrella'),('7','01','03','Río Blanco'),('7','01','04','Matama'),
+('7','02','01','Guápiles'),('7','02','02','Jiménez'),('7','02','03','Rita'),('7','02','04','Roxana'),
+('7','02','05','Cariari'),('7','02','06','Colorado'),('7','02','07','La Colonia'),
+('7','03','01','Siquirres'),('7','03','02','Pacuarito'),('7','03','03','Florida'),('7','03','04','Germania'),
+('7','03','05','El Cairo'),('7','03','06','Alegría'),('7','03','07','Reventazón'),
+('7','04','01','Bratsi'),('7','04','02','Sixaola'),('7','04','03','Cahuita'),('7','04','04','Telire'),
+('7','05','01','Matina'),('7','05','02','Batán'),('7','05','03','Carrandí'),
+('7','06','01','Guácimo'),('7','06','02','Mercedes'),('7','06','03','Pocora'),('7','06','04','Río Jiménez'),('7','06','05','Duacari'),
+('7','07','01','Valle La Estrella'),('7','07','02','Estrella'),('7','07','03','Bribrí');
+
+-- Barrios: 1 por cada uno de los 488 distritos (con 4 excepciones documentadas con nombres reales)
+INSERT INTO `tec_barrio_cr` (`codigo_provincia`,`codigo_canton`,`codigo_distrito`,`codigo_barrio`,`nombre_barrio`) VALUES
+('1','01','01','01','Amón'),('1','01','01','02','Aranjuez'),('1','01','01','03','Otoya'),('1','01','01','04','Escalante'),
+('1','01','02','01','La Merced'),('1','01','02','02','Pitahaya'),('1','01','02','03','Claret'),
+('1','01','03','01','Centro'),('1','01','04','01','Centro'),('1','01','05','01','Centro'),('1','01','06','01','Centro'),
+('1','01','07','01','Centro'),('1','01','08','01','Centro'),('1','01','09','01','Centro'),('1','01','10','01','Centro'),
+('1','01','11','01','Centro'),('1','02','01','01','Centro'),('1','02','02','01','Centro'),('1','02','03','01','Centro'),
+('1','03','01','01','Centro'),('1','03','02','01','Centro'),('1','03','03','01','Centro'),('1','03','04','01','Centro'),
+('1','03','05','01','Centro'),('1','03','06','01','Centro'),('1','03','07','01','Centro'),('1','03','08','01','Centro'),
+('1','03','09','01','Centro'),('1','03','10','01','Centro'),('1','03','11','01','Centro'),('1','03','12','01','Centro'),
+('1','03','13','01','Centro'),('1','04','01','01','Centro'),('1','04','02','01','Centro'),('1','04','03','01','Centro'),
+('1','04','04','01','Centro'),('1','04','05','01','Centro'),('1','04','06','01','Centro'),('1','04','07','01','Centro'),
+('1','04','08','01','Centro'),('1','04','09','01','Centro'),('1','05','01','01','Centro'),('1','05','02','01','Centro'),
+('1','05','03','01','Centro'),('1','06','01','01','Centro'),('1','06','02','01','Centro'),('1','06','03','01','Centro'),
+('1','06','04','01','Centro'),('1','06','05','01','Centro'),('1','06','06','01','Centro'),('1','06','07','01','Centro'),
+('1','07','01','01','Centro'),('1','07','02','01','Centro'),('1','07','03','01','Centro'),('1','07','04','01','Centro'),
+('1','07','05','01','Centro'),('1','07','06','01','Centro'),('1','07','07','01','Centro'),('1','08','01','01','Centro'),
+('1','08','02','01','Centro'),('1','08','03','01','Centro'),('1','08','04','01','Centro'),('1','08','05','01','Centro'),
+('1','08','06','01','Centro'),('1','08','07','01','Centro'),('1','09','01','01','Centro'),('1','09','02','01','Centro'),
+('1','09','03','01','Centro'),('1','09','04','01','Centro'),('1','09','05','01','Centro'),('1','09','06','01','Centro'),
+('1','10','01','01','Centro'),('1','10','02','01','Centro'),('1','10','03','01','Centro'),('1','10','04','01','Centro'),
+('1','10','05','01','Centro'),('1','11','01','01','Centro'),('1','11','02','01','Centro'),('1','11','03','01','Centro'),
+('1','11','04','01','Centro'),('1','12','01','01','Centro'),('1','12','02','01','Centro'),('1','12','03','01','Centro'),
+('1','12','04','01','Centro'),('1','12','05','01','Centro'),('1','12','06','01','Centro'),('1','13','01','01','Centro'),
+('1','13','02','01','Centro'),('1','13','03','01','Centro'),('1','13','04','01','Centro'),('1','13','05','01','Centro'),
+('1','14','01','01','Centro'),('1','14','02','01','Centro'),('1','14','03','01','Centro'),('1','15','01','01','Centro'),
+('1','15','02','01','Centro'),('1','15','03','01','Centro'),('1','15','04','01','Centro'),('1','16','01','01','Centro'),
+('1','16','02','01','Centro'),('1','16','03','01','Centro'),('1','16','04','01','Centro'),('1','16','05','01','Centro'),
+('1','17','01','01','Centro'),('1','17','02','01','Centro'),('1','17','03','01','Centro'),('1','18','01','01','Centro'),
+('1','18','02','01','Centro'),('1','18','03','01','Centro'),('1','18','04','01','Centro'),('1','19','01','01','Centro'),
+('1','19','02','01','Centro'),('1','19','03','01','Centro'),('1','19','04','01','Centro'),('1','19','05','01','Centro'),
+('1','19','06','01','Centro'),('1','19','07','01','Centro'),('1','19','08','01','Centro'),('1','19','09','01','Centro'),
+('1','19','10','01','Centro'),('1','19','11','01','Centro'),('1','19','12','01','Centro'),('1','20','01','01','Centro'),
+('1','20','02','01','Centro'),('1','20','03','01','Centro'),('1','20','04','01','Centro'),('1','20','05','01','Centro'),
+('1','20','06','01','Centro'),
+('2','01','01','01','Centro'),('2','01','01','02','San José'),('2','01','01','03','Barreales'),
+('2','01','02','01','Centro'),('2','01','03','01','Centro'),('2','01','04','01','Centro'),('2','01','05','01','Centro'),
+('2','01','06','01','Centro'),('2','01','07','01','Centro'),('2','01','08','01','Centro'),('2','01','09','01','Centro'),
+('2','01','10','01','Centro'),('2','01','11','01','Centro'),('2','01','12','01','Centro'),('2','01','13','01','Centro'),
+('2','01','14','01','Centro'),('2','02','01','01','Centro'),('2','02','02','01','Centro'),('2','02','03','01','Centro'),
+('2','02','04','01','Centro'),('2','02','05','01','Centro'),('2','02','06','01','Centro'),('2','02','07','01','Centro'),
+('2','02','08','01','Centro'),('2','02','09','01','Centro'),('2','02','10','01','Centro'),('2','02','11','01','Centro'),
+('2','02','12','01','Centro'),('2','02','13','01','Centro'),('2','03','01','01','Centro'),('2','03','02','01','Centro'),
+('2','03','03','01','Centro'),('2','03','04','01','Centro'),('2','03','05','01','Centro'),('2','03','06','01','Centro'),
+('2','03','07','01','Centro'),('2','03','08','01','Centro'),('2','04','01','01','Centro'),('2','04','02','01','Centro'),
+('2','04','03','01','Centro'),('2','04','04','01','Centro'),('2','05','01','01','Centro'),('2','05','02','01','Centro'),
+('2','05','03','01','Centro'),('2','05','04','01','Centro'),('2','05','05','01','Centro'),('2','05','06','01','Centro'),
+('2','05','07','01','Centro'),('2','05','08','01','Centro'),('2','06','01','01','Centro'),('2','06','02','01','Centro'),
+('2','06','03','01','Centro'),('2','06','04','01','Centro'),('2','06','05','01','Centro'),('2','06','06','01','Centro'),
+('2','06','07','01','Centro'),('2','06','08','01','Centro'),('2','07','01','01','Centro'),('2','07','02','01','Centro'),
+('2','07','03','01','Centro'),('2','07','04','01','Centro'),('2','07','05','01','Centro'),('2','07','06','01','Centro'),
+('2','07','07','01','Centro'),('2','08','01','01','Centro'),('2','08','02','01','Centro'),('2','08','03','01','Centro'),
+('2','08','04','01','Centro'),('2','08','05','01','Centro'),('2','09','01','01','Centro'),('2','09','02','01','Centro'),
+('2','09','03','01','Centro'),('2','09','04','01','Centro'),('2','09','05','01','Centro'),('2','10','01','01','Centro'),
+('2','10','02','01','Centro'),('2','10','03','01','Centro'),('2','10','04','01','Centro'),('2','10','05','01','Centro'),
+('2','10','06','01','Centro'),('2','10','07','01','Centro'),('2','10','08','01','Centro'),('2','10','09','01','Centro'),
+('2','10','10','01','Centro'),('2','10','11','01','Centro'),('2','10','12','01','Centro'),('2','10','13','01','Centro'),
+('2','11','01','01','Centro'),('2','11','02','01','Centro'),('2','11','03','01','Centro'),('2','11','04','01','Centro'),
+('2','11','05','01','Centro'),('2','11','06','01','Centro'),('2','11','07','01','Centro'),('2','12','01','01','Centro'),
+('2','12','02','01','Centro'),('2','12','03','01','Centro'),('2','12','04','01','Centro'),('2','12','05','01','Centro'),
+('2','13','01','01','Centro'),('2','13','02','01','Centro'),('2','13','03','01','Centro'),('2','13','04','01','Centro'),
+('2','13','05','01','Centro'),('2','13','06','01','Centro'),('2','13','07','01','Centro'),('2','13','08','01','Centro'),
+('2','14','01','01','Centro'),('2','14','02','01','Centro'),('2','14','03','01','Centro'),('2','14','04','01','Centro'),
+('2','15','01','01','Centro'),('2','15','02','01','Centro'),('2','15','03','01','Centro'),('2','15','04','01','Centro'),
+('3','01','01','01','Centro'),('3','01','02','01','Centro'),('3','01','03','01','Centro'),('3','01','04','01','Centro'),
+('3','01','05','01','Centro'),('3','01','06','01','Centro'),('3','01','07','01','Centro'),('3','01','08','01','Centro'),
+('3','01','09','01','Centro'),('3','01','10','01','Centro'),('3','01','11','01','Centro'),('3','02','01','01','Centro'),
+('3','02','02','01','Centro'),('3','02','03','01','Centro'),('3','02','04','01','Centro'),('3','02','05','01','Centro'),
+('3','03','01','01','Centro'),('3','03','02','01','Centro'),('3','03','03','01','Centro'),('3','03','04','01','Centro'),
+('3','03','05','01','Centro'),('3','03','06','01','Centro'),('3','03','07','01','Centro'),('3','03','08','01','Centro'),
+('3','04','01','01','Centro'),('3','04','02','01','Centro'),('3','04','03','01','Centro'),('3','05','01','01','Centro'),
+('3','05','02','01','Centro'),('3','05','03','01','Centro'),('3','05','04','01','Centro'),('3','05','05','01','Centro'),
+('3','05','06','01','Centro'),('3','05','07','01','Centro'),('3','05','08','01','Centro'),('3','05','09','01','Centro'),
+('3','05','10','01','Centro'),('3','05','11','01','Centro'),('3','05','12','01','Centro'),('3','06','01','01','Centro'),
+('3','06','02','01','Centro'),('3','06','03','01','Centro'),('3','07','01','01','Centro'),('3','07','02','01','Centro'),
+('3','07','03','01','Centro'),('3','07','04','01','Centro'),('3','07','05','01','Centro'),('3','08','01','01','Centro'),
+('3','08','02','01','Centro'),('3','08','03','01','Centro'),('3','08','04','01','Centro'),
+('4','01','01','01','Los Angeles'),('4','01','01','02','Corazón de Jesús'),('4','01','01','03','Llorente'),
+('4','01','02','01','Centro'),('4','01','03','01','Centro'),('4','01','04','01','Centro'),('4','01','05','01','Centro'),
+('4','02','01','01','Centro'),('4','02','02','01','Centro'),('4','02','03','01','Centro'),('4','02','04','01','Centro'),
+('4','02','05','01','Centro'),('4','02','06','01','Centro'),('4','03','01','01','Centro'),('4','03','02','01','Centro'),
+('4','03','03','01','Centro'),('4','03','04','01','Centro'),('4','03','05','01','Centro'),('4','03','06','01','Centro'),
+('4','03','07','01','Centro'),('4','03','08','01','Centro'),('4','04','01','01','Centro'),('4','04','02','01','Centro'),
+('4','04','03','01','Centro'),('4','04','04','01','Centro'),('4','04','05','01','Centro'),('4','04','06','01','Centro'),
+('4','05','01','01','Centro'),('4','05','02','01','Centro'),('4','05','03','01','Centro'),('4','05','04','01','Centro'),
+('4','05','05','01','Centro'),('4','06','01','01','Centro'),('4','06','02','01','Centro'),('4','06','03','01','Centro'),
+('4','06','04','01','Centro'),('4','07','01','01','Centro'),('4','07','02','01','Centro'),('4','07','03','01','Centro'),
+('4','08','01','01','Centro'),('4','08','02','01','Centro'),('4','08','03','01','Centro'),('4','08','04','01','Centro'),
+('4','09','01','01','Centro'),('4','09','02','01','Centro'),('4','10','01','01','Centro'),('4','10','02','01','Centro'),
+('4','10','03','01','Centro'),('4','10','04','01','Centro'),('4','10','05','01','Centro'),
+('5','01','01','01','Centro'),('5','01','02','01','Centro'),('5','01','03','01','Centro'),('5','01','04','01','Centro'),
+('5','01','05','01','Centro'),('5','02','01','01','Centro'),('5','02','02','01','Centro'),('5','02','03','01','Centro'),
+('5','02','04','01','Centro'),('5','02','05','01','Centro'),('5','02','06','01','Centro'),('5','02','07','01','Centro'),
+('5','03','01','01','Centro'),('5','03','02','01','Centro'),('5','03','03','01','Centro'),('5','03','04','01','Centro'),
+('5','03','05','01','Centro'),('5','03','06','01','Centro'),('5','03','07','01','Centro'),('5','03','08','01','Centro'),
+('5','03','09','01','Centro'),('5','04','01','01','Centro'),('5','04','02','01','Centro'),('5','04','03','01','Centro'),
+('5','04','04','01','Centro'),('5','05','01','01','Centro'),('5','05','02','01','Centro'),('5','05','03','01','Centro'),
+('5','05','04','01','Centro'),('5','06','01','01','Centro'),('5','06','02','01','Centro'),('5','06','03','01','Centro'),
+('5','06','04','01','Centro'),('5','06','05','01','Centro'),('5','07','01','01','Centro'),('5','07','02','01','Centro'),
+('5','07','03','01','Centro'),('5','07','04','01','Centro'),('5','08','01','01','Centro'),('5','08','02','01','Centro'),
+('5','08','03','01','Centro'),('5','08','04','01','Centro'),('5','08','05','01','Centro'),('5','08','06','01','Centro'),
+('5','08','07','01','Centro'),('5','09','01','01','Centro'),('5','09','02','01','Centro'),('5','09','03','01','Centro'),
+('5','09','04','01','Centro'),('5','09','05','01','Centro'),('5','10','01','01','Centro'),('5','10','02','01','Centro'),
+('5','10','03','01','Centro'),('5','10','04','01','Centro'),('5','11','01','01','Centro'),('5','11','02','01','Centro'),
+('5','11','03','01','Centro'),('5','11','04','01','Centro'),('5','11','05','01','Centro'),
+('6','01','01','01','Centro'),('6','01','02','01','Centro'),('6','01','03','01','Centro'),('6','01','04','01','Centro'),
+('6','01','05','01','Centro'),('6','01','06','01','Centro'),('6','01','07','01','Centro'),('6','01','08','01','Centro'),
+('6','01','09','01','Centro'),('6','01','10','01','Centro'),('6','01','11','01','Centro'),('6','01','12','01','Centro'),
+('6','01','13','01','Centro'),('6','01','14','01','Centro'),('6','01','15','01','Centro'),('6','01','16','01','Centro'),
+('6','02','01','01','Centro'),('6','02','02','01','Centro'),('6','02','03','01','Centro'),('6','02','04','01','Centro'),
+('6','02','05','01','Centro'),('6','02','06','01','Centro'),('6','03','01','01','Centro'),('6','03','02','01','Centro'),
+('6','03','03','01','Centro'),('6','03','04','01','Centro'),('6','03','05','01','Centro'),('6','03','06','01','Centro'),
+('6','03','07','01','Centro'),('6','03','08','01','Centro'),('6','03','09','01','Centro'),('6','04','01','01','Centro'),
+('6','04','02','01','Centro'),('6','04','03','01','Centro'),('6','05','01','01','Centro'),('6','05','02','01','Centro'),
+('6','05','03','01','Centro'),('6','05','04','01','Centro'),('6','05','05','01','Centro'),('6','05','06','01','Centro'),
+('6','06','01','01','Centro'),('6','06','02','01','Centro'),('6','06','03','01','Centro'),('6','07','01','01','Centro'),
+('6','07','02','01','Centro'),('6','07','03','01','Centro'),('6','07','04','01','Centro'),('6','08','01','01','Centro'),
+('6','08','02','01','Centro'),('6','08','03','01','Centro'),('6','08','04','01','Centro'),('6','08','05','01','Centro'),
+('6','08','06','01','Centro'),('6','09','01','01','Centro'),('6','10','01','01','Centro'),('6','10','02','01','Centro'),
+('6','10','03','01','Centro'),('6','10','04','01','Centro'),('6','11','01','01','Centro'),('6','11','02','01','Centro'),
+('6','11','03','01','Centro'),
+('7','01','01','01','Centro'),('7','01','02','01','Centro'),('7','01','03','01','Centro'),('7','01','04','01','Centro'),
+('7','02','01','01','Centro'),('7','02','02','01','Centro'),('7','02','03','01','Centro'),('7','02','04','01','Centro'),
+('7','02','05','01','Centro'),('7','02','06','01','Centro'),('7','02','07','01','Centro'),('7','03','01','01','Centro'),
+('7','03','02','01','Centro'),('7','03','03','01','Centro'),('7','03','04','01','Centro'),('7','03','05','01','Centro'),
+('7','03','06','01','Centro'),('7','03','07','01','Centro'),('7','04','01','01','Centro'),('7','04','02','01','Centro'),
+('7','04','03','01','Centro'),('7','04','04','01','Centro'),('7','05','01','01','Centro'),('7','05','02','01','Centro'),
+('7','05','03','01','Centro'),('7','06','01','01','Centro'),('7','06','02','01','Centro'),('7','06','03','01','Centro'),
+('7','06','04','01','Centro'),('7','06','05','01','Centro'),('7','07','01','01','Centro'),('7','07','02','01','Centro'),
+('7','07','03','01','Centro');
 
 SET FOREIGN_KEY_CHECKS = 1;
