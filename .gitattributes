@@ -1,6 +1,11 @@
 # Normalizar fin de línea a LF para todos los archivos de texto
 * text=auto eol=lf
 
+# Scripts de Windows: CRLF obligatorio (cmd.exe falla con etiquetas/goto en LF)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
 # Archivos binarios (no normalizar)
 *.exe binary
 *.dll binary
