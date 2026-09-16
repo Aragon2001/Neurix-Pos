@@ -640,6 +640,86 @@ class PosPrint extends MY_Controller
         }
     }
 
+    /* ──────────────────────────────────────────────────────
+       QZ TRAY — FIRMA DE PETICIONES
+       QZ Tray muestra su ventana nativa "An anonymous request wants to
+       access connected printers" en CADA petición mientras el sitio mande
+       peticiones sin firmar (Signature: Missing / Validity: Invalid), y el
+       "Remember this decision" no puede guardarse porque una petición
+       anónima no tiene huella (Fingerprint: UNKNOWN REQUEST).
+       La solución soportada es firmar cada petición con la llave privada de
+       un certificado propio: el servidor guarda la llave, el navegador solo
+       recibe el certificado público y la firma ya calculada.
+       Generar el par con: php tools/qz/generar-certificado-qz.php
+    ────────────────────────────────────────────────────── */
+
+    /** Certificado público (se puede publicar; no es un secreto). */
+    private function qz_cert_path() {
+        $path = getenv('QZ_CERT_PATH');
+        return $path ? $path : FCPATH . 'files/certificados/qz/digital-certificate.txt';
+    }
+
+    /** Llave privada — NUNCA sale del servidor ni se envía al navegador. */
+    private function qz_key_path() {
+        $path = getenv('QZ_KEY_PATH');
+        return $path ? $path : FCPATH . 'files/certificados/qz/private-key.pem';
+    }
+
+    /**
+     * Entrega el certificado público que QZ Tray usa para identificar a este
+     * POS. Sin sesión a propósito: el .bat que instala la confianza en cada
+     * terminal lo descarga antes de que nadie inicie sesión.
+     * Devuelve vacío si aún no se ha generado el certificado, y en ese caso
+     * el POS sigue funcionando en modo sin firma (con el diálogo nativo).
+     */
+    function qz_certificate() {
+        $path = $this->qz_cert_path();
+        $cert = is_readable($path) ? trim((string) file_get_contents($path)) : '';
+        if (strpos($cert, '-----BEGIN CERTIFICATE-----') !== 0) {
+            $cert = '';
+        }
+        return $this->output
+            ->set_content_type('text/plain; charset=utf-8')
+            ->set_output($cert);
+    }
+
+    /**
+     * Firma con SHA-512 la cadena que QZ Tray pide firmar (incluye la llamada,
+     * sus parámetros y un timestamp, así que la firma no se puede reutilizar).
+     * Requiere sesión iniciada: solo el POS puede pedir firmas.
+     */
+    function qz_sign() {
+        $this->output->set_content_type('text/plain; charset=utf-8');
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_output('');
+        }
+
+        $to_sign = (string) $this->input->post('request');
+        $key_path = $this->qz_key_path();
+        if ($to_sign === '' || !is_readable($key_path) || !function_exists('openssl_sign')) {
+            return $this->output->set_output('');
+        }
+
+        $pass = getenv('QZ_KEY_PASS');
+        $key = openssl_pkey_get_private(file_get_contents($key_path), $pass === false ? '' : $pass);
+        if (!$key) {
+            log_message('error', 'QZ Tray: no se pudo abrir la llave privada en ' . $key_path);
+            return $this->output->set_output('');
+        }
+
+        $signature = '';
+        $signed = openssl_sign($to_sign, $signature, $key, 'sha512');
+        if (PHP_VERSION_ID < 80000) {
+            openssl_free_key($key);
+        }
+        if (!$signed) {
+            log_message('error', 'QZ Tray: openssl_sign fallo al firmar la peticion');
+            return $this->output->set_output('');
+        }
+
+        return $this->output->set_output(base64_encode($signature));
+    }
+
     function p($bo = 'order') {
 
         $date = date('Y-m-d H:i:s');

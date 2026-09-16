@@ -64,3 +64,7 @@ dist/
 !themes/default/assets/dist/**/*.css
 !themes/default/assets/dist/**/*.js
 .phpunit.result.cache
+
+# Certificado de firma para QZ Tray (se genera por instalacion)
+files/certificados/qz/*
+!files/certificados/qz/index.html
