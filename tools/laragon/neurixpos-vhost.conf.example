@@ -1,0 +1,25 @@
+# ------------------------------------------------------------------
+# Virtual host para servir el POS como http://neurixpos.test
+# (en vez de http://localhost)
+#
+# Copiar a:  C:\laragon\etc\apache2\sites-enabled\neurixpos.conf
+# Ajustar DocumentRoot a la carpeta real del proyecto y recargar
+# Apache desde Laragon (Menu > Apache > Recargar).
+#
+# Ver README-DOMINIO-LOCAL.md para los pasos completos, incluido el
+# archivo hosts de cada terminal.
+# ------------------------------------------------------------------
+
+<VirtualHost *:80>
+    ServerName neurixpos.test
+    ServerAlias neurixpos
+    DocumentRoot "C:/laragon/www/Neurix-Pos"
+
+    <Directory "C:/laragon/www/Neurix-Pos">
+        AllowOverride All
+        Require all granted
+        Options Indexes FollowSymLinks
+    </Directory>
+
+    ErrorLog "C:/laragon/tmp/neurixpos-error.log"
+</VirtualHost>

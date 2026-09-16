@@ -54,6 +54,23 @@ QZ_KEY_PATH=/ruta/private-key.pem
 QZ_KEY_PASS=   # solo si la llave está protegida por contraseña
 ```
 
+## El nombre que muestra la ventana de QZ Tray
+
+Lo que QZ Tray muestra como titular de la petición (donde antes decía
+*An anonymous request*) es el **Common Name del certificado**, no la dirección
+del sitio. Se elige al generarlo:
+
+```bash
+php tools/qz/generar-certificado-qz.php --cn="NeurixPOS" --org="Neurix POS"
+```
+
+Por defecto queda `Neurix POS`. Si se cambia el nombre después de haber
+confiado el certificado en las terminales, hay que volver a ejecutar
+`confiar-qz-tray.bat` en cada una: el certificado es otro.
+
+Para cambiar la dirección del sitio (`localhost` → `neurixpos.test`) ver
+`README-DOMINIO-LOCAL.md`; eso no afecta la confianza ya instalada.
+
 ## Confiar el certificado (una sola vez, en cada terminal)
 
 Con solo firmar, QZ Tray ya pregunta **una vez por terminal** y ahí sí el
