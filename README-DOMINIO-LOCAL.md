@@ -9,6 +9,27 @@ El POS no necesita ningún cambio de código: `app/config/config.php` arma el
 `base_url` a partir del host con el que se entró (`$_SERVER['HTTP_HOST']`), y
 `manifest.json` / `sw.js` usan rutas relativas.
 
+## ¿Se puede renombrar la carpeta del proyecto?
+
+Sí. Nada en el código depende del nombre de la carpeta:
+
+- `base_url` se arma con el host de la petición (`$_SERVER['HTTP_HOST']`).
+- Las rutas internas salen de `FCPATH` (la carpeta real, sea cual sea).
+- `.htaccess` no fija `RewriteBase` y `manifest.json` / `sw.js` son relativos.
+- La base de datos no guarda ninguna URL del sitio.
+
+Después de renombrar, en Laragon: *Menu > Apache > Recargar*. Dos detalles:
+
+- Si entraban por ruta (`http://localhost/Neurix-Pos/`), la dirección pasa a
+  ser `http://localhost/neurixpos/`: hay que actualizar los accesos directos.
+  El origen del navegador no cambia, así que la impresora configurada se
+  conserva.
+- El service worker viejo queda registrado en la ruta anterior. Si alguna caja
+  ve contenido viejo, `Ctrl` + `Shift` + `R` una vez y listo.
+
+Con virtual host (lo recomendado abajo) la dirección no depende de la carpeta,
+así que renombrarla no cambia nada para las cajas.
+
 ## 1. Nombre del sitio en Apache (solo en el servidor)
 
 **Opción A — automática (lo más simple).** Laragon crea un virtual host por
@@ -47,8 +68,7 @@ Sin esa línea, la terminal no encuentra el nombre y el POS no abre.
   impresora una vez en cada terminal (*Configurar impresora*).
 - **QZ Tray no se ve afectado.** La confianza se instala sobre el
   certificado (`override.crt`), no sobre la dirección del sitio: sigue
-  funcionando igual después del cambio. Solo si volvés a ejecutar
-  `confiar-qz-tray.bat` hay que escribir la dirección nueva.
+  funcionando igual después del cambio.
 - **La IP del servidor debe ser fija.** Si el router se la cambia, las
   terminales dejan de encontrarlo. Reservá la IP en el router o configurala
   estática en el servidor.

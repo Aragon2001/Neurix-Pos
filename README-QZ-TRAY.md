@@ -1,110 +1,92 @@
-# QZ Tray — quitar el aviso "An anonymous request wants to access connected printers"
+# QZ Tray — impresión sin el aviso "An anonymous request…"
 
-## Qué está pasando
+## Qué pasaba
 
-QZ Tray abre su ventana nativa en **cada** petición y el check
-*"Remember this decision"* no sirve de nada. En el detalle de la petición
-(*View request details*) se ve el motivo real:
+QZ Tray abría su ventana nativa en **cada** petición y el check
+*"Remember this decision"* no servía. El detalle de la petición
+(*View request details*) mostraba el motivo real:
 
-| Campo       | Valor              |
-|-------------|--------------------|
-| Signature   | **Missing**        |
-| Validity    | **Invalid**        |
+| Campo       | Valor                |
+|-------------|----------------------|
+| Signature   | **Missing**          |
+| Validity    | **Invalid**          |
 | Common Name | An anonymous request |
-| Fingerprint | **UNKNOWN REQUEST** |
+| Fingerprint | **UNKNOWN REQUEST**  |
 
-No es el certificado TLS de `localhost` ni el navegador: QZ Tray no valida el
-certificado del sitio web, valida **la firma digital de cada petición**. Una
+No era el certificado TLS de `localhost` ni el navegador: QZ Tray **no valida
+el certificado del sitio web, valida la firma digital de cada petición**. Una
 petición sin firmar es anónima y no tiene huella, así que QZ no tiene nada que
-"recordar" — por eso vuelve a preguntar siempre, aunque se marque la casilla.
+"recordar" — por eso volvía a preguntar siempre.
 
-La solución soportada por QZ es firmar las peticiones con un certificado
-propio: la llave privada se queda en el servidor del POS y el navegador solo
-recibe el certificado público y la firma ya calculada de cada llamada.
+## Cómo quedó (no hay pasos manuales)
 
-## Instalación (una sola vez, en el servidor)
+**En el servidor — automático.** La primera vez que una caja abre el POS, el
+servidor genera solo su par certificado + llave en `files/certificados/qz/`
+(`app/libraries/Qzcert.php`). La llave privada nunca sale de ahí: al navegador
+solo viajan el certificado público y la firma ya calculada de cada llamada.
 
-```bash
-php tools/qz/generar-certificado-qz.php
-```
+**En cada caja — un solo archivo.** El botón *"Descargar e instalar"* del
+overlay del POS ya no baja un instalador genérico: descarga
+`posprint/qz_installer`, un `.bat` generado por el servidor que trae la
+dirección de ESE POS escrita adentro y que, al ejecutarse:
 
-Genera en `files/certificados/qz/`:
+1. instala QZ Tray si falta (`qz.sh/install.ps1`),
+2. descarga el certificado del POS y lo deja como `override.crt` dentro de la
+   carpeta de QZ Tray — ese archivo es el que hace que QZ confíe sin preguntar,
+3. reinicia QZ Tray.
 
-- `digital-certificate.txt` — certificado público (lo sirve el POS).
-- `private-key.pem` — llave privada. **No se copia a las terminales ni se
-  versiona**; solo la usa el servidor desde `PosPrint::qz_sign()`.
+El cajero solo abre el archivo descargado y acepta el aviso de administrador
+de Windows. No hay que escribir direcciones ni copiar certificados.
 
-Verificar que quede publicado:
+Si el paso 2 falla (por ejemplo, sin red al momento de instalar), el instalador
+avisa y sigue: el POS funciona igual y QZ Tray pregunta **una sola vez**, y ahí
+sí el *"Remember this decision"* se guarda de verdad, porque ya hay firma y
+huella.
 
-```
-http://<direccion-del-pos>/posprint/qz_certificate
-```
-
-Debe devolver el bloque `-----BEGIN CERTIFICATE-----`.
-
-> En Windows (Laragon/XAMPP) PHP a veces no encuentra `openssl.cnf`. Si el
-> script lo reporta, repetir con
-> `--openssl-conf="C:\laragon\bin\php\php-8.x\extras\ssl\openssl.cnf"`.
-
-Rutas alternativas (opcional) vía `.env`:
-
-```
-QZ_CERT_PATH=/ruta/digital-certificate.txt
-QZ_KEY_PATH=/ruta/private-key.pem
-QZ_KEY_PASS=   # solo si la llave está protegida por contraseña
-```
-
-## El nombre que muestra la ventana de QZ Tray
-
-Lo que QZ Tray muestra como titular de la petición (donde antes decía
-*An anonymous request*) es el **Common Name del certificado**, no la dirección
-del sitio. Se elige al generarlo:
-
-```bash
-php tools/qz/generar-certificado-qz.php --cn="NeurixPOS" --org="Neurix POS"
-```
-
-Por defecto queda `Neurix POS`. Si se cambia el nombre después de haber
-confiado el certificado en las terminales, hay que volver a ejecutar
-`confiar-qz-tray.bat` en cada una: el certificado es otro.
-
-Para cambiar la dirección del sitio (`localhost` → `neurixpos.test`) ver
-`README-DOMINIO-LOCAL.md`; eso no afecta la confianza ya instalada.
-
-## Confiar el certificado (una sola vez, en cada terminal)
-
-Con solo firmar, QZ Tray ya pregunta **una vez por terminal** y ahí sí el
-*"Remember this decision"* se guarda de verdad. Para que no pregunte ni esa
-vez, se instala el certificado como `override.crt` de QZ Tray:
-
-1. Descargar `themes/default/assets/confiar-qz-tray.bat` en la terminal.
-2. Ejecutarlo **como administrador** y escribir la dirección del POS.
-3. El script descarga el certificado, lo copia como `override.crt` dentro de
-   la carpeta de QZ Tray y reinicia QZ Tray.
-
-Manual, si se prefiere: copiar el contenido de `digital-certificate.txt` a
-`C:\Program Files\QZ Tray\override.crt` y reiniciar QZ Tray.
-
-## Cómo queda el flujo
+## Cómo queda el flujo en cada impresión
 
 1. El navegador pide `posprint/qz_certificate` y se lo entrega a QZ Tray.
 2. Por cada llamada (`printers.find`, `print`, apertura de cajón) QZ pide
-   firmar una cadena que incluye la llamada, sus parámetros y un *timestamp*.
-3. `posprint/qz_sign` la firma con SHA-512 usando la llave privada (requiere
+   firmar una cadena con la llamada, sus parámetros y un *timestamp*.
+3. `posprint/qz_sign` la firma con SHA-512 usando la llave privada (exige
    sesión iniciada) y devuelve la firma en base64.
-4. QZ Tray valida firma + certificado: si el certificado está en
-   `override.crt`, ejecuta sin preguntar nada.
+4. QZ Tray valida firma + certificado. Con el certificado en `override.crt`,
+   imprime sin preguntar nada.
 
-Si el certificado todavía no existe, el POS sigue funcionando en modo sin
-firma (el comportamiento anterior, con el diálogo nativo): no rompe las
-instalaciones que aún no lo hayan generado.
+Si el servidor todavía no pudo generar el par (por permisos de escritura, por
+ejemplo), el POS se degrada solo al modo sin firma anterior en vez de quedarse
+colgado.
+
+## Operación manual (solo si hace falta)
+
+```bash
+php tools/qz/generar-certificado-qz.php --info     # ver el certificado actual
+php tools/qz/generar-certificado-qz.php --force    # regenerarlo
+php tools/qz/generar-certificado-qz.php --force --cn="NeurixPOS"
+```
+
+- `--cn` es el nombre que QZ Tray muestra como titular de la petición (por
+  defecto `Neurix POS`). Cambiarlo genera otro certificado: hay que volver a
+  ejecutar el instalador en cada caja para reponer `override.crt`.
+- `themes/default/assets/confiar-qz-tray.bat` reinstala solo el permiso en una
+  caja que ya tiene QZ Tray (pregunta la dirección del POS).
+- Instalar el permiso a mano: copiar `files/certificados/qz/digital-certificate.txt`
+  a `C:\Program Files\QZ Tray\override.crt` y reiniciar QZ Tray.
+
+Variables opcionales de `.env` (solo si se quieren otras rutas o nombres):
+
+```
+QZ_CERT_DIR=      QZ_CERT_PATH=     QZ_KEY_PATH=
+QZ_KEY_PASS=      QZ_CERT_CN=       QZ_CERT_ORG=      QZ_OPENSSL_CONF=
+```
 
 ## Problemas frecuentes
 
 | Síntoma | Causa | Solución |
 |---|---|---|
-| Sigue diciendo *Signature: Missing* | El servidor no tiene el par generado o `openssl` deshabilitado en PHP | Ejecutar el generador y revisar `extension=openssl` en `php.ini` |
-| *Signature: Invalid* | La terminal tiene la hora desfasada (el timestamp firmado caduca) | Sincronizar la hora de Windows |
-| Pregunta una vez por terminal | El certificado no está como `override.crt` | Ejecutar `confiar-qz-tray.bat` como administrador |
-| Dejó de firmar tras un rato | Sesión del POS vencida (`qz_sign` exige sesión) | Volver a iniciar sesión en el POS |
-| Se cambió el certificado | `override.crt` viejo en las terminales | Volver a ejecutar `confiar-qz-tray.bat` en cada una |
+| Sigue diciendo *Signature: Missing* | El servidor no pudo generar el par | Ver `app/logs/`; revisar permisos de escritura en `files/certificados/` y `extension=openssl` en php.ini |
+| *No se pudo generar la llave privada* en el log | PHP en Windows no encuentra `openssl.cnf` | `QZ_OPENSSL_CONF=C:\laragon\bin\php\php-8.x\extras\ssl\openssl.cnf` en `.env` |
+| *Signature: Invalid* | Hora desfasada en la caja (el timestamp firmado caduca) | Sincronizar la hora de Windows |
+| Pregunta una vez por caja | El `override.crt` no se instaló | Volver a ejecutar el instalador como administrador |
+| Dejó de firmar tras un rato | Sesión del POS vencida (`qz_sign` exige sesión) | Volver a iniciar sesión |
+| Se regeneró el certificado | Las cajas tienen el `override.crt` viejo | Reejecutar el instalador en cada caja |
