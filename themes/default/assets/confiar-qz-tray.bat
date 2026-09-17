@@ -27,6 +27,9 @@ net session >nul 2>&1
 if errorlevel 1 goto pedirdatos
 
 REM --- Ya corriendo como administrador -------------------------------
+REM Si lo abrieron directo con "Ejecutar como administrador" no hay
+REM argumentos, asi que la direccion se pide aqui mismo.
+if not defined POSURL call :preguntarurl
 if not defined POSURL goto urlinvalida
 call :validarurl
 if errorlevel 1 goto urlinvalida
@@ -71,15 +74,7 @@ exit /b 0
 
 REM --- Todavia sin elevar: se piden los datos y se reabre elevado -----
 :pedirdatos
-echo.
-echo  ============================================================
-echo   Confiar este punto de venta en QZ Tray
-echo  ============================================================
-echo.
-set "POSURL="
-set /p POSURL=Direccion del POS (ENTER para http://localhost/): 
-if "!POSURL!"=="" set "POSURL=http://localhost/"
-if not "!POSURL:~-1!"=="/" set "POSURL=!POSURL!/"
+call :preguntarurl
 call :validarurl
 if errorlevel 1 goto urlinvalida
 
@@ -115,6 +110,9 @@ echo.
 echo  ERROR: no se encontro QZ Tray instalado en esta computadora.
 echo  Instalelo primero con el boton "Descargar e instalar" del POS y
 echo  vuelva a ejecutar este archivo.
+echo  Si QZ Tray esta instalado solo para el usuario de la caja, abra este
+echo  archivo con doble clic desde esa sesion (sin "Ejecutar como
+echo  administrador"): el permiso se pide solo y asi se encuentra su copia.
 echo.
 pause
 exit /b 1
@@ -126,6 +124,18 @@ echo  Cierre QZ Tray y ejecute este archivo como administrador.
 echo.
 pause
 exit /b 1
+
+:preguntarurl
+echo.
+echo  ============================================================
+echo   Confiar este punto de venta en QZ Tray
+echo  ============================================================
+echo.
+set "POSURL="
+set /p POSURL=Direccion del POS (ENTER para http://localhost/): 
+if "!POSURL!"=="" set "POSURL=http://localhost/"
+if not "!POSURL:~-1!"=="/" set "POSURL=!POSURL!/"
+goto :eof
 
 REM Solo direcciones http(s) simples: sin comillas, espacios, ^, ^& ni %%,
 REM que son los caracteres con los que se podria inyectar un comando.
