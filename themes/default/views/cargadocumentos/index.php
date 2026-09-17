@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="nxt-head">
     <div class="nxt-title">
@@ -6,6 +12,11 @@
         <small><?= lang('list_results'); ?></small>
     </div>
     <div class="nxt-head-actions">
+        <button class="nxt-btn nxt-btn-ghost" id="nxtRefrescar" type="button" title="<?= lang('refrescar_correo_ayuda'); ?>">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+            <?= lang('refrescar_correo'); ?>
+        </button>
+        <span id="nxtRefrescarMsg" class="nxt-dim" style="font-size:12.5px"></span>
         <button class="nxt-btn nxt-btn-ghost" id="nxtExport" type="button">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
             <?= lang('exportar'); ?>
@@ -45,6 +56,54 @@
 </div>
 
 <script>
+/* Rótulos de NxCompra. El componente trae respaldo en español, pero el idioma
+   lo decide app_lang.php, no el JavaScript. */
+<?php
+// Rotulos que ya existian con otra clave.
+$nxc = array();
+foreach (array(
+    'cargando' => 'loading_data_from_server', 'cerrar' => 'close', 'emisor' => 'supplier', 'total' => 'total',
+    'impuesto' => 'tax', 'moneda' => 'moneda', 'clave' => 'clave', 'fecha' => 'fecha_emision_label',
+    'consecutivo' => 'consecutive', 'correo' => 'correo_emisor_label', 'telefono' => 'telefono_emisor_label',
+    'identificacion' => 'numero_cedula_label', 'descargar_xml' => 'descargar_xml', 'copiar' => 'copiar',
+) as $k => $clave) {
+    // MY_Lang::line() usa el segundo parametro para sustituir variables y
+    // devuelve la clave con espacios si falta: se pregunta por la clave.
+    $v = isset($this->lang->language[$clave]) ? $this->lang->language[$clave] : '';
+    if ($v !== '') {
+        $nxc[$k] = $v;
+    }
+}
+foreach (array(
+    'cargando', 'cerrar', 'error_carga', 'tab_documento', 'tab_lineas', 'tab_gestion', 'tab_xml', 'tab_receptor',
+    'tab_respuesta', 'emisor', 'comprobante', 'totales', 'consecutivo', 'clave', 'fecha', 'moneda', 'identificacion',
+    'correo', 'telefono', 'gravado', 'exento', 'impuesto', 'total', 'venta_neta', 'codigo', 'descripcion', 'cantidad',
+    'precio', 'descuento', 'tarifa', 'subtotal', 'sin_lineas', 'sin_xml', 'copiar', 'copiado', 'descargar_xml',
+    'buscar_xml', 'proveedor', 'producto', 'razon_social', 'alias', 'alias_ph', 'alias_ayuda', 'registrar_como',
+    'como_compra', 'como_compra_ayuda', 'como_gasto', 'como_gasto_ayuda', 'categoria_gasto', 'seleccione',
+    'lineas_titulo', 'destino_inventario', 'destino_gasto', 'destino_activo', 'destino_ignorar', 'destino_elegir',
+    'activo_ayuda', 'ignorar_ayuda', 'buscar_producto', 'sin_resultados', 'crear_producto', 'cambiar',
+    'conf_auto_codigo', 'conf_auto_descripcion', 'conf_auto_barras', 'conf_sugerida', 'conf_guardada', 'conf_nueva',
+    'factor', 'factor_ayuda', 'entran', 'actualizar_precio', 'precio_actual', 'precio_sugerido', 'nuevo_nombre',
+    'nuevo_codigo', 'nuevo_categoria', 'nuevo_tarifa', 'nuevo_cabys', 'nuevo_precio', 'guardar_producto', 'cancelar',
+    'respuesta_hacienda', 'msg_aceptar', 'msg_parcial', 'msg_rechazar', 'rechazo_ayuda', 'condicion_impuesto',
+    'impuesto_acreditar', 'gasto_aplicable', 'sin_impuesto', 'detalle_mensaje', 'detalle_ph', 'ya_respondido',
+    'confirmar_aceptar', 'confirmar_parcial', 'confirmar_rechazar', 'confirmar_registrar', 'confirmando', 'reenviar',
+    'resumen', 'pendientes', 'falta_destino', 'falta_producto', 'falta_categoria', 'hay_pendientes', 'hecho_registrado',
+    'hecho_compra', 'hecho_gastos', 'hecho_rechazado', 'envio_confirmado', 'envio_pendiente', 'gestionado_titulo',
+    'gestionado_por', 'ver_compra', 'ver_gastos', 'nota_credito_ayuda',
+) as $k) {
+    // MY_Lang::line() usa el segundo parametro para sustituir variables y
+    // devuelve la clave con espacios si falta: se pregunta por la clave.
+    $v = isset($this->lang->language['nxc_' . $k]) ? $this->lang->language['nxc_' . $k] : '';
+    if ($v !== '') {
+        $nxc[$k] = $v;
+    }
+}
+?>
+window._nxcLang = <?= json_encode($nxc, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?>;
+window._nxcAdmin = <?= $Admin ? 'true' : 'false'; ?>;
+
 document.addEventListener('DOMContentLoaded', function () {
     var EST = {
         aceptado:   ['<?= lang('aceptado'); ?>', 'ok'],
@@ -54,19 +113,25 @@ document.addEventListener('DOMContentLoaded', function () {
         error:      ['<?= lang('error'); ?>', 'err'],
         '5':        ['<?= lang('enviado_hacienda'); ?>', 'info']
     };
+    var GES = {
+        pendiente:  ['<?= lang('gestion_pendiente'); ?>', 'warn'],
+        registrado: ['<?= lang('gestion_registrado'); ?>', 'ok'],
+        rechazado:  ['<?= lang('rechazado'); ?>', 'muted']
+    };
     function estLabel(v) { return (EST[v] || ['<?= lang('no_procesado'); ?>', 'muted'])[0]; }
 
     var t = new NxTable({
         el: '#nxtList',
         url: '<?= site_url('cargadocumentos/get_purchases_h'); ?>',
         csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
-        minWidth: '1280px',
+        minWidth: '1380px',
         unit: '<?= lang('documents_upload'); ?>'.toLowerCase(),
         exportName: 'documentos_recibidos',
-        search: ['documento', 'ConsecutivoDocEmisor', 'nombre_emisor', 'NumeroCedulaEmisor', 'FechaEmisionDoc'],
+        search: ['documento', 'ConsecutivoDocEmisor', 'nombre_emisor', 'alias', 'NumeroCedulaEmisor', 'FechaEmisionDoc'],
         chips: { key: 'Estatus', all: '<?= lang('todas'); ?>', label: estLabel, sort: false },
         totals: ['MontoTotalImpuesto', 'TotalFactura'],
         map: function (r) { if (r.Estatus == null || r.Estatus === '') r.Estatus = 'noproc'; return r; },
+        rowAttr: function (r) { return 'data-doc="' + NxTable.esc(r.id_documento) + '"'; },
         columns: [
             { key: 'documento', label: '<?= lang('documento_label'); ?>', render: function (r) {
                 return r.documento ? NxTable.badge(r.documento, 'violet') : '—';
@@ -78,9 +143,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 return '<span class="nxt-dim-mono">' + NxTable.esc(r.FechaEmisionDoc) + '</span>';
             } },
             { key: 'nombre_emisor', label: '<?= lang('supplier'); ?>', sortable: 'str', render: function (r) {
-                return '<span class="nxt-ent-name">' + NxTable.esc(r.nombre_emisor) + '</span>' +
-                    (r.NumeroCedulaEmisor ? '<div class="nxt-ent-meta">' + NxTable.esc(r.NumeroCedulaEmisor) + '</div>' : '');
-            } },
+                var meta = [r.alias ? r.nombre_emisor : '', r.NumeroCedulaEmisor].filter(Boolean).join(' · ');
+                return '<span class="nxt-ent-name">' + NxTable.esc(r.alias || r.nombre_emisor) + '</span>' +
+                    (meta ? '<div class="nxt-ent-meta">' + NxTable.esc(meta) + '</div>' : '');
+            }, exportValue: function (r) { return r.alias || r.nombre_emisor; } },
             { key: 'CodigoMoneda', label: '<?= lang('moneda'); ?>', render: function (r) {
                 var tc = parseFloat(r.TipoCambio);
                 return '<span class="nxt-dim-mono">' + NxTable.esc(r.CodigoMoneda || '—') + (tc && tc !== 1 ? ' · ' + NxTable.num(tc) : '') + '</span>';
@@ -95,8 +161,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 var s = EST[r.Estatus] || ['<?= lang('no_procesado'); ?>', 'muted'];
                 return NxTable.badge(s[0], s[1]);
             }, exportValue: function (r) { return estLabel(r.Estatus); } },
-            { key: 'status_hacienda', label: 'XML', actions: true },
-            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '130px' }
+            { key: 'gestion_estado', label: '<?= lang('gestion'); ?>', render: function (r) {
+                var g = GES[r.gestion_estado] || GES.pendiente;
+                return NxTable.badge(g[0], g[1]);
+            }, exportValue: function (r) { return (GES[r.gestion_estado] || GES.pendiente)[0]; } },
+            { key: 'Actions', label: '<?= lang('actions'); ?>', width: '110px', noExport: true, render: function (r) {
+                return '<button type="button" class="nxt-btn nxt-btn-ghost nxt-btn-sm js-abrir" data-id="' +
+                    NxTable.esc(r.id_documento) + '">' +
+                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>' +
+                    '<?= lang('abrir'); ?></button>';
+            } }
         ],
         i18n: {
             searchPlaceholder: '<?= lang('buscar_ph'); ?>',
@@ -107,6 +181,49 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     document.getElementById('nxtExport').addEventListener('click', function () { t.exportCSV(); });
+
+    /* ── Ventana de detalle: un clic en la fila o en el botón Abrir ── */
+    function abrirCompra(id) {
+        NxCompra.abrir(id, { alCambiar: function () { t.reload(); } });
+    }
+    document.getElementById('nxtList').addEventListener('click', function (e) {
+        var b = e.target.closest('.js-abrir');
+        if (b) { e.preventDefault(); abrirCompra(b.dataset.id); return; }
+
+        // La fila entera abre el detalle, salvo donde ya hay algo que pulsar.
+        if (e.target.closest('a, button, input, select')) { return; }
+        var fila = e.target.closest('tr[data-doc]');
+        if (fila) { abrirCompra(fila.dataset.doc); }
+    });
+
+    /* ── Refrescar: pide al servidor que lea el correo ahora mismo ── */
+    var btnRef = document.getElementById('nxtRefrescar');
+    var msgRef = document.getElementById('nxtRefrescarMsg');
+    btnRef.addEventListener('click', function () {
+        var original = btnRef.innerHTML;
+        btnRef.disabled = true;
+        btnRef.innerHTML = '<?= lang('revisando_correo'); ?>';
+        msgRef.textContent = '';
+
+        var body = new URLSearchParams();
+        // window.CSRF_HASH la mantiene al día main.js con la cabecera X-CSRF-Token.
+        if (window.CSRF_NAME) { body.set(window.CSRF_NAME, window.CSRF_HASH); }
+
+        fetch('<?= site_url('correocompras/importar'); ?>', {
+            method: 'POST', body: body, credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+            if (!j.ok) { msgRef.textContent = j.error || ''; return; }
+            msgRef.textContent = j.registrados
+                ? '<?= lang('import_registrados'); ?>: ' + j.registrados
+                : '<?= lang('sin_correos_nuevos'); ?>';
+            if (j.registrados) { t.reload(); }
+        })
+        .catch(function (e) { msgRef.textContent = e.message; })
+        .finally(function () { btnRef.disabled = false; btnRef.innerHTML = original; });
+    });
 
     /* ── Carga de XML (input + drag & drop) → POST file_0..file_n al index ── */
     function startUpload(files) {

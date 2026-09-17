@@ -64,3 +64,15 @@ dist/
 !themes/default/assets/dist/**/*.css
 !themes/default/assets/dist/**/*.js
 .phpunit.result.cache
+
+# Servicio SINPE Móvil — credenciales de Google y de BD
+sinpe-service/.env
+
+# Respaldos y exportaciones generadas en runtime
+sinpe-service/respaldo-*.json
+uploads/reporte_sinpe_*.csv
+*.bak
+*.bak.php
+
+# Credenciales OAuth de Google (copiar desde googlemail.example.php)
+app/config/googlemail.php

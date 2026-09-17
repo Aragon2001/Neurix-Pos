@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="nxt-head">
     <div class="nxt-title">
@@ -10,7 +16,7 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></svg>
             <?= lang('exportar'); ?>
         </button>
-        <a class="nxt-btn" href="<?= site_url('FacturasCompras/add'); ?>">
+        <a class="nxt-btn" href="<?= site_url('facturascompras/create_fec'); ?>">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
             <?= lang('nueva_fec'); ?>
         </a>
@@ -34,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var t = new NxTable({
         el: '#nxtList',
-        url: '<?= site_url('FacturasCompras/get_fec'); ?>',
+        url: '<?= site_url('facturascompras/get_fec'); ?>',
         csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
         minWidth: '1240px',
         unit: 'FEC',

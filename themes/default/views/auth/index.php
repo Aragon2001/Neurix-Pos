@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="nxt-head">
     <div class="nxt-title">
@@ -26,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 'last_name' => $user->last_name,
                 'email' => $user->email,
                 'group' => $user->group,
+                'group_slug' => $user->group_slug,
                 'store' => $user->store,
                 'active' => (int) $user->active,
             );
@@ -46,7 +53,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return NxTable.entity((r.first_name + ' ' + (r.last_name || '')).trim(), r.email, r.email);
             } },
             { key: 'group', label: '<?= lang('group'); ?>', render: function (r) {
-                return NxTable.badge(r.group, r.group === 'admin' ? 'violet' : 'info');
+                var tono = { admin: 'violet', supervisor: 'orange' }[r.group_slug] || 'info';
+                return NxTable.badge(r.group, tono);
             } },
             { key: 'store', label: '<?= lang('store'); ?>', render: function (r) {
                 return r.store ? '<span class="nxt-dim-mono">' + NxTable.esc(r.store) + '</span>' : '—';

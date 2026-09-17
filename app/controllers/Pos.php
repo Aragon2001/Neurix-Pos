@@ -1,14 +1,11 @@
-﻿<?php
-
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
-
-use Mike42\Escpos\Printer;
-use Mike42\Escpos\EscposImage;
-use Mike42\Escpos\CapabilityProfile;
-use Mike42\Escpos\PrintConnectors\FilePrintConnector;
-use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
-use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 
 if (!class_exists('PosPrint')) {
     require_once APPPATH . 'controllers/PosPrint.php';
@@ -34,10 +31,122 @@ class Pos extends PosPrint {
         fwrite($this->fp, self::ESC . "p" . chr($pin + 48) . chr($on_ms / 2) . chr($off_ms / 2));
     }
 
+    /**
+     * Lo que el cobro necesita saber del cliente elegido.
+     *
+     * La decision la toma el servidor —`comprobante_helper`— y el POS solo la
+     * pinta: que comprobantes admite, por que no los otros, y cuanto credito le
+     * queda. `Pos.php` vuelve a comprobar lo mismo al cobrar.
+     */
+    function estado_cliente($id = NULL)
+    {
+        $id = (int) ($id ?: $this->input->get('id'));
+        $cliente = $id ? $this->site->getCustomerByID($id) : null;
+
+        if (!$cliente) {
+            $this->output->set_status_header(404)
+                ->set_content_type('application/json', 'utf-8')
+                ->set_output(json_encode(array('error' => lang('customer_add_failed'))));
+            return;
+        }
+
+        $paso  = (int) $this->Settings->default_customer;
+        $tipos = comprobantes_permitidos($cliente, $paso);
+
+        $permitidos = array();
+        foreach ($tipos as $codigo => $r) {
+            $permitidos[$codigo] = array(
+                'ok'     => (bool) $r['ok'],
+                'motivo' => $r['motivo'] ? lang($r['motivo']) : '',
+            );
+        }
+
+        $deuda      = $this->pos_model->deudaCliente($id);
+        $disponible = credito_disponible($cliente, $deuda);
+        $credito    = puede_vender_a_credito($cliente, 0, $deuda, $this->Settings, $paso);
+
+        $this->output->set_content_type('application/json', 'utf-8')->set_output(json_encode(array(
+            'id'            => (int) $cliente->id,
+            'nombre'        => $cliente->name,
+            'comprobantes'  => $permitidos,
+            'credito' => array(
+                'habilitado' => credito_habilitado($this->Settings),
+                'permitido'  => (bool) $credito['ok'],
+                'motivo'     => $credito['motivo'] ? lang($credito['motivo']) : '',
+                'limite'     => (float) ($cliente->limitcredit ?? 0),
+                'deuda'      => $deuda,
+                'disponible' => $disponible,
+                'dias'       => plazo_credito_dias($cliente, 30),
+            ),
+            'defectos' => array(
+                'tipo_doc'  => $cliente->tipo_doc_defecto ?? '',
+                'tipo_pago' => $cliente->tipo_pago_defecto ?? '',
+            ),
+        ), JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Comprueba contra el catalogo el precio y el descuento que manda el POS.
+     *
+     * Reune los precios legitimos del producto y delega la decision en
+     * `precio_de_linea_admisible()`, que es donde vive la regla.
+     *
+     * @param  object $producto ficha del producto, o un objeto suelto si es un
+     *                          articulo rapido (que no tiene precio de lista)
+     * @return array{ok: bool, msg: string, aviso: string}
+     */
+    private function _revisar_precio($producto, $precio, $descuento)
+    {
+        if (!$producto || empty($producto->id)) {
+            return array('ok' => true, 'msg' => '', 'aviso' => '');
+        }
+
+        $precios = array();
+        foreach (array('price', 'offer_price', 'store_price') as $campo) {
+            if (isset($producto->$campo)) { $precios[] = $producto->$campo; }
+        }
+
+        $store_id = (int) ($this->session->userdata('store_id') ?: 1);
+        $sq = $this->db->get_where('product_store_qty',
+            array('product_id' => $producto->id, 'store_id' => $store_id), 1)->row();
+        if ($sq) { $precios[] = $sq->price; }
+
+        foreach ($this->db->get_where('product_prices', array('product_id' => $producto->id))->result() as $lp) {
+            $precios[] = $lp->price;
+        }
+
+        $tope = isset($this->Settings->tope_descuento) ? $this->Settings->tope_descuento : 100;
+        $r = precio_de_linea_admisible($precios, $precio, $descuento, $tope, (bool) $this->Admin);
+
+        if ($r['motivo'] === 'descuento_sobre_tope') {
+            return array('ok' => false, 'aviso' => '',
+                         'msg' => sprintf(lang('descuento_sobre_tope'),
+                                          $this->tec->formatNumber($r['descuento_pct']),
+                                          $this->tec->formatNumber($tope)));
+        }
+
+        if ($r['motivo'] === 'precio_bajo_lista') {
+            if (!$r['ok']) {
+                return array('ok' => false, 'aviso' => '',
+                             'msg' => sprintf(lang('precio_bajo_lista_bloqueado'),
+                                              $producto->name,
+                                              $this->tec->formatMoney($precio),
+                                              $this->tec->formatMoney($r['minimo'])));
+            }
+            // El administrador puede vender por debajo, pero queda registrado.
+            return array('ok' => true, 'msg' => '',
+                         'aviso' => sprintf('%s: lista %s, aplicado %s',
+                                            $producto->name,
+                                            $this->tec->formatMoney($r['minimo']),
+                                            $this->tec->formatMoney($precio)));
+        }
+
+        return array('ok' => true, 'msg' => '', 'aviso' => '');
+    }
+
     function index($sid = NULL,$rid = NULL, $eid = NULL, $t_nc = NULL, $quo = NULL, $aparta = NULL, $apa = NULL) {
         ini_set("memory_limit", "-1");
         ini_set( 'max_input_vars' , 4000 );
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
 
         $this->data['is_suspender'] = 'N';
         if (!$this->Settings->multi_store) {
@@ -151,6 +260,24 @@ class Pos extends PosPrint {
             $id_shipping_method = $this->input->post('shipping_method')?$this->input->post('shipping_method'):null;
             $id_shipping_method = $this->input->post('shipping_method')?$this->input->post('shipping_method'):null;
             $MontoExoneracion = $this->input->post('MontoExoneracion');
+
+            // La exoneracion vigente del cliente se copia a la venta: es una
+            // resolucion suya, no un dato que el cajero deba teclear cada vez.
+            // Vencida deja de aplicarse sola.
+            if (!$NumeroDocumentoE && !empty($customer_details->exo_numero)) {
+                $vence = $customer_details->exo_fecha_vence ?? null;
+                if (!$vence || $vence >= date('Y-m-d')) {
+                    $TipoDocumentoE        = $customer_details->exo_tipo_documento;
+                    $NombreInstitucionE    = $customer_details->exo_institucion;
+                    $NumeroDocumentoE      = $customer_details->exo_numero;
+                    $FechaEmisionE         = $customer_details->exo_fecha_emision;
+                    $PorcentajeExoneracion = $customer_details->exo_porcentaje;
+                } else {
+                    log_message('info', '[POS] exoneracion vencida del cliente ' . $customer_details->id
+                        . ' (' . $vence . '): no se aplica.');
+                }
+            }
+
             $mesatransId = null;
             $note = $this->tec->clear_tags($this->input->post('spos_note'));
 
@@ -187,9 +314,10 @@ class Pos extends PosPrint {
                 $item_esta_fraccionado = 0;
 
                 if ($this->Settings->enable_fractions == "1") {
-                    $item_quantity_edit = $_POST['quantity_edit'][$r] != 'undefined' ? $_POST['quantity_edit'][$r] : 0;
-                    $item_qty_fracc_edit = $_POST['qty_fracc_edit'][$r] != 'undefined' ? $_POST['qty_fracc_edit'][$r] : 0;
-                    $item_esta_fraccionado = $_POST['esta_fraccionado'][$r] != 'undefined' ? $_POST['esta_fraccionado'][$r] : 0;
+                    // Un articulo rapido no trae estos campos: no tiene ficha de producto.
+                    $item_quantity_edit = (isset($_POST['quantity_edit'][$r]) && $_POST['quantity_edit'][$r] != 'undefined') ? $_POST['quantity_edit'][$r] : 0;
+                    $item_qty_fracc_edit = (isset($_POST['qty_fracc_edit'][$r]) && $_POST['qty_fracc_edit'][$r] != 'undefined') ? $_POST['qty_fracc_edit'][$r] : 0;
+                    $item_esta_fraccionado = (isset($_POST['esta_fraccionado'][$r]) && $_POST['esta_fraccionado'][$r] != 'undefined') ? $_POST['esta_fraccionado'][$r] : 0;
                 }
                 $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : '0';
 
@@ -211,7 +339,29 @@ class Pos extends PosPrint {
                         $product_cost = 0;
                     }
 
-                    if ($_POST['esta_fraccionado'][$r] != "1") {
+
+                    // El CABYS sale de la ficha del producto. Solo el articulo rapido
+                    // lo trae en su codigo: en un producto del catalogo ese codigo es
+                    // el de barras, y un EAN-13 pasaria por CABYS y Hacienda lo rechaza.
+                    $cabys_linea = $product_details
+                        ? ((isset($product_details->cabys) && $product_details->cabys) ? $product_details->cabys : null)
+                        : (preg_match('/^\d{13}$/', (string) $product_code) ? $product_code : null);
+                    if (!$cabys_linea && !empty($this->Settings->fe) && !$suspend && !$quote) {
+                        $this->session->set_flashdata('error', sprintf(lang('producto_sin_cabys'), $product_name));
+                        redirect('pos');
+                    }
+                    // Trece digitos no bastan: un codigo fuera del catalogo tambien se
+                    // rechaza. Si Hacienda no responde no se frena la caja.
+                    if ($cabys_linea && !empty($this->Settings->fe) && !$suspend && !$quote) {
+                        $this->load->library('cabys');
+                        $catalogo = $this->cabys->consultar($cabys_linea);
+                        if ($catalogo !== null && !$catalogo['existe']) {
+                            $this->session->set_flashdata('error', sprintf(lang('producto_cabys_inexistente'), $product_name, $cabys_linea));
+                            redirect('pos');
+                        }
+                    }
+
+                    if ($item_esta_fraccionado != "1") {
                         if (!$this->Settings->overselling) {
                             if ($product_details) {
                                 if ($product_details->type == 'standard') {
@@ -239,6 +389,20 @@ class Pos extends PosPrint {
                                 }
                             }
                         }
+                    }
+
+                    // El precio y el descuento llegan del navegador. Se comprueban
+                    // contra el catalogo antes de que entren en el comprobante.
+                    $revision = $this->_revisar_precio($product_details, $real_unit_price, $item_discount);
+                    if (!$revision['ok']) {
+                        $this->session->set_flashdata('error', $revision['msg']);
+                        redirect('pos');
+                    }
+                    if ($revision['aviso']) {
+                        $this->audit_log->log(
+                            'precio_bajo_lista', 'product', (int) $item_id,
+                            $revision['aviso'], (float) $real_unit_price
+                        );
                     }
 
                     $unit_price = $real_unit_price;
@@ -279,8 +443,9 @@ class Pos extends PosPrint {
                         $product_details = new stdClass();
 
                         $product_details->tax = 0;
-                        $product_details->type = "service";
-                        $product_details->unit_of_measurement = "Sp";
+                        $es_servicio = preg_match('/^\d{13}$/', (string) $product_code) && (int) $product_code[0] >= 5;
+                        $product_details->type = $es_servicio ? 'service' : 'standard';
+                        $product_details->unit_of_measurement = $es_servicio ? 'Sp' : 'Unid';
                     }
 
                     // Producto ad-hoc (product_id=0): leer tasa de impuesto desde POST id_tax[]
@@ -291,8 +456,9 @@ class Pos extends PosPrint {
                             $product_details = new stdClass();
                             $product_details->tax         = (float)$im->tasa_impuesto;
                             $product_details->tax_method  = 1;
-                            $product_details->type        = 'service';
-                            $product_details->unit_of_measurement = 'Sp';
+                            $es_servicio = preg_match('/^\d{13}$/', (string) $product_code) && (int) $product_code[0] >= 5;
+                            $product_details->type        = $es_servicio ? 'service' : 'standard';
+                            $product_details->unit_of_measurement = $es_servicio ? 'Sp' : 'Unid';
                         }
                     }
 
@@ -336,9 +502,8 @@ class Pos extends PosPrint {
                                 'quantity_edit' => $item_quantity_edit,
                                 'qty_fracc_edit' => $item_qty_fracc_edit,
                                 'esta_fraccionado' => $item_esta_fraccionado,
-                                'enviado_cocina' =>isset($_POST['enviado_cocina']) and $_POST['enviado_cocina']!= null?$_POST['enviado_cocina'][$r]:0,
-                                'qty_enviado' => isset($_POST['qty_enviado']) and $_POST['qty_enviado']!=null? $_POST['qty_enviado'][$r]:0,
-                                'id_tax' => $id_tax
+                                'id_tax' => $id_tax,
+                                'cabys' => $cabys_linea
                             );
                         } else {
                             $products[] = array(
@@ -361,7 +526,8 @@ class Pos extends PosPrint {
                                 'quantity_edit' => $item_quantity_edit,
                                 'qty_fracc_edit' => $item_qty_fracc_edit,
                                 'esta_fraccionado' => $item_esta_fraccionado,
-                                'id_tax' => $id_tax
+                                'id_tax' => $id_tax,
+                                'cabys' => $cabys_linea
                             );
                         }
                     } else {
@@ -385,7 +551,8 @@ class Pos extends PosPrint {
                             'quantity_edit' => $item_quantity_edit,
                             'qty_fracc_edit' => $item_qty_fracc_edit,
                             'esta_fraccionado' => $item_esta_fraccionado,
-                            'id_tax' => $id_tax
+                            'id_tax' => $id_tax,
+                            'cabys' => $cabys_linea
                         );
                     }
 
@@ -464,10 +631,34 @@ class Pos extends PosPrint {
             $rounding = $this->tec->formatDecimal(($round_total - $grand_total));
 
             if (!$suspend && !$quote) {
-                // dd($id_shipping_method);
-                if ($customer_details->id == 1 && $paidtotal + 1.5 < $round_total && $id_shipping_method == NULL) {
-                    $this->session->set_flashdata('error', lang('select_customer_for_due'));
-                    redirect($_SERVER["HTTP_REFERER"]);
+                $queda_debiendo = ($paidtotal + 1.5 < $round_total) && $id_shipping_method == NULL;
+
+                if ($queda_debiendo) {
+                    // Al cliente de paso no se le fia: no hay a quien cobrarle.
+                    if ($customer_details->id == (int) $this->Settings->default_customer) {
+                        $this->session->set_flashdata('error', lang('select_customer_for_due'));
+                        redirect('pos');
+                    }
+
+                    // Lo que queda debiendo es credito: se comprueba el limite,
+                    // la deuda acumulada y que el credito este habilitado.
+                    $credito = puede_vender_a_credito(
+                        $customer_details,
+                        $round_total - $paidtotal,
+                        $this->pos_model->deudaCliente($customer_details->id),
+                        $this->Settings,
+                        (int) $this->Settings->default_customer
+                    );
+                    if (!$credito['ok']) {
+                        $mensaje = lang($credito['motivo']);
+                        if ($credito['motivo'] === 'credito_excede_limite') {
+                            $mensaje .= ' ' . sprintf(lang('credito_faltante'),
+                                                      $this->tec->formatMoney($credito['faltante']),
+                                                      $this->tec->formatMoney($credito['disponible']));
+                        }
+                        $this->session->set_flashdata('error', $mensaje);
+                        redirect('pos');
+                    }
                 }
             }
 
@@ -523,10 +714,24 @@ class Pos extends PosPrint {
             }
 
 
-            if ($tipo_receptor == '05' || strtolower(trim($receptor->name)) == "cliente de paso" || strtolower(trim($receptor->name)) == "cliente de contado") {
-                $tipodoc = '04';
+            // Contingencia: el comprobante se emite igual, con la situacion 2 en
+            // la posicion 42 de la clave, y se reenvia cuando vuelva el internet.
+            $situacion = $this->input->post('situacion') === '2' ? '2' : '1';
+
+            // El cajero elige el comprobante en el cobro, pero la decision la
+            // vuelve a tomar el servidor: si el navegador manda un tipo que este
+            // cliente no admite, gana la regla (auditoria §16.2).
+            $permitidos = comprobantes_permitidos($customer_details, (int) $this->Settings->default_customer);
+            $pedido = (string) $this->input->post('tipo_doc');
+
+            if (isset($permitidos[$pedido]) && $permitidos[$pedido]['ok']) {
+                $tipodoc = $pedido;
             } else {
-                $tipodoc = '01';
+                if ($pedido !== '' && isset($permitidos[$pedido])) {
+                    log_message('error', '[POS] tipo ' . $pedido . ' rechazado para el cliente '
+                        . $customer_details->id . ': ' . $permitidos[$pedido]['motivo']);
+                }
+                $tipodoc = $permitidos['01']['ok'] ? '01' : '04';
             }
             if ($this->Settings->propina_enable == "1")
             {
@@ -563,11 +768,14 @@ class Pos extends PosPrint {
                 'order_tax' => $order_tax,
                 'total_tax' => $total_tax,
                 'grand_total' => $grand_total,
-                'total_items' => $this->input->post('total_items'),
-                'total_quantity' => $this->input->post('total_quantity'),
+                'total_items' => count($products),
+                'total_quantity' => array_sum(array_column($products, 'quantity')),
                 'rounding' => $rounding,
                 'paid' => $paidtotal,
                 'status' => $status,
+                // La columna traia 'paid' por defecto y nadie la escribia: una
+                // venta a credito figuraba como pagada en el listado.
+                'payment_status' => $status,
                 'created_by' => $this->session->userdata('user_id'),
                 'note' => $note,
                 'hold_ref' => $hold_ref,
@@ -579,6 +787,7 @@ class Pos extends PosPrint {
                 'PorcentajeExoneracion' => $PorcentajeExoneracion,
                 'MontoExoneracion' => $MontoExoneracion,
                 'tipo_doc' => $tipodoc,
+                'situacion' => $situacion,
                 'id_shipping_method' => $id_shipping_method 
             );
 
@@ -612,6 +821,10 @@ class Pos extends PosPrint {
                     'created_by' => $this->session->userdata('user_id'),
                     'store_id' => $this->session->userdata('store_id'),
                     'note' => $this->input->post('payment_note'),
+                    // Comprobante SINPE elegido en la lista en tiempo real del modal de
+                    // pago (ver themes/default/views/pos/index.php → #sinpe_reference).
+                    // Vacío para cash/card/transfer o si se digitó el monto a mano.
+                    'reference' => $this->input->post('sinpe_reference'),
                     'pos_paid' => $this->tec->formatDecimal($this->input->post('amount'), 4),
                     'pos_balance' => $this->tec->formatDecimal($this->input->post('balance_amount'), 4)
                 );
@@ -696,7 +909,7 @@ class Pos extends PosPrint {
 
 
             if ($suspend) {
-                unset($data['id_shipping_method'],$data['status'], $data['rounding'], $data['TipoDocumentoE'], $data['NombreInstitucionE'], $data['NumeroDocumentoE'], $data['FechaEmisionE'], $data['PorcentajeExoneracion'], $data['MontoExoneracion'], $data['tipo_doc']);
+                unset($data['id_shipping_method'],$data['status'], $data['rounding'], $data['TipoDocumentoE'], $data['NombreInstitucionE'], $data['NumeroDocumentoE'], $data['FechaEmisionE'], $data['PorcentajeExoneracion'], $data['MontoExoneracion'], $data['tipo_doc'], $data['situacion']);
                 
                 $data['id_waiting_tables']= $id_table;
                 if ($suspend_id = $this->pos_model->suspendSale($data, $products, $did, $otrostextos)) {
@@ -704,38 +917,26 @@ class Pos extends PosPrint {
                     $this->session->set_flashdata('message', lang("sale_saved_to_opened_bill"));
                     if ($this->Settings->enable_parquimetro == "1") {
                         $this->print_parquimetro($data, $products, $did, $otrostextos);
-                    } elseif ($this->Settings->propina_enable == "1") {
-                        $this->print_comanda($data, $suspend_id);
                     }
 
                     redirect("pos");
                 } else {
                     if ($this->Settings->enable_parquimetro == "1") {
                         $this->print_parquimetro($data, $products, $did, $otrostextos);
-                    } elseif ($this->Settings->propina_enable == "1") {
-                        $this->print_comanda($data, $did);
                     }
                     $this->session->set_flashdata('error', lang("action_failed"));
                     redirect("pos/" . $did);
                 }
             } elseif ($quote) {
-                unset($data['id_shipping_method'],$data['status'], $data['rounding'], $data['tipo_doc']);
+                unset($data['id_shipping_method'],$data['status'], $data['rounding'], $data['tipo_doc'], $data['situacion']);
 
                 if ($idQuote = $this->pos_model->quoteSale($data, $products, $quo, $otrostextos)) {
                     $msg = "Proforma Agregada correctamente";
 
-                    if ($printer && $printer->type == "web") {
-                        try {
-                            $this->print_receipt($idQuote, true, '21');
-                        } catch (Exception $e) {
-                            $this->session->set_flashdata('error', "Error inesperado revise la impresora");
-                        }
-                    } else {
-                        try {
-                            $this->print_receipt($idQuote, true, '21');
-                        } catch (Exception $e) {
-                            $this->session->set_flashdata('error', "Error inesperado revise la impresora");
-                        }
+                    try {
+                        $this->print_receipt($idQuote, true, '21');
+                    } catch (Exception $e) {
+                        $this->session->set_flashdata('error', "Error inesperado revise la impresora");
                     }
 
                     $this->session->set_userdata('rmspos', 1);
@@ -747,7 +948,7 @@ class Pos extends PosPrint {
                 }
             } elseif ($eid) {
 
-                unset($data['id_shipping_method'],$data['status'], $data['paid'], $data['TipoDocumentoE'], $data['NombreInstitucionE'], $data['NumeroDocumentoE'], $data['FechaEmisionE'], $data['PorcentajeExoneracion'], $data['MontoExoneracion'], $data['tipo_doc']);
+                unset($data['id_shipping_method'],$data['status'], $data['paid'], $data['TipoDocumentoE'], $data['NombreInstitucionE'], $data['NumeroDocumentoE'], $data['FechaEmisionE'], $data['PorcentajeExoneracion'], $data['MontoExoneracion'], $data['tipo_doc'], $data['situacion']);
 
                 if (!$this->Admin) {
                     unset($data['date']);
@@ -764,19 +965,15 @@ class Pos extends PosPrint {
                 }
             } elseif ($apart) {
 
-                unset($data['id_shipping_method'],$data['TipoDocumentoE'], $data['NombreInstitucionE'], $data['NumeroDocumentoE'], $data['FechaEmisionE'], $data['PorcentajeExoneracion'], $data['MontoExoneracion'], $data['tipo_doc']);
+                unset($data['id_shipping_method'],$data['TipoDocumentoE'], $data['NombreInstitucionE'], $data['NumeroDocumentoE'], $data['FechaEmisionE'], $data['PorcentajeExoneracion'], $data['MontoExoneracion'], $data['tipo_doc'], $data['situacion']);
 
                 if ($sale = $this->pos_model->addSaleApartado($data, $products, $payment, $did, $otrostextos)) {
                     $msg = lang("apartado_added");
 
-                    if ($printer && $printer->type == "web") {
+                    try {
                         $this->print_receipt($sale['apartado_id'], true, '20');
-                    } else {
-                        try {
-                            $this->print_receipt($sale['apartado_id'], true, '20');
-                        } catch (Exception $e) {
-                            $this->session->set_flashdata('error', "Error inesperado revise la impresora");
-                        }
+                    } catch (Exception $e) {
+                        $this->session->set_flashdata('error', "Error inesperado revise la impresora");
                     }
 
                     $this->session->set_userdata('rmspos', 1);
@@ -867,7 +1064,65 @@ class Pos extends PosPrint {
             } else {
                 if ($sale = $this->pos_model->addSale($data, $products, $payment, $did, $payment2, $payment3, $payment4, $otrostextos)) {
                         $data['id']= $sale['sale_id'];
-                        $facturadigital = $this->Crearxml->getInvoice($data, $products, $payment, $otrostextos);
+
+                        // Conciliación SINPE: si se pagó con un comprobante elegido de la
+                        // lista en tiempo real, marcarlo como usado y enlazarlo a esta venta.
+                        // El WHERE estado='pendiente' evita que dos ventas usen el mismo
+                        // comprobante si dos cajeros lo seleccionaron casi al mismo tiempo —
+                        // si ya lo tomó otra venta, esta UPDATE afecta 0 filas y se avisa,
+                        // pero la venta actual YA se creó y no se revierte por esto.
+                        // El SINPE puede ocupar cualquiera de las cuatro formas de pago.
+                        $formas_pago = array(
+                            array($this->input->post('paid_by'),  $this->input->post('sinpe_reference')),
+                            array($this->input->post('paid_by2'), $this->input->post('freferencia1')),
+                            array($this->input->post('paid_by3'), $this->input->post('freferencia2')),
+                            array($this->input->post('paid_by4'), $this->input->post('freferencia3')),
+                        );
+
+                        $sinpe_refs = array();
+                        foreach ($formas_pago as $fp) {
+                            if ($fp[0] === 'sinpe' && !empty($fp[1])) {
+                                $sinpe_refs[] = $fp[1];
+                            }
+                        }
+
+                        $sinpe_ref = reset($sinpe_refs) ?: NULL;
+
+                        if ($sinpe_refs && $this->db->table_exists('sinpe_transactions')) {
+                            foreach ($sinpe_refs as $ref) {
+                                // El WHERE por estado evita que dos ventas tomen el mismo comprobante.
+                                $this->db->where('comprobante', $ref);
+                                $this->db->where('estado', 'pendiente');
+                                $this->db->update('sinpe_transactions', array(
+                                    'estado' => 'usado',
+                                    'sale_id' => $sale['sale_id'],
+                                ));
+                                if ($this->db->affected_rows() < 1) {
+                                    $this->session->set_flashdata('warning',
+                                        'La venta se registró correctamente, pero el comprobante SINPE ' . $ref .
+                                        ' ya había sido usado en otra venta — revisar manualmente.');
+                                }
+                            }
+                        }
+
+                        // v4.4 no tiene campo fiscal para la referencia del SINPE:
+                        // se deja en <Otros>, de uso comercial.
+                        if (!empty($sinpe_refs)) {
+                            if (!is_array($otrostextos)) { $otrostextos = array(); }
+                            $otrostextos[] = array(
+                                'titulo_texto' => 'SINPE',
+                                'otrotexto'    => 'Comprobante SINPE Movil: ' . implode(', ', $sinpe_refs),
+                            );
+                        }
+
+                        // v4.4 declara un <MedioPago> por forma de pago usada.
+                        $pagos_del_comprobante = array_values(array_filter(
+                            array($payment, $payment2, $payment3, $payment4),
+                            function ($pg) { return !empty($pg) && !empty($pg['amount']) && (float) $pg['amount'] > 0; }
+                        ));
+                        if (empty($pagos_del_comprobante)) { $pagos_del_comprobante = $payment; }
+
+                        $facturadigital = $this->Crearxml->getInvoice($data, $products, $pagos_del_comprobante, $otrostextos);
                         if($facturadigital != null){
                         $certificado = './files/certificados/' . $this->Settings->ambiente . '/' . $this->Settings->certificado_ced . '.p12';
 
@@ -904,25 +1159,28 @@ class Pos extends PosPrint {
                         }
 
                         $this->session->set_flashdata('message', $msg);
-                        // $redirect_to = $this->Settings->after_sale_page ? "pos" : "pos/view/" . $sale['sale_id'];
-                        if ($printer && $printer->type == "web") {
-                            $this->print_receipt($sale['sale_id'], true);
-                        } else {
-                            if ($this->Settings->prt_invo_after) {
-                                try {
-                                    $this->print_receipt($sale['sale_id'], true);
-                                } catch (Exception $e) {
-                                    $this->session->set_flashdata('error', "Error inesperado revise la impresora");
-                                }
-                            }
-                        }
+                        // Ajustes > POS > "Pagina despues de la venta" decide si se
+                        // vuelve al POS o se abre el comprobante. En la vuelta al POS
+                        // esta marca le dice que avise, limpie el carrito y, si la
+                        // impresion automatica esta activa, imprima el tiquete.
+                        $en_efectivo = in_array('cash', array(
+                            $this->input->post('paid_by'),
+                            $this->input->post('paid_by2'),
+                            $this->input->post('paid_by3'),
+                            $this->input->post('paid_by4'),
+                        ), TRUE);
+
+                        $this->session->set_flashdata('venta_ok', array(
+                            'id'       => (int) $sale['sale_id'],
+                            'efectivo' => $en_efectivo,
+                        ));
                     }else{
-                        $msg .= '<br> Error al crear xml';
+                        // $msg solo se define dentro de la rama de exito
+                        $msg = (isset($msg) ? $msg : lang("sale_added")) . '<br> Error al crear xml';
                         $this->session->set_flashdata('message', $msg);
                     }
                         $this->audit_log->log('venta_creada', 'sale', (int)$sale['sale_id'], '', (float)$grand_total);
-                        $redirect_to = $this->Settings->after_sale_page ? "pos" : "pos/view/" . $sale['sale_id'];
-                        redirect($redirect_to);
+                        redirect($this->Settings->after_sale_page ? 'pos' : 'pos/view/' . $sale['sale_id']);
                 } else {
                     $this->session->set_flashdata('error', lang("action_failed"));
                     redirect("pos");
@@ -933,8 +1191,14 @@ class Pos extends PosPrint {
 
             if (isset($sid) && !empty($sid)) {
                 $suspended_sale = $this->pos_model->getSuspendedSaleByID($sid);
+                // La cuenta pudo cobrarse o borrarse desde otra terminal.
+                if (!$suspended_sale) {
+                    $this->session->set_flashdata('error', lang('cuenta_suspendida_no_existe'));
+                    redirect('pos');
+                }
                 $inv_items = $this->pos_model->getSuspendedSaleItems($sid);
                 $otrostextos = $this->pos_model->getSuspendedOtrosTextos($sid);
+                if (!is_array($inv_items)) { $inv_items = array(); }
 
                 $hourdiff = round((strtotime(date('Y-m-d H:i:s')) - strtotime($suspended_sale->date)) / 3600, 1);
 
@@ -974,8 +1238,6 @@ class Pos extends PosPrint {
                     $row->qty = $this->Settings->enable_parquimetro == '1' ? $hourdiff : $item->quantity;
                     $row->comment = $item->comment;
                     $row->ordered = $this->Settings->enable_parquimetro == '1' ? $hourdiff : $item->quantity;
-                    $row->enviado_cocina = $item->enviado_cocina;
-                    $row->qty_enviado = $item->qty_enviado;
                     $row->id_impuesto = $item->id_impuesto;
                     $row->codigo_impuesto = $item->codigo_impuesto;
                     $row->codigo_tarifa = $item->codigo_tarifa;
@@ -1039,8 +1301,6 @@ class Pos extends PosPrint {
                     $row->qty = $this->Settings->enable_parquimetro == '1' ? $hourdiff : $item->quantity;
                     $row->comment = $item->comment;
                     $row->ordered = $this->Settings->enable_parquimetro == '1' ? $hourdiff : $item->quantity;
-                    $row->enviado_cocina = null;
-                    $row->qty_enviado = null;
                     $row->id_impuesto = $item->id_impuesto;
                     $row->codigo_impuesto = $item->codigo_impuesto;
                     $row->codigo_tarifa = $item->codigo_tarifa;
@@ -1202,8 +1462,6 @@ class Pos extends PosPrint {
                         $row->qty = $this->Settings->enable_parquimetro == '1' ? $hourdiff : $item->quantity;
                         $row->comment = $item->comment;
                         $row->ordered = $this->Settings->enable_parquimetro == '1' ? $hourdiff : $item->quantity;
-                        $row->enviado_cocina = null;
-                        $row->qty_enviado = null;
                         $row->id_impuesto = $item->id_impuesto;
                         $row->codigo_impuesto = $item->codigo_impuesto;
                         $row->codigo_tarifa = $item->codigo_tarifa;
@@ -1246,6 +1504,10 @@ class Pos extends PosPrint {
 
             $this->data['customers'] = $this->site->getAllCustomers();
             $this->data['actividadeconomica'] = $this->site->getAllActividades();
+            // El alta rapida de cliente arma <Ubicacion> del receptor; los niveles
+            // siguientes los pide por AJAX conforme se elige.
+            $this->data['provincias'] = $this->db->select('codigo_provincia as codigo, nombre_provincia as nombre')
+                ->order_by('nombre_provincia', 'ASC')->get('provincia_cr')->result();
 
 
             $this->data["tcp"] = $this->pos_model->products_count($this->Settings->default_category);
@@ -1255,14 +1517,6 @@ class Pos extends PosPrint {
             $this->data['suspended_sales'] = $this->site->getUserSuspenedSales();
             // $this->data['quotes_sales'] = $this->site->getUserQuotesSales();
 
-            $printers = array();
-            if (!empty($order_printers = json_decode($this->Settings->order_printers))) {
-                foreach ($order_printers as $printer_id) {
-                    $printers[] = $this->site->getPrinterByID($printer_id);
-                }
-            }
-
-            $this->data['order_printers'] = $printers;
             $this->data['total_tax'] = $total_tax;
             $shipping = null;
             if($this->Settings->is_shipping == 1){
@@ -1274,6 +1528,16 @@ class Pos extends PosPrint {
             }
             $this->data['shipping'] = $shipping;
             $this->data['waiting_tables'] = $waiting_tables;
+
+            // Aviso de Hacienda en la barra del POS: el cajero tiene que ver que
+            // los comprobantes estan saliendo antes de seguir cobrando.
+            $amb = ($this->Settings->ambiente ?? 'test') === 'prod' ? 'prod' : 'test';
+            $this->data['hacienda_estado'] = $this->hacienda_model->estadoConexion(
+                $amb,
+                $this->Settings->{'user_token_' . $amb} ?? '',
+                $this->Settings->{'password_token_' . $amb} ?? '',
+                $this->Settings->certificado_ced ?? ''
+            );
             $this->data['impuestos_list'] = $this->site->getAllImpuestos();
             $this->data['page_title'] = lang('pos');
             $bc = array(array('link' => '#', 'page' => lang('pos')));
@@ -1365,6 +1629,28 @@ class Pos extends PosPrint {
                         $product_code = $_POST['product_code'][$r];
                         $product_cost = 0;
                     }
+
+                    // El CABYS sale de la ficha del producto. Solo el articulo rapido
+                    // lo trae en su codigo: en un producto del catalogo ese codigo es
+                    // el de barras, y un EAN-13 pasaria por CABYS y Hacienda lo rechaza.
+                    $cabys_linea = $product_details
+                        ? ((isset($product_details->cabys) && $product_details->cabys) ? $product_details->cabys : null)
+                        : (preg_match('/^\d{13}$/', (string) $product_code) ? $product_code : null);
+                    if (!$cabys_linea && !empty($this->Settings->fe)) {
+                        $this->session->set_flashdata('error', sprintf(lang('producto_sin_cabys'), $product_name));
+                        redirect('pos');
+                    }
+                    // Trece digitos no bastan: un codigo fuera del catalogo tambien se
+                    // rechaza. Si Hacienda no responde no se frena la caja.
+                    if ($cabys_linea && !empty($this->Settings->fe)) {
+                        $this->load->library('cabys');
+                        $catalogo = $this->cabys->consultar($cabys_linea);
+                        if ($catalogo !== null && !$catalogo['existe']) {
+                            $this->session->set_flashdata('error', sprintf(lang('producto_cabys_inexistente'), $product_name, $cabys_linea));
+                            redirect('pos');
+                        }
+                    }
+
                     if (!$this->Settings->overselling) {
                         if ($product_details->type == 'standard') {
                             if ($product_details->quantity < $item_quantity) {
@@ -1444,6 +1730,7 @@ class Pos extends PosPrint {
                         'unit_of_measurement' => $product_details->unit_of_measurement,
                         'product_name' => $product_name,
                         'id_tax' => $id_tax,
+                        'cabys' => $cabys_linea,
                     );
 
                     $total += $this->tec->formatDecimal(($item_net_price * $item_quantity), 4);
@@ -1515,8 +1802,8 @@ class Pos extends PosPrint {
                 'order_tax' => $order_tax,
                 'total_tax' => $total_tax,
                 'grand_total' => $grand_total,
-                'total_items' => $this->input->post('total_items'),
-                'total_quantity' => $this->input->post('total_quantity'),
+                'total_items' => count($products),
+                'total_quantity' => array_sum(array_column($products, 'quantity')),
                 'rounding' => $rounding,
                 'paid' => "",
                 'status' => "",
@@ -1625,27 +1912,44 @@ class Pos extends PosPrint {
         $term = $this->input->get('term', TRUE);
 
         $rows = $this->pos_model->getProductNames($term, $this->Settings->quantity_suggest);
-        if ($rows) {
-            foreach ($rows as $row) {
-                unset($row->cost, $row->details);
-                $row->qty = 1;
-                $row->comment = '';
-                $row->discount = '0';
-                $row->price = $row->store_price > 0 ? $row->store_price : $row->price;
-                $row->real_unit_price = $row->price;
-                $row->unit_price = $row->tax ? ($row->price + (($row->price * $row->tax) / 100)) : $row->price;
-                $combo_items = FALSE;
-
-                if ($row->type == 'combo') {
-                    $combo_items = $this->pos_model->getComboItemsByPID($row->id);
-                }
-                $ubicacion = $row->ubicacion?$row->ubicacion:"N/A";
-                $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ") - Precio (" . number_format($row->unit_price, 2, ',', '.') . ")- Unidad (".$row->unit_of_measurement.") - Existencias (" . $row->quantity . ")- Ubicación (" . $ubicacion  . ")", 'row' => $row, 'combo_items' => $combo_items);
-            }
-            echo json_encode($pr);
-        } else {
+        if (!$rows) {
             echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
+            return;
         }
+
+        $pr = array();
+        foreach ($rows as $row) {
+            unset($row->cost, $row->details);
+            $row->qty = 1;
+            $row->comment = '';
+            $row->discount = '0';
+            $row->price = $row->store_price > 0 ? $row->store_price : $row->price;
+            $row->real_unit_price = $row->price;
+            $row->unit_price = $row->tax ? ($row->price + (($row->price * $row->tax) / 100)) : $row->price;
+            $combo_items = FALSE;
+
+            if ($row->type == 'combo') {
+                $combo_items = $this->pos_model->getComboItemsByPID($row->id);
+            }
+
+            // El detalle viaja en campos aparte: la lista del POS los maqueta,
+            // en vez de imprimir una sola linea de texto.
+            $pr[] = array(
+                'id'          => str_replace(".", "", microtime(true)),
+                'item_id'     => $row->id,
+                'label'       => $row->name . ' (' . $row->code . ')',
+                'nombre'      => $row->name,
+                'codigo'      => $row->code,
+                'precio'      => (float) $row->unit_price,
+                'precio_fmt'  => $this->tec->formatMoney($row->unit_price),
+                'unidad'      => $row->unit_of_measurement,
+                'existencias' => (float) $row->quantity,
+                'ubicacion'   => $row->ubicacion ? $row->ubicacion : '',
+                'row'         => $row,
+                'combo_items' => $combo_items,
+            );
+        }
+        echo json_encode($pr);
     }
 
     function registers() {
@@ -1663,6 +1967,19 @@ class Pos extends PosPrint {
         if (!$this->session->userdata('store_id')) {
             $this->session->set_flashdata('warning', lang("please_select_store"));
             redirect('stores');
+        }
+
+        // Una caja esta abierta o cerrada, nunca abierta dos veces: sin esta
+        // revision cada visita a esta pantalla creaba otra fila abierta y el POS
+        // volvia a la anterior en cuanto se cerraba una.
+        if ($abierta = $this->pos_model->registerData($this->session->userdata('user_id'))) {
+            $this->session->set_userdata(array(
+                'register_id'        => $abierta->id,
+                'cash_in_hand'       => $abierta->cash_in_hand,
+                'register_open_time' => $abierta->date,
+            ));
+            $this->session->set_flashdata('message', lang('register_already_open'));
+            redirect('pos');
         }
         $this->form_validation->set_rules('cash_in_hand', lang("cash_in_hand"), 'trim|required|numeric');
 
@@ -1688,7 +2005,8 @@ class Pos extends PosPrint {
                 'status' => 'open',
             );
         }
-        if ($this->form_validation->run() == true && $this->pos_model->openRegister($data)) {
+        if ($this->form_validation->run() == true && ($rid = $this->pos_model->openRegister($data))) {
+            $this->audit_log->log('apertura_caja', 'register', (int) $rid, 'Apertura: ' . $data['date'], (float) $data['cash_in_hand']);
             $this->session->set_flashdata('message', lang("welcome_to_pos"));
             redirect("pos");
         } else {
@@ -1720,51 +2038,49 @@ class Pos extends PosPrint {
         }
 
         $products = $this->pos_model->fetch_products($category_id, $this->Settings->pro_limit, $page);
-        $pro = 1;
-        $prods = "<div>";
+        $prods = '';
+
         if ($products) {
-            if ($this->Settings->bsty == 1) {
-                foreach ($products as $product) {
-                    $count = $product->id;
-                    if ($count < 10) {
-                        $count = "0" . ($count / 100) * 100;
+            // Una tarjeta por producto, hijas directas de .pos-product-grid: un
+            // contenedor intermedio rompe la rejilla y las apila en columna.
+            foreach ($products as $product) {
+                $existencia = isset($product->existencia) ? (float) $product->existencia : null;
+                $alerta     = isset($product->alert_quantity) ? (float) $product->alert_quantity : 0;
+
+                if ($existencia === null)            { $tono = 'na';  $etq = '—'; }
+                elseif ($existencia <= 0)            { $tono = 'out'; $etq = '0'; }
+                elseif ($alerta > 0 && $existencia <= $alerta) { $tono = 'low'; $etq = $this->tec->formatQuantity($existencia); }
+                else                                 { $tono = 'ok';  $etq = $this->tec->formatQuantity($existencia); }
+
+                $img = '';
+                if (!empty($product->image) && is_file(FCPATH . 'uploads/thumbs/' . $product->image)) {
+                    $img = '<img src="' . base_url('uploads/thumbs/' . $product->image) . '" alt="">';
+                } else {
+                    // Sin foto se usan las iniciales del nombre
+                    $ini = '';
+                    foreach (preg_split('/\s+/', trim($product->name)) as $pal) {
+                        if ($pal !== '' && mb_strlen($ini) < 2) { $ini .= mb_strtoupper(mb_substr($pal, 0, 1)); }
                     }
-                    if ($category_id < 10) {
-                        $category_id = "0" . ($category_id / 100) * 100;
-                    }
-                    $prods .= "<button type=\"button\" data-name=\"" . $product->name . "\" id=\"product-" . $category_id . $count . "\" type=\"button\" value='" . $product->code . "' class=\"btn btn-name btn-default btn-flat product\">(" . $product->code . ") " . $product->name . "</button>";
-                    $pro++;
+                    $img = '<span class="pp-ini">' . html_escape($ini !== '' ? $ini : '#') . '</span>';
                 }
-            } elseif ($this->Settings->bsty == 2) {
-                foreach ($products as $product) {
-                    $count = $product->id;
-                    if ($count < 10) {
-                        $count = "0" . ($count / 100) * 100;
-                    }
-                    if ($category_id < 10) {
-                        $category_id = "0" . ($category_id / 100) * 100;
-                    }
-                    $prods .= "<button type=\"button\" data-name=\"" . $product->name . "\" id=\"product-" . $category_id . $count . "\" type=\"button\" value='" . $product->code . "' class=\"btn btn-img btn-flat product\"><img src=\"" . base_url() . "uploads/thumbs/" . $product->image . "\" alt=\"" . $product->name . "\" style=\"width: 110px; height: 110px;\"></button>";
-                    $pro++;
-                }
-            } elseif ($this->Settings->bsty == 3) {
-                foreach ($products as $product) {
-                    $count = $product->id;
-                    if ($count < 10) {
-                        $count = "0" . ($count / 100) * 100;
-                    }
-                    if ($category_id < 10) {
-                        $category_id = "0" . ($category_id / 100) * 100;
-                    }
-                    $prods .= "<button type=\"button\" data-name=\"" . $product->name . "\" id=\"product-" . $category_id . $count . "\" type=\"button\" value='" . $product->code . "' class=\"btn btn-both btn-flat product\"><span class=\"bg-img\"><img src=\"" . base_url() . "uploads/thumbs/" . $product->image . "\" alt=\"" . $product->name . "\" style=\"width: 100px; height: 100px;\"></span><span><span>(" . $product->code . ") " . $product->name . "</span></span></button>";
-                    $pro++;
-                }
+
+                $prods .= '<button type="button" class="product pos-prod-card"'
+                        . ' value="' . html_escape($product->code) . '"'
+                        . ' data-code="' . html_escape($product->code) . '"'
+                        . ' data-name="' . html_escape($product->name) . '"'
+                        . ' title="' . html_escape($product->name) . '">'
+                        . '<span class="pp-img">' . $img . '</span>'
+                        . '<span class="pp-name">' . html_escape($product->name) . '</span>'
+                        . '<span class="pp-code">' . html_escape($product->code) . '</span>'
+                        . '<span class="pp-foot">'
+                        . '<span class="pp-price">' . $this->tec->formatMoney($product->price) . '</span>'
+                        . '<span class="pp-stock ' . $tono . '">' . $etq . '</span>'
+                        . '</span>'
+                        . '</button>';
             }
         } else {
-            $prods .= '<h4 class="text-center text-info" style="margin-top:50px;">' . lang('category_is_empty') . '</h4>';
+            $prods = '<div class="pos-grid-empty"><p>' . lang('category_is_empty') . '</p></div>';
         }
-
-        $prods .= "</div>";
 
         if (!$return) {
             if (!$tcp) {
@@ -1777,6 +2093,45 @@ class Pos extends PosPrint {
         } else {
             return $prods;
         }
+    }
+
+    /**
+     * Lista de transacciones SINPE pendientes (aún no usadas en ninguna venta),
+     * para la lista en tiempo real del modal de pago cuando se elige "SINPE".
+     * Lee tec_sinpe_transactions directo — NO llama al servicio Node (ver
+     * www/sinpe-service): así el checkout del POS nunca depende de que ese
+     * proceso esté arriba. El servicio Node solo escribe; esto solo lee.
+     * GET pos/ajax_sinpe_pending?monto=12500
+     *
+     * SINPE pendientes de los últimos 2 días que alcanzan a cubrir el monto
+     * indicado, del más reciente al más viejo. Sin 'monto' devuelve todos.
+     */
+    function ajax_sinpe_pending() {
+        header('Content-Type: application/json');
+
+        if (!$this->db->table_exists('sinpe_transactions')) {
+            // La migración versionPOS 62 todavía no corrió en esta base.
+            echo json_encode(array('pendientes' => array()));
+            return;
+        }
+
+        $monto = $this->input->get('monto');
+
+        $this->db->select('id_sinpe_transaction, comprobante, nombre, telefono, monto, fecha, banco, descripcion');
+        $this->db->where('estado', 'pendiente');
+        $this->db->where('fecha >=', date('Y-m-d H:i:s', strtotime('-2 days')));
+
+        if ($monto !== NULL && $monto !== '' && (float)$monto > 0) {
+            // Margen de un colón para absorber redondeos.
+            $this->db->where('monto >=', (float)$monto - 1);
+            $this->db->order_by('fecha', 'DESC');
+        } else {
+            $this->db->order_by('fecha', 'DESC');
+        }
+
+        $rows = $this->db->limit(25)->get('sinpe_transactions')->result();
+
+        echo json_encode(array('pendientes' => $rows));
     }
 
 
@@ -1928,8 +2283,6 @@ class Pos extends PosPrint {
                     'real_unit_price' => $real_unit_price,
                     'product_code' => $suspended_item->product_code,
                     'product_name' => $suspended_item->product_name,
-                    'enviado_cocina' =>$suspended_item->enviado_cocina,
-                    'qty_enviado' => $qty,
                     'id_tax' => $suspended_item->id_tax
                 );
                 // var_dump("<pre>");
@@ -1957,8 +2310,8 @@ class Pos extends PosPrint {
                 'order_tax' => null,
                 'total_tax' => $product_tax,
                 'grand_total' => $grand_total,
-                'total_items' => $this->input->post('total_items'),
-                'total_quantity' => $this->input->post('total_quantity'),
+                'total_items' => count($products),
+                'total_quantity' => array_sum(array_column($products, 'quantity')),
                 'store_id'=>$suspended_sales->store_id,
                 'paid' => 0,
                 'created_by' => $this->session->userdata('user_id'),

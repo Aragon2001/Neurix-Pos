@@ -1,11 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
-
-<?php if ($error): ?>
-<div class="alert alert-danger alert-dismissible" role="alert">
-    <button type="button" class="close" data-bs-dismiss="alert"><span>&times;</span></button>
-    <i class="fa fa-exclamation-circle"></i> <?php echo $error; ?>
-</div>
-<?php endif; ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <section class="content">
     <div class="row">
@@ -85,13 +84,23 @@
             .ns-mockup .card {
                 background: var(--ns-surface); border: 1px solid var(--ns-border);
                 border-radius: var(--ns-radius-lg); box-shadow: none;
+                margin-bottom: 20px;
             }
+            .ns-mockup .card:last-child { margin-bottom: 0; }
             .ns-mockup .card-header {
                 background: transparent; border-bottom: 1px solid var(--ns-border-soft);
                 padding: 16px 20px; color: var(--ns-text-1);
             }
             .ns-mockup .card-body { padding: 20px; }
             .ns-mockup .card fieldset[disabled] .card-body { opacity: .5; }
+            /* El navegador dibuja un recuadro alrededor de todo <fieldset> por defecto;
+               tab-emisor envuelve varias tarjetas en uno para poder deshabilitarlas juntas
+               y ese recuadro terminaba tapando las tarjetas de adentro. */
+            .ns-mockup fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+            /* Aire entre el bloque de nav+contenido y el resto de secciones sueltas
+               (banner de Hacienda, tabla de puestos, etc.) que no viven dentro de un
+               .card pero igual quedaban pegadas unas a otras. */
+            .ns-mockup .tab-pane > * + * { margin-top: 20px; }
 
             /* ── Formularios: reskin de .form-control / selects / textarea ── */
             .ns-mockup label { font-size: 12.5px; font-weight: 600; color: var(--ns-text-2); display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
@@ -107,7 +116,6 @@
             }
             .ns-mockup .form-control::placeholder { color: var(--ns-text-3); }
             .ns-mockup .help-block { font-size: 11.5px; color: var(--ns-text-3); margin-top: 5px; }
-            .ns-mockup .input-group-btn .btn { background: var(--ns-surface-3); border: 1px solid var(--ns-border); color: var(--ns-text-2); }
 
             /* ── Botones: reskin del sistema de .btn ── */
             .ns-mockup .btn { border-radius: 10px; font-weight: 600; font-size: 13.5px; }
@@ -117,8 +125,37 @@
             .ns-mockup .btn-warning { background: var(--ns-seal-soft); border-color: rgba(232,165,61,.3); color: var(--ns-seal); }
             .ns-mockup .btn-warning:hover { background: rgba(232,165,61,.22); }
             .ns-mockup .btn-success { background: var(--ns-success-soft); border-color: rgba(52,199,123,.3); color: var(--ns-success); }
+            /* Bootstrap 5 no trae .btn-block (se reemplazó por utilidades "d-grid"),
+               así que los botones "Probar credenciales" no se estiraban como el resto
+               de los campos de la fila y quedaban chicos/desalineados. */
+            .ns-mockup .btn-block { display: flex; align-items: center; justify-content: center; width: 100%; height: 40px; }
+
+            /* ── Grupos input+botón (buscar cédula, leer clave, mostrar/ocultar
+               contraseña, grabar atajo…): sin esto, cada botón quedaba con las
+               cuatro esquinas redondeadas igual que el campo de texto y sin
+               separación real entre ambos — se veían amontonados. ── */
+            .ns-mockup .input-group { display: flex; align-items: stretch; }
+            .ns-mockup .input-group .form-control {
+                border-top-right-radius: 0; border-bottom-right-radius: 0;
+            }
+            .ns-mockup .input-group-btn { display: flex; }
+            .ns-mockup .input-group-btn .btn {
+                background: var(--ns-surface-3); border: 1px solid var(--ns-border); color: var(--ns-text-2);
+                border-radius: 0; border-left: 0; height: 40px;
+            }
+            .ns-mockup .input-group-btn .btn:last-child { border-top-right-radius: 9px; border-bottom-right-radius: 9px; }
+            .ns-mockup .input-group-btn .btn:hover,
+            .ns-mockup .input-group-btn .btn:focus {
+                background: var(--ns-surface-2); color: var(--ns-primary); border-color: var(--ns-primary);
+                box-shadow: none; outline: none;
+            }
 
             .ns-settings-nav { border-right: 3px solid var(--ns-border); padding-right: 0; }
+            .ns-settings-nav .nav-pills {
+                list-style: none; margin: 0; padding: 0;
+                display: flex; flex-direction: column; gap: 2px;
+            }
+            .ns-settings-nav .nav-pills > li { list-style: none; }
             .ns-settings-nav .nav-pills > li > a {
                 border-radius: var(--ns-radius-sm);
                 padding: 12px 14px;
@@ -132,6 +169,15 @@
                 gap: 10px;
                 position: relative;
                 transition: all .15s var(--ns-ease);
+                /* Bootstrap 5 subraya <a> por defecto salvo que tenga .nav-link;
+                   estos anchors no la usan (son hijos directos de .nav-pills > li),
+                   así que sin esto se ven como texto plano subrayado. */
+                text-decoration: none !important;
+                cursor: pointer;
+            }
+            .ns-settings-nav .nav-pills > li > a:hover,
+            .ns-settings-nav .nav-pills > li > a:focus {
+                text-decoration: none !important;
             }
             .ns-settings-nav .nav-pills > li > a .fa {
                 font-size: 19px;
@@ -248,6 +294,42 @@
                 color: var(--ns-seal); background: rgba(232,165,61,.08); font-size: 16px;
             }
 
+            /* ── Pruebas de conexion de correo ── */
+            .ns-prueba-resultado { margin-left: 10px; font-size: 12.5px; }
+            .ns-prueba-resultado.ok  { color: var(--ns-success, #16a34a); }
+            .ns-prueba-resultado.err { color: var(--ns-danger, #dc2626); }
+            .ns-prueba-detalle { margin-top: 10px; font-size: 12.5px; line-height: 1.7; }
+
+            /* ── Puestos de trabajo ── */
+            .ns-puestos td { vertical-align: middle; }
+            .ns-puestos .ns-puesto-nombre { min-width: 140px; }
+            .ns-puestos .ns-puesto-impresora { min-width: 200px; }
+
+            /* ── Captura de atajos ── */
+            .ns-atajo-campo { cursor: pointer; text-align: center; font-weight: 600; letter-spacing: .5px; }
+            .ns-atajo.grabando .ns-atajo-campo { border-color: var(--ns-primary); box-shadow: 0 0 0 3px var(--ns-primary-soft); color: var(--ns-primary); }
+            .ns-atajo-aviso { color: var(--ns-danger, #dc2626); min-height: 16px; }
+            .ns-atajo-aviso:empty { min-height: 0; }
+
+            /* ── Continuidad de la numeracion ── */
+            .ns-numeracion-aviso {
+                display: flex; gap: 10px; align-items: flex-start;
+                padding: 12px 14px; border-radius: var(--ns-radius-sm);
+                background: var(--ns-seal-soft); color: var(--ns-seal);
+                font-size: 12.5px; line-height: 1.5;
+            }
+            .ns-tipo-doc {
+                display: inline-block; min-width: 26px; text-align: center;
+                font-family: var(--ns-mono, monospace); font-size: 11px; font-weight: 700;
+                padding: 1px 5px; margin-right: 4px; border-radius: 5px;
+                background: var(--ns-surface-3); color: var(--ns-text-2);
+            }
+            .ns-clave-leida {
+                margin-top: 8px; padding: 10px 12px; border-radius: var(--ns-radius-sm);
+                background: var(--ns-surface-2); font-size: 12.5px; line-height: 1.6;
+            }
+            .ns-clave-leida b { font-family: var(--ns-mono, monospace); }
+
             /* ── Badge de ambiente ── */
             .ns-env-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; margin-top: 6px; }
             .ns-env-badge.test { background: var(--ns-seal-soft); color: var(--ns-seal); }
@@ -269,6 +351,14 @@
             .ns-dropzone-text b { font-size: 12.5px; display: block; color: var(--ns-text-1); }
             .ns-dropzone-text span { font-size: 11px; color: var(--ns-text-3); }
 
+            /* Fila dropzone + botón "Subir" del certificado: antes el botón
+               era btn-sm (más bajo que el dropzone) y quedaba centrado a la
+               mitad de su altura, se veía flotando y desalineado. Con
+               align-items:stretch el botón toma la misma altura del dropzone. */
+            .ns-cert-upload-row { display: flex; gap: 8px; align-items: stretch; }
+            .ns-cert-upload-row .ns-dropzone { flex: 1; }
+            .ns-cert-upload-btn { white-space: nowrap; }
+
             /* ── File inputs modernos (input nativo, sin dropzone) ── */
             .ns-mockup input[type="file"] { display: block; }
             .ns-mockup input[type="file"]::file-selector-button {
@@ -278,11 +368,15 @@
             }
             .ns-mockup input[type="file"]::file-selector-button:hover { transform: translateY(-1px); }
 
-            /* ── Barra de guardado ── */
+            /* ── Barra de guardado ──
+               Antes era "position: sticky", lo que la hacía flotar sobre el
+               contenido al hacer scroll y a la vez quedar pegada al último
+               recuadro cuando no había scroll — un ancla normal, con separación
+               real arriba, es más predecible. */
             .ns-save-bar {
-                background: var(--ns-surface-2); border-top: 2px solid var(--ns-border);
-                padding: 14px 20px; position: sticky; bottom: 0; z-index: 100;
-                box-shadow: var(--ns-shadow-lg); border-radius: var(--ns-radius-sm) var(--ns-radius-sm) 0 0;
+                background: var(--ns-surface-2); border: 1px solid var(--ns-border);
+                padding: 14px 20px; margin-top: 24px;
+                box-shadow: var(--ns-shadow-sm); border-radius: var(--ns-radius);
                 display: flex; align-items: center; gap: 12px;
             }
             </style>
@@ -339,6 +433,12 @@
                             <span class="nx-nav-label"><?= lang('settings_tab_avanzado'); ?><span class="nx-nav-sub"><?= lang('settings_tab_avanzado_sub'); ?></span></span>
                         </a>
                     </li>
+                    <li>
+                        <a href="#tab-sinpe" data-bs-toggle="pill" id="navTabSinpe">
+                            <i class="fa fa-mobile"></i>
+                            <span class="nx-nav-label"><?= lang('settings_tab_sinpe'); ?><span class="nx-nav-sub"><?= lang('settings_tab_sinpe_sub'); ?></span></span>
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div class="col-md-10">
@@ -382,12 +482,20 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="dateformat"><i class="fa fa-calendar"></i> <?php echo lang('dateformat'); ?> <a href="http://php.net/manual/en/function.date.php" target="_blank"><i class="fa fa-external-link"></i></a></label>
-                                            <?php echo form_input('dateformat', $settings->dateformat ?? 'd/m/Y', 'class="form-control ns-mono" id="dateformat" required="required"'); ?>
+                                            <label for="dateformat"><i class="fa fa-calendar"></i> <?php echo lang('dateformat'); ?></label>
+                                            <?php
+                                            $fmt_fecha = $settings->dateformat ?? 'd/m/Y';
+                                            echo form_dropdown('dateformat', formatos_fecha($fmt_fecha), $fmt_fecha, 'class="form-control tom-select" id="dateformat" required="required" style="width:100%;"');
+                                            ?>
+                                            <span class="help-block"><?= lang('fmt_ayuda_fecha'); ?></span>
                                         </div>
                                         <div class="mb-3">
                                             <label for="timeformat"><i class="fa fa-clock-o"></i> <?php echo lang('timeformat'); ?></label>
-                                            <?php echo form_input('timeformat', $settings->timeformat ?? 'h:i A', 'class="form-control ns-mono" id="timeformat" required="required"'); ?>
+                                            <?php
+                                            $fmt_hora = $settings->timeformat ?? 'h:i A';
+                                            echo form_dropdown('timeformat', formatos_hora($fmt_hora), $fmt_hora, 'class="form-control tom-select" id="timeformat" required="required" style="width:100%;"');
+                                            ?>
+                                            <span class="help-block"><?= lang('fmt_ayuda_hora'); ?></span>
                                         </div>
                                         <div class="mb-3">
                                             <label for="rows_per_page"><i class="fa fa-list"></i> <?php echo lang('row_per_page'); ?></label>
@@ -455,6 +563,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text">
                                                     <b><i class="fa fa-th-large"></i> <?= lang('panel_categorias_pos'); ?></b>
@@ -498,7 +607,7 @@
                         <!-- AMBIENTE -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon seal"><i class="fa fa-exchange"></i></div>
+                                <div class="ns-card-icon"><i class="fa fa-exchange"></i></div>
                                 <div class="ns-card-head-text"><strong><?= lang('ambiente_hacienda'); ?></strong><small>Sandbox de pruebas o producción real</small></div>
                             </div>
                             <div class="card-body">
@@ -526,7 +635,7 @@
                         <!-- IDENTIFICACION DEL EMISOR -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon seal"><i class="fa fa-id-card-o"></i></div>
+                                <div class="ns-card-icon"><i class="fa fa-id-card-o"></i></div>
                                 <div class="ns-card-head-text"><strong><?= lang('identificacion_emisor'); ?></strong></div>
                             </div>
                             <div class="card-body">
@@ -548,10 +657,10 @@
                                             <div class="input-group">
                                                 <input value="<?= htmlspecialchars($settings->cedula_emisor ?? '') ?>" class="form-control ns-mono" id="cedula_emisor" name="cedula_emisor" type="text" placeholder="3101000000">
                                                 <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-warning" id="btn-buscar-cedula" title="Buscar en Hacienda"><i class="fa fa-search"></i> Buscar</button>
+                                                    <button type="button" class="btn btn-primary" id="btn-buscar-cedula" title="Buscar en Hacienda"><i class="fa fa-search"></i> Buscar</button>
                                                 </span>
                                             </div>
-                                            <span class="help-block" id="ae-status">Escriba la cédula y presione «Buscar» para completar automáticamente el nombre, tipo de documento y actividad económica desde Hacienda.</span>
+                                            <span class="help-block" id="ae-status">Completa el nombre y la actividad económica desde Hacienda.</span>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -597,11 +706,8 @@
                         <!-- DIRECCION -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon seal"><i class="fa fa-map-marker"></i></div>
+                                <div class="ns-card-icon"><i class="fa fa-map-marker"></i></div>
                                 <div class="ns-card-head-text"><strong><?= lang('direccion_tributario'); ?></strong></div>
-                                <div style="margin-left:auto;">
-                                    <a target="_blank" href="https://tribunet.hacienda.go.cr/docs/esquemas/2016/v4.2/Codificacionubicacion_V4.2.zip" style="font-size:12px;display:flex;align-items:center;gap:5px;"><i class="fa fa-download"></i> Codigos de ubicacion</a>
-                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -662,7 +768,7 @@
                         <!-- ACTIVIDAD ECONOMICA -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon seal"><i class="fa fa-industry"></i></div>
+                                <div class="ns-card-icon"><i class="fa fa-industry"></i></div>
                                 <div class="ns-card-head-text"><strong><?= lang('actividad_economica'); ?></strong></div>
                             </div>
                             <div class="card-body">
@@ -671,23 +777,76 @@
                                         <div class="mb-3">
                                             <label for="default_actividad"><i class="fa fa-list-alt"></i> <?= lang('actividad_predeterminada'); ?></label>
                                             <?php
+                                            // El valor es el codigo de actividad de Hacienda, no el id de la fila:
+                                            // va tal cual a <CodigoActividadEmisor>, que exige 6 caracteres exactos.
+                                            $act_actual = (string) ($settings->default_actividad ?? '');
                                             $act_opts = array();
                                             foreach ($actividadeconomica as $actividad) {
-                                                $act_opts[$actividad->id_actividad] = $actividad->id_actividad . ' - ' . $actividad->descripcion;
+                                                $act_opts[$actividad->codigo] = $actividad->codigo . ' — ' . $actividad->descripcion;
                                             }
-                                            echo form_dropdown('default_actividad', $act_opts, $settings->default_actividad ?? '', 'class="form-control tom-select" style="width:100%;" id="default_actividad" required="required"');
+                                            // Las actividades del emisor las trae el boton "Buscar" desde Hacienda y
+                                            // no estan en la tabla local: sin esta opcion, reguardar borraria el codigo.
+                                            if ($act_actual !== '' && !isset($act_opts[$act_actual])) {
+                                                $act_opts = array($act_actual => $act_actual) + $act_opts;
+                                            }
+                                            echo form_dropdown('default_actividad', $act_opts, $act_actual, 'class="form-control tom-select" style="width:100%;" id="default_actividad" required="required"');
                                             ?>
                                             <span class="help-block">Se completa automáticamente según la cédula del emisor.</span>
+                                            <?php if ($act_actual !== '' && strlen($act_actual) !== 6): ?>
+                                            <span class="help-block text-danger"><i class="fa fa-exclamation-triangle"></i> <?= lang('actividad_largo_invalido'); ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- CONTINUIDAD DE LA NUMERACION -->
+                        <div class="card" data-card>
+                            <div class="card-header ns-card-head">
+                                <div class="ns-card-icon"><i class="fa fa-sort-numeric-asc"></i></div>
+                                <div class="ns-card-head-text"><strong><?= lang('continuidad_numeracion'); ?></strong><small><?= lang('continuidad_numeracion_sub'); ?></small></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="ns-numeracion-aviso">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                    <span><?= lang('continuidad_advertencia'); ?></span>
+                                </div>
+
+                                <div class="row" style="margin-top:14px;">
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label for="clave_ultima"><i class="fa fa-key"></i> <?= lang('ultima_clave_label'); ?></label>
+                                            <div class="input-group">
+                                                <input value="<?= htmlspecialchars($settings->clave_ultima ?? '') ?>" class="form-control ns-mono" id="clave_ultima" name="clave_ultima" type="text" maxlength="50" inputmode="numeric" placeholder="50 <?= lang('digitos'); ?>">
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-primary" id="btnLeerClave"><i class="fa fa-magic"></i> <?= lang('leer_clave_btn'); ?></button>
+                                                </span>
+                                            </div>
+                                            <span class="help-block"><?= lang('ultima_clave_ayuda'); ?></span>
+                                            <div id="claveLeida" class="ns-clave-leida" style="display:none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <?php foreach (tipos_comprobante() as $tipo => $etiqueta): ?>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="consec_inicial_<?= $tipo ?>"><span class="ns-tipo-doc"><?= $tipo ?></span> <?= $etiqueta ?></label>
+                                            <input value="<?= (int) ($settings->{'consec_inicial_' . $tipo} ?? 0) ?>" class="form-control ns-mono" id="consec_inicial_<?= $tipo ?>" name="consec_inicial_<?= $tipo ?>" type="number" min="0" step="1">
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <span class="help-block"><i class="fa fa-info-circle"></i> <?= lang('continuidad_ayuda'); ?></span>
+                            </div>
+                        </div>
+
                         <!-- TOKENS API HACIENDA -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon seal"><i class="fa fa-key"></i></div>
+                                <div class="ns-card-icon"><i class="fa fa-key"></i></div>
                                 <div class="ns-card-head-text"><strong><?= lang('tokens_api_hacienda'); ?></strong></div>
                             </div>
                             <div class="card-body">
@@ -754,63 +913,89 @@
                         <!-- CERTIFICADO DIGITAL -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon seal"><i class="fa fa-certificate"></i></div>
-                                <div class="ns-card-head-text"><strong><?= lang('certificado_digital'); ?></strong></div>
+                                <div class="ns-card-icon"><i class="fa fa-certificate"></i></div>
+                                <div class="ns-card-head-text"><strong><?= lang('certificado_digital'); ?></strong><small><?= lang('certificado_por_ambiente_info'); ?></small></div>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="certificado_ced"><i class="fa fa-file-o"></i> <?= lang('nombre_certificado_label'); ?></label>
-                                            <input value="<?= htmlspecialchars($settings->certificado_ced ?? '') ?>" class="form-control ns-mono" id="certificado_ced" name="certificado_ced" type="text" placeholder="310100000000">
-                                        </div>
+                                    <?php
+                                    $cert_en_uso = ($settings->ambiente ?? 'test') === 'prod' ? 'prod' : 'test';
+                                    $cert_ambientes = array(
+                                        'test' => array('titulo' => lang('pruebas_sandbox'), 'label' => 'warning', 'icono' => 'fa-flask'),
+                                        'prod' => array('titulo' => lang('produccion'),      'label' => 'success', 'icono' => 'fa-check'),
+                                    );
+                                    foreach ($cert_ambientes as $amb => $cfg):
+                                        $cert_disponibles = certificados_p12($amb);
+                                        $cert_ced = $settings->{'certificado_ced_' . $amb} ?? '';
+                                        // Con un solo .p12 en la carpeta no hay nada que elegir: queda puesto.
+                                        if ($cert_ced === '' && count($cert_disponibles) === 1) {
+                                            $cert_ced = key($cert_disponibles);
+                                        }
+                                        $cert_existe = isset($cert_disponibles[$cert_ced]);
+                                    ?>
+                                    <div class="col-md-12">
+                                        <h4>
+                                            <span class="label label-<?= $cfg['label'] ?>"><i class="fa <?= $cfg['icono'] ?>"></i> <?= $cfg['titulo'] ?></span>
+                                            <?php if ($amb === $cert_en_uso): ?>
+                                            <span class="ns-env-badge <?= $amb ?>"><i class="fa fa-bolt"></i> <?= lang('certificado_en_uso'); ?></span>
+                                            <?php endif; ?>
+                                        </h4>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="certificado_pin"><i class="fa fa-key"></i> <?= lang('pin_certificado'); ?></label>
+                                            <label for="certificado_ced_<?= $amb ?>"><i class="fa fa-file-o"></i> <?= lang('archivo_certificado_label'); ?></label>
+                                            <?php if ($cert_disponibles): ?>
+                                                <?php echo form_dropdown('certificado_ced_' . $amb, $cert_disponibles, $cert_ced, 'class="form-control tom-select ns-mono" id="certificado_ced_' . $amb . '" style="width:100%;"'); ?>
+                                                <span class="help-block"><?= lang('archivo_certificado_ayuda'); ?></span>
+                                            <?php else: ?>
+                                                <input type="hidden" name="certificado_ced_<?= $amb ?>" value="">
+                                                <p class="text-muted" style="margin:6px 0 0;"><i class="fa fa-arrow-right"></i> <?= lang('archivo_certificado_vacio'); ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="certificado_pin_<?= $amb ?>"><i class="fa fa-key"></i> <?= lang('pin_certificado'); ?></label>
                                             <div class="input-group">
-                                                <input value="<?= htmlspecialchars($settings->certificado_pin ?? '') ?>" class="form-control ns-mono" id="certificado_pin" name="certificado_pin" type="password" placeholder="0000">
+                                                <input value="<?= htmlspecialchars($settings->{'certificado_pin_' . $amb} ?? '') ?>" class="form-control ns-mono" id="certificado_pin_<?= $amb ?>" name="certificado_pin_<?= $amb ?>" type="password" placeholder="0000">
                                                 <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="certificado_pin" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
+                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="certificado_pin_<?= $amb ?>" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-5">
                                         <div class="mb-3">
                                             <label><i class="fa fa-upload"></i> <?= lang('subir_certificado_label'); ?></label>
-                                            <?php
-                                            $certFile = FCPATH . 'files/certificados/' . ($settings->ambiente ?? 'test') . '/' . ($settings->certificado_ced ?? '') . '.p12';
-                                            $certExists = !empty($settings->certificado_ced) && file_exists($certFile);
-                                            ?>
-                                            <?php if ($certExists): ?>
-                                                <p class="text-success" style="margin:0 0 4px;"><i class="fa fa-check-circle"></i> <?= lang('certificado_cargado'); ?> <strong><?= htmlspecialchars($settings->certificado_ced) ?>.p12</strong></p>
-                                            <?php else: ?>
-                                                <p class="text-warning" style="margin:0 0 4px;"><i class="fa fa-exclamation-triangle"></i> <?= lang('no_hay_certificado'); ?></p>
-                                            <?php endif; ?>
-                                            <form action="<?= site_url('settings/upload_certificado') ?>" method="post" enctype="multipart/form-data" style="display:flex;gap:6px;align-items:center;">
-                                                <?php echo form_hidden($this->security->get_csrf_token_name(), $this->security->get_csrf_hash()); ?>
-                                                <div class="ns-dropzone" id="ns-cert-dropzone" style="flex:1;">
-                                                    <input type="file" name="certificado_p12" accept=".p12" required>
+                                            <!-- HTML no admite formularios anidados: estos campos se atan con form= a los #ns-cert-form-* que viven fuera del formulario de ajustes. -->
+                                            <div class="ns-cert-upload-row">
+                                                <div class="ns-dropzone" id="ns-cert-dropzone-<?= $amb ?>">
+                                                    <input type="file" name="certificado_p12" accept=".p12" form="ns-cert-form-<?= $amb ?>" required>
                                                     <div class="ns-dropzone-icon"><i class="fa fa-certificate"></i></div>
                                                     <div class="ns-dropzone-text">
-                                                        <b id="ns-cert-label"><?= lang('subir_certificado_label'); ?></b>
-                                                        <span>.p12</span>
+                                                        <b id="ns-cert-label-<?= $amb ?>"><?= lang('subir_certificado_label'); ?></b>
+                                                        <span>files/certificados/<?= $amb ?>/</span>
                                                     </div>
                                                 </div>
-                                                <button type="submit" class="btn btn-warning btn-sm" style="white-space:nowrap;"><i class="fa fa-upload"></i> <?= lang('subir'); ?></button>
-                                            </form>
-                                            <span class="help-block"><?= lang('ambiente_activo_info'); ?> <strong><?= htmlspecialchars($settings->ambiente ?? 'test') ?></strong></span>
+                                                <button type="submit" form="ns-cert-form-<?= $amb ?>" class="btn btn-primary ns-cert-upload-btn"><i class="fa fa-upload"></i> <?= lang('subir'); ?></button>
+                                            </div>
+                                            <?php if ($cert_existe): ?>
+                                                <span class="help-block text-success"><i class="fa fa-check-circle"></i> <?= lang('certificado_cargado'); ?> <strong><?= htmlspecialchars($cert_ced) ?>.p12</strong></span>
+                                            <?php else: ?>
+                                                <span class="help-block text-warning"><i class="fa fa-exclamation-triangle"></i> <?= lang('no_hay_certificado'); ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
+                                    <?php endforeach; ?>
                                 </div>
+                                <span class="help-block"><i class="fa fa-info-circle"></i> <?= lang('certificado_ambiente_ayuda'); ?></span>
                             </div>
                         </div>
 
                         <!-- FOOTER FE -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon seal"><i class="fa fa-align-left"></i></div>
+                                <div class="ns-card-icon"><i class="fa fa-align-left"></i></div>
                                 <div class="ns-card-head-text"><strong><?= lang('textos_comprobantes'); ?></strong></div>
                             </div>
                             <div class="card-body">
@@ -831,26 +1016,18 @@
                             </div>
                         </div>
 
-                        <!-- BLOQUEO / SINCRONIZACION CABYS -->
+                        <!-- BLOQUEO DE LA CONFIGURACION -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon"><i class="fa fa-database"></i></div>
-                                <div class="ns-card-head-text"><strong><?= lang('sincronizacion_bloqueo'); ?></strong></div>
+                                <div class="ns-card-icon"><i class="fa fa-lock"></i></div>
+                                <div class="ns-card-head-text"><strong><?= lang('bloqueo_config_hacienda'); ?></strong></div>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <h4><i class="fa fa-refresh"></i> <?= lang('catalogo_cabys_label'); ?></h4>
-                                        <p><?= lang('cabys_cache_info'); ?></p>
-                                        <button type="button" id="btn-limpiar-cabys" class="btn btn-warning">
-                                            <i class="fa fa-refresh"></i> <?= lang('limpiar_cache_cabys'); ?>
-                                        </button>
-                                        <span id="cabys-sync-result" style="margin-left:10px;display:none;"></span>
-                                    </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="ns-toggle-row">
                                             <div class="ns-toggle-text">
-                                                <b><i class="fa fa-lock"></i> <?= lang('bloqueo_config_hacienda'); ?></b>
+                                                <b><i class="fa fa-lock"></i> <?= lang('bloquear_configuracion'); ?></b>
                                                 <span><?= lang('bloqueo_advertencia'); ?></span>
                                             </div>
                                             <label class="ns-switch">
@@ -874,100 +1051,293 @@
                     <!-- ==================== TAB 3: EMAIL ==================== -->
                     <div class="tab-pane" id="tab-email">
 
+                        <?php
+                        // Host, puerto y cifrado de cada proveedor. Evita que el usuario
+                        // tenga que buscarlos y equivocarse en el puerto o el cifrado.
+                        $proveedores_correo = array(
+                            'gmail'     => array('etiqueta' => 'Gmail / Google Workspace', 'smtp' => 'smtp.gmail.com',        'smtp_port' => '587', 'smtp_crypto' => 'tls', 'imap' => 'imap.gmail.com',          'imap_port' => '993', 'imap_crypto' => 'ssl', 'oauth' => 1),
+                            'microsoft' => array('etiqueta' => 'Outlook / Microsoft 365',  'smtp' => 'smtp.office365.com',    'smtp_port' => '587', 'smtp_crypto' => 'tls', 'imap' => 'outlook.office365.com',  'imap_port' => '993', 'imap_crypto' => 'ssl', 'oauth' => 0),
+                            'zoho'      => array('etiqueta' => 'Zoho Mail',                'smtp' => 'smtp.zoho.com',         'smtp_port' => '587', 'smtp_crypto' => 'tls', 'imap' => 'imap.zoho.com',          'imap_port' => '993', 'imap_crypto' => 'ssl', 'oauth' => 0),
+                            'yahoo'     => array('etiqueta' => 'Yahoo Mail',               'smtp' => 'smtp.mail.yahoo.com',   'smtp_port' => '587', 'smtp_crypto' => 'tls', 'imap' => 'imap.mail.yahoo.com',    'imap_port' => '993', 'imap_crypto' => 'ssl', 'oauth' => 0),
+                            'otro'      => array('etiqueta' => lang('otro_proveedor'),     'smtp' => '',                      'smtp_port' => '587', 'smtp_crypto' => 'tls', 'imap' => '',                       'imap_port' => '993', 'imap_crypto' => 'ssl', 'oauth' => 0),
+                        );
+                        $opts_proveedor = array();
+                        foreach ($proveedores_correo as $k => $v) { $opts_proveedor[$k] = $v['etiqueta']; }
+                        $mail_auth        = $settings->mail_auth ?? 'password';
+                        $mail_client_auth = $settings->mail_client_auth ?? 'password';
+                        ?>
+                        <script>window._proveedoresCorreo = <?= json_encode($proveedores_correo) ?>;</script>
+
+                        <!-- CORREO DE SALIDA -->
+                        <style>
+                            .ns-correo-sin-remitente{border:1px solid var(--ns-danger,#dc2626);border-radius:8px;padding:14px 16px;margin-bottom:14px;background:var(--ns-danger-soft,rgba(220,38,38,.07));font-size:13px;line-height:1.55;}
+                            .ns-gmail-shortcut{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border:1px solid var(--ns-primary,#2563eb);border-radius:8px;padding:14px 16px;margin-bottom:16px;background:var(--ns-primary-soft,rgba(37,99,235,.06));}
+                            .ns-gmail-shortcut-text{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;}
+                            .ns-gmail-shortcut-text i.fa-google{font-size:20px;margin-top:2px;color:#ea4335;}
+                            .ns-gmail-shortcut-text strong{display:block;}
+                            .ns-gmail-shortcut-text span{color:var(--ns-txt2,#666);}
+                            .ns-gmail-shortcut-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+                        </style>
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
-                                <div class="ns-card-icon"><i class="fa fa-envelope-o"></i></div>
-                                <div class="ns-card-head-text"><strong><?php echo lang('email'); ?></strong></div>
+                                <div class="ns-card-icon"><i class="fa fa-paper-plane-o"></i></div>
+                                <div class="ns-card-head-text"><strong><?= lang('correo_salida'); ?></strong><small><?= lang('correo_salida_sub'); ?></small></div>
                             </div>
                             <div class="card-body">
+                                <div class="ns-gmail-shortcut">
+                                    <div class="ns-gmail-shortcut-text">
+                                        <i class="fa fa-google"></i>
+                                        <div>
+                                            <strong><?= lang('gmail_atajo_titulo'); ?></strong>
+                                            <span><?= lang('gmail_atajo_envio_sub'); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="ns-gmail-shortcut-actions">
+                                        <?php if ($mail_auth === 'oauth_google' && !empty($settings->mail_oauth_email)): ?>
+                                            <span class="ns-env-badge prod"><i class="fa fa-check"></i> <?= htmlspecialchars($settings->mail_oauth_email) ?></span>
+                                            <a href="<?= site_url('mailauth/desconectar/envio') ?>" class="btn btn-default btn-sm"><i class="fa fa-unlink"></i> <?= lang('desconectar'); ?></a>
+                                        <?php else: ?>
+                                            <a href="<?= site_url('mailauth/conectar/envio') ?>" class="btn btn-primary"><i class="fa fa-google"></i> <?= lang('conectar_con_gmail'); ?></a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <?php if (!remitente_correo($settings)): ?>
+                                <div class="ns-correo-sin-remitente">
+                                    <div><i class="fa fa-exclamation-triangle"></i> <strong><?= lang('correo_sin_remitente_titulo'); ?></strong></div>
+                                    <p style="margin:6px 0 0;"><?= lang('correo_sin_remitente'); ?></p>
+                                </div>
+                                <?php endif; ?>
                                 <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="default_email"><i class="fa fa-envelope-o"></i> <?= lang('default_email'); ?></label>
+                                            <?php echo form_input('default_email', $settings->default_email ?? '', 'class="form-control" id="default_email" type="email" required="required"'); ?>
+                                            <span class="help-block"><?= lang('remitente_ayuda'); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="protocol"><i class="fa fa-cogs"></i> <?= lang('email_protocol'); ?></label>
+                                            <?php
+                                            $popt = array('smtp' => 'SMTP', 'sendmail' => 'Sendmail', 'mail' => lang('funcion_mail_php'));
+                                            echo form_dropdown('protocol', $popt, $settings->protocol ?? 'smtp', 'class="form-control tom-select" id="protocol" style="width:100%;" required="required"');
+                                            ?>
+                                            <span class="help-block"><?= lang('protocolo_ayuda'); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 ns-solo-smtp">
+                                        <div class="mb-3">
+                                            <label for="proveedor_smtp"><i class="fa fa-magic"></i> <?= lang('proveedor_correo'); ?></label>
+                                            <select id="proveedor_smtp" class="form-control" data-destino="smtp">
+                                                <?php foreach ($opts_proveedor as $k => $v): ?>
+                                                <option value="<?= $k ?>"><?= $v ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <span class="help-block"><?= lang('proveedor_ayuda'); ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row ns-solo-sendmail" style="display:none;">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="default_email"><i class="fa fa-envelope-o"></i> <?php echo lang('default_email'); ?></label>
-                                            <?php echo form_input('default_email', $settings->default_email ?? '', 'class="form-control" id="default_email" type="email" required="required"'); ?>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="protocol"><i class="fa fa-cogs"></i> <?php echo lang('email_protocol'); ?></label>
-                                            <?php
-                                            $popt = array('mail' => 'PHP Mail Function', 'sendmail' => 'Send Mail', 'smtp' => 'SMTP');
-                                            echo form_dropdown('protocol', $popt, $settings->protocol ?? 'mail', 'class="form-control tom-select" id="protocol" style="width:100%;" required="required"');
-                                            ?>
+                                            <label for="mailpath"><i class="fa fa-folder-o"></i> <?= lang('mailpath'); ?></label>
+                                            <?php echo form_input('mailpath', $settings->mailpath ?? '/usr/sbin/sendmail', 'class="form-control ns-mono" id="mailpath" placeholder="/usr/sbin/sendmail"'); ?>
+                                            <span class="help-block"><?= lang('ruta_sendmail'); ?></span>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- SENDMAIL -->
-                        <div id="sendmail_config" style="display:none;">
-                            <div class="card" data-card>
-                                <div class="card-header ns-card-head">
-                                    <div class="ns-card-icon"><i class="fa fa-terminal"></i></div>
-                                    <div class="ns-card-head-text"><strong>Configuracion Sendmail</strong></div>
-                                </div>
-                                <div class="card-body">
+                                <div class="ns-solo-smtp">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="mb-3">
-                                                <label for="mailpath"><i class="fa fa-folder-o"></i> <?php echo lang('mailpath'); ?></label>
-                                                <?php echo form_input('mailpath', $settings->mailpath ?? '/usr/sbin/sendmail', 'class="form-control ns-mono" id="mailpath" placeholder="/usr/sbin/sendmail"'); ?>
-                                                <span class="help-block"><?= lang('ruta_sendmail'); ?></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SMTP -->
-                        <div id="smtp_config" style="display:none;">
-                            <div class="card" data-card>
-                                <div class="card-header ns-card-head">
-                                    <div class="ns-card-icon"><i class="fa fa-envelope"></i></div>
-                                    <div class="ns-card-head-text"><strong>Configuracion SMTP</strong></div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="smtp_host"><i class="fa fa-server"></i> <?php echo lang('smtp_host'); ?></label>
+                                                <label for="smtp_host"><i class="fa fa-server"></i> <?= lang('smtp_host'); ?></label>
                                                 <?php echo form_input('smtp_host', $settings->smtp_host ?? '', 'class="form-control ns-mono" id="smtp_host" placeholder="smtp.gmail.com"'); ?>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-2">
                                             <div class="mb-3">
-                                                <label for="smtp_user"><i class="fa fa-user-o"></i> <?php echo lang('smtp_user'); ?></label>
+                                                <label for="smtp_port"><i class="fa fa-plug"></i> <?= lang('smtp_port'); ?></label>
+                                                <?php echo form_input('smtp_port', $settings->smtp_port ?? '587', 'class="form-control ns-mono" id="smtp_port" placeholder="587"'); ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label for="smtp_crypto"><i class="fa fa-shield"></i> <?= lang('smtp_crypto'); ?></label>
+                                                <?php
+                                                $crypto_opt = array('tls' => 'STARTTLS', 'ssl' => 'SSL/TLS', '' => lang('none'));
+                                                echo form_dropdown('smtp_crypto', $crypto_opt, $settings->smtp_crypto ?? 'tls', 'class="form-control" id="smtp_crypto" style="width:100%;"');
+                                                ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="smtp_user"><i class="fa fa-user-o"></i> <?= lang('smtp_user'); ?></label>
                                                 <?php echo form_input('smtp_user', $settings->smtp_user ?? '', 'class="form-control" id="smtp_user" placeholder="' . lang('placeholder_smtp_user') . '"'); ?>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
                                             <div class="mb-3">
-                                                <label for="smtp_pass"><i class="fa fa-lock"></i> <?php echo lang('smtp_pass'); ?></label>
+                                                <label for="mail_auth"><i class="fa fa-key"></i> <?= lang('tipo_autenticacion'); ?></label>
+                                                <?php
+                                                $auth_opts = array('password' => lang('auth_password'), 'oauth_google' => lang('auth_oauth_google'));
+                                                echo form_dropdown('mail_auth', $auth_opts, $mail_auth, 'class="form-control ns-auth-select" id="mail_auth" data-grupo="envio" style="width:100%;"');
+                                                ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 ns-auth-envio-password" <?= $mail_auth === 'oauth_google' ? 'style="display:none;"' : '' ?>>
+                                            <div class="mb-3">
+                                                <label for="smtp_pass"><i class="fa fa-lock"></i> <?= lang('smtp_pass'); ?></label>
                                                 <div class="input-group">
-                                                    <input type="password" name="smtp_pass" id="smtp_pass" value="<?= htmlspecialchars($settings->smtp_pass ?? '') ?>" class="form-control" placeholder="<?= lang('placeholder_smtp_pass'); ?>">
+                                                    <input type="password" name="smtp_pass" id="smtp_pass" value="<?= htmlspecialchars($settings->smtp_pass ?? '') ?>" class="form-control" placeholder="<?= lang('placeholder_smtp_pass'); ?>" autocomplete="new-password">
                                                     <span class="input-group-btn">
                                                         <button type="button" class="btn btn-default btn-toggle-pw" data-target="smtp_pass" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
                                                     </span>
                                                 </div>
+                                                <span class="help-block"><?= lang('password_app_ayuda'); ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-5 ns-auth-envio-oauth" <?= $mail_auth === 'oauth_google' ? '' : 'style="display:none;"' ?>>
                                             <div class="mb-3">
-                                                <label for="smtp_port"><i class="fa fa-plug"></i> <?php echo lang('smtp_port'); ?></label>
-                                                <?php echo form_input('smtp_port', $settings->smtp_port ?? '587', 'class="form-control ns-mono" id="smtp_port" placeholder="587"'); ?>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="mb-3">
-                                                <label for="smtp_crypto"><i class="fa fa-shield"></i> <?php echo lang('smtp_crypto'); ?></label>
-                                                <?php
-                                                $crypto_opt = array('' => lang('none'), 'tls' => 'TLS', 'ssl' => 'SSL');
-                                                echo form_dropdown('smtp_crypto', $crypto_opt, $settings->smtp_crypto ?? 'tls', 'class="form-control tom-select" id="smtp_crypto" style="width:100%;"');
-                                                ?>
+                                                <label><i class="fa fa-google"></i> <?= lang('cuenta_google'); ?></label>
+                                                <p class="help-block" style="margin:4px 0;"><?= lang('gmail_gestion_arriba'); ?></p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <button type="button" class="btn btn-default" id="btnProbarEnvio"><i class="fa fa-plug"></i> <?= lang('probar_conexion'); ?></button>
+                                <span id="resultadoEnvio" class="ns-prueba-resultado"></span>
+                            </div>
+                        </div>
+
+                        <!-- CORREO DE ENTRADA -->
+                        <div class="card" data-card>
+                            <div class="card-header ns-card-head">
+                                <div class="ns-card-icon"><i class="fa fa-inbox"></i></div>
+                                <div class="ns-card-head-text"><strong><?= lang('correo_entrada'); ?></strong><small><?= lang('correo_entrada_sub'); ?></small></div>
+                            </div>
+                            <div class="card-body">
+                                <div class="ns-gmail-shortcut">
+                                    <div class="ns-gmail-shortcut-text">
+                                        <i class="fa fa-google"></i>
+                                        <div>
+                                            <strong><?= lang('gmail_atajo_titulo'); ?></strong>
+                                            <span><?= lang('gmail_atajo_recepcion_sub'); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="ns-gmail-shortcut-actions">
+                                        <?php if ($mail_client_auth === 'oauth_google' && !empty($settings->mail_client_oauth_email)): ?>
+                                            <span class="ns-env-badge prod"><i class="fa fa-check"></i> <?= htmlspecialchars($settings->mail_client_oauth_email) ?></span>
+                                            <a href="<?= site_url('mailauth/desconectar/recepcion') ?>" class="btn btn-default btn-sm"><i class="fa fa-unlink"></i> <?= lang('desconectar'); ?></a>
+                                        <?php else: ?>
+                                            <a href="<?= site_url('mailauth/conectar/recepcion') ?>" class="btn btn-primary"><i class="fa fa-google"></i> <?= lang('conectar_con_gmail'); ?></a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label>&nbsp;</label>
+                                            <div class="ns-toggle-row">
+                                                <div class="ns-toggle-text">
+                                                    <b><i class="fa fa-download"></i> <?= lang('leer_facturas_compra'); ?></b>
+                                                    <span><?= lang('leer_facturas_compra_sub'); ?></span>
+                                                </div>
+                                                <label class="ns-switch">
+                                                    <input type="checkbox" class="ns-switch-bind" data-bind="mail_client_enabled" <?= (($settings->mail_client_enabled ?? 0) == 1) ? 'checked' : ''; ?>>
+                                                    <span class="ns-track"></span><span class="ns-thumb"></span>
+                                                </label>
+                                            </div>
+                                            <?php
+                                            $rec_opts = array(0 => lang('disable'), 1 => lang('enable'));
+                                            echo form_dropdown('mail_client_enabled', $rec_opts, $settings->mail_client_enabled ?? 0, 'class="form-control ns-select-hidden" id="mail_client_enabled"');
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="proveedor_imap"><i class="fa fa-magic"></i> <?= lang('proveedor_correo'); ?></label>
+                                            <select id="proveedor_imap" class="form-control" data-destino="imap">
+                                                <?php foreach ($opts_proveedor as $k => $v): ?>
+                                                <option value="<?= $k ?>"><?= $v ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="mail_client_carpeta"><i class="fa fa-folder-open-o"></i> <?= lang('carpeta_imap'); ?></label>
+                                            <?php echo form_input('mail_client_carpeta', $settings->mail_client_carpeta ?? 'INBOX', 'class="form-control ns-mono" id="mail_client_carpeta" placeholder="INBOX"'); ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="mail_client_host"><i class="fa fa-server"></i> <?= lang('imap_host'); ?></label>
+                                            <?php echo form_input('mail_client_host', $settings->mail_client_host ?? '', 'class="form-control ns-mono" id="mail_client_host" placeholder="imap.gmail.com"'); ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            <label for="mail_client_port"><i class="fa fa-plug"></i> <?= lang('smtp_port'); ?></label>
+                                            <?php echo form_input('mail_client_port', $settings->mail_client_port ?? '993', 'class="form-control ns-mono" id="mail_client_port" placeholder="993"'); ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            <label for="mail_client_crypto"><i class="fa fa-shield"></i> <?= lang('smtp_crypto'); ?></label>
+                                            <?php
+                                            $crypto_imap = array('ssl' => 'SSL/TLS', 'tls' => 'STARTTLS', '' => lang('none'));
+                                            echo form_dropdown('mail_client_crypto', $crypto_imap, $settings->mail_client_crypto ?? 'ssl', 'class="form-control" id="mail_client_crypto" style="width:100%;"');
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="mail_client_user"><i class="fa fa-user-o"></i> <?= lang('smtp_user'); ?></label>
+                                            <?php echo form_input('mail_client_user', $settings->mail_client_user ?? '', 'class="form-control" id="mail_client_user" placeholder="compras@empresa.com"'); ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="mail_client_auth"><i class="fa fa-key"></i> <?= lang('tipo_autenticacion'); ?></label>
+                                            <?php echo form_dropdown('mail_client_auth', $auth_opts, $mail_client_auth, 'class="form-control ns-auth-select" id="mail_client_auth" data-grupo="recepcion" style="width:100%;"'); ?>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 ns-auth-recepcion-password" <?= $mail_client_auth === 'oauth_google' ? 'style="display:none;"' : '' ?>>
+                                        <div class="mb-3">
+                                            <label for="mail_client_pass"><i class="fa fa-lock"></i> <?= lang('smtp_pass'); ?></label>
+                                            <div class="input-group">
+                                                <input type="password" name="mail_client_pass" id="mail_client_pass" value="<?= htmlspecialchars($settings->mail_client_pass ?? '') ?>" class="form-control" autocomplete="new-password">
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-default btn-toggle-pw" data-target="mail_client_pass" title="<?= lang('ver_ocultar'); ?>"><i class="fa fa-eye"></i></button>
+                                                </span>
+                                            </div>
+                                            <span class="help-block"><?= lang('password_app_ayuda'); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 ns-auth-recepcion-oauth" <?= $mail_client_auth === 'oauth_google' ? '' : 'style="display:none;"' ?>>
+                                        <div class="mb-3">
+                                            <label><i class="fa fa-google"></i> <?= lang('cuenta_google'); ?></label>
+                                            <p class="help-block" style="margin:4px 0;"><?= lang('gmail_gestion_arriba'); ?></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-default" id="btnProbarRecepcion"><i class="fa fa-plug"></i> <?= lang('probar_conexion'); ?></button>
+                                <button type="button" class="btn btn-primary" id="btnImportarCompras"><i class="fa fa-download"></i> <?= lang('importar_ahora'); ?></button>
+                                <button type="button" class="btn btn-default" id="btnImportarHistorico"><i class="fa fa-history"></i> <?= lang('importar_historico'); ?></button>
+                                <span id="resultadoRecepcion" class="ns-prueba-resultado"></span>
                             </div>
                         </div>
 
@@ -986,6 +1356,14 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label for="tope_descuento"><i class="fa fa-percent"></i> <?= lang('tope_descuento'); ?></label>
+                                            <input type="number" step="0.01" min="0" max="100" name="tope_descuento" id="tope_descuento"
+                                                   class="form-control" value="<?= html_escape($settings->tope_descuento ?? 100); ?>">
+                                            <span class="help-block"><?= lang('tope_descuento_ayuda'); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
                                             <label for="after_sale_page"><i class="fa fa-arrow-right"></i> <?php echo lang('after_sale_page'); ?></label>
                                             <?php
                                             $asp = array(0 => lang('receipt'), 1 => lang('pos'));
@@ -995,6 +1373,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-print"></i> <?php echo lang('auto_print'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1025,6 +1404,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-keyboard-o"></i> <?php echo lang('display_kb'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1046,83 +1426,51 @@
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
                                 <div class="ns-card-icon"><i class="fa fa-keyboard-o"></i></div>
-                                <div class="ns-card-head-text"><strong><?= lang('sec_atajos_pos'); ?></strong><small>Combinación de teclas para cada acción en el POS</small></div>
+                                <div class="ns-card-head-text"><strong><?= lang('sec_atajos_pos'); ?></strong><small><?= lang('atajos_ayuda'); ?></small></div>
                             </div>
                             <div class="card-body">
+                                <?php
+                                // Las combinaciones por omision evitan F11 y F12: el navegador se
+                                // queda con esas teclas y el POS nunca las llega a recibir.
+                                $atajos = array(
+                                    'focus_add_item'         => array('atajo_agregar_item',     'F3',    'fa-crosshairs'),
+                                    'finalize_sale'          => array('atajo_finalizar_venta',  'F4',    'fa-check-circle'),
+                                    'add_customer'           => array('atajo_agregar_cliente',  'F6',    'fa-user-plus'),
+                                    'edit_last_product'      => array('atajo_editar_ultimo',    'F7',    'fa-edit'),
+                                    'toggle_category_slider' => array('atajo_alternar_cats',    'F8',    'fa-bars'),
+                                    'cancel_sale'            => array('atajo_cancelar_venta',   'F9',    'fa-times-circle'),
+                                    'suspend_sale'           => array('atajo_suspender_venta',  'F10',   'fa-pause-circle'),
+                                    'open_hold_bills'        => array('atajo_retomar',          'ALT+S', 'fa-folder-open-o'),
+                                    'today_sale'             => array('atajo_ventas_hoy',       'ALT+V', 'fa-calendar-check-o'),
+                                    'close_register'         => array('atajo_cerrar_caja',      'ALT+R', 'fa-sign-out'),
+                                );
+                                ?>
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="focus_add_item"><i class="fa fa-crosshairs"></i> <?= lang('atajo_agregar_item'); ?></label>
-                                            <?php echo form_input('focus_add_item', $settings->focus_add_item ?? 'ALT+I', 'class="form-control ns-mono" id="focus_add_item"'); ?>
+                                            <label><i class="fa fa-bolt"></i> <?= lang('atajo_producto_rapido'); ?></label>
+                                            <input class="form-control ns-mono" value="F2" disabled>
                                         </div>
                                     </div>
+                                    <?php foreach ($atajos as $campo => $meta): ?>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="edit_last_product"><i class="fa fa-edit"></i> <?= lang('atajo_editar_ultimo'); ?></label>
-                                            <?php echo form_input('edit_last_product', $settings->edit_last_product ?? 'F1', 'class="form-control ns-mono" id="edit_last_product"'); ?>
+                                            <label for="<?= $campo ?>"><i class="fa <?= $meta[2] ?>"></i> <?= lang($meta[0]); ?></label>
+                                            <div class="input-group ns-atajo" data-defecto="<?= $meta[1] ?>">
+                                                <input value="<?= htmlspecialchars($settings->$campo ?? $meta[1]) ?>" class="form-control ns-mono ns-atajo-campo" id="<?= $campo ?>" name="<?= $campo ?>" type="text" readonly>
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-default ns-atajo-grabar" title="<?= lang('atajos_grabar'); ?>"><i class="fa fa-circle text-danger"></i></button>
+                                                    <button type="button" class="btn btn-default ns-atajo-borrar" title="<?= lang('atajos_limpiar'); ?>"><i class="fa fa-eraser"></i></button>
+                                                </span>
+                                            </div>
+                                            <span class="help-block ns-atajo-aviso"></span>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="add_customer"><i class="fa fa-user-plus"></i> <?= lang('atajo_agregar_cliente'); ?></label>
-                                            <?php echo form_input('add_customer', $settings->add_customer ?? 'ALT+C', 'class="form-control ns-mono" id="add_customer"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="toggle_category_slider"><i class="fa fa-bars"></i> <?= lang('atajo_alternar_cats'); ?></label>
-                                            <?php echo form_input('toggle_category_slider', $settings->toggle_category_slider ?? 'ALT+C', 'class="form-control ns-mono" id="toggle_category_slider"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="cancel_sale"><i class="fa fa-times-circle"></i> <?= lang('atajo_cancelar_venta'); ?></label>
-                                            <?php echo form_input('cancel_sale', $settings->cancel_sale ?? 'F9', 'class="form-control ns-mono" id="cancel_sale"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="suspend_sale"><i class="fa fa-pause-circle"></i> <?= lang('atajo_suspender_venta'); ?></label>
-                                            <?php echo form_input('suspend_sale', $settings->suspend_sale ?? 'F5', 'class="form-control ns-mono" id="suspend_sale"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="print_order"><i class="fa fa-print"></i> <?= lang('atajo_imprimir_orden'); ?></label>
-                                            <?php echo form_input('print_order', $settings->print_order ?? '', 'class="form-control ns-mono" id="print_order"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="print_bill"><i class="fa fa-file-text-o"></i> <?= lang('atajo_imprimir_factura'); ?></label>
-                                            <?php echo form_input('print_bill', $settings->print_bill ?? '', 'class="form-control ns-mono" id="print_bill"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="finalize_sale"><i class="fa fa-check-circle"></i> <?= lang('atajo_finalizar_venta'); ?></label>
-                                            <?php echo form_input('finalize_sale', $settings->finalize_sale ?? 'F12', 'class="form-control ns-mono" id="finalize_sale"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="today_sale"><i class="fa fa-calendar-check-o"></i> <?= lang('atajo_ventas_hoy'); ?></label>
-                                            <?php echo form_input('today_sale', $settings->today_sale ?? 'ALT+V', 'class="form-control ns-mono" id="today_sale"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="open_hold_bills"><i class="fa fa-folder-open-o"></i> <?= lang('atajo_retomar'); ?></label>
-                                            <?php echo form_input('open_hold_bills', $settings->open_hold_bills ?? '', 'class="form-control ns-mono" id="open_hold_bills"'); ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label for="close_register"><i class="fa fa-sign-out"></i> <?= lang('atajo_cerrar_caja'); ?></label>
-                                            <?php echo form_input('close_register', $settings->close_register ?? 'ALT+R', 'class="form-control ns-mono" id="close_register"'); ?>
-                                        </div>
-                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
+                                <button type="button" class="btn btn-default btn-sm" id="atajosRestaurar">
+                                    <i class="fa fa-undo"></i> <?= lang('atajos_restaurar'); ?>
+                                </button>
                             </div>
                         </div>
 
@@ -1136,6 +1484,7 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-exclamation-triangle"></i> <?php echo lang('overselling'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1151,6 +1500,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-percent"></i> <?= lang('ventas_fracciones'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1166,6 +1516,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-credit-card"></i> <?php echo lang('question_enable_credit'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1181,6 +1532,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-pencil-square-o"></i> <?= lang('edicion_rapida_prod'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1206,45 +1558,100 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <div class="ns-toggle-row">
-                                                <div class="ns-toggle-text"><b><i class="fa fa-file-text"></i> <?php echo lang('question_print_inoice'); ?></b></div>
-                                                <label class="ns-switch">
-                                                    <input type="checkbox" class="ns-switch-bind" data-bind="prt_invo_after" <?= (($settings->prt_invo_after ?? 0) == 1) ? 'checked' : ''; ?>>
-                                                    <span class="ns-track"></span><span class="ns-thumb"></span>
-                                                </label>
+                                    <div class="col-md-12">
+                                        <h4><i class="fa fa-desktop"></i> <?= lang('puestos_trabajo'); ?></h4>
+                                        <p class="help-block"><?= lang('puestos_ayuda'); ?></p>
+                                        <?php if (empty($puestos)): ?>
+                                            <p class="text-muted"><i class="fa fa-info-circle"></i> <?= lang('puestos_vacio'); ?></p>
+                                        <?php else: ?>
+                                        <div class="table-responsive">
+                                            <table class="table table-condensed ns-puestos">
+                                                <thead>
+                                                    <tr>
+                                                        <th><?= lang('puesto'); ?></th>
+                                                        <th><?= lang('ip_address'); ?></th>
+                                                        <th><?= lang('impresora'); ?></th>
+                                                        <th><?= lang('ancho_papel'); ?></th>
+                                                        <th><?= lang('ultimo_uso'); ?></th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                <?php foreach ($puestos as $pto): ?>
+                                                    <tr data-puesto="<?= (int) $pto->id ?>">
+                                                        <td>
+                                                            <input type="text" class="form-control input-sm ns-puesto-nombre"
+                                                                   value="<?= htmlspecialchars($pto->nombre ?? '') ?>" maxlength="100">
+                                                        </td>
+                                                        <td class="ns-mono"><?= htmlspecialchars($pto->ip ?? '—') ?></td>
+                                                        <td>
+                                                            <?php
+                                                            // Solo el navegador de esa maquina puede enumerar sus impresoras (QZ Tray
+                                                            // corre ahi), asi que aca se ofrecen las que el POS reporto desde ella.
+                                                            $pto_impresoras = json_decode((string) ($pto->impresoras ?? ''), true) ?: array();
+                                                            if (!empty($pto->qz_printer) && !in_array($pto->qz_printer, $pto_impresoras, TRUE)) {
+                                                                array_unshift($pto_impresoras, $pto->qz_printer);
+                                                            }
+                                                            ?>
+                                                            <?php if ($pto_impresoras): ?>
+                                                                <select class="form-control input-sm ns-puesto-impresora">
+                                                                    <option value=""><?= lang('puesto_sin_impresora'); ?></option>
+                                                                    <?php foreach ($pto_impresoras as $imp): ?>
+                                                                    <option value="<?= htmlspecialchars($imp) ?>" <?= ($imp === $pto->qz_printer) ? 'selected' : '' ?>><?= htmlspecialchars($imp) ?></option>
+                                                                    <?php endforeach; ?>
+                                                                </select>
+                                                            <?php else: ?>
+                                                                <span class="text-muted"><i class="fa fa-info-circle"></i> <?= lang('puesto_sin_reportar'); ?></span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <td>
+                                                            <?php
+                                                            $pto_cpl = !empty($pto->caracteres) ? (int) $pto->caracteres : get_printer_chars_per_line();
+                                                            $anchos = array(32 => lang('papel_58'), 42 => lang('papel_80'), 48 => lang('papel_80_completo'));
+                                                            if (!isset($anchos[$pto_cpl])) { $anchos[$pto_cpl] = $pto_cpl . ' ' . lang('caracteres'); }
+                                                            ?>
+                                                            <select class="form-control input-sm ns-puesto-papel">
+                                                                <?php foreach ($anchos as $cpl => $rotulo): ?>
+                                                                <option value="<?= $cpl ?>" <?= $cpl === $pto_cpl ? 'selected' : '' ?>><?= htmlspecialchars($rotulo) ?></option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </td>
+                                                        <td class="text-muted"><?= $pto->ultimo_uso ? $this->tec->hrld($pto->ultimo_uso) : '—' ?></td>
+                                                        <td class="text-end" style="white-space:nowrap">
+                                                            <button type="button" class="btn btn-default btn-sm ns-puesto-vista" title="<?= lang('vista_previa_tiquete'); ?>">
+                                                                <i class="fa fa-eye"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-default btn-sm ns-puesto-borrar" title="<?= lang('delete'); ?>">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Vista previa del tiquete del puesto elegido: sale del mismo codigo que imprime -->
+                                        <div class="tk-config mb-3" id="tkPanel">
+                                            <div class="tk-campos">
+                                                <h5 id="tkTitulo" style="margin-top:0"></h5>
+                                                <p class="help-block"><?= lang('tiquete_vista_ayuda'); ?></p>
+                                                <button type="button" class="btn btn-default btn-sm" id="tkPrueba">
+                                                    <i class="fa fa-print"></i> <?= lang('imprimir_prueba'); ?>
+                                                </button>
+                                                <div class="ns-prueba-resultado" id="tkPruebaMsg"></div>
+                                                <p class="text-muted small mt-2"><?= lang('prueba_esta_computadora'); ?></p>
                                             </div>
-                                            <?php
-                                            $prtopt = array(0 => lang('disable'), 1 => lang('enable'));
-                                            echo form_dropdown('prt_invo_after', $prtopt, $settings->prt_invo_after ?? 0, 'class="form-control ns-select-hidden" id="prt_invo_after" required="required"');
-                                            ?>
+                                            <figure class="tk-vista">
+                                                <figcaption><?= lang('vista_previa_tiquete'); ?> <span id="tkVenta"></span></figcaption>
+                                                <div class="tk-papel" id="tkPapel"></div>
+                                            </figure>
                                         </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="barcode_symbology"><i class="fa fa-barcode"></i> <?= lang('simbologia_barras'); ?></label>
-                                            <?php
-                                            $bsyms = array('C128' => 'Code 128', 'C39' => 'Code 39', 'EAN13' => 'EAN-13', 'EAN8' => 'EAN-8', 'UPCA' => 'UPC-A', 'UPCE' => 'UPC-E');
-                                            echo form_dropdown('barcode_symbology', $bsyms, $settings->barcode_symbology ?? 'C128', 'class="form-control tom-select" id="barcode_symbology" style="width:100%;"');
-                                            ?>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="order_printers"><i class="fa fa-list-ol"></i> <?php echo lang('order_printers'); ?></label>
-                                            <?php
-                                            $printer_opts2 = array();
-                                            if (!empty($printers)) {
-                                                foreach ($printers as $printer) {
-                                                    $printer_opts2[$printer->id] = $printer->title;
-                                                }
-                                            }
-                                            echo form_dropdown('order_printers[]', $printer_opts2, '', 'multiple class="form-control tom-select" id="order_printers" style="width:100%;"');
-                                            ?>
-                                        </div>
+                                        <?php endif; ?>
+                                        <button type="button" class="btn btn-default btn-sm" id="detectarImpresoras">
+                                            <i class="fa fa-search"></i> <?= lang('detectar_impresoras'); ?>
+                                        </button>
+                                        <span id="detectarResultado" class="ns-prueba-resultado"></span>
                                     </div>
                                 </div>
                             </div>
@@ -1260,6 +1667,7 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-bookmark-o"></i> <?= lang('apartados'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1281,6 +1689,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-file-o"></i> <?= lang('cotizaciones'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1296,6 +1705,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-truck"></i> <?= lang('metodo_envio'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1359,6 +1769,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-exchange"></i> <?php echo lang('sac'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1405,6 +1816,37 @@
                     <!-- ==================== TAB 5: AVANZADO ==================== -->
                     <div class="tab-pane" id="tab-avanzado">
 
+                        <!-- ESTADO DEL DESPLIEGUE -->
+                        <?php
+                        $avisos_despliegue = array();
+                        if (llave_cifrado_de_fabrica()) {
+                            $avisos_despliegue[] = lang('aviso_llave_fabrica');
+                        }
+                        if (ENVIRONMENT !== 'production') {
+                            $avisos_despliegue[] = sprintf(lang('aviso_entorno'), ENVIRONMENT);
+                        }
+                        if (empty($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) === 'off') {
+                            $avisos_despliegue[] = lang('aviso_sin_https');
+                        }
+                        ?>
+                        <?php if ($avisos_despliegue) { ?>
+                        <style>
+                            .ns-despliegue{border:1px solid var(--ns-warning,#d97706);border-radius:8px;padding:14px 16px;margin-bottom:14px;
+                                background:var(--ns-warning-soft,rgba(217,119,6,.08));font-size:13px;line-height:1.6;}
+                            .ns-despliegue ul{margin:8px 0 0;padding-left:18px;}
+                            .ns-despliegue code{padding:2px 6px;border-radius:4px;background:var(--ns-surface-3,#eee);font-size:12px;}
+                        </style>
+                        <div class="ns-despliegue">
+                            <div><i class="fa fa-shield"></i> <strong><?= lang('aviso_despliegue_titulo'); ?></strong></div>
+                            <ul>
+                                <?php foreach ($avisos_despliegue as $a) { ?>
+                                    <li><?= $a; ?></li>
+                                <?php } ?>
+                            </ul>
+                            <div style="margin-top:8px;"><?= lang('aviso_despliegue_ayuda'); ?></div>
+                        </div>
+                        <?php } ?>
+
                         <!-- BUSQUEDA -->
                         <div class="card" data-card>
                             <div class="card-header ns-card-head">
@@ -1420,6 +1862,7 @@
                                             $sensibility = array(0 => lang('0_search'), 1 => lang('1_search'), 2 => lang('2_search'), 3 => lang('3_search'));
                                             echo form_dropdown('sensibility_search', $sensibility, $settings->sensibility_search ?? 0, 'class="form-control tom-select" id="sensibility_search" style="width:100%;" required="required"');
                                             ?>
+                                            <span class="help-block"><?= lang('search_sensibility_ayuda'); ?></span>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -1490,6 +1933,7 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-list-alt"></i> <?= lang('detalles_cierre_caja'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1505,6 +1949,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-user-circle-o"></i> <?= lang('detalles_cajero'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1520,6 +1965,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-key"></i> <?= lang('cierre_unico'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1556,6 +2002,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label>&nbsp;</label>
                                             <div class="ns-toggle-row">
                                                 <div class="ns-toggle-text"><b><i class="fa fa-thumbs-up"></i> <?= lang('propina'); ?></b></div>
                                                 <label class="ns-switch">
@@ -1581,6 +2028,160 @@
 
                     </div><!-- /#tab-avanzado -->
 
+                    <!-- ==================== TAB: SINPE MÓVIL ==================== -->
+                    <div class="tab-pane" id="tab-sinpe">
+                        <style>
+                            .ns-sinpe-status-box{border:1px solid var(--bs-border-color,#e2e2e2);border-radius:8px;padding:16px;}
+                            .ns-sinpe-dot{width:10px;height:10px;border-radius:50%;background:#adb5bd;display:inline-block;}
+                            .ns-sinpe-dot.on{background:#2ecc71;box-shadow:0 0 0 3px rgba(46,204,113,.25);}
+                            .ns-sinpe-dot.off{background:#e74c3c;}
+                            .ns-sinpe-perfil{display:flex;align-items:center;gap:10px;}
+                            .ns-sinpe-avatar{width:38px;height:38px;border-radius:50%;flex:0 0 38px;object-fit:cover;border:1px solid var(--bs-border-color,#e2e2e2);}
+                            .ns-sinpe-avatar-ph{display:flex;align-items:center;justify-content:center;background:var(--ns-surface-3,#eee);color:var(--ns-text-3,#888);}
+                            .ns-sinpe-perfil-nombre{font-weight:600;line-height:1.25;}
+                            .ns-sinpe-perfil-email{font-size:12.5px;color:var(--ns-text-3,#888);}
+                            .ns-sinpe-stats-box{display:flex;gap:12px;height:100%;}
+                            .ns-sinpe-stat{flex:1;border:1px solid var(--bs-border-color,#e2e2e2);border-radius:8px;padding:14px;text-align:center;}
+                            .ns-sinpe-stat-value{font-size:22px;font-weight:700;}
+                            .ns-sinpe-stat-label{font-size:11.5px;color:var(--ns-text-3,#888);}
+                            .ns-sinpe-caido{border:1px solid var(--ns-danger,#dc2626);border-radius:8px;padding:14px 16px;margin-bottom:14px;background:var(--ns-danger-soft,rgba(220,38,38,.07));font-size:13px;line-height:1.55;}
+                            .ns-sinpe-caido code{display:inline-block;margin-top:2px;padding:3px 8px;border-radius:5px;background:var(--ns-surface-3,#eee);font-size:12px;}
+                        </style>
+                        <div class="card" data-card>
+                            <div class="card-header">
+                                <i class="fa fa-mobile"></i> <?= lang('settings_tab_sinpe'); ?>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">
+                                    Conectá la cuenta de Gmail que recibe las notificaciones de SINPE Móvil.
+                                    Los pagos aparecen en tiempo real en el cobro del POS al elegir "SINPE"
+                                    como método de pago.
+                                </p>
+
+                                <div id="sinpeServicioCaido" class="ns-sinpe-caido" style="display:none;">
+                                    <div><i class="fa fa-plug"></i> <strong><?= lang('sinpe_servicio_caido_titulo'); ?></strong></div>
+                                    <p style="margin:6px 0 8px;"><?= lang('sinpe_servicio_caido'); ?></p>
+                                    <code>cd www/sinpe-service &amp;&amp; npm start</code>
+                                    <p style="margin:8px 0 0;"><?= lang('sinpe_servicio_permanente'); ?></p>
+                                    <code>pm2 start ecosystem.config.cjs &amp;&amp; pm2 save</code>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="ns-sinpe-status-box">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span id="sinpeStatusDot" class="ns-sinpe-dot"></span>
+                                                <strong id="sinpeStatusText">Consultando estado…</strong>
+                                            </div>
+                                            <div id="sinpeGmailEmailRow" class="ns-sinpe-perfil" style="display:none;">
+                                                <!-- Google devuelve 403 en las fotos de perfil si se manda el Referer. -->
+                                                <img id="sinpeGmailFoto" class="ns-sinpe-avatar" alt="" referrerpolicy="no-referrer" style="display:none;">
+                                                <span id="sinpeGmailFotoPh" class="ns-sinpe-avatar ns-sinpe-avatar-ph"><i class="fa fa-user"></i></span>
+                                                <div>
+                                                    <div id="sinpeGmailNombre" class="ns-sinpe-perfil-nombre" style="display:none;"></div>
+                                                    <div class="ns-sinpe-perfil-email">
+                                                        <i class="fa fa-envelope-o"></i> <span id="sinpeGmailEmail"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Última revisión: <span id="sinpeUltimaRevision">—</span></small>
+                                            </div>
+                                            <div class="mt-3">
+                                                <a href="<?= site_url('sinpe/conectar') ?>" id="sinpeConnectBtn" class="btn btn-primary" style="display:none;">
+                                                    <i class="fa fa-google"></i> Conectar con Gmail
+                                                </a>
+                                                <button type="button" id="sinpeDisconnectBtn" class="btn btn-default" style="display:none;">
+                                                    <i class="fa fa-unlink"></i> Desconectar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="ns-sinpe-stats-box">
+                                            <div class="ns-sinpe-stat">
+                                                <div class="ns-sinpe-stat-value" id="sinpeStatPendientes">—</div>
+                                                <div class="ns-sinpe-stat-label">Pendientes de usar</div>
+                                            </div>
+                                            <div class="ns-sinpe-stat">
+                                                <div class="ns-sinpe-stat-value" id="sinpeStatHoy">—</div>
+                                                <div class="ns-sinpe-stat-label">Recibidos hoy</div>
+                                            </div>
+                                            <div class="ns-sinpe-stat">
+                                                <div class="ns-sinpe-stat-value" id="sinpeStatMonto">—</div>
+                                                <div class="ns-sinpe-stat-label">Monto total registrado</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="row" id="sinpeConfigRow" style="opacity:.5;pointer-events:none;">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="sinpeBancoSelect"><i class="fa fa-university"></i> Formato del banco</label>
+                                            <select id="sinpeBancoSelect" class="form-control">
+                                                <option value="auto">Detección automática</option>
+                                                <option value="davivienda">Davivienda</option>
+                                                <option value="bac">BAC Credomatic</option>
+                                                <option value="bcr">Banco de Costa Rica</option>
+                                                <option value="bn">Banco Nacional</option>
+                                                <option value="popular">Banco Popular</option>
+                                                <option value="promerica">Promerica</option>
+                                                <option value="scotiabank">Scotiabank</option>
+                                                <option value="lafise">Lafise</option>
+                                                <option value="coopealianza">Coopealianza</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="sinpeIntervaloInput"><i class="fa fa-clock-o"></i> Intervalo de vigilancia (segundos)</label>
+                                            <input type="number" id="sinpeIntervaloInput" class="form-control" min="5" max="300" value="15">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label>Vigilancia en tiempo real</label>
+                                            <div>
+                                                <label class="ns-switch">
+                                                    <input type="checkbox" id="sinpeActivoSwitch">
+                                                    <span class="ns-track"></span><span class="ns-thumb"></span>
+                                                </label>
+                                                <span id="sinpeActivoLabel" class="ms-2">Pausada</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- La vigilancia normal solo cubre 2 dias; esto trae el historial. -->
+                                <div class="row" id="sinpeImportRow" style="opacity:.5;pointer-events:none;margin-bottom:1rem;">
+                                    <div class="col-sm-12">
+                                        <hr>
+                                        <label><i class="fa fa-history"></i> Importar SINPE anteriores</label>
+                                        <p class="text-muted" style="font-size:12.5px;margin-bottom:.5rem;">
+                                            Revisa los correos ya recibidos en esta cuenta y guarda los pagos SINPE que
+                                            todavia no esten registrados. Los que ya existen no se duplican.
+                                        </p>
+                                        <div class="d-flex align-items-center" style="gap:.5rem;flex-wrap:wrap;">
+                                            <select id="sinpeImportDias" class="form-control" style="max-width:220px;">
+                                                <option value="30">Ultimos 30 dias</option>
+                                                <option value="90" selected>Ultimos 3 meses</option>
+                                                <option value="180">Ultimos 6 meses</option>
+                                                <option value="365">Ultimo ano</option>
+                                                <option value="0">Todo el historial</option>
+                                            </select>
+                                            <button type="button" id="sinpeImportBtn" class="btn btn-outline-secondary">
+                                                <i class="fa fa-download"></i> Importar
+                                            </button>
+                                            <span id="sinpeImportEstado" class="text-muted" style="font-size:12.5px;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /#tab-sinpe -->
+
                 </div><!-- /.tab-content -->
             </div><!-- /.col-md-10 -->
             </div><!-- /.row settings nav -->
@@ -1597,6 +2198,13 @@
 
             <?php echo form_close(); ?>
 
+            <?php foreach (array('test', 'prod') as $amb): ?>
+            <form id="ns-cert-form-<?= $amb ?>" action="<?= site_url('settings/upload_certificado') ?>" method="post" enctype="multipart/form-data" hidden>
+                <?php echo form_hidden($this->security->get_csrf_token_name(), $this->security->get_csrf_hash()); ?>
+                <input type="hidden" name="ambiente_cert" value="<?= $amb ?>">
+            </form>
+            <?php endforeach; ?>
+
         </div>
         </div>
     </div>
@@ -1605,28 +2213,6 @@
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function () {
     "use strict";
-
-    // Inicializar order_printers
-    var orderPrintersVal = <?php echo (!empty($settings->order_printers) ? $settings->order_printers : '[]'); ?>;
-    var orderPrintersEl = document.getElementById('order_printers');
-    if (orderPrintersEl) {
-        var orderPrintersTS = new TomSelect(orderPrintersEl, {});
-        if (orderPrintersVal && orderPrintersVal.length > 0) {
-            orderPrintersTS.setValue(orderPrintersVal);
-        }
-    }
-
-    // Toggle protocolo email
-    var protocolEl = document.getElementById('protocol');
-    function toggleEmailProtocol() {
-        var proto = protocolEl.value;
-        document.getElementById('smtp_config').style.display = (proto === 'smtp') ? '' : 'none';
-        document.getElementById('sendmail_config').style.display = (proto === 'sendmail') ? '' : 'none';
-    }
-    if (protocolEl) {
-        toggleEmailProtocol();
-        protocolEl.addEventListener('change', toggleEmailProtocol);
-    }
 
     // Toggle ver/ocultar password
     document.addEventListener('click', function (e) {
@@ -1643,20 +2229,57 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ── Buscador de campos (filtra tarjetas dentro de la pestana activa) ──
+    // ── Buscador de campos: recorre TODAS las pestañas, no solo la activa.
+    // Si la pestaña visible no tiene coincidencias pero otra sí, salta a esa
+    // pestaña sola (sin vaciar lo que la persona escribió en el buscador).
+    var NS_TAB_ORDER = ['tab-general', 'tab-emisor', 'tab-email', 'tab-pos', 'tab-avanzado', 'tab-sinpe'];
     window.nsFilterCards = function (q) {
         q = (q || '').trim().toLowerCase();
-        var activePane = document.querySelector('.tab-pane.active');
-        if (!activePane) { return; }
-        var cards = activePane.querySelectorAll('[data-card]');
-        var anyVisible = false;
-        cards.forEach(function (card) {
-            var text = card.textContent.toLowerCase();
-            var match = !q || text.indexOf(q) !== -1;
-            card.style.display = match ? '' : 'none';
-            if (match) { anyVisible = true; }
+        var panes = Array.prototype.slice.call(document.querySelectorAll('.tab-pane'));
+
+        if (!q) {
+            panes.forEach(function (pane) {
+                pane.querySelectorAll('[data-card]').forEach(function (card) { card.style.display = ''; });
+            });
+            document.getElementById('ns-no-results').classList.remove('show');
+            return;
+        }
+
+        // Primero se marca, por pestaña, cuáles tarjetas coinciden.
+        var matchesByPane = {};
+        panes.forEach(function (pane) {
+            var anyMatch = false;
+            pane.querySelectorAll('[data-card]').forEach(function (card) {
+                var match = card.textContent.toLowerCase().indexOf(q) !== -1;
+                card.dataset.nsMatch = match ? '1' : '0';
+                if (match) { anyMatch = true; }
+            });
+            matchesByPane[pane.id] = anyMatch;
         });
-        document.getElementById('ns-no-results').classList.toggle('show', !!q && !anyVisible);
+
+        // Si la pestaña activa se quedó sin resultados, saltar a la primera
+        // (en el orden del menú) que sí tenga algo.
+        var activePane = document.querySelector('.tab-pane.active');
+        if (activePane && !matchesByPane[activePane.id]) {
+            var target = NS_TAB_ORDER.filter(function (id) { return matchesByPane[id]; })[0];
+            if (target && target !== activePane.id) {
+                activateSettingsTab('#' + target, true);
+                activePane = document.querySelector('.tab-pane.active');
+            }
+        }
+
+        var anyVisible = false;
+        panes.forEach(function (pane) {
+            var isActive = pane.classList.contains('active');
+            pane.querySelectorAll('[data-card]').forEach(function (card) {
+                var match = card.dataset.nsMatch === '1';
+                if (isActive) {
+                    card.style.display = match ? '' : 'none';
+                    if (match) { anyVisible = true; }
+                }
+            });
+        });
+        document.getElementById('ns-no-results').classList.toggle('show', !anyVisible);
     };
     var searchInputEl = document.getElementById('ns-search-input');
     searchInputEl.addEventListener('input', function () {
@@ -1665,12 +2288,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Nav movil (chips) generado a partir del nav desktop ──
     var navMobile = document.getElementById('nsNavMobile');
+    function nsNavLabelText(a) {
+        // El texto va suelto dentro de .nx-nav-label, seguido de un <span class="nx-nav-sub">
+        // con el subtitulo: hay que clonar y quitar el subtitulo para quedarse solo con el titulo.
+        var label = a.querySelector('.nx-nav-label');
+        if (!label) { return ''; }
+        var clone = label.cloneNode(true);
+        var sub = clone.querySelector('.nx-nav-sub');
+        if (sub) { sub.remove(); }
+        return clone.textContent.trim();
+    }
     document.querySelectorAll('#nsNavDesktop .nav-pills > li > a').forEach(function (a) {
         var chip = document.createElement('div');
         chip.className = 'ns-nav-chip';
         var icon = a.querySelector('.fa');
-        var label = a.querySelector('.nx-nav-label b');
-        chip.innerHTML = '<i class="' + (icon ? icon.className : '') + '"></i><span>' + (label ? label.textContent : '') + '</span>';
+        chip.innerHTML = '<i class="' + (icon ? icon.className : '') + '"></i><span>' + nsNavLabelText(a) + '</span>';
         chip.dataset.href = a.getAttribute('href');
         if (a.closest('li').classList.contains('active')) { chip.classList.add('active'); }
         navMobile.appendChild(chip);
@@ -1678,7 +2310,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Cambio de pestaña: manejo propio (no delegar en bootstrap.Tab, que no
     // desactiva bien el <li> anterior cuando los triggers están envueltos en <li>) ──
-    function activateSettingsTab(href) {
+    // keepSearch=true se usa cuando el buscador nos manda a otra pestaña: no hay
+    // que borrar lo que la persona escribió ni reiniciar el filtro a medias.
+    function activateSettingsTab(href, keepSearch) {
         document.querySelectorAll('.tab-pane').forEach(function (pane) {
             pane.classList.toggle('active', ('#' + pane.id) === href);
         });
@@ -1690,8 +2324,10 @@ document.addEventListener('DOMContentLoaded', function () {
             c.classList.toggle('active', c.dataset.href === href);
         });
         localStorage.setItem('settings_active_tab', href);
-        searchInputEl.value = '';
-        nsFilterCards('');
+        if (!keepSearch) {
+            searchInputEl.value = '';
+            nsFilterCards('');
+        }
     }
     document.querySelectorAll('#nsNavDesktop .nav-pills > li > a').forEach(function (a) {
         a.addEventListener('click', function (e) {
@@ -1724,7 +2360,11 @@ document.addEventListener('DOMContentLoaded', function () {
             body.set('user', document.getElementById(userId).value);
             body.set('password', document.getElementById(passId).value);
             body.set('ambiente', ambiente);
-            body.set(csrfName, csrfHash);
+            // window.CSRF_HASH la refresca main.js con la cabecera X-CSRF-Token de
+            // cada respuesta AJAX; csrfHash es solo el valor con el que arrancó la
+            // página. csrf_regenerate está activo: reusar el de arranque en la
+            // segunda petición de la pantalla responde 403.
+            body.set(window.CSRF_NAME || csrfName, window.CSRF_HASH || csrfHash);
             fetch(urlComprueba, { method: 'POST', body: body })
                 .then(function (res) { return res.text(); })
                 .then(function (data) { alert(data); })
@@ -1734,31 +2374,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     wireComprueba('comprueba_test', 'user_token_test', 'password_token_test', 'test');
     wireComprueba('comprueba_prod', 'user_token_prod', 'password_token_prod', 'prod');
-
-    // Limpiar cache CABYS
-    var btnCabys = document.getElementById('btn-limpiar-cabys');
-    if (btnCabys) {
-        btnCabys.addEventListener('click', function () {
-            var originalHtml = btnCabys.innerHTML;
-            btnCabys.innerHTML = '<i class="fa fa-spin fa-spinner"></i> Limpiando...';
-            var body = new URLSearchParams();
-            body.set(csrfName, csrfHash);
-            var resultEl = document.getElementById('cabys-sync-result');
-            fetch('<?= site_url("hacienda_proxy/limpiar_cache_cabys") ?>', { method: 'POST', body: body })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    resultEl.innerHTML = '<span class="text-success"><i class="fa fa-check"></i> Cache limpiado (' + (data.eliminados || 0) + ' registros)</span>';
-                    resultEl.style.display = '';
-                })
-                .catch(function () {
-                    resultEl.innerHTML = '<span class="text-danger"><i class="fa fa-times"></i> Error al limpiar cache</span>';
-                    resultEl.style.display = '';
-                })
-                .finally(function () {
-                    btnCabys.innerHTML = '<i class="fa fa-refresh"></i> <?= lang('limpiar_cache_cabys'); ?>';
-                });
-        });
-    }
 
     // ── Interruptores (switches) ligados a un <select> oculto ──
     document.querySelectorAll('.ns-switch-bind').forEach(function (chk) {
@@ -1798,7 +2413,510 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     wireDropzone('ns-logo-dropzone', 'ns-logo-label');
-    wireDropzone('ns-cert-dropzone', 'ns-cert-label');
+    wireDropzone('ns-cert-dropzone-test', 'ns-cert-label-test');
+    wireDropzone('ns-cert-dropzone-prod', 'ns-cert-label-prod');
+
+    // ── Correo ──
+    (function () {
+        var protocolo = document.getElementById('protocol');
+        if (!protocolo) { return; }
+
+        function postCorreo(url, extra) {
+            var body = new URLSearchParams(extra || {});
+            // window.CSRF_HASH la refresca main.js con la cabecera X-CSRF-Token de
+            // cada respuesta AJAX; csrfHash es solo el valor con el que arrancó la
+            // página. csrf_regenerate está activo: reusar el de arranque en la
+            // segunda petición de la pantalla responde 403.
+            body.set(window.CSRF_NAME || csrfName, window.CSRF_HASH || csrfHash);
+            return fetch(url, { method: 'POST', body: body, credentials: 'same-origin' })
+                .then(function (r) {
+                    if (!r.ok) { throw new Error('HTTP ' + r.status); }
+                    return r.json();
+                });
+        }
+
+        function pintar(el, ok, texto) {
+            el.className = 'ns-prueba-resultado ' + (ok ? 'ok' : 'err');
+            el.innerHTML = (ok ? '<i class="fa fa-check-circle"></i> ' : '<i class="fa fa-times-circle"></i> ') + texto;
+        }
+
+        // Solo se muestran los campos del protocolo elegido.
+        function alternarProtocolo() {
+            var v = protocolo.value;
+            document.querySelectorAll('.ns-solo-smtp').forEach(function (el) {
+                el.style.display = (v === 'smtp') ? '' : 'none';
+            });
+            document.querySelectorAll('.ns-solo-sendmail').forEach(function (el) {
+                el.style.display = (v === 'sendmail') ? '' : 'none';
+            });
+        }
+        protocolo.addEventListener('change', alternarProtocolo);
+        alternarProtocolo();
+
+        // Contraseña de aplicación y OAuth son excluyentes.
+        document.querySelectorAll('.ns-auth-select').forEach(function (sel) {
+            function alternarAuth() {
+                var g = sel.dataset.grupo;
+                var oauth = sel.value === 'oauth_google';
+                document.querySelectorAll('.ns-auth-' + g + '-password').forEach(function (el) { el.style.display = oauth ? 'none' : ''; });
+                document.querySelectorAll('.ns-auth-' + g + '-oauth').forEach(function (el) { el.style.display = oauth ? '' : 'none'; });
+            }
+            sel.addEventListener('change', alternarAuth);
+            alternarAuth();
+        });
+
+        // Presets: el usuario elige el proveedor y no tiene que buscar host ni puerto.
+        var PROV = window._proveedoresCorreo || {};
+        document.querySelectorAll('#proveedor_smtp, #proveedor_imap').forEach(function (sel) {
+            var esImap = sel.dataset.destino === 'imap';
+            var campos = esImap
+                ? { host: 'mail_client_host', port: 'mail_client_port', crypto: 'mail_client_crypto' }
+                : { host: 'smtp_host', port: 'smtp_port', crypto: 'smtp_crypto' };
+
+            // Preseleccionar el proveedor cuyo host coincide con lo ya guardado.
+            var hostActual = (document.getElementById(campos.host) || {}).value || '';
+            Object.keys(PROV).forEach(function (k) {
+                if (PROV[k][esImap ? 'imap' : 'smtp'] && PROV[k][esImap ? 'imap' : 'smtp'] === hostActual) { sel.value = k; }
+            });
+            if (!sel.value) { sel.value = 'otro'; }
+
+            sel.addEventListener('change', function () {
+                var p = PROV[sel.value];
+                if (!p) { return; }
+                var host = esImap ? p.imap : p.smtp;
+                if (host === '') { return; }  // "Otro": se deja lo que haya escrito.
+                document.getElementById(campos.host).value = host;
+                document.getElementById(campos.port).value = esImap ? p.imap_port : p.smtp_port;
+                var cr = document.getElementById(campos.crypto);
+                if (cr) { cr.value = esImap ? p.imap_crypto : p.smtp_crypto; }
+            });
+        });
+
+        var btnEnvio = document.getElementById('btnProbarEnvio');
+        if (btnEnvio) {
+            btnEnvio.addEventListener('click', function () {
+                var salida = document.getElementById('resultadoEnvio');
+                var original = btnEnvio.innerHTML;
+                btnEnvio.disabled = true;
+                btnEnvio.innerHTML = '<i class="fa fa-spin fa-spinner"></i> ' + <?= json_encode(lang('probando')) ?>;
+                salida.textContent = '';
+                postCorreo('<?= site_url('mailauth/probar_envio') ?>')
+                    .then(function (r) { pintar(salida, r.ok, r.detalle || r.aviso || r.error || ''); })
+                    .catch(function (e) { pintar(salida, false, e.message); })
+                    .finally(function () { btnEnvio.disabled = false; btnEnvio.innerHTML = original; });
+            });
+        }
+
+        function correrRecepcion(url, boton, extra) {
+            var salida = document.getElementById('resultadoRecepcion');
+            var original = boton.innerHTML;
+            boton.disabled = true;
+            boton.innerHTML = '<i class="fa fa-spin fa-spinner"></i> ' + <?= json_encode(lang('probando')) ?>;
+            salida.textContent = '';
+            return postCorreo(url, extra)
+                .then(function (r) {
+                    if (!r.ok) { pintar(salida, false, r.error || ''); return; }
+                    if (r.revisados === undefined) {
+                        pintar(salida, true, <?= json_encode(lang('imap_conectado')) ?>
+                            .replace('%s', r.carpeta).replace('%d', r.total).replace('%n', r.sin_leer));
+                        return;
+                    }
+                    var partes = [
+                        <?= json_encode(lang('import_revisados')) ?> + ': ' + r.revisados,
+                        <?= json_encode(lang('import_registrados')) ?> + ': ' + r.registrados,
+                        <?= json_encode(lang('import_repetidos')) ?> + ': ' + r.repetidos,
+                        <?= json_encode(lang('import_sin_xml')) ?> + ': ' + r.sin_xml
+                    ];
+                    pintar(salida, true, partes.join(' · '));
+                    if (r.errores && r.errores.length) {
+                        salida.innerHTML += '<div class="ns-prueba-detalle err">' +
+                            r.errores.map(function (e) { return '• ' + e; }).join('<br>') + '</div>';
+                    }
+                })
+                .catch(function (e) { pintar(salida, false, e.message); })
+                .finally(function () { boton.disabled = false; boton.innerHTML = original; });
+        }
+
+        var btnProbarRec = document.getElementById('btnProbarRecepcion');
+        if (btnProbarRec) {
+            btnProbarRec.addEventListener('click', function () {
+                correrRecepcion('<?= site_url('correocompras/probar') ?>', btnProbarRec);
+            });
+        }
+        var btnImportar = document.getElementById('btnImportarCompras');
+        if (btnImportar) {
+            btnImportar.addEventListener('click', function () {
+                correrRecepcion('<?= site_url('correocompras/importar') ?>', btnImportar);
+            });
+        }
+        var btnHistorico = document.getElementById('btnImportarHistorico');
+        if (btnHistorico) {
+            btnHistorico.addEventListener('click', function () {
+                if (!confirm(<?= json_encode(lang('importar_historico_confirmar')) ?>)) { return; }
+                correrRecepcion('<?= site_url('correocompras/importar') ?>', btnHistorico, { todo: '1' });
+            });
+        }
+    })();
+
+    // ── Impresoras de la computadora desde la que se abre Ajustes ──
+    // Atajo para el caso normal: el administrador está sentado en la caja que
+    // quiere configurar. QZ Tray solo enumera las impresoras de SU máquina, así
+    // que desde otra computadora hay que abrir el POS en la caja una vez.
+    (function () {
+        var btn = document.getElementById('detectarImpresoras');
+        if (!btn) { return; }
+        var salida = document.getElementById('detectarResultado');
+
+        function pintar(ok, texto) {
+            salida.className = 'ns-prueba-resultado ' + (ok ? 'ok' : 'err');
+            salida.innerHTML = (ok ? '<i class="fa fa-check-circle"></i> ' : '<i class="fa fa-times-circle"></i> ') + texto;
+        }
+
+        // Misma clave que usa el POS: así el puesto es el mismo, no uno nuevo.
+        function idDeEsteEquipo() {
+            var id = localStorage.getItem('nx-device-id');
+            if (id && /^[a-f0-9-]{16,64}$/i.test(id)) { return id; }
+            id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+               : 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                   var r = Math.random() * 16 | 0;
+                   return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                 });
+            localStorage.setItem('nx-device-id', id);
+            return id;
+        }
+
+        function postWs(ruta, datos) {
+            var body = new URLSearchParams();
+            body.set('device_id', idDeEsteEquipo());
+            Object.keys(datos || {}).forEach(function (k) {
+                if (Array.isArray(datos[k])) { datos[k].forEach(function (v) { body.append(k + '[]', v); }); }
+                else { body.set(k, datos[k]); }
+            });
+            // window.CSRF_HASH la refresca main.js con la cabecera X-CSRF-Token de
+            // cada respuesta AJAX; csrfHash es solo el valor con el que arrancó la
+            // página. csrf_regenerate está activo: reusar el de arranque en la
+            // segunda petición de la pantalla responde 403.
+            body.set(window.CSRF_NAME || csrfName, window.CSRF_HASH || csrfHash);
+            return fetch('<?= site_url('workstation') ?>/' + ruta, {
+                method: 'POST', body: body, credentials: 'same-origin'
+            }).then(function (r) {
+                if (!r.ok) { throw new Error('HTTP ' + r.status); }
+                return r.json();
+            });
+        }
+
+        btn.addEventListener('click', function () {
+            if (!window.qz) {
+                pintar(false, <?= json_encode(lang('qz_desconectado')) ?>);
+                return;
+            }
+            var original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spin fa-spinner"></i> ' + <?= json_encode(lang('qz_verificando')) ?>;
+
+            // Modo sin firma de certificado, igual que en el POS.
+            qz.security.setCertificatePromise(function (resolve) { resolve(); });
+            qz.security.setSignaturePromise(function () { return function (resolve) { resolve(); }; });
+
+            var conectar = qz.websocket.isActive() ? Promise.resolve() : qz.websocket.connect();
+            conectar
+                .then(function () { return qz.printers.find(); })
+                .then(function (lista) {
+                    var nombres = (Array.isArray(lista) ? lista : [lista]).filter(Boolean);
+                    if (!nombres.length) { throw new Error(<?= json_encode(lang('puesto_sin_impresora')) ?>); }
+                    return postWs('registrar', {})
+                        .then(function () { return postWs('impresoras', { impresoras: nombres }); })
+                        .then(function () {
+                            pintar(true, nombres.join(', '));
+                            setTimeout(function () { window.location.reload(); }, 1500);
+                        });
+                })
+                .catch(function (e) {
+                    pintar(false, e.message || <?= json_encode(lang('qz_desconectado_ayuda')) ?>);
+                })
+                .finally(function () { btn.disabled = false; btn.innerHTML = original; });
+        });
+    })();
+
+    // ── Puestos de trabajo: renombrar al salir del campo, eliminar con confirmación ──
+    (function () {
+        var tabla = document.querySelector('.ns-puestos');
+        if (!tabla) { return; }
+
+        function postPuesto(ruta, datos) {
+            var body = new URLSearchParams();
+            Object.keys(datos).forEach(function (k) { body.set(k, datos[k]); });
+            // window.CSRF_HASH la refresca main.js con la cabecera X-CSRF-Token de
+            // cada respuesta AJAX; csrfHash es solo el valor con el que arrancó la
+            // página. csrf_regenerate está activo: reusar el de arranque en la
+            // segunda petición de la pantalla responde 403.
+            body.set(window.CSRF_NAME || csrfName, window.CSRF_HASH || csrfHash);
+            return fetch('<?= site_url('workstation') ?>/' + ruta, {
+                method: 'POST', body: body, credentials: 'same-origin'
+            }).then(function (r) {
+                if (!r.ok) { throw new Error(r.status); }
+                return r.json();
+            });
+        }
+
+        tabla.addEventListener('change', function (e) {
+            var fila = e.target.closest('tr');
+            if (!fila) { return; }
+
+            if (e.target.closest('.ns-puesto-nombre')) {
+                postPuesto('renombrar', { id: fila.dataset.puesto, nombre: e.target.value })
+                    .then(function () { nxAlerta('ok', <?= json_encode(lang('puesto_renombrado')) ?>); })
+                    .catch(function () { nxAlerta('error', <?= json_encode(lang('puesto_error')) ?>); });
+                return;
+            }
+
+            if (e.target.closest('.ns-puesto-impresora')) {
+                postPuesto('impresora', { id: fila.dataset.puesto, qz_printer: e.target.value })
+                    .then(function () { nxAlerta('ok', <?= json_encode(lang('puesto_impresora_guardada')) ?>); })
+                    .catch(function () { nxAlerta('error', <?= json_encode(lang('puesto_error')) ?>); });
+                return;
+            }
+
+            if (e.target.closest('.ns-puesto-papel')) {
+                postPuesto('papel', { id: fila.dataset.puesto, caracteres: e.target.value })
+                    .then(function () {
+                        nxAlerta('ok', <?= json_encode(lang('puesto_papel_guardado')) ?>);
+                        verTiquete(fila);
+                    })
+                    .catch(function () { nxAlerta('error', <?= json_encode(lang('puesto_error')) ?>); });
+            }
+        });
+
+        // ── Vista previa y prueba del tiquete del puesto ──
+        var panel = document.getElementById('tkPanel');
+        var papel = document.getElementById('tkPapel');
+        var titulo = document.getElementById('tkTitulo');
+        var prueba = document.getElementById('tkPrueba');
+        var pruebaMsg = document.getElementById('tkPruebaMsg');
+        var filaActual = null;
+
+        function datosFila(fila) {
+            var imp = fila.querySelector('.ns-puesto-impresora');
+            return {
+                nombre: fila.querySelector('.ns-puesto-nombre').value,
+                impresora: imp ? imp.value : '',
+                caracteres: fila.querySelector('.ns-puesto-papel').value
+            };
+        }
+
+        function verTiquete(fila) {
+            filaActual = fila;
+            var d = datosFila(fila);
+            titulo.textContent = <?= json_encode(lang('tiquete_de_puesto')) ?>.replace('%s', d.nombre);
+            pruebaMsg.textContent = '';
+            pruebaMsg.className = 'ns-prueba-resultado';
+            papel.style.setProperty('--tk-cpl', d.caracteres);
+            papel.innerHTML = '<div class="tk-vacio"><i class="fa fa-spin fa-spinner"></i></div>';
+            fetch('<?= site_url('posprint/receipt_preview') ?>?cpl=' + encodeURIComponent(d.caracteres), {
+                credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                    document.getElementById('tkVenta').textContent = j.venta ? '· #' + j.venta : '';
+                    if (!j.status || !j.lineas || !j.lineas.length) {
+                        papel.innerHTML = '<div class="tk-vacio">' + <?= json_encode(lang('tiquete_sin_ventas')) ?> + '</div>';
+                        return;
+                    }
+                    papel.innerHTML = '';
+                    j.lineas.forEach(function (l) {
+                        var div = document.createElement('div');
+                        if (l.corte) { div.className = 'tk-corte'; }
+                        else if (l.imagen) { div.className = 'tk-img'; div.style.textAlign = l.a; div.textContent = '[ logo ]'; }
+                        else {
+                            div.className = 'tk-linea' + (l.b ? ' tk-b' : '') + (l.w > 1 ? ' tk-w' : '');
+                            div.style.textAlign = l.a;
+                            div.textContent = l.t === '' ? '\u00a0' : l.t;
+                        }
+                        papel.appendChild(div);
+                    });
+                    papel.dataset.venta = j.venta || '';
+                })
+                .catch(function () {
+                    papel.innerHTML = '<div class="tk-vacio">' + <?= json_encode(lang('puesto_error')) ?> + '</div>';
+                });
+        }
+
+        tabla.addEventListener('click', function (e) {
+            var b = e.target.closest('.ns-puesto-vista');
+            if (b) { verTiquete(b.closest('tr')); }
+        });
+
+        // La prueba imprime desde este navegador: QZ Tray solo alcanza las
+        // impresoras de la computadora donde corre.
+        if (prueba) {
+            prueba.addEventListener('click', function () {
+                var d = filaActual ? datosFila(filaActual) : null;
+                var avisar = function (ok, texto) {
+                    pruebaMsg.className = 'ns-prueba-resultado ' + (ok ? 'ok' : 'err');
+                    pruebaMsg.textContent = texto;
+                };
+                if (!d || !d.impresora) { avisar(false, <?= json_encode(lang('puesto_sin_impresora')) ?>); return; }
+                if (!papel.dataset.venta) { avisar(false, <?= json_encode(lang('tiquete_sin_ventas')) ?>); return; }
+                if (!window.qz) { avisar(false, <?= json_encode(lang('qz_desconectado')) ?>); return; }
+                prueba.disabled = true;
+                qz.security.setCertificatePromise(function (resolve) { resolve(); });
+                qz.security.setSignaturePromise(function () { return function (resolve) { resolve(); }; });
+                var conectar = window.nxQzConectar ? window.nxQzConectar() : (qz.websocket.isActive() ? Promise.resolve() : qz.websocket.connect());
+                conectar
+                    .then(function () { return qz.printers.find(d.impresora); })
+                    .then(function () {
+                        return fetch('<?= site_url('posprint/receipt_bytes') ?>/' + papel.dataset.venta + '/1?cpl=' + encodeURIComponent(d.caracteres), {
+                            credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        }).then(function (r) { return r.json(); });
+                    })
+                    .then(function (res) {
+                        if (!res || res.status !== 1) { throw new Error('print_bytes_failed'); }
+                        return qz.print(qz.configs.create(d.impresora), [
+                            { type: 'raw', format: 'command', flavor: 'base64', data: res.bytes }
+                        ]);
+                    })
+                    .then(function () { avisar(true, <?= json_encode(lang('prueba_enviada')) ?>); })
+                    .catch(function (e) { avisar(false, (e && e.message) || 'error'); })
+                    .finally(function () { prueba.disabled = false; });
+            });
+        }
+
+        var primera = tabla.querySelector('tbody tr');
+        if (primera && panel) { verTiquete(primera); }
+
+        tabla.addEventListener('click', function (e) {
+            var btn = e.target.closest('.ns-puesto-borrar');
+            if (!btn) { return; }
+            var fila = btn.closest('tr');
+            Swal.fire({
+                title: <?= json_encode(lang('puesto_borrar_confirma')) ?>,
+                icon: 'warning', showCancelButton: true,
+                confirmButtonText: <?= json_encode(lang('yes')) ?>,
+                cancelButtonText: <?= json_encode(lang('cancel')) ?>,
+                confirmButtonColor: '#dc2626'
+            }).then(function (r) {
+                if (!r.isConfirmed) { return; }
+                postPuesto('eliminar', { id: fila.dataset.puesto })
+                    .then(function () { fila.remove(); })
+                    .catch(function () { nxAlerta('error', <?= json_encode(lang('puesto_error')) ?>); });
+            });
+        });
+    })();
+
+    // ── Atajos: se graban pulsando la combinación, no escribiéndola ──
+    (function () {
+        var grupos = Array.prototype.slice.call(document.querySelectorAll('.ns-atajo'));
+        if (!grupos.length) { return; }
+
+        var TXT_PULSE     = <?= json_encode(lang('atajos_pulse_tecla')) ?>;
+        var TXT_COLISION  = <?= json_encode(lang('atajos_colision')) ?>;
+        var TXT_RESERVADA = <?= json_encode(lang('atajos_reservada')) ?>;
+        // El navegador nunca entrega estas teclas a la página.
+        var RESERVADAS = ['F11', 'F12'];
+
+        function campo(g)  { return g.querySelector('.ns-atajo-campo'); }
+        function aviso(g)  { return g.parentNode.querySelector('.ns-atajo-aviso'); }
+
+        function revisar() {
+            var vistos = {};
+            grupos.forEach(function (g) {
+                var v = campo(g).value.trim().toUpperCase();
+                if (!v) { return; }
+                (vistos[v] = vistos[v] || []).push(g);
+            });
+            grupos.forEach(function (g) {
+                var v = campo(g).value.trim().toUpperCase();
+                var msg = '';
+                if (v && vistos[v] && vistos[v].length > 1) { msg = TXT_COLISION; }
+                else if (RESERVADAS.indexOf(v) !== -1) { msg = TXT_RESERVADA; }
+                aviso(g).textContent = msg;
+            });
+        }
+
+        function grabar(g) {
+            var input = campo(g);
+            var previo = input.value;
+            g.classList.add('grabando');
+            input.value = TXT_PULSE;
+
+            function terminar() {
+                g.classList.remove('grabando');
+                document.removeEventListener('keydown', alPulsar, true);
+                document.removeEventListener('click', alClic, true);
+                revisar();
+            }
+            function alPulsar(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Un modificador suelto no es una combinación todavía.
+                if (['Alt', 'Control', 'Shift', 'Meta'].indexOf(e.key) !== -1) { return; }
+                if (e.key === 'Escape') { input.value = previo; terminar(); return; }
+                var partes = [];
+                if (e.ctrlKey || e.metaKey) { partes.push('CTRL'); }
+                if (e.altKey)   { partes.push('ALT'); }
+                if (e.shiftKey) { partes.push('SHIFT'); }
+                partes.push(e.key.length === 1 ? e.key.toUpperCase() : e.key.toUpperCase());
+                input.value = partes.join('+');
+                terminar();
+            }
+            function alClic() { input.value = previo; terminar(); }
+
+            document.addEventListener('keydown', alPulsar, true);
+            setTimeout(function () { document.addEventListener('click', alClic, true); }, 0);
+        }
+
+        grupos.forEach(function (g) {
+            g.querySelector('.ns-atajo-grabar').addEventListener('click', function (e) { e.stopPropagation(); grabar(g); });
+            campo(g).addEventListener('click', function (e) { e.stopPropagation(); grabar(g); });
+            g.querySelector('.ns-atajo-borrar').addEventListener('click', function () { campo(g).value = ''; revisar(); });
+        });
+
+        var btnRestaurar = document.getElementById('atajosRestaurar');
+        if (btnRestaurar) {
+            btnRestaurar.addEventListener('click', function () {
+                grupos.forEach(function (g) { campo(g).value = g.dataset.defecto; });
+                revisar();
+            });
+        }
+
+        revisar();
+    })();
+
+    // ── Continuidad de la numeración: la clave de 50 dígitos ya trae el consecutivo ──
+    var btnLeerClave = document.getElementById('btnLeerClave');
+    if (btnLeerClave) {
+        var inputClave  = document.getElementById('clave_ultima');
+        var salidaClave = document.getElementById('claveLeida');
+        var TIPOS = <?= json_encode(tipos_comprobante()) ?>;
+
+        btnLeerClave.addEventListener('click', function () {
+            var clave = (inputClave.value || '').replace(/\D/g, '');
+            if (clave.length !== 50) {
+                nxAlerta('warn', <?= json_encode(lang('clave_debe_tener_50')) ?>);
+                return;
+            }
+            inputClave.value = clave;
+
+            // Anexos v4.4: país 3, fecha 6, cédula 12, consecutivo 20, situación 1, seguridad 8.
+            var consecutivo = clave.substr(21, 20);
+            var tipo   = consecutivo.substr(8, 2);
+            var numero = parseInt(consecutivo.substr(10, 10), 10);
+            var campo  = document.getElementById('consec_inicial_' + tipo);
+
+            salidaClave.style.display = '';
+            if (!campo) {
+                salidaClave.innerHTML = <?= json_encode(lang('clave_tipo_desconocido')) ?> + ' <b>' + tipo + '</b>';
+                return;
+            }
+            campo.value = numero;
+            salidaClave.innerHTML =
+                <?= json_encode(lang('clave_leida_ok')) ?> +
+                '<br>' + <?= json_encode(lang('tipo_comprobante')) ?> + ': <b>' + tipo + ' — ' + (TIPOS[tipo] || '') + '</b>' +
+                '<br>' + <?= json_encode(lang('casa_matriz_terminal')) ?> + ': <b>' + consecutivo.substr(0, 3) + ' / ' + consecutivo.substr(3, 5) + '</b>' +
+                '<br>' + <?= json_encode(lang('ultimo_numero_emitido')) ?> + ': <b>' + numero + '</b>';
+            campo.focus();
+        });
+    }
 
     // ── Ubicación en cascada: provincia -> cantón -> distrito -> barrio (solo nombres) ──
     function fillSelect(select, items, placeholder) {
@@ -1949,5 +3067,283 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+});
+</script>
+
+<!-- ==================== SINPE MÓVIL: estado en vivo + acciones ==================== -->
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function () {
+    "use strict";
+
+    var $dot        = document.getElementById('sinpeStatusDot');
+    var $text       = document.getElementById('sinpeStatusText');
+    var $emailRow   = document.getElementById('sinpeGmailEmailRow');
+    var $email      = document.getElementById('sinpeGmailEmail');
+    var $nombre     = document.getElementById('sinpeGmailNombre');
+    var $foto       = document.getElementById('sinpeGmailFoto');
+    var $fotoPh     = document.getElementById('sinpeGmailFotoPh');
+    var $ultima     = document.getElementById('sinpeUltimaRevision');
+    var $connectBtn = document.getElementById('sinpeConnectBtn');
+    var $disconnBtn = document.getElementById('sinpeDisconnectBtn');
+    var $configRow  = document.getElementById('sinpeConfigRow');
+    var $banco      = document.getElementById('sinpeBancoSelect');
+    var $intervalo  = document.getElementById('sinpeIntervaloInput');
+    var $activo     = document.getElementById('sinpeActivoSwitch');
+    var $activoLbl  = document.getElementById('sinpeActivoLabel');
+    var $statPend   = document.getElementById('sinpeStatPendientes');
+    var $statHoy    = document.getElementById('sinpeStatHoy');
+    var $statMonto  = document.getElementById('sinpeStatMonto');
+    var $importRow  = document.getElementById('sinpeImportRow');
+    var $importBtn  = document.getElementById('sinpeImportBtn');
+    var $importDias = document.getElementById('sinpeImportDias');
+    var $importEst  = document.getElementById('sinpeImportEstado');
+
+    if (!$dot) return; // la pestaña SINPE no está en esta vista
+
+    var sinpeUrl = function (path) { return (window.base_url || '<?= base_url() ?>') + 'sinpe/' + path; };
+
+    // csrf_protection esta activo y 'sinpe/*' no esta excluido: sin el token
+    // todo POST se rechaza con 403 antes de llegar al controlador.
+    var sinpeCsrfName = "<?= $this->security->get_csrf_token_name(); ?>";
+    var sinpeCsrfHash = "<?= $this->security->get_csrf_hash(); ?>";
+
+    function sinpePost(path, campos) {
+        var body = new URLSearchParams(campos || {});
+        body.set(sinpeCsrfName, sinpeCsrfHash);
+        return fetch(sinpeUrl(path), { method: 'POST', credentials: 'same-origin', body: body })
+            .then(function (r) {
+                if (!r.ok) { throw new Error('HTTP ' + r.status); }
+                return r.json().catch(function () { return {}; });
+            })
+            .then(function (data) {
+                if (data && data.error) { throw new Error(data.error); }
+                return data;
+            });
+    }
+
+    function money(n) {
+        n = parseFloat(n) || 0;
+        return '₡' + n.toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function mostrarAlerta(tipo, msg) {
+        nxAlerta(tipo, msg);
+    }
+
+    function pintarEstado(s) {
+        var conectado = !!s.conectado;
+        var enVivo = !!s.watching;
+        // Servicio caído y cuenta sin conectar son problemas distintos: con el proceso
+        // Node abajo, el botón de Gmail no puede hacer nada y no debe ofrecerse.
+        var servicioArriba = s.servicio !== false;
+
+        var $caido = document.getElementById('sinpeServicioCaido');
+        if ($caido) { $caido.style.display = servicioArriba ? 'none' : ''; }
+
+        $dot.className = 'ns-sinpe-dot ' + (enVivo ? 'on' : (conectado ? 'off' : ''));
+        $text.textContent = !servicioArriba
+            ? <?= json_encode(lang('sinpe_servicio_caido_titulo')) ?>
+            : (enVivo ? '● EN VIVO' : (conectado ? 'Conectado — vigilancia pausada' : 'No conectado'));
+
+        if (!servicioArriba) {
+            $connectBtn.style.display = 'none';
+            $disconnBtn.style.display = 'none';
+            $emailRow.style.display = 'none';
+            $configRow.style.opacity = '.5';
+            $configRow.style.pointerEvents = 'none';
+            $ultima.textContent = '—';
+            $statPend.textContent = $statHoy.textContent = $statMonto.textContent = '—';
+            return;
+        }
+
+        pintarPerfil(conectado, s);
+
+        $ultima.textContent = s.ultimaRevision
+            ? new Date(s.ultimaRevision).toLocaleTimeString('es-CR')
+            : (s.lastCheck ? new Date(s.lastCheck).toLocaleTimeString('es-CR') : '—');
+
+        $connectBtn.style.display = conectado ? 'none' : '';
+        $disconnBtn.style.display = conectado ? '' : 'none';
+
+        $configRow.style.opacity = conectado ? '1' : '.5';
+        $configRow.style.pointerEvents = conectado ? '' : 'none';
+
+        // El estado se refresca cada 10s: si el usuario ya tocó estos campos y
+        // todavía no guardó, el poll no debe pisarle lo que eligió.
+        if (!configTocada) {
+            if (s.banco) $banco.value = s.banco;
+            if (s.intervalo) $intervalo.value = s.intervalo;
+            $activo.checked = !!s.activo;
+        }
+        $activoLbl.textContent = $activo.checked ? 'Activa' : 'Pausada';
+
+        if ($importRow) {
+            $importRow.style.opacity = conectado ? '1' : '.5';
+            $importRow.style.pointerEvents = conectado ? '' : 'none';
+        }
+        pintarImportacion(s.importacion);
+
+        var st = s.stats || {};
+        $statPend.textContent = st.pendientes != null ? st.pendientes : '—';
+        $statHoy.textContent = st.hoy != null ? st.hoy : '—';
+        $statMonto.textContent = st.monto_total != null ? money(st.monto_total) : '—';
+    }
+
+    /** Foto, nombre y correo de la cuenta de Gmail conectada. */
+    function pintarPerfil(conectado, s) {
+        var perfil = s.perfil || {};
+        var correo = perfil.email || s.gmailEmail;
+
+        if (!conectado || !correo) {
+            $emailRow.style.display = 'none';
+            return;
+        }
+
+        $email.textContent = correo;
+
+        // El nombre puede faltar si Google no contestó el userinfo todavía.
+        $nombre.textContent = perfil.nombre || '';
+        $nombre.style.display = perfil.nombre ? '' : 'none';
+
+        if (perfil.foto) {
+            $foto.src = perfil.foto;
+            $foto.alt = perfil.nombre || correo;
+            $foto.style.display = '';
+            $fotoPh.style.display = 'none';
+        } else {
+            $foto.style.display = 'none';
+            $fotoPh.style.display = '';
+        }
+
+        $emailRow.style.display = '';
+    }
+
+    // Si la foto de Google no carga, queda el ícono genérico en su lugar.
+    if ($foto) {
+        $foto.addEventListener('error', function () {
+            $foto.style.display = 'none';
+            $fotoPh.style.display = '';
+        });
+    }
+
+    var configTocada = false;
+    [$banco, $intervalo, $activo].forEach(function (el) {
+        if (el) el.addEventListener('change', function () { configTocada = true; });
+    });
+
+    function pintarImportacion(imp) {
+        if (!$importEst || !$importBtn) return;
+        if (!imp) { $importEst.textContent = ''; $importBtn.disabled = false; return; }
+
+        if (imp.corriendo) {
+            $importBtn.disabled = true;
+            $importEst.textContent = 'Importando… ' + imp.revisados + ' correos revisados, ' +
+                imp.guardados + ' guardados.';
+        } else {
+            $importBtn.disabled = false;
+            if (imp.error) {
+                $importEst.textContent = 'La importacion fallo: ' + imp.error;
+            } else if (imp.fin) {
+                $importEst.textContent = 'Listo: ' + imp.guardados + ' SINPE nuevos de ' +
+                    imp.revisados + ' correos revisados.';
+            }
+        }
+    }
+
+    if ($importBtn) {
+        $importBtn.addEventListener('click', function () {
+            var dias = $importDias ? $importDias.value : '90';
+            var etiqueta = dias === '0' ? 'todo el historial' : 'los ultimos ' + dias + ' dias';
+            if (!confirm('¿Revisar ' + etiqueta + ' de la cuenta de Gmail en busca de pagos SINPE?')) return;
+            $importBtn.disabled = true;
+            $importEst.textContent = 'Iniciando…';
+            sinpePost('importar', { dias: dias })
+                .then(function (d) { pintarImportacion(d.importacion); })
+                .catch(function (e) {
+                    $importBtn.disabled = false;
+                    $importEst.textContent = 'No se pudo iniciar: ' + e.message;
+                })
+                .finally(cargarEstado);
+        });
+    }
+
+    function cargarEstado() {
+        fetch(sinpeUrl('estado'), { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(pintarEstado)
+            .catch(function () {
+                $dot.className = 'ns-sinpe-dot off';
+                $text.textContent = 'El servicio SINPE no responde';
+            });
+    }
+
+    cargarEstado();
+    var pollTimer = setInterval(cargarEstado, 10000);
+    window.addEventListener('beforeunload', function () { clearInterval(pollTimer); });
+
+    if ($disconnBtn) {
+        $disconnBtn.addEventListener('click', function () {
+            if (!confirm('¿Desconectar la cuenta de Gmail? La vigilancia de SINPE se detiene hasta que se vuelva a conectar.')) return;
+            $disconnBtn.disabled = true;
+            sinpePost('desconectar')
+                .then(function () { mostrarAlerta('info', 'Cuenta de Gmail desconectada.'); })
+                .catch(function (e) { mostrarAlerta('danger', 'No se pudo desconectar: ' + e.message); })
+                .finally(function () { $disconnBtn.disabled = false; cargarEstado(); });
+        });
+    }
+
+    // El formato de banco, el intervalo y la vigilancia no son campos del
+    // formulario: viven en el servicio Node y hay que empujarlos aparte antes
+    // de dejar pasar el submit de "Guardar configuración".
+    var $form = document.getElementById('settings-form');
+    var sinpeYaEmpujado = false;
+
+    if ($form) {
+        $form.addEventListener('submit', function (e) {
+            if (sinpeYaEmpujado || !configTocada) return;
+
+            e.preventDefault();
+            var boton = e.submitter;
+
+            Promise.all([
+                sinpePost('banco', { banco: $banco.value }),
+                sinpePost('vigilancia', { activar: $activo.checked ? '1' : '0', intervalo: $intervalo.value }),
+            ]).then(function () {
+                configTocada = false;
+                sinpeYaEmpujado = true;
+                // requestSubmit conserva el name del botón; submit() lo perdería.
+                if (boton && $form.requestSubmit) { $form.requestSubmit(boton); }
+                else { $form.submit(); }
+            }).catch(function (err) {
+                mostrarAlerta('danger', 'No se pudo guardar la configuración de SINPE: ' + err.message +
+                    '. No se guardó ningún ajuste; revisá el servicio SINPE y volvé a intentarlo.');
+                cargarEstado();
+            });
+        });
+    }
+
+    if ($activo) {
+        $activo.addEventListener('change', function () {
+            $activoLbl.textContent = $activo.checked ? 'Activa' : 'Pausada';
+        });
+    }
+
+    // Si venimos de volver del flujo de Google (sinpe/conectar → oauth2/callback → acá),
+    // abrir la pestaña SINPE sola y mostrar el resultado.
+    var qp = new URLSearchParams(window.location.search);
+    if (qp.get('sinpe')) {
+        var navTab = document.getElementById('navTabSinpe');
+        if (navTab && window.bootstrap) {
+            new bootstrap.Tab(navTab).show();
+        } else if (navTab) {
+            navTab.click();
+        }
+        if (qp.get('sinpe') === 'conectado') {
+            mostrarAlerta('success', '¡Gmail conectado! La vigilancia de SINPE ya está activa.');
+        } else {
+            mostrarAlerta('danger', 'No se pudo conectar con Gmail (' + (qp.get('motivo') || 'error desconocido') + '). Volvé a intentarlo.');
+        }
+        cargarEstado();
+    }
 });
 </script>

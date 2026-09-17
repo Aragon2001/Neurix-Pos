@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Dashboard extends MY_Controller {

@@ -1,0 +1,377 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NX-DOC.CSS — Neurix POS Design System: detalle de un comprobante
+   Ventana de documento con pestañas, usada desde el listado de Ventas.
+   Namespace: .nxd-*  ·  Variables de neurix-theme-vars.css → dark/light solo.
+
+   Estructura:
+   .nxd-capa            → fondo oscurecido, fija a la ventana
+     .nxd-caja          → tarjeta del documento
+       .nxd-cab         → título, consecutivo, estado, cerrar
+       .nxd-tabs        → pestañas
+       .nxd-cuerpo      → contenido con scroll propio
+       .nxd-pie         → barra de acciones
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Capa ── */
+.nxd-capa{
+  position:fixed;inset:0;z-index:1085;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:rgba(3,7,18,.72);backdrop-filter:blur(4px);
+}
+.nxd-capa.abierta{display:flex}
+body.nxd-bloqueado{overflow:hidden}
+
+/* ── Caja ── */
+/* Alto fijo: la ventana no debe encogerse ni estirarse al cambiar de pestana,
+   el que se ajusta es .nxd-cuerpo con su propio scroll. */
+.nxd-caja{
+  display:flex;flex-direction:column;width:min(1180px,100%);height:min(860px,100%);
+  background:var(--nx-card-bg);border:1px solid var(--nx-border3);
+  border-radius:var(--nx-radius-lg);box-shadow:var(--nx-shadow-lg);
+  overflow:hidden;animation:nxd-entra .18s cubic-bezier(.4,0,.2,1);
+}
+@keyframes nxd-entra{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+
+/* ── Cabecera ── */
+.nxd-cab{
+  display:flex;align-items:flex-start;gap:14px;padding:16px 20px;
+  border-bottom:1px solid var(--nx-border);background:var(--nx-card-bg2);
+}
+.nxd-cab-icono{
+  width:42px;height:42px;flex-shrink:0;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--nx-a1),var(--nx-indigo));color:#06121f;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+}
+[data-theme="light"] .nxd-cab-icono{color:#fff}
+.nxd-cab-txt{min-width:0;flex:1}
+.nxd-cab-tit{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--nx-txt1);
+}
+.nxd-cab-sub{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-top:4px;font-size:12.5px;color:var(--nx-txt3);
+}
+.nxd-x{
+  width:34px;height:34px;flex-shrink:0;border-radius:9px;border:1px solid var(--nx-border);
+  background:transparent;color:var(--nx-txt3);cursor:pointer;font-size:20px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:var(--nx-transition);
+}
+.nxd-x:hover{color:var(--nx-err);border-color:color-mix(in srgb,var(--nx-err) 45%,transparent)}
+
+/* ── Pestañas (botones) ── */
+.nxd-tabs{
+  display:flex;gap:7px;padding:12px 16px;overflow-x:auto;scrollbar-width:none;
+  border-bottom:1px solid var(--nx-border);background:var(--nx-card-bg2);
+}
+.nxd-tabs::-webkit-scrollbar{display:none}
+.nxd-tab{
+  cursor:pointer;white-space:nowrap;padding:8px 14px;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius-sm);
+  background:var(--nx-card-bg);color:var(--nx-txt2);
+  font:600 12.5px inherit;font-family:inherit;
+  display:inline-flex;align-items:center;gap:7px;transition:var(--nx-transition);
+}
+.nxd-tab svg{color:var(--nx-txt4);transition:color .16s}
+.nxd-tab:hover:not([disabled]):not(.activa){
+  color:var(--nx-txt1);border-color:var(--nx-border3);background:var(--nx-active-bg);
+}
+.nxd-tab:hover:not([disabled]):not(.activa) svg{color:var(--nx-a1)}
+.nxd-tab.activa{
+  color:#06121f;border-color:transparent;
+  background:linear-gradient(135deg,var(--nx-a1),var(--nx-indigo));
+  box-shadow:0 2px 10px color-mix(in srgb,var(--nx-a1) 32%,transparent);
+}
+[data-theme="light"] .nxd-tab.activa{color:#fff}
+.nxd-tab.activa svg{color:currentColor}
+.nxd-tab[disabled]{opacity:.45;cursor:not-allowed}
+.nxd-tab-pin{
+  min-width:18px;height:18px;padding:0 5px;border-radius:99px;
+  font:700 10.5px inherit;font-family:inherit;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--nx-active-bg);color:var(--nx-a1);
+}
+.nxd-tab.activa .nxd-tab-pin{background:rgba(255,255,255,.28);color:currentColor}
+
+/* ── Cuerpo ── */
+.nxd-cuerpo{flex:1;min-height:0;overflow-y:auto;padding:18px 20px}
+.nxd-panel{display:none}
+.nxd-panel.activo{display:block;animation:nxd-fade .16s ease}
+@keyframes nxd-fade{from{opacity:0}to{opacity:1}}
+
+/* ── Banda de estado ── */
+.nxd-banda{
+  display:flex;gap:12px;align-items:flex-start;padding:13px 15px;margin-bottom:16px;
+  border-radius:var(--nx-radius);border:1px solid color-mix(in srgb,var(--banda-c,var(--nx-a1)) 35%,transparent);
+  background:color-mix(in srgb,var(--banda-c,var(--nx-a1)) 10%,transparent);
+}
+.nxd-banda svg{color:var(--banda-c,var(--nx-a1));flex-shrink:0;margin-top:1px}
+.nxd-banda-tit{font-weight:700;font-size:13px;color:var(--nx-txt1)}
+.nxd-banda-txt{font-size:12.5px;color:var(--nx-txt2);margin-top:3px;line-height:1.5}
+
+/* ── Tarjetas de datos ── */
+.nxd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:16px}
+.nxd-tarjeta{
+  background:var(--nx-card-bg2);border:1px solid var(--nx-border);
+  border-radius:var(--nx-radius);padding:14px 16px;min-width:0;
+}
+.nxd-tarjeta-tit{
+  display:flex;align-items:center;gap:7px;margin-bottom:10px;
+  font:700 10.5px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--nx-txt4);
+}
+.nxd-tarjeta-tit svg{color:var(--nx-a1)}
+.nxd-kv{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:12.5px;min-width:0}
+.nxd-kv dt{color:var(--nx-txt4);white-space:nowrap;flex-shrink:0}
+.nxd-kv dd{color:var(--nx-txt1);margin:0;text-align:right;word-break:break-word;min-width:0}
+.nxd-kv dd.mono{font:600 11.5px 'Cascadia Code','SF Mono',Consolas,monospace}
+.nxd-nombre{font-size:14.5px;font-weight:700;color:var(--nx-txt1);margin-bottom:2px;line-height:1.3}
+
+/* Clave copiable */
+.nxd-clave{
+  display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;
+  border-radius:var(--nx-radius-sm);border:1px solid var(--nx-border);background:var(--nx-input-bg);
+}
+.nxd-clave code{
+  flex:1;min-width:0;font:600 11px 'Cascadia Code','SF Mono',Consolas,monospace;
+  color:var(--nx-txt2);word-break:break-all;line-height:1.45;
+}
+.nxd-mini{
+  width:27px;height:27px;flex-shrink:0;border-radius:7px;border:1px solid var(--nx-border);
+  background:var(--nx-card-bg2);color:var(--nx-txt3);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;transition:var(--nx-transition);
+}
+.nxd-mini:hover{color:var(--nx-a1);border-color:var(--nx-border3);background:var(--nx-active-bg)}
+.nxd-mini.ok{color:var(--nx-emerald);border-color:color-mix(in srgb,var(--nx-emerald) 45%,transparent)}
+
+/* Desglose de la clave */
+.nxd-desglose{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin-top:10px}
+.nxd-desglose div{
+  border:1px solid var(--nx-border2);border-radius:var(--nx-radius-sm);padding:6px 8px;background:var(--nx-input-bg);
+}
+.nxd-desglose span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--nx-txt4)}
+.nxd-desglose b{font:600 12px 'Cascadia Code',Consolas,monospace;color:var(--nx-txt1);word-break:break-all}
+
+/* ── Tabla de líneas ── */
+.nxd-bloque{
+  background:var(--nx-card-bg2);border:1px solid var(--nx-border);
+  border-radius:var(--nx-radius);overflow:hidden;margin-bottom:16px;
+}
+.nxd-bloque-cab{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;
+  border-bottom:1px solid var(--nx-border);
+  font:700 10.5px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.09em;color:var(--nx-txt4);
+}
+.nxd-bloque-cab svg{color:var(--nx-a1)}
+.nxd-scroll-x{overflow-x:auto}
+.nxd-tabla{width:100%;border-collapse:collapse;min-width:640px}
+.nxd-tabla thead th{
+  font:700 10px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.08em;color:var(--nx-txt4);
+  text-align:left;padding:9px 14px;border-bottom:1px solid var(--nx-border);white-space:nowrap;
+}
+.nxd-tabla tbody td{padding:10px 14px;border-bottom:1px solid var(--nx-border2);font-size:13px;color:var(--nx-txt2);vertical-align:top}
+.nxd-tabla tbody tr:last-child td{border-bottom:0}
+.nxd-tabla .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nxd-tabla th.num{text-align:right}
+.nxd-linea-nom{font-weight:600;color:var(--nx-txt1);line-height:1.3}
+.nxd-linea-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.nxd-etq{
+  display:inline-flex;align-items:center;gap:4px;font:600 10.5px inherit;font-family:inherit;
+  padding:3px 8px;border-radius:6px;white-space:nowrap;
+  color:var(--etq-c,var(--nx-txt3));
+  background:color-mix(in srgb,var(--etq-c,var(--nx-slate)) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--etq-c,var(--nx-slate)) 28%,transparent);
+}
+
+/* ── Totales ── */
+.nxd-cols{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+@media(max-width:820px){.nxd-cols{grid-template-columns:1fr}}
+.nxd-tot{width:100%;border-collapse:collapse}
+.nxd-tot td{padding:6px 0;font-size:13px}
+.nxd-tot td:first-child{color:var(--nx-txt3)}
+.nxd-tot td:last-child{text-align:right;color:var(--nx-txt1);font-variant-numeric:tabular-nums;font-weight:600}
+.nxd-tot tr.granda td{
+  padding-top:11px;border-top:1px solid var(--nx-border);
+  font-size:16px;font-weight:800;color:var(--nx-txt1);
+}
+.nxd-tot tr.saldo td:last-child{color:var(--nx-amber)}
+
+/* ── Visor de XML ── */
+.nxd-visor-barra{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.nxd-busca{
+  flex:1 1 220px;display:flex;align-items:center;gap:8px;
+  background:var(--nx-input-bg);border:1px solid var(--nx-border);border-radius:9px;padding:7px 12px;
+}
+.nxd-busca:focus-within{border-color:var(--nx-border3);box-shadow:0 0 0 3px rgba(56,189,248,.14)}
+.nxd-busca svg{color:var(--nx-txt4);flex-shrink:0}
+.nxd-busca input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--nx-txt1);font:400 13px inherit;font-family:inherit}
+.nxd-busca input::placeholder{color:var(--nx-txt4)}
+.nxd-conteo{font:600 11.5px 'Cascadia Code',Consolas,monospace;color:var(--nx-txt4);white-space:nowrap}
+.nxd-xml{
+  margin:0;padding:16px;max-height:52vh;overflow:auto;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius);background:var(--nx-bg4);
+  font:400 12px/1.65 'Cascadia Code','SF Mono',Consolas,monospace;
+  color:var(--nx-txt2);white-space:pre;tab-size:2;
+}
+[data-theme="light"] .nxd-xml{background:#0f172a;color:#e2e8f0}
+.nxd-xml .t{color:#7dd3fc}       /* nombre de etiqueta */
+.nxd-xml .a{color:#c4b5fd}       /* atributo */
+.nxd-xml .v{color:#fcd34d}       /* valor de atributo */
+.nxd-xml .d{color:#94a3b8}       /* declaración y comentarios */
+.nxd-xml mark{background:var(--nx-amber);color:#0b1220;border-radius:3px;padding:0 1px}
+.nxd-xml mark.foco{background:var(--nx-emerald);box-shadow:0 0 0 2px color-mix(in srgb,var(--nx-emerald) 45%,transparent)}
+
+/* ── Lista de notas / bitácora ── */
+.nxd-item{
+  display:flex;align-items:center;gap:14px;padding:12px 16px;
+  border-bottom:1px solid var(--nx-border2);text-decoration:none;color:inherit;transition:background .14s;
+}
+.nxd-item:last-child{border-bottom:0}
+.nxd-item:hover{background:var(--nx-hover-bg)}
+.nxd-item-tit{font-weight:600;color:var(--nx-txt1);font-size:13.5px}
+.nxd-item-meta{font-size:11.5px;color:var(--nx-txt4);margin-top:2px}
+.nxd-item-fin{margin-left:auto;text-align:right;white-space:nowrap}
+
+/* ── Vacío / cargando ── */
+.nxd-vacio{padding:44px 20px;text-align:center;color:var(--nx-txt4);font-size:13.5px}
+.nxd-vacio svg{display:block;margin:0 auto 12px;color:var(--nx-txt4);opacity:.55}
+.nxd-cargando{display:flex;align-items:center;justify-content:center;gap:10px;padding:52px;color:var(--nx-txt3);font-size:13.5px}
+.nxd-cargando svg{animation:nxd-gira 1s linear infinite;color:var(--nx-a1)}
+@keyframes nxd-gira{to{transform:rotate(360deg)}}
+
+/* ── Pie de acciones ── */
+.nxd-pie{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:13px 20px;
+  border-top:1px solid var(--nx-border);background:var(--nx-card-bg2);
+}
+.nxd-pie-fin{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+.nxd-btn{
+  display:inline-flex;align-items:center;gap:8px;border:1px solid var(--nx-border);cursor:pointer;
+  text-decoration:none;font:600 13px inherit;font-family:inherit;border-radius:9px;padding:9px 14px;
+  background:var(--nx-card-bg);color:var(--nx-txt2);transition:var(--nx-transition);white-space:nowrap;
+}
+.nxd-btn:hover:not(:disabled){color:var(--nx-txt1);border-color:var(--nx-border3);background:var(--nx-active-bg)}
+.nxd-btn:disabled{opacity:.45;cursor:not-allowed}
+.nxd-btn svg{flex-shrink:0}
+.nxd-btn-pri{
+  border:0;color:#06121f;background:linear-gradient(135deg,var(--nx-a1),var(--nx-info));
+  box-shadow:0 6px 18px -8px rgba(56,189,248,.6);
+}
+.nxd-btn-pri:hover:not(:disabled){color:#06121f;transform:translateY(-1px)}
+[data-theme="light"] .nxd-btn-pri,[data-theme="light"] .nxd-btn-pri:hover:not(:disabled){color:#fff}
+.nxd-btn-peli{color:var(--nx-err);border-color:color-mix(in srgb,var(--nx-err) 38%,transparent)}
+.nxd-btn-peli:hover:not(:disabled){color:var(--nx-err);background:color-mix(in srgb,var(--nx-err) 12%,transparent);border-color:var(--nx-err)}
+.nxd-btn-avi{color:var(--nx-amber);border-color:color-mix(in srgb,var(--nx-amber) 38%,transparent)}
+.nxd-btn-avi:hover:not(:disabled){color:var(--nx-amber);background:color-mix(in srgb,var(--nx-amber) 12%,transparent)}
+
+/* ── Menú desplegable de acciones ── */
+.nxd-menu-caja{position:relative}
+.nxd-menu{
+  position:absolute;bottom:calc(100% + 8px);right:0;z-index:5;min-width:236px;display:none;
+  padding:6px;border:1px solid var(--nx-border3);border-radius:var(--nx-radius);
+  background:var(--nx-modal-bg);box-shadow:var(--nx-shadow);
+}
+.nxd-menu.abierto{display:block}
+.nxd-menu-rot{
+  padding:8px 11px 5px;font:700 9.5px inherit;font-family:inherit;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--nx-txt4);
+}
+.nxd-menu-op{
+  display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;cursor:pointer;
+  padding:9px 11px;border-radius:8px;text-align:left;text-decoration:none;
+  font:500 13px inherit;font-family:inherit;color:var(--nx-txt2);transition:background .14s;
+}
+.nxd-menu-op:hover{background:var(--nx-hover-bg);color:var(--nx-txt1)}
+.nxd-menu-op svg{color:var(--nx-txt4);flex-shrink:0}
+.nxd-menu-op:hover svg{color:var(--nx-a1)}
+.nxd-menu-op.peli:hover{background:color-mix(in srgb,var(--nx-err) 12%,transparent);color:var(--nx-err)}
+.nxd-menu-op.peli:hover svg{color:var(--nx-err)}
+.nxd-menu-sep{height:1px;margin:5px 8px;background:var(--nx-border)}
+
+/* ── Panel de correo ── */
+.nxd-correo{
+  margin-bottom:16px;padding:15px 16px;border:1px solid var(--nx-border3);
+  border-radius:var(--nx-radius);background:var(--nx-card-bg2);
+}
+.nxd-correo-fila{display:flex;gap:8px;align-items:center;margin-top:9px}
+.nxd-correo-fila input{
+  flex:1;min-width:0;background:var(--nx-input-bg);border:1px solid var(--nx-border);
+  border-radius:9px;padding:9px 12px;color:var(--nx-txt1);font:400 13px inherit;font-family:inherit;outline:0;
+}
+.nxd-correo-fila input:focus{border-color:var(--nx-border3);box-shadow:0 0 0 3px rgba(56,189,248,.14)}
+.nxd-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.nxd-chip{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 8px 5px 11px;border-radius:99px;
+  font-size:12px;color:var(--nx-txt1);background:var(--nx-active-bg);border:1px solid var(--nx-border3);
+}
+.nxd-chip button{border:0;background:none;color:var(--nx-txt4);cursor:pointer;font-size:15px;line-height:1;padding:0}
+.nxd-chip button:hover{color:var(--nx-err)}
+.nxd-ayuda{font-size:11.5px;color:var(--nx-txt4);margin-top:7px}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .nxd-capa{padding:0}
+  .nxd-caja{width:100%;height:100%;max-height:100%;border-radius:0;border:0}
+  .nxd-cuerpo{padding:14px}
+  .nxd-pie{padding:11px 14px}
+  .nxd-btn span.lbl{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .nxd-caja,.nxd-panel{animation:none!important}
+  .nxd-btn,.nxd-mini,.nxd-item,.nxd-menu-op{transition:none!important}
+  .nxd-cargando svg{animation:none!important}
+}
+
+/* Impresión: el modal nunca sale en papel; para eso están sus propios botones. */
+@media print{.nxd-capa{display:none!important}}
+
+/* Fila de listado que abre su documento al pulsarla. */
+.nxt-table tbody tr[data-doc]{cursor:pointer}
+
+/* ── Ventana apilada ──
+   La anulación se abre encima del detalle en vez de empujar su contenido: son
+   dos decisiones distintas y mezclarlas alarga el modal sin necesidad. Va por
+   encima de .nxd-capa (1085) y por debajo de SweetAlert (10050). */
+.nxd-capa.nxd-sobre{z-index:1090;background:rgba(3,7,18,.55)}
+/* La ventana apilada es un dialogo corto: crece con su contenido. */
+.nxd-capa.nxd-sobre .nxd-caja{width:min(560px,100%);height:auto;max-height:100%}
+.nxd-capa.nxd-sobre .nxd-cab-icono{background:linear-gradient(135deg,var(--nx-err),var(--nx-rose))}
+.nxd-capa.nxd-sobre .nxd-cuerpo{padding:18px 20px 4px}
+
+/* Campos del formulario apilado */
+.nxd-campo{margin-bottom:14px}
+.nxd-campo>label{
+  display:block;margin-bottom:6px;
+  font:700 10.5px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--nx-txt4);
+}
+.nxd-campo input,.nxd-campo select,.nxd-campo textarea{
+  width:100%;background:var(--nx-input-bg);border:1px solid var(--nx-border);
+  border-radius:9px;padding:10px 12px;color:var(--nx-txt1);
+  font:400 13.5px inherit;font-family:inherit;outline:0;
+}
+.nxd-campo textarea{resize:vertical;min-height:60px}
+.nxd-campo input:focus,.nxd-campo select:focus,.nxd-campo textarea:focus{
+  border-color:var(--nx-border3);box-shadow:0 0 0 3px rgba(56,189,248,.14);
+}
+.nxd-campo input.pin{width:170px;font:600 16px 'Cascadia Code',Consolas,monospace;letter-spacing:.3em}
+.nxd-dos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.nxd-dos{grid-template-columns:1fr}}
+
+/* Interruptor sí/no */
+.nxd-check{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:11px 13px;border:1px solid var(--nx-border);border-radius:var(--nx-radius);
+  background:var(--nx-card-bg2);font-size:13.5px;color:var(--nx-txt1);margin-bottom:14px;
+}
+.nxd-check:hover{border-color:var(--nx-border3)}
+.nxd-check input{width:17px;height:17px;cursor:pointer;accent-color:var(--nx-a1)}
+
+/* Resumen de la venta que se va a anular */
+.nxd-resumen{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:11px 14px;margin-bottom:16px;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius);background:var(--nx-card-bg2);
+}
+.nxd-resumen b{font-size:17px;font-weight:800;color:var(--nx-txt1);font-variant-numeric:tabular-nums}

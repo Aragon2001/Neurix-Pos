@@ -1,4 +1,9 @@
-﻿<?php
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class PosPrint extends MY_Controller
@@ -30,62 +35,11 @@ class PosPrint extends MY_Controller
             );
         }
         $store = $this->site->getStoreByID($this->session->userdata('store_id'));
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        if ($printer) {
-            $this->load->library('escpos');
-            $this->escpos->load($printer);
-            $this->escpos->print_data($data, $store);
-        }
-    }
-
-    function print_comanda($datos, $did) {
-        if ($datos) {
-            $items = $this->pos_model->getSuspendedSaleItems($did);
-            $entrada = explode(" ", date('h:i:s a d/m/Y', strtotime($datos['date'])));
-            $user = $this->pos_model->getUser($datos['created_by']);
-
-            $info = array(
-                (object) array('label' => lang('HORA Y FECHA: '), 'value' => $entrada[0] . $entrada[1] . ' ' . $entrada[2]),
-                (object) array('label' => lang('MESONERO'), 'value' => $user->first_name . ' ' . $user->last_name . ' (' . $user->email . ')'),
-                (object) array('label' => lang('IDENTIFICACION MESA: '), 'value' => $datos['hold_ref'])
-            );
-
-            $reg_totals = array();
-            array_push($reg_totals, (object) array('label' => 'line', 'value' => ''));
-
-            foreach ($items as $it) {
-                $qty = $it->quantity - $it->qty_enviado;
-                if ($qty > 0 || $qty < 0) {
-                    if ($qty < 0) {
-                        array_push($reg_totals, (object) array('label' => $it->product_name . "(No Ordenar)", 'value' => $this->tec->formatMoney($qty)));
-                    } else {
-                        array_push($reg_totals, (object) array('label' => $it->product_name, 'value' => $this->tec->formatMoney($qty)));
-                    }
-                    $this->pos_model->impresoComanda($it->id, $it->quantity);
-                }
-            }
-            array_push($reg_totals, (object) array('label' => 'line', 'value' => ''));
-
-            $data = (object) array(
-                        'heading' => "Comanda a Cocina",
-                        'info' => $info,
-                        'totals' => $reg_totals
-            );
-        }
-        // $this->tec->print_arrays($data);
-        if (count($reg_totals) > 2) {
-            $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-            if ($printer && $printer->type != "web") {
-                $this->load->library('escpos');
-                $this->escpos->load($printer);
-                $this->escpos->print_data($data);
-            }
-        }
+        $this->encolar_ticket_qz($data, $store);
     }
 
     function close_register($user_id = NULL) {
 
-        $this->data['printer'] = $this->site->getPrinterByID($this->session->userdata('printer_default'));
         if (!$this->Admin) {
             $user_id = $this->session->userdata('user_id');
         }
@@ -419,9 +373,9 @@ class PosPrint extends MY_Controller
                     (object) array('label' => "Efectivo de Apartados", 'value' => $this->tec->formatMoney($datos['cashsalesApart'] ? $datos['cashsalesApart'] : '0.00')),
                     (object) array('label' => "Tarjetas de Apartados", 'value' => $this->tec->formatMoney($datos['ccsalesApart'] ? $datos['ccsalesApart'] : '0.00')),
                     (object) array('label' => 'line', 'value' => ''),
-                    $this->Settings->propina_enable == '1' ? (object) array('label' => lang('Total servicio ' . $this->Settings->propina_rate) . '%', 'value' => $this->tec->formatMoney($datos['ccsalesTips'] ? $datos['ccsalesTips'] : '0.00')) : '',
+                    $this->Settings->propina_enable == '1' ? (object) array('label' => lang('total_servicio') . ' ' . $this->Settings->propina_rate . '%', 'value' => $this->tec->formatMoney($datos['ccsalesTips'] ? $datos['ccsalesTips'] : '0.00')) : '',
                     (object) array('label' => lang('total_cash'), 'value' => $this->tec->formatMoney($datos['total_cash'] ? $datos['total_cash'] : '0.00')),
-                    (object) array('label' => lang('Total en tarjetas'), 'value' => $this->tec->formatMoney((int) ($datos['cc_sale'] ? $datos['cc_sale'] : 0) + (int) ($datos['ccsalesApart'] ? $datos['ccsalesApart'] : 0))),
+                    (object) array('label' => lang('total_en_tarjetas'), 'value' => $this->tec->formatMoney((int) ($datos['cc_sale'] ? $datos['cc_sale'] : 0) + (int) ($datos['ccsalesApart'] ? $datos['ccsalesApart'] : 0))),
                     (object) array('label' => 'line', 'value' => ''),
                     (object) array('label' => lang('total_cash_submitted'), 'value' => $this->tec->formatMoney($datos['total_cash_submitted'] ? $datos['total_cash_submitted'] : '0.00')),
                     (object) array('label' => 'Diferencia en efectivo', 'value' => $this->tec->formatMoney($datos['total_cash_submitted'] ? ($datos['total_cash_submitted'] - $datos['total_cash']) : '0.00')),
@@ -442,12 +396,7 @@ class PosPrint extends MY_Controller
             
         } else {
             $store = $this->site->getStoreByID($this->session->userdata('store_id'));
-            $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-            if ($printer && $printer->type != "web") {
-                $this->load->library('escpos');
-                $this->escpos->load($printer);
-                $this->escpos->print_data($data, $store);
-            }
+            $this->encolar_ticket_qz($data, $store);
         }
     }
 
@@ -491,11 +440,6 @@ class PosPrint extends MY_Controller
             $sale->hacienda = null;
             $sale->type_doc = "Recibo de estacionamiento";
             $items = $this->pos_model->getSuspendedSaleItems($id);
-        } else if ($type_document == 23) {
-            $sale = $this->pos_model->getSuspendedSaleByID($id);
-            $sale->hacienda = null;
-            $sale->type_doc = "Comanda Cocina";
-            $items = $this->pos_model->getSuspendedSaleItems($id);
         }
         if ($type_document != 20 and $type_document != 21 and $type_document != 22) {
             $sale->invice_barcode = $this->invice_barcode_2($sale->hacienda->consecutivo, 'code128', 60);
@@ -518,22 +462,11 @@ class PosPrint extends MY_Controller
     }
 
     function print_receipt($id, $open_drawer = false, $type_document = 1, $haciendaInvo = null) {
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-
-        if ($printer && $printer->type == "web") {
-            if ($type_document == 3) {
-                $redirect_to = 'pos/viewnc/' . $id;
-                redirect($redirect_to);
-            } else if ($type_document == 1) {
-                $redirect_to = 'pos/view/' . $id;
-                redirect($redirect_to);
-            }
-        } else {
-            $ctx = $this->_load_receipt_context($id, $type_document, $haciendaInvo);
-            $this->load->library('escpos');
-            $this->escpos->load($printer);
-            $this->escpos->print_receipt($ctx['store'], $ctx['sale'], $ctx['items'], $ctx['payments'], $ctx['created_by'], $open_drawer);
-        }
+        $ctx = $this->_load_receipt_context($id, $type_document, $haciendaInvo);
+        $this->load->library('escpos');
+        $this->escpos->loadBuffer();
+        $this->escpos->print_receipt($ctx['store'], $ctx['sale'], $ctx['items'], $ctx['payments'], $ctx['created_by'], $open_drawer);
+        $this->encolar_bytes_qz($this->escpos->getBufferedData());
     }
 
     /**
@@ -548,29 +481,47 @@ class PosPrint extends MY_Controller
         $ctx = $this->_load_receipt_context($id, $type_document, $haciendaInvo);
         $this->load->library('escpos');
         $this->escpos->loadBuffer();
+        // El ancho del papel es del puesto que imprime: lo manda el navegador.
+        $this->escpos->setCaracteres($this->input->get('cpl'));
         $this->escpos->print_receipt($ctx['store'], $ctx['sale'], $ctx['items'], $ctx['payments'], $ctx['created_by'], false);
         echo json_encode(['status' => 1, 'bytes' => $this->escpos->getBufferedData()]);
     }
 
-    function print_cuenta($id, $open_drawer = false, $type_document = 1, $haciendaInvo = null) {
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        $sale = $this->pos_model->getSuspendedSaleByID($id);
-        $sale->hacienda = null;
-        $sale->type_doc = "Comanda Cocina";
-        $items = $this->pos_model->getSuspendedSaleItems($id);
-        $sale->customer = $this->pos_model->getCustomerByID($sale->customer_id);
-        $store = $this->site->getStoreByID($sale->store_id);
-        $created_by = $this->site->getUser($sale->created_by);
-        $payments = null;
-        $sale->haciendaInvo = $haciendaInvo;
+    /**
+     * GET posprint/receipt_preview/<id>?cpl=42
+     * Lineas del tiquete tal como se imprimirian, para la vista previa. Sin id se
+     * usa la ultima venta de la tienda.
+     */
+    function receipt_preview($id = null) {
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_content_type('application/json')->set_output(json_encode(['status' => 0]));
+        }
+        if (!$id) {
+            $ultima = $this->db->select('id')->order_by('id', 'DESC')
+                ->get_where('sales', ['store_id' => $this->session->userdata('store_id')], 1)->row();
+            $id = $ultima ? $ultima->id : null;
+        }
+        if (!$id || !$this->pos_model->getSaleByID($id)) {
+            return $this->output->set_content_type('application/json')->set_output(json_encode(['status' => 0, 'lineas' => []]));
+        }
+
+        $ctx = $this->_load_receipt_context($id, 1, null);
         $this->load->library('escpos');
-        $this->escpos->load($printer);
-        $this->escpos->print_receipt_suspended($store, $sale, $items, $payments, $created_by, $open_drawer);
+        $this->escpos->loadPreview();
+        $this->escpos->setCaracteres($this->input->get('cpl'));
+        $this->escpos->print_receipt($ctx['store'], $ctx['sale'], $ctx['items'], $ctx['payments'], $ctx['created_by'], false);
+
+        $this->output->set_content_type('application/json', 'utf-8')->set_output(json_encode([
+            'status'     => 1,
+            'venta'      => (int) $id,
+            'caracteres' => $this->escpos->char_per_line,
+            'lineas'     => $this->escpos->getPreview(),
+        ], JSON_UNESCAPED_UNICODE));
     }
 
     /**
-     * QZ Tray variant of print_cuenta(): returns raw ESC/POS bytes (base64)
-     * instead of printing directly.
+     * Devuelve la cuenta de una mesa como bytes ESC/POS (base64) para que el
+     * navegador la imprima por QZ Tray.
      */
     function cuenta_bytes($id) {
         if (!$this->session->userdata('user_id')) {
@@ -578,7 +529,7 @@ class PosPrint extends MY_Controller
         }
         $sale = $this->pos_model->getSuspendedSaleByID($id);
         $sale->hacienda = null;
-        $sale->type_doc = "Comanda Cocina";
+        $sale->type_doc = "Cuenta";
         $items = $this->pos_model->getSuspendedSaleItems($id);
         $sale->customer = $this->pos_model->getCustomerByID($sale->customer_id);
         $store = $this->site->getStoreByID($sale->store_id);
@@ -596,6 +547,20 @@ class PosPrint extends MY_Controller
      * open_drawer() behavior. The PIN-gated quick command lives in
      * verify_drawer_pin(), used by the standalone POS toolbar button.
      */
+    /**
+     * Entrega los tickets que quedaron pendientes de imprimir y vacia la cola.
+     * Se vacia aunque la impresion falle, para que un ticket viejo no vuelva a
+     * salir en cada pagina que abra el cajero.
+     */
+    function cola_bytes() {
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_content_type('application/json')->set_output(json_encode(['status' => 0]));
+        }
+        $cola = $this->session->userdata('qz_cola');
+        $this->session->unset_userdata('qz_cola');
+        echo json_encode(['status' => 1, 'bytes' => is_array($cola) ? array_values($cola) : []]);
+    }
+
     function drawer_bytes() {
         if (!$this->session->userdata('user_id')) {
             return $this->output->set_status_header(403)->set_content_type('application/json')->set_output(json_encode(['status' => 0]));
@@ -637,206 +602,6 @@ class PosPrint extends MY_Controller
         } else {
             $this->audit_log->log('drawer_open_failed', 'drawer', (int) $this->session->userdata('user_id'), 'PIN invalido');
             echo json_encode(['status' => 0, 'msg' => lang('wrong_pin')]);
-        }
-    }
-
-    function p($bo = 'order') {
-
-        $date = date('Y-m-d H:i:s');
-        $customer_id = $this->input->post('customer_id');
-        $customer_details = $this->pos_model->getCustomerByID($customer_id);
-        $customer = $customer_details->name;
-        $note = $this->tec->clear_tags($this->input->post('spos_note'));
-
-        $total = 0;
-        $product_tax = 0;
-        $order_tax = 0;
-        $product_discount = 0;
-        $order_discount = 0;
-        $percentage = '%';
-        $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
-        for ($r = 0; $r < $i; $r++) {
-            $item_id = $_POST['product_id'][$r];
-            $real_unit_price = $this->tec->formatDecimal($_POST['real_unit_price'][$r]);
-            $item_quantity = $_POST['quantity'][$r];
-            $item_comment = $_POST['item_comment'][$r];
-            $item_ordered = $_POST['item_was_ordered'][$r];
-            $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : '0';
-
-            if (isset($item_id) && isset($real_unit_price) && isset($item_quantity)) {
-                $product_details = $this->site->getProductByID($item_id);
-                if ($product_details) {
-                    $product_name = $product_details->name;
-                    $product_code = $product_details->code;
-                    $product_cost = $product_details->cost;
-                } else {
-                    $product_name = $_POST['product_name'][$r];
-                    $product_code = $_POST['product_code'][$r];
-                    $product_cost = 0;
-                }
-                if (!$this->Settings->overselling) {
-                    if ($product_details->type == 'standard') {
-                        if ($product_details->quantity < $item_quantity) {
-                            $this->session->set_flashdata('error', lang("quantity_low") . ' (' .
-                                    lang('name') . ': ' . $product_details->name . ' | ' .
-                                    lang('ordered') . ': ' . $item_quantity . ' | ' .
-                                    lang('available') . ': ' . $product_details->quantity .
-                                    ')');
-                            redirect("pos");
-                        }
-                    } elseif ($product_details->type == 'combo') {
-                        $combo_items = $this->pos_model->getComboItemsByPID($product->id);
-                        foreach ($combo_items as $combo_item) {
-                            $cpr = $this->site->getProductByID($combo_item->id);
-                            if ($cpr->quantity < $item_quantity) {
-                                $this->session->set_flashdata('error', lang("quantity_low") . ' (' .
-                                        lang('name') . ': ' . $cpr->name . ' | ' .
-                                        lang('ordered') . ': ' . $item_quantity . ' x ' . $combo_item->qty . ' = ' . $item_quantity * $combo_item->qty . ' | ' .
-                                        lang('available') . ': ' . $cpr->quantity .
-                                        ') ' . $product_details->name);
-                                redirect("pos");
-                            }
-                        }
-                    }
-                }
-                $unit_price = $real_unit_price;
-
-                $pr_discount = 0;
-                if (isset($item_discount)) {
-                    $discount = $item_discount;
-                    $dpos = strpos($discount, $percentage);
-                    if ($dpos !== false) {
-                        $pds = explode("%", $discount);
-                        $pr_discount = $this->tec->formatDecimal((($unit_price * (Float) ($pds[0])) / 100), 4);
-                    } else {
-                        $pr_discount = $this->tec->formatDecimal($discount);
-                    }
-                }
-                $unit_price = $this->tec->formatDecimal(($unit_price - $pr_discount), 4);
-                $item_net_price = $unit_price;
-                $pr_item_discount = $this->tec->formatDecimal(($pr_discount * $item_quantity), 4);
-                $product_discount += $pr_item_discount;
-
-                $pr_item_tax = 0;
-                $item_tax = 0;
-                $tax = "";
-                if (isset($product_details->tax) && $product_details->tax != 0) {
-
-                    if ($product_details && $product_details->tax_method == 1) {
-                        $item_tax = $this->tec->formatDecimal(((($unit_price) * $product_details->tax) / 100), 4);
-                        $tax = $product_details->tax . "%";
-                    } else {
-                        $item_tax = $this->tec->formatDecimal(((($unit_price) * $product_details->tax) / (100 + $product_details->tax)), 4);
-                        $tax = $product_details->tax . "%";
-                        $item_net_price -= $item_tax;
-                    }
-
-                    $pr_item_tax = $this->tec->formatDecimal(($item_tax * $item_quantity), 4);
-                }
-
-                $product_tax += $pr_item_tax;
-                $subtotal = (($item_net_price * $item_quantity) + $pr_item_tax);
-
-                $products[] = (object) array(
-                            'product_id' => $item_id,
-                            'quantity' => $item_quantity,
-                            'unit_price' => $unit_price,
-                            'net_unit_price' => $item_net_price,
-                            'discount' => $item_discount,
-                            'comment' => $item_comment,
-                            'item_discount' => $pr_item_discount,
-                            'tax' => $tax,
-                            'item_tax' => $pr_item_tax,
-                            'subtotal' => $subtotal,
-                            'real_unit_price' => $real_unit_price,
-                            'cost' => $product_cost,
-                            'product_code' => $product_code,
-                            'product_name' => $product_name,
-                            'ordered' => $item_ordered,
-                );
-
-                $total += $item_net_price * $item_quantity;
-            }
-        }
-        if (empty($products)) {
-            $this->form_validation->set_rules('product', lang("order_items"), 'required');
-        } else {
-            krsort($products);
-        }
-
-        if ($this->input->post('order_discount')) {
-            $order_discount_id = $this->input->post('order_discount');
-            $opos = strpos($order_discount_id, $percentage);
-            if ($opos !== false) {
-                $ods = explode("%", $order_discount_id);
-                $order_discount = $this->tec->formatDecimal(((($total + $product_tax) * (Float) ($ods[0])) / 100), 4);
-            } else {
-                $order_discount = $this->tec->formatDecimal($order_discount_id);
-            }
-        } else {
-            $order_discount_id = NULL;
-        }
-        $total_discount = $this->tec->formatDecimal(($order_discount + $product_discount), 4);
-
-        if ($this->input->post('order_tax')) {
-            $order_tax_id = $this->input->post('order_tax');
-            $opos = strpos($order_tax_id, $percentage);
-            if ($opos !== false) {
-                $ots = explode("%", $order_tax_id);
-                $order_tax = $this->tec->formatDecimal(((($total + $product_tax - $order_discount) * (Float) ($ots[0])) / 100), 4);
-            } else {
-                $order_tax = $this->tec->formatDecimal($order_tax_id);
-            }
-        } else {
-            $order_tax_id = NULL;
-            $order_tax = 0;
-        }
-
-        $total_tax = $this->tec->formatDecimal(($product_tax + $order_tax), 4);
-        $grand_total = $this->tec->formatDecimal(($this->tec->formatDecimal($total) + $total_tax - $order_discount), 4);
-        $paid = 0;
-        $round_total = $this->tec->roundNumber($grand_total, $this->Settings->rounding);
-        $rounding = $this->tec->formatDecimal(($round_total - $grand_total));
-
-        $data = (object) array('date' => $date,
-                    'customer_id' => $customer_id,
-                    'customer_name' => $customer,
-                    'total' => $this->tec->formatDecimal($total),
-                    'product_discount' => $this->tec->formatDecimal($product_discount, 4),
-                    'order_discount_id' => $order_discount_id,
-                    'order_discount' => $order_discount,
-                    'total_discount' => $total_discount,
-                    'product_tax' => $this->tec->formatDecimal($product_tax, 4),
-                    'order_tax_id' => $order_tax_id,
-                    'order_tax' => $order_tax,
-                    'total_tax' => $total_tax,
-                    'grand_total' => $grand_total,
-                    'total_items' => $this->input->post('total_items'),
-                    'total_quantity' => $this->input->post('total_quantity'),
-                    'rounding' => $rounding,
-                    'paid' => $paid,
-                    'created_by' => $this->session->userdata('user_id'),
-                    'note' => $note,
-                    'hold_ref' => $this->input->post('hold_ref'),
-        );
-
-        // $this->tec->print_arrays($data, $products);
-        $store = $this->site->getStoreByID($this->session->userdata('store_id'));
-        $created_by = $this->site->getUser($this->session->userdata('user_id'));
-
-        if ($bo == 'bill') {
-            $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-            $this->load->library('escpos');
-            $this->escpos->load($printer);
-            $this->escpos->print_receipt($store, $data, $products, false, $created_by, false, true);
-        } else {
-            $order_printers = json_decode($this->Settings->order_printers);
-            $this->load->library('escpos');
-            foreach ($order_printers as $printer_id) {
-                $printer = $this->site->getPrinterByID($printer_id);
-                $this->escpos->load($printer);
-                $this->escpos->print_order($store, $data, $products, $created_by);
-            }
         }
     }
 

@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -27,7 +33,7 @@
                                 <tr class="row<?= $payment->id ?>">
                                     <td><?= $this->tec->hrld($payment->date); ?></td>
                                     <td><?= lang($payment->reference); ?></td>
-                                    <td class="text-right"><?= $this->tec->formatMoney($payment->amount) . ' ' . (($payment->attachment) ? '<a href="' . base_url('assets/uploads/' . $payment->attachment) . '" target="_blank"><i class="fa fa-chain"></i></a>' : ''); ?></td>
+                                    <td class="text-right"><?= $this->tec->formatMoney($payment->amount) . ' ' . ((!empty($payment->attachment)) ? '<a href="' . base_url('assets/uploads/' . $payment->attachment) . '" target="_blank"><i class="fa fa-chain"></i></a>' : ''); ?></td>
                                     <td><?= lang($payment->paid_by); ?></td>
                                     <td>
                                         <div class="text-center">
@@ -48,23 +54,31 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" charset="UTF-8">
-    $(document).ready(function () {
-        $(document).on('click', '.po-delete', function () {
-            var id = $(this).attr('id');
-            $(this).closest('tr').remove();
-        });
+<script>
+(function () {
+    'use strict';
 
-        $(document).on('click', '.imprimir', function () {
-            url = "<?= base_url() ?>"+"sales/print_receipt/"+ $(this).attr("id");
-            $.get(url, function(data){
-            });
-        });
+    var BASE = '<?= base_url(); ?>';
 
-        $(document).on('click', '.imprimirALL', function () {
-            url = "<?= base_url() ?>"+"sales/printAllReceiptApartado/"+ $(this).attr("id");
-            $.get(url, function(data){
-            });
-        });
+    // El recibo se arma en el servidor y sale por QZ Tray; aquí solo se pide.
+    function imprimir(ruta, id, boton) {
+        boton.style.opacity = '.5';
+        fetch(BASE + ruta + id, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) {
+                if (!r.ok) { throw new Error(r.status); }
+            })
+            .catch(function () {
+                alert(<?= json_encode(lang('inv_error_red')); ?>);
+            })
+            .then(function () { boton.style.opacity = ''; });
+    }
+
+    document.addEventListener('click', function (e) {
+        var uno = e.target.closest('.imprimir');
+        if (uno) { imprimir('sales/print_receipt/', uno.id, uno); return; }
+
+        var todos = e.target.closest('.imprimirALL');
+        if (todos) { imprimir('sales/printAllReceiptApartado/', todos.id, todos); }
     });
+})();
 </script>

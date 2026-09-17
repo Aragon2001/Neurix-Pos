@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Apiclient {
@@ -28,8 +32,8 @@ class Apiclient {
 
         switch ($this->ambiente) {
             case 'prod':
-                $this->baseUrlComprobante = 'https://api.hacienda.go.cr/fe/ae';
-                $this->baseUrlRecepcion   = 'https://api.hacienda.go.cr/fe/ae';
+                $this->baseUrlComprobante = 'https://api.comprobanteselectronicos.go.cr/recepcion/v1/comprobantes';
+                $this->baseUrlRecepcion   = 'https://api.comprobanteselectronicos.go.cr/recepcion/v1/recepcion';
                 $this->authUrl            = 'https://idp.comprobanteselectronicos.go.cr/auth/realms/rut/protocol/openid-connect/token';
                 $this->CloseauthUrl       = 'https://idp.comprobanteselectronicos.go.cr/auth/realms/rut/protocol/openid-connect/logout';
                 $this->clientId           = 'api-prod';
@@ -37,8 +41,8 @@ class Apiclient {
                 $this->password           = $this->Settings->password_token_prod;
                 break;
             case 'test':
-                $this->baseUrlComprobante = 'https://api-sandbox.comprobanteselectronicos.go.cr/recepcion-sandbox/v1/comprobantes';
-                $this->baseUrlRecepcion   = 'https://api-sandbox.comprobanteselectronicos.go.cr/recepcion-sandbox/v1/recepcion';
+                $this->baseUrlComprobante = 'https://api-sandbox.comprobanteselectronicos.go.cr/recepcion/v1/comprobantes';
+                $this->baseUrlRecepcion   = 'https://api-sandbox.comprobanteselectronicos.go.cr/recepcion/v1/recepcion';
                 $this->authUrl            = 'https://idp.comprobanteselectronicos.go.cr/auth/realms/rut-stag/protocol/openid-connect/token';
                 $this->CloseauthUrl       = 'https://idp.comprobanteselectronicos.go.cr/auth/realms/rut-stag/protocol/openid-connect/logout';
                 $this->clientId           = 'api-stag';
@@ -65,18 +69,13 @@ class Apiclient {
     }
 
     public function getTokenH() {
-        $client_secret = '';
-        $scope = '';
-        $grant_type = 'password';
+        // El IDP de Hacienda responde invalid_scope si 'scope' viaja en blanco:
+        // el parametro se omite, no se manda vacio.
         $body = [
-            'response_type' => 'code',
             'client_id' => $this->clientId,
+            'grant_type' => 'password',
             'username' => trim($this->username),
             'password' => trim($this->password),
-            'client_secret' => trim($client_secret),
-            'scope' => $scope,
-            'grant_type' => $grant_type,
-            'authorization_grants' => $grant_type,
         ];
 
 
@@ -106,7 +105,8 @@ class Apiclient {
                 $this->setRefreshToken($result->refresh_token);
                 return $result;
             } else if (isset($result->error_description)) {
-                echo "Error: Usuario: {$username} / Password: {$password} del token de hacienda invalidos compruebe nuevamente.";
+                log_message('error', 'Apiclient: el IDP de Hacienda nego el token (' . $result->error . '): ' . $result->error_description);
+                echo "Error: Hacienda rechazo las credenciales del ambiente {$this->ambiente} ({$result->error_description}). Revisalas en Ajustes.";
                 exit();
             } else {
                 echo "Error: Al intentar de obtener el token";
@@ -199,7 +199,9 @@ class Apiclient {
 if ( base64_encode(base64_decode($xmlFirmado, true)) === $xmlFirmado){
             $data = [
                 'clave' => $parametros['clave'],
-                'fecha' => $parametros['fecha_emision'],
+                // La fecha vuelve de una columna DATETIME como '2026-08-24 11:11:03'
+                // y la API la exige en ISO 8601: sin la T responde 400 sin cuerpo.
+                'fecha' => str_replace(' ', 'T', trim((string) $parametros['fecha_emision'])),
                 'emisor' => [
                     'tipoIdentificacion' => $this->Settings->tipo_doc_emisor,
                     'numeroIdentificacion' => trim(str_replace("-", "", $this->Settings->cedula_emisor))
@@ -464,13 +466,17 @@ return "documento sin firma";
                         $result['mensajeHacienda'] = $this->getMensajeHacienda($documento->ClaveDocEmisor . '-' . trim($consecutivo));
                     }
                     $result['mensajeHacienda'] = $this->getMensajeHacienda($documento->ClaveDocEmisor . '-' . trim($consecutivo));
-                    if ($result['mensajeHacienda']) {
-                        // dd($result['mensajeHacienda']);
-                        $this->hacienda_model->setRespuestaMensaje([
-                            'xml_hacienda' => base64_decode($result['mensajeHacienda']->respuestaxml),
-                            'Estatus' => $result['mensajeHacienda']->indestado,
-                            'Fecha_aceptacion' => $result['mensajeHacienda']->fecha
-                                ], $documento->id_documento);
+                    // Mientras Hacienda procesa responde sin respuesta-xml; solo el estado es seguro.
+                    $mh = $result['mensajeHacienda'];
+                    if ($mh && !empty($mh->indestado)) {
+                        $respuesta = array('Estatus' => $mh->indestado);
+                        if (!empty($mh->respuestaxml)) {
+                            $respuesta['xml_hacienda'] = base64_decode($mh->respuestaxml);
+                        }
+                        if (!empty($mh->fecha)) {
+                            $respuesta['Fecha_aceptacion'] = date('Y-m-d H:i:s', strtotime($mh->fecha));
+                        }
+                        $this->hacienda_model->setRespuestaMensaje($respuesta, $documento->id_documento);
                     }
                 } catch (Exception $e) {
                     
@@ -482,10 +488,10 @@ return "documento sin firma";
     public static function getConsultaComprobantes($key = null) {
         switch (AMBIENTE) {
             case 'prod':
-                $baseUrlComprobante = 'https://api.hacienda.go.cr/fe/ae';
+                $baseUrlComprobante = 'https://api.comprobanteselectronicos.go.cr/recepcion/v1/comprobantes';
                 break;
             case 'test':
-                $baseUrlComprobante = 'https://api-sandbox.comprobanteselectronicos.go.cr/recepcion-sandbox/v1/comprobantes';
+                $baseUrlComprobante = 'https://api-sandbox.comprobanteselectronicos.go.cr/recepcion/v1/comprobantes';
                 break;
         }
 

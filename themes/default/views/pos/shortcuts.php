@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="modal-dialog">
     <div class="modal-content">
@@ -16,6 +22,10 @@
                 </tr>
             </thead>
             <tbody>
+                <tr>
+                    <td>F2</td>
+                    <td><?= lang('producto_rapido') ?></td>
+                </tr>
                 <tr>
                     <td><?= $Settings->edit_last_product ?></td>
                     <td><?= lang('edit_product_pos') ?></td>
@@ -41,14 +51,6 @@
                     <td><?= lang('suspend_sale') ?></td>
                 </tr>
                 <tr>
-                    <td><?= $Settings->print_order ?></td>
-                    <td><?= lang('print_order') ?></td>
-                </tr>
-                <tr>
-                    <td><?= $Settings->print_bill ?></td>
-                    <td><?= lang('print_bill') ?></td>
-                </tr>
-                <tr>
                     <td><?= $Settings->finalize_sale ?></td>
                     <td><?= lang('finalize_sale') ?></td>
                 </tr>
@@ -63,6 +65,14 @@
                 <tr>
                     <td><?= $Settings->close_register ?></td>
                     <td><?= lang('close_register') ?></td>
+                </tr>
+                <tr>
+                    <td>ESC</td>
+                    <td><?= lang('kbd_cancelar_busqueda') ?></td>
+                </tr>
+                <tr>
+                    <td>+</td>
+                    <td><?= lang('kbd_foco_busqueda') ?></td>
                 </tr>
             </tbody>
         </table>

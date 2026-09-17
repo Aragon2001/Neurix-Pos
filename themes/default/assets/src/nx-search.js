@@ -1,4 +1,10 @@
 /**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+
+/**
  * Sistema de búsqueda global de Neurix POS
  * Busca en: Menú, Productos, Clientes, Ventas
  */

@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
@@ -25,18 +29,18 @@ class Queue_worker extends MY_Controller
     {
         // Liberar la conexión HTTP inmediatamente si estamos en modo web
         if (function_exists('fastcgi_finish_request')) {
-            ob_end_clean();
+            while (ob_get_level() > 0) { ob_end_clean(); }
             header('Content-Type: application/json');
             echo json_encode(['queued' => true]);
             fastcgi_finish_request();
         } else {
             // Apache / módulo PHP: flush + ignore client disconnect
             ignore_user_abort(true);
-            ob_end_clean();
+            while (ob_get_level() > 0) { ob_end_clean(); }
             header('Content-Type: application/json');
             header('Content-Length: 15');
             echo json_encode(['queued' => true]);
-            ob_flush();
+            if (ob_get_level() > 0) { ob_flush(); }
             flush();
         }
 
@@ -57,7 +61,7 @@ class Queue_worker extends MY_Controller
                     default:
                         $this->queue_model->markFailed($job->id, "Tipo de job desconocido: {$job->type}");
                 }
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 log_message('error', "[Queue_worker] Job #{$job->id} excepción: " . $e->getMessage());
                 $this->queue_model->markFailed($job->id, $e->getMessage());
             }

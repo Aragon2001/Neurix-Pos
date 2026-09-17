@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 

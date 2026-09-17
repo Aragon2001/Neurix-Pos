@@ -1,756 +1,522 @@
-﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed');
+
+/**
+ * Factura electrónica de compra: el proveedor es el emisor y la tienda el
+ * receptor. Los montos que se ven acá son solo para el cajero; los que viajan
+ * en el comprobante los calcula `Facturascompras::guardar_fec()`.
+ */
+$icono = function ($paths, $size = 15) {
+    return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+         . ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' . $paths . '</svg>';
+};
+$ico_check  = '<path d="M5 12l5 5l10 -10"/>';
+$ico_flecha = '<path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/>';
+$ico_buscar = '<circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/>';
+$ico_mas    = '<path d="M12 5l0 14"/><path d="M5 12l14 0"/>';
+
+$unidades = array(
+    'Unid' => lang('unidad'), 'Sp' => lang('servicios_profesionales'), 'kg' => lang('kilogramo'),
+    'm' => lang('metro'), 'm²' => lang('metro_cuadrado'), 'm³' => lang('metro_cubico'),
+    'h' => lang('hora'), 'd' => lang('dia'), 'L' => lang('litro'), 't' => lang('tonelada'),
+    'Gal' => lang('galon'),
+);
+?>
+
+<div class="nxt-head">
+    <div class="nxt-title">
+        <?= lang('fec'); ?>
+        <small><?= lang('fec_ayuda'); ?></small>
+    </div>
+    <div class="nxt-head-actions">
+        <a class="nxt-btn nxt-btn-ghost" href="<?= site_url('facturascompras'); ?>">
+            <?= $icono($ico_flecha); ?> <?= lang('fec'); ?>
+        </a>
+    </div>
+</div>
+
+<div class="nxf-page">
+
+    <?php if (!empty($error)) { ?>
+        <div class="nxf-note nxf-note-err"><div><?= $error; ?></div></div>
+    <?php } ?>
+    <div class="nxf-note" id="fecAviso" hidden></div>
+
+    <!-- ── Paso 1: el proveedor ── -->
+    <div class="nxf-card">
+        <div class="nxf-card-head">
+            <span class="nxf-step">1</span>
+            <div class="nxf-card-title">
+                <?= lang('supplier'); ?>
+                <small><?= lang('fec_proveedor_ayuda'); ?></small>
+            </div>
+        </div>
+        <div class="nxf-card-body">
+            <div class="nxf-grid">
+                <div class="nxf-field sp-8">
+                    <label class="nxf-label" for="proveedor"><?= lang('supplier'); ?> <span class="req">*</span></label>
+                    <select id="proveedor" class="nxf-select" required>
+                        <option value="">— <?= lang('Seleccione'); ?> —</option>
+                        <?php foreach ((array) $suppliers as $sp) { ?>
+                            <option value="<?= $sp->id; ?>"
+                                    data-cf1="<?= html_escape($sp->cf1); ?>"
+                                    data-cf2="<?= html_escape($sp->cf2); ?>"
+                                    data-provincia="<?= html_escape($sp->codigo_provincia); ?>"
+                                    data-email="<?= html_escape($sp->email); ?>"
+                                    data-plazo="<?= (int) (isset($sp->plazo_pago_dias) ? $sp->plazo_pago_dias : 0); ?>">
+                                <?= html_escape($sp->name . ' — ' . $sp->cf2); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <div class="nxf-hint" id="hintProveedor"></div>
+                </div>
+                <div class="nxf-field sp-4">
+                    <label class="nxf-label">&nbsp;</label>
+                    <a class="nxf-btn nxf-btn-ghost" href="<?= site_url('suppliers/add'); ?>" target="_blank" rel="noopener">
+                        <?= $icono($ico_mas); ?> <?= lang('add_supplier'); ?>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Paso 2: los artículos ── -->
+    <div class="nxf-card">
+        <div class="nxf-card-head">
+            <span class="nxf-step">2</span>
+            <div class="nxf-card-title">
+                <?= lang('order_items'); ?>
+                <small><?= lang('fec_lineas_ayuda'); ?></small>
+            </div>
+        </div>
+        <div class="nxf-card-body">
+            <div class="nxf-grid">
+                <div class="nxf-field sp-8">
+                    <label class="nxf-label" for="fecBuscar"><?= $icono($ico_buscar); ?> <?= lang('search_product_by_name_code'); ?></label>
+                    <input type="text" id="fecBuscar" class="nxf-input" autocomplete="off">
+                    <div id="fecSugerencias" class="fec-lista" style="display:none;"></div>
+                </div>
+                <div class="nxf-field sp-4">
+                    <label class="nxf-label">&nbsp;</label>
+                    <button type="button" class="nxf-btn nxf-btn-ghost" id="fecManual">
+                        <?= $icono($ico_mas); ?> <?= lang('linea_manual'); ?>
+                    </button>
+                </div>
+            </div>
+
+            <div class="fec-tabla-wrap">
+                <table class="fec-tabla" id="fecTabla">
+                    <thead>
+                        <tr>
+                            <th><?= lang('product'); ?></th>
+                            <th><?= lang('unidad'); ?></th>
+                            <th class="num"><?= lang('quantity'); ?></th>
+                            <th class="num"><?= lang('unit_price'); ?></th>
+                            <th class="num"><?= lang('descuento'); ?></th>
+                            <th><?= lang('impuesto'); ?></th>
+                            <th class="num"><?= lang('subtotal'); ?></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="fecCuerpo"></tbody>
+                    <tfoot>
+                        <tr><th colspan="6" class="num"><?= lang('total_sin_impuesto'); ?></th><th class="num" id="fecNeto">0.00</th><th></th></tr>
+                        <tr><th colspan="6" class="num"><?= lang('impuesto'); ?></th><th class="num" id="fecImpuesto">0.00</th><th></th></tr>
+                        <tr><th colspan="6" class="num"><?= lang('total'); ?></th><th class="num" id="fecTotal">0.00</th><th></th></tr>
+                    </tfoot>
+                </table>
+                <div id="fecVacio" class="fec-vacio"><?= lang('add_product_by_searching_above_field'); ?></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Paso 3: pago y exoneración ── -->
+    <div class="nxf-card">
+        <div class="nxf-card-head">
+            <span class="nxf-step">3</span>
+            <div class="nxf-card-title"><?= lang('fec_paso_pago'); ?></div>
+        </div>
+        <div class="nxf-card-body">
+            <div class="nxf-grid">
+                <div class="nxf-field sp-4">
+                    <label class="nxf-label" for="payment_status"><?= lang('payment_status'); ?></label>
+                    <select id="payment_status" class="nxf-select">
+                        <option value="paid"><?= lang('paid'); ?></option>
+                        <option value="partial"><?= lang('partial'); ?></option>
+                        <option value="due"><?= lang('due'); ?></option>
+                    </select>
+                </div>
+                <div class="nxf-field sp-4" id="wrapPagoPor">
+                    <label class="nxf-label" for="paid_by"><?= lang('paying_by'); ?></label>
+                    <select id="paid_by" class="nxf-select">
+                        <option value="cash"><?= lang('cash'); ?></option>
+                        <option value="CC"><?= lang('tarjeta'); ?></option>
+                        <option value="Cheque"><?= lang('cheque'); ?></option>
+                        <option value="deposit"><?= lang('transferencia'); ?></option>
+                        <option value="sinpe">SINPE Móvil</option>
+                    </select>
+                </div>
+                <div class="nxf-field sp-4" id="wrapPlazo" hidden>
+                    <label class="nxf-label" for="plazo"><?= lang('credit_time'); ?></label>
+                    <select id="plazo" class="nxf-select">
+                        <?php foreach (array(8, 15, 30, 45, 60, 90) as $d) { ?>
+                            <option value="<?= $d; ?>" <?= $d === 30 ? 'selected' : ''; ?>><?= $d; ?> <?= lang('dias'); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+
+                <div class="nxf-field sp-12">
+                    <label class="nxf-label">
+                        <input type="checkbox" id="usaExoneracion"> <?= lang('exoneracion'); ?>
+                    </label>
+                </div>
+            </div>
+
+            <div class="nxf-grid" id="bloqueExoneracion" hidden>
+                <div class="nxf-field sp-3">
+                    <label class="nxf-label" for="exo_tipo"><?= lang('tipo_documento'); ?></label>
+                    <input type="text" id="exo_tipo" class="nxf-input mono" maxlength="2">
+                </div>
+                <div class="nxf-field sp-3">
+                    <label class="nxf-label" for="exo_documento"><?= lang('numero_documento'); ?></label>
+                    <input type="text" id="exo_documento" class="nxf-input mono" maxlength="40">
+                </div>
+                <div class="nxf-field sp-3">
+                    <label class="nxf-label" for="exo_institucion"><?= lang('nombre_institucion'); ?></label>
+                    <input type="text" id="exo_institucion" class="nxf-input" maxlength="160">
+                </div>
+                <div class="nxf-field sp-3">
+                    <label class="nxf-label" for="exo_fecha"><?= lang('fecha_emision'); ?></label>
+                    <input type="date" id="exo_fecha" class="nxf-input">
+                </div>
+                <div class="nxf-field sp-3">
+                    <label class="nxf-label" for="exo_porcentaje"><?= lang('porcentaje_exoneracion'); ?></label>
+                    <input type="number" step="any" min="0" max="100" id="exo_porcentaje" class="nxf-input mono" value="0">
+                </div>
+                <div class="nxf-field sp-3">
+                    <label class="nxf-label" for="exo_monto"><?= lang('monto_exoneracion'); ?></label>
+                    <input type="number" step="any" min="0" id="exo_monto" class="nxf-input mono" value="0" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nxf-actions">
+        <a class="nxf-btn nxf-btn-ghost" href="<?= site_url('facturascompras'); ?>"><?= lang('cancel'); ?></a>
+        <span class="nxf-spacer"></span>
+        <button type="button" class="nxf-btn" id="fecGuardar" disabled>
+            <?= $icono($ico_check); ?> <?= lang('emitir'); ?>
+        </button>
+    </div>
+</div>
+
 <style>
-		.ui-widget-content {
-			border: 1px solid var(--nx-border);
-			background: var(--nx-card-bg);
-			color: var(--nx-txt1);
-		}
-		.ui-menu .ui-menu-item {
-			position: relative;
-			margin: 0;
-			padding: 3px 1em 3px .4em;
-			cursor: pointer;
-			min-height: 0;
-			list-style-image: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
-		}
-		.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover,
-		.ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus {
-			border: 1px solid var(--nx-a1);
-			background: rgba(56,189,248,.15);
-			font-weight: bold;
-			color: var(--nx-a1);
-		}
-		span.ui-helper-hidden-accessible { display: none; }
-		.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th,
-		.table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
-			border-top: 1px solid var(--nx-border);
-			line-height: 1.42857;
-			padding: 3px 8px;
-			font-size: 15px;
-			vertical-align: middle;
-		}
-		.ts-control { width: 100%; }
-	</style>
-<section class="content">
-    <div class="row">
+    .fec-lista{margin-top:8px;border:1px solid var(--nxf-border,#2a3444);border-radius:10px;overflow:hidden;max-height:300px;overflow-y:auto}
+    .fec-op{padding:9px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;gap:12px}
+    .fec-op:hover,.fec-op.marcada{background:rgba(56,189,248,.12)}
+    .fec-op small{opacity:.65}
+    .fec-tabla-wrap{margin-top:16px;overflow-x:auto}
+    .fec-tabla{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+    .fec-tabla th,.fec-tabla td{padding:8px 10px;border-bottom:1px solid var(--nxf-border,#2a3444);text-align:left}
+    .fec-tabla th.num,.fec-tabla td.num{text-align:right}
+    .fec-tabla input,.fec-tabla select{width:110px;padding:6px 8px;border-radius:7px;border:1px solid var(--nxf-border,#2a3444);
+        background:var(--nxf-surface-2,rgba(148,163,184,.06));color:inherit}
+    .fec-tabla td.num input{text-align:right}
+    .fec-tabla .nombre input{width:210px}
+    .fec-tabla .quitar{background:none;border:0;color:#f87171;cursor:pointer;font-size:16px;line-height:1}
+    .fec-vacio{padding:22px;text-align:center;opacity:.6;font-size:13px}
+</style>
 
-        <div class="col-12">
-            <div class="box box-primary">
-			<div class="col-md-6">
-				<legend><?= lang('proveedor_simplificado'); ?></legend>
-				<div class="mb-3  ">
-					<label for="Cliente" class=" form-label col-md-4 text-left"><?= lang('supplier'); ?> <span
-					class="asterix"> * </span></label>
-					<div class="col-md-5">
-						<select name='userid' rows='5' id='userid' class='form-control' required>
-						<?php
-							echo "<option  value ='' selected>". lang('Seleccione') ."</option>";
-							foreach ($suppliers as $sup) {
-								echo '<option value='.$sup->id.'>'.$sup->name .'</option>';
-							}
-						?>
-						</select>
-					</div>
-					<div class="col-md-1">
-						<a class="btn btn-xs btn-info" data-bs-toggle="modal"
-						data-target="#modalAgregarCliente">
-						<i class="fa fa-plus"></i>
-						</a>
-					</div>
-					<div class="col-md-2">
-
-					</div>
-				</div>
-				<input name='id_origen' type="hidden" value="0"/>
-			</div>
-			<!-- <div class="col-md-4">
-				<legend> Datos de la Factura</legend>
-				<div class="mb-3  ">
-					<label for="id_moneda" class=" form-label col-md-4 text-left"> Moneda <span
-					class="asterix"> * </span></label>
-					<div class="col-md-6">
-						<select name='id_moneda' rows='5' id='id_moneda' class='form-control ' required>
-							<option value=""></option>
-							<option value="COL">Colones</option>
-							<option value="USD">Dólares</option>
-						</select>
-					</div>
-					<div class="col-md-2">
-					</div>
-				</div> -->
-				<div class="mb-3 hidden " hidden style="display: none;">
-					<label for="Fecha" class=" form-label col-md-4 text-left"> Fecha <span
-					class="asterix"> * </span></label>
-					<div class="col-md-6">
-						<div class="input-group m-b hidden" hidden style="width:150px !important;">
-							<input hidden value="{{date('Y-m-d')}}" type="hidden" name="date"
-							class="form-control date"/>
-							<input hidden value="{{date('Y-m-d')}}" name="date" type="hidden"
-							class="form-control date"/>
-							<span class="input-group-text"><i class="fa fa-calendar"></i></span>
-						</div>
-					</div>
-					<div class="col-md-2">
-					</div>
-				</div>
-			</div>
-			<div class="col-md-6">
-				<legend><?= lang('exoneracion_factura'); ?></legend>
-				<div class="mb-3  ">
-					<div class="col-md-6 add_exo">
-						<span class="btn btn-success add_exo"><?= lang('agregar_exoneracion'); ?></span>
-					</div>
-					<div class="col-md-6 hide_exo" style="display: none;">
-						<span class="btn btn-danger hide_exo" onclick="quitarValidaciones('#divexoneracion')"><?= lang('ocultar_formulario'); ?></span>
-					</div>
-				</div>
-					<div id="divexoneracion" style="display: none;">
-						<div class="row"></div>
-						<div class="mb-3">
-							<label for="exo_t_doc"><?= lang('tipo_doc_referencia'); ?></label>
-
-								<select name='ExoTipoDocumento' id='exo_t_doc' class='form-control ' required>
-									<option value=''></option>
-									<option value='01'>Compras Autorizadas</option>
-									<option value='02'>Ventas Exentas a Diplomaticos</option>
-									<option value='03'>Orden de compra (Instituciones públicas y otros organismos)
-									</option>
-									<option value='04'>Exenciones Dirección General de Hacienda</option>
-									<option value='05'>Transitorio V</option>
-									<option value='06'>Transitorio IX</option>
-									<option value='07'>Transitorio XVII</option>
-									<option value='99'><?= lang('otros'); ?></option>
-								</select>
-							
-						</div>
-
-						<div class="mb-3">
-							<label for="exo_numero_documento" ><?= lang('exo_numero_doc'); ?></label>
-							<input name="ExoNumeroDocumento" id="exo_numero_documento" class="form-control" required/>
-						</div>
-
-						<div class="mb-3">
-							<label for="exo_nombre_institucion" ><?= lang('exo_nombre_inst'); ?></label>
-							<input name="ExoNombreInstitucion" id="exo_nombre_institucion" class="form-control" required/>
-						</div>
-
-						<div class="mb-3">
-							<label for="exo_fecha_emision" ><?= lang('exo_fecha_emision'); ?></label>
-							<input name="ExoFechaEmision" placeholder="<?= lang('placeholder_fecha_emision'); ?>" id="exo_fecha_emision" class="form-control" required/>
-						</div>
-
-						<div class="mb-3">
-							<label for="exo_porcentaje" ><?= lang('exo_porcentaje'); ?></label>
-							<input type="text"  style="text-align: right;"name="ExoPorcentajeExoneracion" id="exo_porcentaje" class="form-control" required/>
-						</div>
-
-						<div class="mb-3">
-							<label for="aplicaExo"></label>
-							<span  id="aplicaExo" class="btn btn-warning text-center" ><?= lang('apply_exoneracion'); ?></span>
-						</div>
-					</div>
-			</div>
-			<hr/>
-			<div class="clr clear"></div>
-
-
-			<div class="col-md-12" id="sticker">
-				<hr/>
-				<a href="#" id="addManually" class="tip btn btn-success" title=""
-				   data-original-title="<?= lang('agregar_producto_manual'); ?>" tabindex="-1">
-					<i class="fa fa-2x fa-plus-circle addIcon" id="addIcon"></i>
-					<?= lang('agregar_articulo_comprado'); ?>
-				</a>
-				<div class="clearfix"></div>
-				<hr/>
-			</div>
-			<div class="clearfix"></div>
-			<div class="col-md-12">
-					<div class="control-group table-group">
-						<label class="table-label"><?= lang('items_factura'); ?>*</label>
-
-						<div class="controls table-controls">
-							<table id="slTable"
-								   class="table items table-striped table-bordered table-condensed table-hover sortable_table">
-								<thead>
-								<tr>
-									<th class="col-md-4"><?= lang('product'); ?> (<?= lang('code'); ?> - <?= lang('name'); ?>)</th>
-									<th class="col-md-2"><?= lang('serial'); ?> Nº</th>
-									<th class="col-md-1"><?= lang('price'); ?></th>
-									<th class="col-md-1"><?= lang('qty'); ?>.</th>
-									<th class="col-md-1"><?= lang('monto_total'); ?></th>
-									<th class="col-md-1"><?= lang('discount'); ?></th>
-									<th class="col-md-1"><?= lang('subtotal'); ?></th>
-									<th class="col-md-1"><?= lang('tax'); ?>.</th>
-									<th class="col-md-1"><?= lang('exoneracion'); ?></th>
-									<th class="col-md-1"><?= lang('tax'); ?>.Neto</th>
-									<th class="col-md-1"><?= lang('total'); ?></th>
-									</th>
-									<th style="width: 30px !important; text-align: center;">
-										<i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
-									</th>
-								</tr>
-								</thead>
-								<tbody></tbody>
-								<tfoot></tfoot>
-							</table>
-                </div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-12">
-						<div class="table-responsive">
-								<table class="table table-bordered table-condensed" style="width: 100%">
-									<tr>
-										<td rowspan="14" style="padding: 0; margin: 0; border: 1px solid var(--nx-border);">
-											<div class="col-md-12">
-												<h2><?= lang('formulario_pago'); ?></h2>
-											</div>
-											<div class="col-md-12">
-
-												<div class="col-sm-6">
-													<div class="mb-3">
-														<?= lang('estado_pago'); ?>
-														<select name="payment_status" class=" input-tip" required="required"
-																id="slpayment_status">
-															<option value="due" disabled><?= lang('a_credito'); ?></option>
-															<option value="partial" disabled><?= lang('partial'); ?></option>
-															<option value="paid" selected><?= lang('paid'); ?></option>
-														</select>
-		
-													</div>
-												</div>
-												<input type="hidden" name="token_post" id="token_post" value="<?= md5(date('Y-m-d H:i:s')) ?>"/>
-		
-												<div class="col-sm-6" id="credit_time">
-													<div class="mb-3">
-														<?= lang('tiempo_credito'); ?>
-														<?php
-														// $paymentmethod = explode(',', $row['paymentmethod']);
-														$paymentmethod_opt = array(
-																'0' => 'Seleccione...',
-																'4' => 'Credito 4 dias',
-																'8' => 'Credito 8 dias',
-																'15' => 'Credito 15 dias',
-																'30' => 'Credito 1 mes',
-																'45' => 'Credito 1 mes y medio',
-																'60' => 'Credito 2 meses',
-																'75' => 'Credito 2 meses y medio',
-																'90' => 'Credito 3 meses',
-																'120' => 'Credito 4 meses',
-																'150' => 'Credito 5 meses',
-																'180' => 'Credito 6 meses',
-																'210' => 'Credito 7 meses',
-																'240' => 'Credito 8 meses',
-																'270' => 'credito 9 meses',
-																'300' => 'credito 10 meses',
-																'330' => 'Credito 11 meses',
-																'360' => 'Credito 1 año',);
-														?>
-														<select name='paymentmethod' id="paymentmethod" disabled>
-															<?php
-															foreach ($paymentmethod_opt as $key => $val) {
-																echo "<option  value ='$key'>$val</option>";
-															}
-															?></select>
-		
-													</div>
-												</div>
-		
-												<div id="payments" class="col-sm-6" style="display: none;">
-		
-													<div class="mb-3">
-														<?= lang('pagar_por'); ?>
-														<select required name="paid_by_1" id="paid_by_1" class="paid_by">
-															<option value="cash"><?= lang('cash'); ?></option>
-															<option value="CC"><?= lang('tarjeta_cd'); ?>
-															</option>
-															<option value="Cheque"><?= lang('cheque'); ?></option>
-															<option value="deposit"><?= lang('deposito'); ?></option>
-														</select>
-		
-													</div>
-		
-												</div>
-											</div>
-										</td>
-										<td align="right"><?= lang('total_serv_gravados'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalServGravados">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_serv_exentos'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalServExentos">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_serv_exonerado'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalServExonerado">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_merc_gravadas'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalMercanciasGravadas">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_merc_exentas'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalMercanciasExentas">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_merc_exonerada'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalMercExonerada">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_gravado'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalGravado">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_exento'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalExento">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_exonerado'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalExonerado">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_venta'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalVenta">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_descuentos'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalDescuentos">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_venta_neta'); ?></td>
-										<td style="width: 18%;padding: 2px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalVentaNeta">0.00
-										</td>
-									</tr>
-									<tr>
-										<td align="right"><?= lang('total_impuesto_fec'); ?></td>
-										<td style="width: 18%;padding: 0px 4% 0; border-bottom: solid 1px var(--nx-border);"
-											align="right" id="TotalImpuesto">0.00
-										</td>
-									</tr>
-									<tr>
-										<td style=" font-size: 14px; font-weight: bold;" align="right"><?= lang('total_comprobante'); ?></td>
-										<td style="width: 18%;padding: 0px 4% 0; font-size: 14px; font-weight: bold;"
-											align="right" id="TotalComprobante">0.00
-										</td>
-									</tr>
-		
-								</table>
-                </div>
-								<input name="TotalServGravados" id="inp_TotalServGravados" type="hidden"/>
-								<input name="TotalServExentos" id="inp_TotalServExentos" type="hidden"/>
-								<input name="TotalServExonerado" id="inp_TotalServExonerado" type="hidden"/>
-								<input name="TotalMercanciasGravadas" id="inp_TotalMercanciasGravadas" type="hidden"/>
-								<input name="TotalMercanciasExentas" id="inp_TotalMercanciasExentas" type="hidden"/>
-								<input name="TotalMercExonerada" id="inp_TotalMercExonerada" type="hidden"/>
-								<input name="TotalGravado" id="inp_TotalGravado" type="hidden"/>
-								<input name="TotalExento" id="inp_TotalExento" type="hidden"/>
-								<input name="TotalExonerado" id="inp_TotalExonerado" type="hidden"/>
-								<input name="TotalVenta" id="inp_TotalVenta" type="hidden"/>
-								<input name="TotalDescuentos" id="inp_TotalDescuentos" type="hidden"/>
-								<input name="TotalVentaNeta" id="inp_TotalVentaNeta" type="hidden"/>
-								<input name="TotalImpuesto" id="inp_TotalImpuesto" type="hidden"/>
-								<input name="TotalComprobante" id="inp_TotalComprobante" type="hidden"/>
-		
-								<div class="mb-3">
-								<label class="col-sm-4 text-right">&nbsp;</label>
-								<div class="col-sm-8">
-
-									<button type="button" onclick="saveFec();"
-											class="btn btn-info btn-sm "><i
-												class="icon-bubble-check "></i> <?= lang('save') ?> </button>
-									<button type="button" onclick="cancelar();"
-											class="btn btn-warning btn-sm "><i
-												class="icon-cancel-circle2 "></i> <?= lang('cancel') ?></button>
-								</div>
-
-							</div>
-						</div>
-				</div>
-		</div>    
-   
-	</div>
-		<!-- Modal agregar cliente -->
-	<div class="modal fade" id="modalAgregarCliente">
-			<?php echo form_open("suppliers/add");?>
-		<div class="modal-dialog" role="document" style="background-color: white">
-				<div class="modal-header">
-					<h3 class="modal-title"><?= lang('agregar_proveedor_simplificado'); ?></h3>
-				</div>
-			<div class="modal-content">
-			<!-- <form> -->
-					<div class="col-md-12"> 
-								<div class="mb-3">
-									<label for="mname" class="col-sm-4 form-label"><?= lang('cod_act_economica'); ?> *</label>
-									<div class="col-sm-8">
-											<!-- <input required type="text" class="form-control" name="txtCodActEco" id="txtCodActEco" /> -->
-											<select required type="text" class="form-control" id="txtCodActEco" name="txtCodActEco" data-bs-toggle="tooltip" data-placement="left">
-												
-											</select>
-											<input  type="hidden" class="form-control" name="formFC" id="formFC" value="FEC" />
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="tcedula" class="col-sm-4 form-label"><?= lang('identificacion'); ?> *</label>
-									<div class="col-sm-8">
-									<?php
-								    // $pre_id_number = explode(',', $row['pre_id_number']);
-									$pre_id_number_opt = array('01' => lang('Cedula Identidad'), '02' => lang('Cedula Juridica'), '03' => lang('Dimex'), '04' => lang('NITE'), '05' => lang('passaporte'));
-									?>
-									<select required name='tcedula' id="tcedula" rows='5' class='form-control ' >
-										<?php
-										echo "<option  value ='' selected>". lang('Seleccione') ."</option>";
-										foreach ($pre_id_number_opt as $key => $val) {
-											echo "<option  value =".$key.">".$val."</option>";
-										}
-										?>
-									</select>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="mname" class="col-sm-4 form-label"><?= lang('n_identificacion'); ?> *</label>
-									<div class="col-sm-8">
-											<input required  onkeyup="obtenerActividades(this.value , '#txtCodActEco','#txtNombre','#tcedula')"  type="text" class="form-control" id="txtIdentificacion" name="txtIdentificacion"/>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="mname" class="col-sm-4 form-label"><?= lang('name'); ?> *</label>
-									<div class="col-sm-8">
-											<input required type="text" class="form-control" id="txtNombre" name="txtNombre" />
-									</div>
-								</div>
-								<div class="clearfix"></div>
-								<hr/>
-								<legend><?= lang('direccion'); ?></legend>
-								<div class="mb-3">
-									<label for="tipo_persona" class="col-sm-4 form-label"><?= lang('provincia'); ?></label>
-									<div class="col-sm-8">
-										<select required name='codigo_provincia' id='codigo_provincia' class='form-control' onchange="obtenerCanton(this.value)">
-										<?php
-											echo '<option value="" selected>'. lang('Seleccione') .'</option>';
-											foreach ($provincia as $pro) {
-												echo '<option value='.$pro->codigo_provincia.'>'.$pro->nombre_provincia .'</option>';
-											}
-										?>
-										</select>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="Canton" class="col-sm-4 form-label"><?= lang('canton'); ?></label>
-									<div class="col-sm-8">
-									<select required name='codigo_canton' id='codigo_canton'
-									class='form-control' onchange="obtenerDistrito(this.value)"></select>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="Distrito" class="col-sm-4 form-label"><?= lang('distrito'); ?></label>
-									<div class="col-sm-8">
-									<select required name='codigo_distrito' id='codigo_distrito'
-									class='form-control' onchange="obtenerBarrio(this.value)"></select>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="Barrio" class="col-sm-4 form-label"><?= lang('barrio'); ?></label>
-									<div class="col-sm-8">
-									<select required name='codigo_barrio' id='codigo_barrio'
-									class='form-control'></select>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="Barrio" class="col-sm-4 form-label"><?= lang('otras_senas'); ?></label>
-									<div class="col-sm-8">
-											<input required type="text" class="form-control" id="txtOtraSe" name="txtOtraSe" />
-									</div>
-								</div>
-								<legend><?= lang('datos_contacto'); ?></legend>
-								<div class="mb-3  ">
-									<label for="Telefonos" class=" form-label col-md-4 text-left"><?= lang('phone'); ?> <span class="asterix"> * </span></label>
-									<div class="col-md-6">
-										<input required type="text" class="form-control" id="txtTel" name="txtTel" />
-									</div>
-									<div class="col-md-2">
-									</div>
-								</div>
-								<div class="mb-3  ">
-									<label for="Email" class=" form-label col-md-4 text-left"><?= lang('email'); ?> <span class="asterix"> * </span></label>
-									<div class="col-md-6">
-											<input type="text" class="form-control" id="txtEmail" name="txtEmail" />
-									</div>
-									<div class="col-md-2">
-									</div>
-								</div>
-							</div>
-					
-			</div>
-			<div class="modal-footer">
-					<label class="text-right">&nbsp;</label>
-					<div class="text-center">
-						<?php echo form_submit('add_supplier', $this->lang->line("add_supplier"), 'class="btn btn-primary btn-sm"');?>
-						<button type="button" data-bs-dismiss="modal"
-						class="btn btn-warning btn-sm "><i
-						class="icon-cancel-circle2 "></i><?= lang('cancel'); ?> </button>
-					</div>
-			
-			</div>
-		</div>
-		<?php echo form_close();?>
-	</div>
-
-	<div class="modal" id="prModal" tabindex="-1" role="dialog" aria-labelledby="prModalLabel" aria-hidden="true">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-bs-dismiss="modal"><span aria-hidden="true"><i
-										class="fa fa-2x">&times;</i></span><span class="sr-only"><?= lang('cancel'); ?></span></button>
-						<h4 class="modal-title" id="prModalLabel"></h4>
-					</div>
-					<div class="modal-body needs-validation" id="pr_popover_content" novalidate>
-						<form class="form-horizontal" role="form">
-	
-							<div class="mb-3">
-								<label class="col-sm-4 form-label"><?= lang('tax'); ?></label>
-								<div class="col-sm-8">
-	
-									<select style="padding: 0;" name="ptax" id="ptax" class="form-control"
-											tabindex="-1"
-											title="" data-original-title="<?= lang('impuesto_producto'); ?> *" required>
-										<option value="" selected="selected"></option>
-										<?php
-											foreach($impuesto as $imp){
-												echo '<option value='.$imp->id_impuesto.'>'.$imp->descripcion_impuesto .'</option>';
-											}
-										?>
-									</select>
-								</div>
-							</div>
-	
-	
-							<div class="mb-3">
-								<label for="pserial" class="col-sm-4 form-label"><?= lang('serial'); ?></label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="pserial" >
-								</div>
-							</div>
-	
-							<div class="mb-3">
-								<label for="pquantity" class="col-sm-4 form-label"><?= lang('qty'); ?></label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="pquantity" required>
-								</div>
-							</div>
-							<div class="mb-3">
-								<label for="punit" class="col-sm-4 form-label"><?= lang('unidad'); ?></label>
-								<div class="col-sm-8">
-									<select style="padding: 0;" name="punit" id="punit"
-											class="col-md-12  form-control input-tip select" tabindex="-1"
-											title="" data-original-title="<?= lang('unidad'); ?> *" required>
-										<option value=""></option>
-										<option value="Sp"><?= lang('servicios_profesionales'); ?></option>
-										<option value="m"><?= lang('metro'); ?></option>
-										<option value="kg"><?= lang('kilogramo'); ?></option>
-										<option value="m²"><?= lang('metro_cuadrado'); ?></option>
-										<option value="m³"><?= lang('metro_cubico'); ?></option>
-										<option value="´"><?= lang('minuto'); ?></option>
-										<option value="h"><?= lang('hora'); ?></option>
-										<option value="d"><?= lang('dia'); ?></option>
-										<option value="L"><?= lang('litro'); ?></option>
-										<option value="t"><?= lang('tonelada'); ?></option>
-										<option value="Unid"><?= lang('unidad'); ?></option>
-										<option value="Gal"><?= lang('galon'); ?></option>
-									</select>
-								</div>
-							</div>
-	
-							<div class="mb-3">
-								<label for="pdiscount" class="col-sm-4 form-label"><?= lang('discount'); ?></label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="pdiscount">
-								</div>
-							</div>
-	
-							<div class="mb-3">
-								<label for="pprice" class="col-sm-4 form-label"><?= lang('price'); ?></label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="pprice" required>
-								</div>
-							</div>
-                <div class="table-responsive">
-							<table class="table table-bordered table-striped">
-								<tr>
-									<th style="width:25%;"><?= lang('precio_neto'); ?></th>
-									<th style="width:25%;"><span id="net_price"></span></th>
-									<th style="width:25%;"><?= lang('impuesto_producto'); ?></th>
-									<th style="width:25%;"><span id="pro_tax"></span></th>
-	
-								</tr>
-							</table>
-                </div>
-							<input type="hidden" id="punit_price" value=""/>
-							<input type="hidden" id="old_tax" value=""/>
-							<input type="hidden" id="old_qty" value=""/>
-							<input type="hidden" id="old_price" value=""/>
-							<input type="hidden" id="row_id" value=""/>
-						</form>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" id="editItem"><?= lang('edit'); ?></button>
-					</div>
-				</div>
-			</div>
-		</div>
-	
-		<div class="modal" id="mModal" tabindex="-1" role="dialog" aria-labelledby="mModalLabel" aria-hidden="true"
-			 style="display: none;">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-bs-dismiss="modal" tabindex="-1"><span aria-hidden="true"><i
-										class="fa fa-2x">×</i></span><span class="sr-only"><?= lang('cancel'); ?></span></button>
-						<h4 class="modal-title" id="mModalLabel"><?= lang('agregar_producto_manual'); ?></h4>
-					</div>
-					<div class="modal-body needs-validation" id="pr_popover_content2" novalidate>
-						<form class="form-horizontal" role="form">
-							<div class="mb-3">
-								<label for="mitem_type" class="col-sm-4 form-label"><?= lang('tipo_producto'); ?></label>
-	
-								<div class="col-sm-8">
-	
-									<select required="required" style="padding: 0;" name="mitem_type" id="mitem_type"
-											class="col-md-12  form-control input-tip select" tabindex="-1"
-											title="" data-original-title="<?= lang('tipo_items'); ?>" required>
-										<option value="standard"><?= lang('mercancia'); ?></option>
-										<option value="service"><?= lang('service'); ?></option>
-									</select>
-								</div>
-							</div>
-							<div class="mb-3">
-								<label for="mcode" class="col-sm-4 form-label"><?= lang('product_code'); ?> *</label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="mcode" value="" required="required">
-								</div>
-							</div>
-							<div class="mb-3">
-								<label for="mname" class="col-sm-4 form-label"><?= lang('name'); ?> *</label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="mname" value="" required="required">
-								</div>
-							</div>
-							<div class="mb-3">
-								<label for="mtax" class="col-sm-4 form-label"><?= lang('tipo_impuesto'); ?> *</label>
-	
-								<div class="col-sm-8">
-	
-									<select style="padding: 0;" name="mtax" id="mtax" class="form-control"
-											tabindex="-1"
-											title="" data-original-title="<?= lang('impuesto_producto'); ?> *">
-										<option value="" selected="selected"></option>
-										<?php
-											foreach($impuesto as $imp){
-												echo '<option value='.$imp->id_impuesto.'>'.$imp->descripcion_impuesto .'</option>';
-											}
-										?>
-									</select>
-								</div>
-							</div>
-	
-	
-							<div class="mb-3">
-								<label for="mquantity" class="col-sm-4 form-label"><?= lang('qty'); ?> *</label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="mquantity" value="1" required="required">
-								</div>
-							</div>
-							<div class="mb-3">
-								<label for="munit" class="col-sm-4 form-label"><?= lang('unidad'); ?> *</label>
-	
-								<div class="col-sm-8">
-	
-									<select style="padding: 0;" name="munit" id="munit" class="form-control" tabindex="-1"
-											title="" data-original-title="<?= lang('unidad'); ?> *" required="required">
-										<option value=""></option>
-										<option value="Sp"><?= lang('servicios_profesionales'); ?></option>
-										<option value="m"><?= lang('metro'); ?></option>
-										<option value="kg"><?= lang('kilogramo'); ?></option>
-										<option value="m²"><?= lang('metro_cuadrado'); ?></option>
-										<option value="m³"><?= lang('metro_cubico'); ?></option>
-										<option value="´"><?= lang('minuto'); ?></option>
-										<option value="h"><?= lang('hora'); ?></option>
-										<option value="d"><?= lang('dia'); ?></option>
-										<option value="L"><?= lang('litro'); ?></option>
-										<option value="t"><?= lang('tonelada'); ?></option>
-										<option value="Unid"><?= lang('unidad'); ?></option>
-										<option value="Gal"><?= lang('galon'); ?></option>
-									</select>
-								</div>
-							</div>
-							<div class="mb-3">
-								<label for="mdiscount" class="col-sm-4 form-label"><?= lang('discount'); ?></label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="mdiscount" >
-								</div>
-							</div>
-							<div class="mb-3">
-								<label for="mprice" class="col-sm-4 form-label"><?= lang('unit_price'); ?> *</label>
-	
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="mprice" value="" required>
-								</div>
-							</div>
-                <div class="table-responsive">
-							<table class="table table-bordered table-striped">
-								<tbody>
-								<tr>
-									<th style="width:25%;"><?= lang('precio_unitario_neto'); ?></th>
-									<th style="width:25%;"><span id="mnet_price">0.00</span></th>
-									<th style="width:25%;"><?= lang('impuesto_producto'); ?></th>
-									<th style="width:25%;"><span id="mpro_tax">0.00</span></th>
-								</tr>
-								</tbody>
-							</table>
-                </div>
-						</form>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" id="addItemManually" tabindex="-1"><?= lang('submit'); ?></button>
-					</div>
-				</div>
-			</div>
-		</div>
-</section>
 <script>
-$(document).ready(function(){
-	localStorage.setItem("tax_rates_fec", '<?= json_encode((array)$impuesto) ?>');
-});
+(function () {
+    'use strict';
+
+    var URL_BUSCAR  = '<?= site_url('products/suggestions'); ?>';
+    var URL_GUARDAR = '<?= site_url('facturascompras/guardar_fec'); ?>';
+    var CSRF_NOMBRE = '<?= $this->security->get_csrf_token_name(); ?>';
+    var CSRF_HASH   = '<?= $this->security->get_csrf_hash(); ?>';
+    var TOKEN_POST  = '<?= md5(date('Y-m-d H:i:s') . mt_rand()); ?>';
+    var IMPUESTOS   = <?= json_encode(array_map(function ($i) {
+                            return array('id' => $i->id_impuesto, 'tasa' => (float) $i->tasa_impuesto,
+                                         'desc' => $i->descripcion_impuesto);
+                        }, (array) $impuesto)); ?>;
+    var DECIMALES   = <?= (int) ($Settings->decimals ?? 2); ?>;
+
+    var T = {
+        sinProveedor: <?= json_encode(lang('fec_sin_proveedor')); ?>,
+        incompleto:   <?= json_encode(lang('fec_proveedor_incompleto')); ?>,
+        sinLineas:    <?= json_encode(lang('fec_sin_lineas')); ?>,
+        errorRed:     <?= json_encode(lang('inv_error_red')); ?>,
+        emitida:      <?= json_encode(lang('fec_emitida')); ?>
+    };
+
+    var UNIDADES = <?= json_encode($unidades); ?>;
+
+    var lineas = [];
+    var sugerencias = [];
+    var marcada = -1;
+    var temporizador = null;
+
+    var $ = function (id) { return document.getElementById(id); };
+    var $cuerpo = $('fecCuerpo'), $sug = $('fecSugerencias'), $buscar = $('fecBuscar');
+
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+    function num(v) { var n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; }
+    function fmt(n) { return num(n).toFixed(DECIMALES); }
+
+    function tasaDe(id) {
+        for (var i = 0; i < IMPUESTOS.length; i++) {
+            if (String(IMPUESTOS[i].id) === String(id)) { return IMPUESTOS[i].tasa; }
+        }
+        return 0;
+    }
+
+    // El precio se digita con impuesto incluido, igual que en la factura del
+    // proveedor: el neto se despeja, no se suma encima.
+    function neto(l) {
+        var t = tasaDe(l.id_tax);
+        return t > 0 ? l.unit_price - (l.unit_price * t) / (100 + t) : l.unit_price;
+    }
+    function subtotal(l) { return (neto(l) * l.quantity) - l.discount; }
+    function impuesto(l) { return subtotal(l) * (tasaDe(l.id_tax) / 100); }
+
+    function opcionesImpuesto(id) {
+        return IMPUESTOS.map(function (i) {
+            return '<option value="' + i.id + '"' + (String(i.id) === String(id) ? ' selected' : '') + '>'
+                 + esc(i.tasa) + '%</option>';
+        }).join('');
+    }
+    function opcionesUnidad(u) {
+        return Object.keys(UNIDADES).map(function (k) {
+            return '<option value="' + esc(k) + '"' + (k === u ? ' selected' : '') + '>' + esc(UNIDADES[k]) + '</option>';
+        }).join('');
+    }
+
+    function pintar() {
+        $cuerpo.innerHTML = '';
+        var n = 0, imp = 0;
+
+        lineas.forEach(function (l, i) {
+            n += neto(l) * l.quantity - l.discount;
+            imp += impuesto(l);
+
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td class="nombre"><input type="text" data-i="' + i + '" data-campo="name" value="' + esc(l.name) + '">'
+              + '<br><small>' + esc(l.code) + '</small></td>'
+              + '<td><select data-i="' + i + '" data-campo="unit">' + opcionesUnidad(l.unit) + '</select></td>'
+              + '<td class="num"><input type="number" step="any" min="0" data-i="' + i + '" data-campo="quantity" value="' + esc(l.quantity) + '"></td>'
+              + '<td class="num"><input type="number" step="any" min="0" data-i="' + i + '" data-campo="unit_price" value="' + esc(l.unit_price) + '"></td>'
+              + '<td class="num"><input type="number" step="any" min="0" data-i="' + i + '" data-campo="discount" value="' + esc(l.discount) + '"></td>'
+              + '<td><select data-i="' + i + '" data-campo="id_tax">' + opcionesImpuesto(l.id_tax) + '</select></td>'
+              + '<td class="num">' + fmt(subtotal(l) + impuesto(l)) + '</td>'
+              + '<td><button type="button" class="quitar" data-quitar="' + i + '" aria-label="x">&times;</button></td>';
+            $cuerpo.appendChild(tr);
+        });
+
+        $('fecNeto').textContent = fmt(n);
+        $('fecImpuesto').textContent = fmt(imp);
+        $('fecTotal').textContent = fmt(n + imp);
+        $('fecVacio').style.display = lineas.length ? 'none' : '';
+        $('fecGuardar').disabled = (lineas.length === 0 || !$('proveedor').value);
+
+        // La exoneración se calcula sobre el impuesto, no sobre el total.
+        var pct = num($('exo_porcentaje').value);
+        $('exo_monto').value = $('usaExoneracion').checked ? (imp * pct / 100).toFixed(5) : 0;
+    }
+
+    function agregar(p) {
+        lineas.push({
+            product_id: p ? p.id : 0,
+            code: p ? p.code : '',
+            name: p ? p.name : '',
+            type: p && p.type === 'service' ? 'service' : 'standard',
+            unit: p && p.unit ? p.unit : 'Unid',
+            quantity: 1,
+            unit_price: p ? p.price : 0,
+            discount: 0,
+            id_tax: p && p.id_tax ? p.id_tax : (IMPUESTOS.length ? IMPUESTOS[0].id : 0)
+        });
+        pintar();
+    }
+
+    function pintarSugerencias() {
+        if (!sugerencias.length) { $sug.style.display = 'none'; return; }
+        $sug.innerHTML = sugerencias.map(function (p, i) {
+            return '<div class="fec-op' + (i === marcada ? ' marcada' : '') + '" data-sug="' + i + '">'
+                 + '<span>' + esc(p.name) + '</span><small>' + esc(p.code) + '</small></div>';
+        }).join('');
+        $sug.style.display = '';
+    }
+
+    $buscar.addEventListener('input', function () {
+        var q = $buscar.value.trim();
+        clearTimeout(temporizador);
+        if (q.length < 2) { sugerencias = []; pintarSugerencias(); return; }
+        temporizador = setTimeout(function () {
+            fetch(URL_BUSCAR + '?term=' + encodeURIComponent(q), {
+                credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .then(function (lista) {
+                    sugerencias = (Array.isArray(lista) ? lista : []).filter(function (x) { return x.item_id; })
+                        .map(function (x) {
+                            return { id: x.row.id, code: x.row.code, name: x.row.name, price: num(x.row.price),
+                                     type: x.row.type, unit: x.row.unit_of_measurement, id_tax: x.row.id_tax };
+                        });
+                    marcada = sugerencias.length ? 0 : -1;
+                    pintarSugerencias();
+                })
+                .catch(function () {});
+        }, 220);
+    });
+
+    $buscar.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (!sugerencias.length) { return; }
+            marcada = (marcada + (e.key === 'ArrowDown' ? 1 : -1) + sugerencias.length) % sugerencias.length;
+            pintarSugerencias();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (marcada >= 0 && sugerencias[marcada]) {
+                agregar(sugerencias[marcada]);
+                sugerencias = []; marcada = -1; pintarSugerencias();
+                $buscar.value = '';
+            }
+        } else if (e.key === 'Escape') {
+            sugerencias = []; marcada = -1; pintarSugerencias();
+        }
+    });
+
+    $sug.addEventListener('click', function (e) {
+        var op = e.target.closest('[data-sug]');
+        if (!op) { return; }
+        agregar(sugerencias[parseInt(op.dataset.sug, 10)]);
+        sugerencias = []; marcada = -1; pintarSugerencias();
+        $buscar.value = '';
+        $buscar.focus();
+    });
+
+    $('fecManual').addEventListener('click', function () { agregar(null); });
+
+    $cuerpo.addEventListener('input', function (e) {
+        var campo = e.target.closest('[data-campo]');
+        if (!campo) { return; }
+        var l = lineas[parseInt(campo.dataset.i, 10)];
+        if (!l) { return; }
+        l[campo.dataset.campo] = (campo.dataset.campo === 'name' || campo.dataset.campo === 'unit')
+            ? campo.value : num(campo.value);
+        if (campo.dataset.campo === 'id_tax') { l.id_tax = campo.value; }
+
+        var fila = campo.closest('tr');
+        fila.children[6].textContent = fmt(subtotal(l) + impuesto(l));
+
+        var n = 0, imp = 0;
+        lineas.forEach(function (x) { n += neto(x) * x.quantity - x.discount; imp += impuesto(x); });
+        $('fecNeto').textContent = fmt(n);
+        $('fecImpuesto').textContent = fmt(imp);
+        $('fecTotal').textContent = fmt(n + imp);
+        var pct = num($('exo_porcentaje').value);
+        $('exo_monto').value = $('usaExoneracion').checked ? (imp * pct / 100).toFixed(5) : 0;
+    });
+    $cuerpo.addEventListener('change', function (e) {
+        if (e.target.matches('select[data-campo]')) { pintar(); }
+    });
+
+    $cuerpo.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-quitar]');
+        if (!b) { return; }
+        lineas.splice(parseInt(b.dataset.quitar, 10), 1);
+        pintar();
+    });
+
+    /* ── Proveedor ── */
+    $('proveedor').addEventListener('change', function () {
+        var op = this.selectedOptions[0];
+        var aviso = '';
+        if (op && op.value) {
+            var suelto = (op.dataset.cf1 === '05' || op.dataset.cf1 === '06');
+            if (!suelto && (!op.dataset.provincia || !op.dataset.email)) { aviso = T.incompleto; }
+            if (op.dataset.plazo && num(op.dataset.plazo) > 0) { $('plazo').value = op.dataset.plazo; }
+        }
+        $('hintProveedor').textContent = aviso;
+        pintar();
+    });
+
+    /* ── Pago ── */
+    function alternarPago() {
+        var credito = $('payment_status').value === 'due';
+        $('wrapPlazo').hidden = !credito;
+        $('wrapPagoPor').hidden = credito;
+    }
+    $('payment_status').addEventListener('change', alternarPago);
+
+    /* ── Exoneración ── */
+    $('usaExoneracion').addEventListener('change', function () {
+        $('bloqueExoneracion').hidden = !this.checked;
+        pintar();
+    });
+    $('exo_porcentaje').addEventListener('input', pintar);
+
+    /* ── Emitir ── */
+    $('fecGuardar').addEventListener('click', function () {
+        if (!$('proveedor').value) { avisar(T.sinProveedor, 'err'); return; }
+        if (!lineas.length) { avisar(T.sinLineas, 'err'); return; }
+
+        var cuerpo = new FormData();
+        cuerpo.set(CSRF_NOMBRE, CSRF_HASH);
+        cuerpo.set('proveedor', $('proveedor').value);
+        cuerpo.set('payment_status', $('payment_status').value);
+        cuerpo.set('plazo', $('plazo').value);
+        cuerpo.set('paid_by', $('paid_by').value);
+        cuerpo.set('token_post', TOKEN_POST);
+        cuerpo.set('lineas', JSON.stringify(lineas));
+
+        if ($('usaExoneracion').checked) {
+            cuerpo.set('exo_tipo', $('exo_tipo').value);
+            cuerpo.set('exo_documento', $('exo_documento').value);
+            cuerpo.set('exo_institucion', $('exo_institucion').value);
+            cuerpo.set('exo_fecha', $('exo_fecha').value);
+            cuerpo.set('exo_porcentaje', $('exo_porcentaje').value);
+            cuerpo.set('exo_monto', $('exo_monto').value);
+        }
+
+        $('fecGuardar').disabled = true;
+        fetch(URL_GUARDAR, { method: 'POST', body: cuerpo, credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!Array.isArray(d) || d[0] !== 'success') {
+                    avisar((Array.isArray(d) && d[1]) ? d[1] : T.errorRed, 'err');
+                    $('fecGuardar').disabled = false;
+                    return;
+                }
+                avisar(T.emitida, 'ok');
+                window.location = '<?= site_url('facturascompras/view_fec'); ?>/' + d[2];
+            })
+            .catch(function () {
+                avisar(T.errorRed, 'err');
+                $('fecGuardar').disabled = false;
+            });
+    });
+
+    function avisar(texto, tono) {
+        var el = $('fecAviso');
+        el.className = 'nxf-note nxf-note-' + tono;
+        el.innerHTML = texto;
+        el.hidden = false;
+    }
+
+    alternarPago();
+    pintar();
+})();
 </script>
-<script src="<?= $assets ?>dist/js/fec.min.js?v=<?= rand(); ?>" type="text/javascript"></script>

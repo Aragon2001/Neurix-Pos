@@ -1,10 +1,16 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
-<section class="content">
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<div class="nxf-page">
   <div class="row">
     <div class="col-md-8">
-      <div class="box box-warning">
-        <div class="box-header"><h3 class="box-title"><?= lang('nueva_nota_debito'); ?> — <?= lang('invoice'); ?> #<?= $sale->id ?></h3></div>
-        <div class="box-body">
+      <div class="nxf-card">
+        <div class="nxf-card-head"><div class="nxf-card-title"><?= lang('nueva_nota_debito'); ?> — <?= lang('invoice'); ?> #<?= $sale->id ?></div></div>
+        <div class="nxf-card-body">
           <p><strong><?= lang('customer'); ?>:</strong> <?= htmlspecialchars(isset($customer->name) ? $customer->name : '') ?> | <strong><?= lang('date'); ?>:</strong> <?= $sale->date ?> | <strong><?= lang('grand_total'); ?>:</strong> <?= number_format($sale->grand_total, 2) ?></p>
           <hr>
           <?= form_open('debitnotes/create') ?>
@@ -61,13 +67,28 @@
       </div>
     </div>
   </div>
-</section>
+</div>
 <script>
-$(function(){
-  $('#add-row').on('click', function(){
-    var row = '<tr><td><input type="text" name="item_name[]" class="form-control" placeholder="<?= lang('description'); ?>" required></td><td><input type="number" name="item_qty[]" class="form-control" value="1" min="0.001" step="0.001"></td><td><input type="number" name="item_price[]" class="form-control" value="0" min="0" step="0.01"></td><td><input type="number" name="item_tax[]" class="form-control" value="13" min="0" max="100"></td><td><button type="button" class="btn btn-danger btn-xs remove-row"><i class="fa fa-trash"></i></button></td></tr>';
-    $('#nd-items tbody').append(row);
-  });
-  $(document).on('click', '.remove-row', function(){ $(this).closest('tr').remove(); });
-});
+(function () {
+    'use strict';
+
+    var cuerpo = document.querySelector('#nd-items tbody');
+    var agregar = document.getElementById('add-row');
+    if (!cuerpo || !agregar) { return; }
+
+    agregar.addEventListener('click', function () {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td><input type="text" name="item_name[]" class="form-control" placeholder="<?= lang('description'); ?>" required></td>'
+          + '<td><input type="number" name="item_qty[]" class="form-control" value="1" min="0.001" step="0.001"></td>'
+          + '<td><input type="number" name="item_price[]" class="form-control" value="0" min="0" step="0.01"></td>'
+          + '<td><input type="number" name="item_tax[]" class="form-control" value="13" min="0" max="100"></td>'
+          + '<td><button type="button" class="btn btn-danger btn-xs remove-row"><i class="fa fa-trash"></i></button></td>';
+        cuerpo.appendChild(tr);
+    });
+
+    cuerpo.addEventListener('click', function (e) {
+        if (e.target.closest('.remove-row')) { e.target.closest('tr').remove(); }
+    });
+})();
 </script>

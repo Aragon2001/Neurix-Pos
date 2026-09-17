@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="modal-dialog">
     <div class="modal-content">
@@ -162,48 +168,38 @@
 <?php
 if ($Settings->remote_printing == 2) {
 ?>
-<script type="text/javascript">
+<script>
+(function () {
+    'use strict';
+
     var socket = null;
-    $(document).ready(function() {
-        try {
-            socket = new WebSocket('ws://127.0.0.1:6441');
-            socket.onopen = function () {
-                console.log('Connected');
-                return;
-            };
-            socket.onclose = function () {
-                console.log('Connection closed');
-                return;
-            };
-        } catch (e) {
-            console.log(e);
+    try {
+        socket = new WebSocket('ws://127.0.0.1:6441');
+    } catch (e) {
+        socket = null;
+    }
+
+    var boton = document.getElementById('print-register-details');
+    if (!boton) { return; }
+
+    boton.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!socket || socket.readyState !== 1) {
+            alert(<?= json_encode(lang('pos_print_error')); ?>);
+            return;
         }
-        function printRegister(data) {
-            if (socket.readyState == 1) {
-                socket.send(JSON.stringify({
-                    type: 'print-data',
-                    data: data
-                }));
-                return false;
-            } else {
-                bootbox.alert('<?= lang('pos_print_error'); ?>');
-                return false;
-            }
-        }
-        $('#print-register-details').click(function(e) {
-            e.preventDefault();
-            $.get('<?= site_url('pos/print_register/2'); ?>', function(regData) {
-                printRegister(regData);
-                return false;
-            });
-            return false;
-        });
+        fetch(<?= json_encode(site_url('pos/print_register/2')); ?>, {
+            credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (r) { return r.ok ? r.text() : null; })
+            .then(function (datos) {
+                if (datos === null) { alert(<?= json_encode(lang('pos_print_error')); ?>); return; }
+                socket.send(JSON.stringify({ type: 'print-data', data: datos }));
+            })
+            .catch(function () { alert(<?= json_encode(lang('pos_print_error')); ?>); });
     });
+})();
 </script>
 <?php
 }
 ?>
-<script type="text/javascript">
-    $(document).ready(function() {
-    });
-</script>

@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 require(dirname(__FILE__) . '/hacienda/firmador.php');
 
 use Hacienda\Firmador;

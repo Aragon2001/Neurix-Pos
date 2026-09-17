@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 <?php $type_document = 1; ?>
 
 <div class="modal-dialog" role="document">
@@ -25,7 +31,7 @@
                             echo $store->address1.'<br>'.$store->address2;
                             echo $store->city.'<br>'.$store->phone;
                             echo '</p>';
-                            echo '<p>'.nl2br($store->receipt_header).'</p>';
+                            echo '<p>'.nl2br($store->receipt_header ?? '').'</p>';
                         }
                         ?>
                     </div>
@@ -61,7 +67,7 @@
                         <tfoot>
                             <tr>
                                 <th colspan="2" style="text-align:left;"><?= lang("total"); ?></th>
-                                <th colspan="2" style="text-align:right;"><?= $this->tec->formatMoney($inv->total + $inv->product_tax); ?></th>
+                                <th colspan="2" style="text-align:right;"><?= $this->tec->formatMoney($inv->total + ($inv->product_tax ?? 0)); ?></th>
                             </tr>
                             <?php
                             if ($inv->order_tax != 0) {
@@ -145,7 +151,7 @@
 
                     ?>
 
-                    <?= $inv->note ? '<p style="margin-top:10px; text-align: center;">' . $this->tec->decode_html($inv->note) . '</p>' : ''; ?>
+                    <?= $inv->note ? '<p style="margin-top:10px; text-align: center;">' . nota_segura($inv->note) . '</p>' : ''; ?>
                     <div class="well well-sm"  style="margin-top:10px;">
                         <div style="text-align: center;"><?= nl2br($store->receipt_footer); ?></div>
                     </div>
@@ -172,40 +178,45 @@
     </div>
 </div>
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('#print').click(function (e) {
+<script>
+(function () {
+    'use strict';
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    var imprimir = $('print');
+    if (imprimir) {
+        imprimir.addEventListener('click', function (e) {
             e.preventDefault();
-            var link = $(this).attr('href');
-            $.get(link);
-            return false;
+            fetch(imprimir.getAttribute('href'), {
+                credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).catch(function () {});
         });
-        $('#email').click(function () {
-            bootbox.prompt({
-                title: "<?= lang("email_address"); ?>",
-                inputType: 'email',
-                value: "<?= $customer->email; ?>",
-                callback: function (email) {
-                    if (email != null) {
-                        $.ajax({
-                            type: "post",
-                            url: "<?= site_url('pos/email_receipt') ?>",
-                            data: {<?= $this->security->get_csrf_token_name(); ?>: "<?= $this->security->get_csrf_hash(); ?>", email: email, id: <?= $inv->id; ?>},
-                            dataType: "json",
-                            success: function (data) {
-                                bootbox.alert({message: data.msg, size: 'small'});
-                            },
-                            error: function () {
-                                bootbox.alert({message: '<?= lang('ajax_request_failed'); ?>', size: 'small'});
-                                return false;
-                            }
-                        });
-                    }
-                }
-            });
-            return false;
+    }
+
+    var correo = $('email');
+    if (correo) {
+        correo.addEventListener('click', function (e) {
+            e.preventDefault();
+            var destino = prompt(<?= json_encode(lang('email_address')); ?>, <?= json_encode($customer->email); ?>);
+            if (!destino) { return; }
+
+            var cuerpo = new FormData();
+            cuerpo.set(<?= json_encode($this->security->get_csrf_token_name()); ?>, <?= json_encode($this->security->get_csrf_hash()); ?>);
+            cuerpo.set('email', destino);
+            cuerpo.set('id', <?= (int) $inv->id; ?>);
+
+            fetch(<?= json_encode(site_url('pos/email_receipt')); ?>, {
+                method: 'POST', body: cuerpo, credentials: 'same-origin'
+            })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) {
+                    alert(d && d.msg ? d.msg : <?= json_encode(lang('ajax_request_failed')); ?>);
+                })
+                .catch(function () { alert(<?= json_encode(lang('ajax_request_failed')); ?>); });
         });
-    });
+    }
+})();
 </script>
 
 <?php include FCPATH.'themes/default/views/pos/remote_printing.php'; ?>

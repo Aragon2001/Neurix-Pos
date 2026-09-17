@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="modal-dialog">
     <div class="modal-content">
@@ -22,7 +28,7 @@
                                 </tr>
                                 <tr>
                                     <td class="col-2"><?= lang('reference'); ?></td>
-                                    <td class="col-10"><?= $purchase->reference; ?></td>
+                                    <td class="col-10"><?= html_escape($purchase->reference); ?></td>
                                 </tr>
                                 <?php
                                 if ($purchase->attachment) {
@@ -37,7 +43,7 @@
                                     ?>
                                     <tr>
                                         <td class="col-2"><?= lang('note'); ?></td>
-                                        <td class="col-10"><?= $purchase->note; ?></td>
+                                        <td class="col-10"><?= html_escape($purchase->note); ?></td>
                                     </tr>
                                     <?php
                                 }

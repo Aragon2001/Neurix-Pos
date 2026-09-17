@@ -146,18 +146,18 @@ CREATE TABLE `tec_settings` (
   `smtp_port` VARCHAR(10) DEFAULT NULL,
   `smtp_crypto` VARCHAR(10) DEFAULT NULL,
   `pin_code` VARCHAR(100) DEFAULT NULL,
-  `focus_add_item` TINYINT(1) DEFAULT 1,
-  `edit_last_product` TINYINT(1) DEFAULT 0,
-  `add_customer` TINYINT(1) DEFAULT 1,
-  `toggle_category_slider` TINYINT(1) DEFAULT 1,
-  `cancel_sale` TINYINT(1) DEFAULT 1,
-  `suspend_sale` TINYINT(1) DEFAULT 1,
-  `print_order` TINYINT(1) DEFAULT 0,
-  `print_bill` TINYINT(1) DEFAULT 1,
-  `finalize_sale` TINYINT(1) DEFAULT 1,
-  `today_sale` TINYINT(1) DEFAULT 1,
-  `open_hold_bills` TINYINT(1) DEFAULT 1,
-  `close_register` TINYINT(1) DEFAULT 1,
+  `focus_add_item` VARCHAR(20) DEFAULT 'F3',
+  `edit_last_product` VARCHAR(20) DEFAULT 'F7',
+  `add_customer` VARCHAR(20) DEFAULT 'F6',
+  `toggle_category_slider` VARCHAR(20) DEFAULT 'F8',
+  `cancel_sale` VARCHAR(20) DEFAULT 'F9',
+  `suspend_sale` VARCHAR(20) DEFAULT 'F10',
+  `print_order` VARCHAR(20) DEFAULT 'ALT+O',
+  `print_bill` VARCHAR(20) DEFAULT 'ALT+B',
+  `finalize_sale` VARCHAR(20) DEFAULT 'F4',
+  `today_sale` VARCHAR(20) DEFAULT 'ALT+V',
+  `open_hold_bills` VARCHAR(20) DEFAULT 'ALT+S',
+  `close_register` VARCHAR(20) DEFAULT 'ALT+R',
   `rounding` TINYINT(1) DEFAULT 0,
   `item_addition` VARCHAR(20) DEFAULT 'add',
   `stripe` TINYINT(1) DEFAULT 0,
@@ -220,7 +220,14 @@ CREATE TABLE `tec_settings` (
   `mail_client_tipo` VARCHAR(120) DEFAULT NULL,
   `mail_client_user` VARCHAR(120) DEFAULT NULL,
   `mail_client_pass` VARCHAR(120) DEFAULT NULL,
+  `mail_client_crypto` VARCHAR(10) DEFAULT 'ssl',
+  `mail_client_carpeta` VARCHAR(100) DEFAULT 'INBOX',
   `is_gmail` TINYINT(1) NOT NULL DEFAULT 0,
+  `mail_auth` VARCHAR(20) NOT NULL DEFAULT 'password',
+  `mail_client_auth` VARCHAR(20) NOT NULL DEFAULT 'password',
+  `mail_client_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+  `google_client_id` VARCHAR(255) DEFAULT NULL,
+  `google_client_secret` VARCHAR(255) DEFAULT NULL,
   `show_categories` TINYINT(1) NOT NULL DEFAULT 1,
   `mailpath` VARCHAR(255) DEFAULT NULL,
   `cash_drawer_codes` VARCHAR(100) DEFAULT NULL,
@@ -231,6 +238,10 @@ CREATE TABLE `tec_settings` (
   `password_token_prod` VARCHAR(150) DEFAULT NULL,
   `certificado_ced` VARCHAR(150) DEFAULT NULL,
   `certificado_pin` VARCHAR(50) DEFAULT NULL,
+  `certificado_ced_test` VARCHAR(150) DEFAULT NULL,
+  `certificado_pin_test` VARCHAR(150) DEFAULT NULL,
+  `certificado_ced_prod` VARCHAR(150) DEFAULT NULL,
+  `certificado_pin_prod` VARCHAR(150) DEFAULT NULL,
   `cedula_emisor` VARCHAR(20) DEFAULT NULL,
   `tipo_doc_emisor` VARCHAR(2) DEFAULT '02',
   `nombre_emisor` VARCHAR(150) DEFAULT NULL,
@@ -249,6 +260,13 @@ CREATE TABLE `tec_settings` (
   `usuario_lic` VARCHAR(100) DEFAULT NULL,
   `footer_hacienda_fe` TEXT,
   `footer_hacienda_nc` TEXT,
+  `clave_ultima` VARCHAR(60) DEFAULT NULL,
+  `consec_inicial_01` INT(11) NOT NULL DEFAULT 0,
+  `consec_inicial_02` INT(11) NOT NULL DEFAULT 0,
+  `consec_inicial_03` INT(11) NOT NULL DEFAULT 0,
+  `consec_inicial_04` INT(11) NOT NULL DEFAULT 0,
+  `consec_inicial_08` INT(11) NOT NULL DEFAULT 0,
+  `consec_inicial_09` INT(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`setting_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -276,6 +294,12 @@ CREATE TABLE `tec_stores` (
   `city` VARCHAR(100) DEFAULT NULL,
   `state` VARCHAR(100) DEFAULT NULL,
   `zip` VARCHAR(20) DEFAULT NULL,
+  `postal_code` VARCHAR(20) DEFAULT NULL,
+  `country` VARCHAR(100) DEFAULT NULL,
+  `logo` VARCHAR(255) DEFAULT NULL,
+  `image` VARCHAR(255) DEFAULT NULL,
+  `receipt_header` TEXT,
+  `receipt_footer` TEXT,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -522,6 +546,8 @@ CREATE TABLE `tec_sales` (
   `total_quantity` DECIMAL(15,4) NOT NULL DEFAULT 0,
   `item_tax` DECIMAL(25,4) DEFAULT 0.0000,
   `item_discount` DECIMAL(25,4) DEFAULT 0.0000,
+  `product_tax` DECIMAL(25,4) DEFAULT 0.0000,
+  `product_discount` DECIMAL(25,4) DEFAULT 0.0000,
   `order_tax` DECIMAL(25,4) DEFAULT 0.0000,
   `order_tax_id` INT(11) DEFAULT NULL,
   `order_discount` DECIMAL(25,4) DEFAULT 0.0000,
@@ -605,6 +631,7 @@ CREATE TABLE `tec_payments` (
   `note` VARCHAR(255) DEFAULT NULL,
   `register_id` INT(11) DEFAULT NULL,
   `store_id` INT(11) DEFAULT NULL,
+  `attachment` VARCHAR(255) DEFAULT NULL,
   `created_by` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sale_id` (`sale_id`)
@@ -808,6 +835,7 @@ CREATE TABLE `tec_payments_apartado` (
   `transaction_id` VARCHAR(100) DEFAULT NULL,
   `currency` VARCHAR(3) DEFAULT NULL,
   `note` VARCHAR(255) DEFAULT NULL,
+  `attachment` VARCHAR(255) DEFAULT NULL,
   `created_by` INT(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `apartado_id` (`apartado_id`)
@@ -1153,6 +1181,49 @@ CREATE TABLE `tec_sessions` (
 -- =====================================================================
 -- DATOS BASE — usuario, tienda, ajustes Hacienda (ambiente test)
 -- =====================================================================
+
+
+-- =====================================================================
+-- Cola de trabajos y bitácora
+-- Las creaba el migrador de MY_Controller (pasos versionPOS 49 y 56), pero
+-- este archivo ya fija versionPOS = 62, asi que el migrador las daba por
+-- hechas y nunca se creaban: sin `queue` no se envia el comprobante y sin
+-- `audit_log` no se cierra la venta.
+-- =====================================================================
+
+DROP TABLE IF EXISTS `tec_queue`;
+CREATE TABLE `tec_queue` (
+  `id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `type`            VARCHAR(30)  NOT NULL,
+  `payload`         LONGTEXT     NOT NULL,
+  `status`          ENUM('pending','processing','done','failed') NOT NULL DEFAULT 'pending',
+  `attempts`        TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `max_attempts`    TINYINT UNSIGNED NOT NULL DEFAULT 3,
+  `next_attempt_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `done_at`         DATETIME NULL DEFAULT NULL,
+  `last_error`      TEXT NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_status_next` (`status`, `next_attempt_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `tec_audit_log`;
+CREATE TABLE `tec_audit_log` (
+  `id`         INT(11)      NOT NULL AUTO_INCREMENT,
+  `user_id`    INT(11)      NOT NULL DEFAULT 0,
+  `user_email` VARCHAR(150) NOT NULL DEFAULT '',
+  `action`     VARCHAR(50)  NOT NULL,
+  `entity`     VARCHAR(30)  NOT NULL,
+  `entity_id`  INT(11)      NOT NULL DEFAULT 0,
+  `detail`     TEXT         NULL,
+  `amount`     DECIMAL(15,4) NOT NULL DEFAULT 0,
+  `ip`         VARCHAR(45)  NOT NULL DEFAULT '',
+  `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_entity` (`entity`, `entity_id`),
+  KEY `idx_user`   (`user_id`),
+  KEY `idx_date`   (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `tec_groups` (`id`,`name`,`description`) VALUES
 (1,'admin','Administrador del sistema'),

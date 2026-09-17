@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Stores extends MY_Controller
 {
@@ -35,7 +41,7 @@ class Stores extends MY_Controller
     function get_stores() {
         $this->load->library('datatables');
         $this->datatables
-        ->select("id, name, code, phone, email, address1, city")
+        ->select("id, name, code, phone, email, address1, city, logo")
         ->from("stores")
         ->add_column("Actions", "<div class='text-center'><a href='" . site_url('stores/select_store/$1') . "' class='tip btn btn-primary btn-xs' title='".$this->lang->line("select_store")."'><i class='fa fa-check-square-o'></i> ".$this->lang->line("select_store")."</a></div>", "id")
         ->unset_column('id');

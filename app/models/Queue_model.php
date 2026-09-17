@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class Queue_model extends CI_Model
@@ -30,7 +34,9 @@ class Queue_model extends CI_Model
     {
         $this->db->where('status', 'pending')
                  ->where('next_attempt_at <=', date('Y-m-d H:i:s'))
-                 ->where('attempts <', $this->db->protect_identifiers('max_attempts', false))
+                 // Comparacion entre columnas: como valor, CI la escaparia como texto y
+                 // MySQL la leeria como 0, dejando la cola sin procesar nunca nada.
+                 ->where('attempts < max_attempts', null, false)
                  ->order_by('id', 'ASC')
                  ->limit($limit);
 

@@ -1,25 +1,17 @@
-﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php include FCPATH . 'themes/default/views/pos/_comprobante_datos.php'; ?>
 <?php $type_document = 1; ?>
 
 <?php
 if ($modal) {
     ?>
-    <style type="text/css" media="all">
-        body { color: var(--nx-txt1, #1e293b); font-size: 16px !important; }
-        #wrapper { max-width: 500px; margin: 0 auto; padding-top: 20px; font-size: 28px; }
-        .btn { margin-bottom: 5px; }
-        .table { border-radius: 3px; }
-        .table th { background: var(--table-head-bg, #f5f5f5); }
-        .table th, .table td { vertical-align: middle !important; }
-        h3 { margin: 5px 0; font-size: 36px; }
-
-        @media print {
-            body { color: #000 !important; }
-            .table th { background: #f5f5f5 !important; }
-            .no-print { display: none; }
-            #wrapper { max-width: 500px; width: 100%; min-width: 250px; margin: 0 auto; }
-        }
-    </style>
+    <?php include FCPATH . 'themes/default/views/pos/_ticket_css.php'; ?>
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body">
@@ -38,22 +30,7 @@ if ($modal) {
                     <meta http-equiv="pragma" content="no-cache"/>
                     <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
                     <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css" />
-                    <style type="text/css" media="all">
-                        body { color: var(--nx-txt1, #1e293b); }
-                        #wrapper { max-width: 500px; margin: 0 auto; padding-top: 20px; font-size: 28px; }
-                        .btn { margin-bottom: 5px; }
-                        .table { border-radius: 3px; }
-                        .table th { background: var(--table-head-bg, #f5f5f5); }
-                        .table th, .table td { vertical-align: middle !important; }
-                        h3 { margin: 5px 0; font-size: 36px; }
-
-                        @media print {
-                            body { color: #000 !important; }
-                            .table th { background: #f5f5f5 !important; }
-                            .no-print { display: none; }
-                            #wrapper { max-width: 500px; width: 100%; min-width: 250px; margin: 0 auto; }
-                        }
-                    </style>
+                    <?php include FCPATH . 'themes/default/views/pos/_ticket_css.php'; ?>
                 </head>
                 <body>
                     <?php
@@ -74,13 +51,18 @@ if ($modal) {
                                 <div style="text-align:center;">
                                     <?php
                                     if ($store) {
-                                        echo '<img src="'.base_url('uploads/'.$store->logo).'" alt="'.$store->name.'">';
+                                        // mPDF falla con un <img> de ruta vacia.
+                                        if ($logo_file) {
+                                            echo '<img src="'.base_url('uploads/'.$logo_file).'" alt="'.html_escape($emisor_nombre).'" class="tk-logo">';
+                                        } else {
+                                            echo '<div class="tk-monogram">'.html_escape($monograma).'</div>';
+                                        }
                                         echo '<p style="text-align:center;">';
                                         echo '<h3><strong>'.$store->name.'</strong></h3>';
                                         echo $store->address1.'<br>'.$store->address2;
                                         echo $store->city.'<br>'.$store->phone;
                                         echo '</p>';
-                                        echo '<p>'.nl2br($store->receipt_header).'</p>';
+                                        echo '<p>'.nl2br($store->receipt_header ?? '').'</p>';
                                     }
                                     ?>
                                 </div>
@@ -108,7 +90,7 @@ if ($modal) {
                                     <tfoot>
                                         <tr>
                                             <th style="text-align:left;border-top:1px dashed var(--nx-border);"><?= lang("total"); ?></th>
-                                            <th style="text-align:right;border-top:1px dashed var(--nx-border);"><?= $this->tec->formatMoney($inv->total + $inv->product_tax); ?></th>
+                                            <th style="text-align:right;border-top:1px dashed var(--nx-border);"><?= $this->tec->formatMoney($inv->total + ($inv->product_tax ?? 0)); ?></th>
                                         </tr>
                                         <?php
                                         if ($inv->order_tax != 0) {
@@ -192,7 +174,7 @@ if ($modal) {
 
                                 ?>
 
-                                <?= $inv->note ? '<p style="margin-top:10px; text-align: center;">' . $this->tec->decode_html($inv->note) . '</p>' : ''; ?>
+                                <?= $inv->note ? '<p style="margin-top:10px; text-align: center;">' . nota_segura($inv->note) . '</p>' : ''; ?>
                                 <?php if (!empty($store->receipt_footer)) { ?>
                                 <div class="well well-sm"  style="margin-top:10px;">
                                     <div style="text-align: center;"><?= nl2br($store->receipt_footer); ?></div>
@@ -241,11 +223,10 @@ if ($modal) {
                         var site_url = '<?=site_url();?>';
                         var dateformat = '<?=$Settings->dateformat;?>', timeformat = '<?= $Settings->timeformat ?>';
                         <?php unset($Settings->protocol, $Settings->smtp_host, $Settings->smtp_user, $Settings->smtp_pass, $Settings->smtp_port, $Settings->smtp_crypto, $Settings->mailpath, $Settings->timezone, $Settings->setting_id, $Settings->default_email, $Settings->version, $Settings->stripe, $Settings->stripe_secret_key, $Settings->stripe_publishable_key); ?>
-                        var Settings = <?= json_encode($Settings); ?>;
+                        var Settings = <?= json_encode(ajustes_publicos($Settings)); ?>;
                     </script>
                     <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
-                    <script src="<?= $assets ?>dist/js/libraries.min.js" type="text/javascript"></script>
-                    <script src="<?= $assets ?>dist/js/scripts.min.js" type="text/javascript"></script>
+                    <script src="<?= $assets ?>dist/js/main.min.js?v=<?= @filemtime(FCPATH . 'themes/default/assets/dist/js/main.min.js') ?: '1'; ?>"></script>
                     <?php
                 }
                 ?>
@@ -255,7 +236,7 @@ if ($modal) {
                             bootbox.prompt({
                                 title: "<?= lang("email_address"); ?>",
                                 inputType: 'email',
-                                value: "<?= $customer->email; ?>",
+                                value: <?= json_encode($customer->email); ?>,
                                 callback: function (email) {
                                     if (email != null) {
                                         $.ajax({

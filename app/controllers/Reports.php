@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') or exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') or exit('No direct script access allowed');
 
 class Reports extends MY_Controller
 {
@@ -12,11 +18,16 @@ class Reports extends MY_Controller
             redirect('login');
         }
 
-        if (!$this->Admin) {
+        // El informe de SINPE lo consulta tambien el cajero; el resto es solo admin.
+        $abiertos_a_cajeros = ['sinpe', 'get_sinpe'];
+        $metodo = strtolower((string) $this->router->fetch_method());
+
+        if (!$this->Admin && !in_array($metodo, $abiertos_a_cajeros, TRUE)) {
             $this->session->set_flashdata('error', lang('access_denied'));
             redirect('pos');
         }
 
+        $this->load->helper('reportes');
         $this->load->model('reports_model');
         $this->load->model('sales_model');
         $this->load->model('hacienda_model');
@@ -41,19 +52,30 @@ class Reports extends MY_Controller
 
     function get_daily_sales($year = NULL, $month = NULL)
     {
-        //        $customer = $this->input->get('customer') ? $this->input->get('customer') : NULL;
         $start_date = $this->input->get('start_date') ? $this->input->get('start_date') : NULL;
+        $end_date = $this->input->get('end_date') ? $this->input->get('end_date') : NULL;
         $user = $this->input->get('user') ? $this->input->get('user') : NULL;
+
+        // `tax` es varchar y llega como '13%': comparar como texto ('1%' > '0')
+        // funcionaba por casualidad del orden lexicografico. El cast se queda con
+        // el numero y descarta el signo.
+        $cu = $this->db->dbprefix('customers');
+        $sit = $this->db->dbprefix('sale_items');
+        $sal = $this->db->dbprefix('sales');
 
         $this->load->library('datatables');
         $this->datatables
-            ->select("sales.id, consecutivo, date, tec_customers.cf2 as identificacion, customer_name, total, total_discount, grand_total, "
-                . "(select COALESCE(sum(subtotal),0) from tec_sale_items where sale_id = tec_sales.id and tax = '0') as excento,"
-                . "(select COALESCE(sum(subtotal - item_tax),0) from tec_sale_items where sale_id = tec_sales.id and tax > '0') as gravado,"
-                . "(select COALESCE(sum(item_tax),0) from tec_sale_items where sale_id = tec_sales.id and tax > '0') as impuesto")
-            ->join('tec_customers', 'tec_customers.id = sales.customer_id', 'left')
-            ->join('tec_hacienda_tiketes', 'tec_hacienda_tiketes.sale_id=sales.id', 'left')
+            ->select("sales.id, consecutivo, date, {$cu}.cf2 as identificacion, customer_name, total, total_discount, grand_total, "
+                . "(select COALESCE(sum(subtotal),0) from `{$sit}` where sale_id = `{$sal}`.id and CAST(tax AS DECIMAL(6,2)) = 0) as excento,"
+                . "(select COALESCE(sum(subtotal - item_tax),0) from `{$sit}` where sale_id = `{$sal}`.id and CAST(tax AS DECIMAL(6,2)) > 0) as gravado,"
+                . "(select COALESCE(sum(item_tax),0) from `{$sit}` where sale_id = `{$sal}`.id and CAST(tax AS DECIMAL(6,2)) > 0) as impuesto")
+            ->join($cu, $cu . '.id = sales.customer_id', 'left')
             ->from('sales');
+        // No se une hacienda_tiketes: un comprobante reemitido tiene varias filas
+        // ahi y el JOIN duplicaba la venta, con lo que la columna de totales
+        // sumaba el mismo importe dos veces. La consulta no usaba ninguna de sus
+        // columnas.
+        $this->datatables->where($this->reports_model->sinAnuladas(), NULL, FALSE);
         // $this->db->group_by('tec_hacienda_tiketes.sale_id');
         // $this->db->where_not_in('tec_hacienda_tiketes.sale_id', array('52354'));
         if ($this->session->userdata('store_id')) {
@@ -66,13 +88,11 @@ class Reports extends MY_Controller
         if ($user) {
             $this->datatables->where('created_by', $user);
         }
-        if ($start_date) {
-            $this->datatables->where('date >=', $start_date . ' 00:00');
-            $this->datatables->where('date <=', $start_date . ' 23:59');
-        } else {
-            $this->datatables->where('date >=', date('Y-m-d ') . '00:00');
-            $this->datatables->where('date <=', date('Y-m-d H:i'));
-        }
+        // El formulario ofrece fecha inicial y final; antes solo se usaba la
+        // inicial y el informe quedaba clavado a un unico dia.
+        list($desde, $hasta) = rep_rango_fechas($start_date ?: date('Y-m-d'), $end_date);
+        $this->datatables->where('date >=', $desde);
+        $this->datatables->where('date <=', $hasta);
 
         echo $this->datatables->generate();
     }
@@ -96,19 +116,30 @@ class Reports extends MY_Controller
 
     function get_monthly_sales($year = NULL)
     {
-        //        $customer = $this->input->get('customer') ? $this->input->get('customer') : NULL;
         $start_date = $this->input->get('start_date') ? $this->input->get('start_date') : NULL;
+        $end_date = $this->input->get('end_date') ? $this->input->get('end_date') : NULL;
         $user = $this->input->get('user') ? $this->input->get('user') : NULL;
+
+        // `tax` es varchar y llega como '13%': comparar como texto ('1%' > '0')
+        // funcionaba por casualidad del orden lexicografico. El cast se queda con
+        // el numero y descarta el signo.
+        $cu = $this->db->dbprefix('customers');
+        $sit = $this->db->dbprefix('sale_items');
+        $sal = $this->db->dbprefix('sales');
 
         $this->load->library('datatables');
         $this->datatables
-            ->select("sales.id, consecutivo, date, tec_customers.cf2 as identificacion, customer_name, total, total_discount, grand_total, "
-                . "(select COALESCE(sum(subtotal),0) from tec_sale_items where sale_id = tec_sales.id and tax = '0') as excento,"
-                . "(select COALESCE(sum(subtotal - item_tax),0) from tec_sale_items where sale_id = tec_sales.id and tax > '0') as gravado,"
-                . "(select COALESCE(sum(item_tax),0) from tec_sale_items where sale_id = tec_sales.id and tax > '0') as impuesto")
-            ->join('tec_customers', 'tec_customers.id = sales.customer_id', 'left')
-            ->join('tec_hacienda_tiketes', 'tec_hacienda_tiketes.sale_id=sales.id', 'left')
+            ->select("sales.id, consecutivo, date, {$cu}.cf2 as identificacion, customer_name, total, total_discount, grand_total, "
+                . "(select COALESCE(sum(subtotal),0) from `{$sit}` where sale_id = `{$sal}`.id and CAST(tax AS DECIMAL(6,2)) = 0) as excento,"
+                . "(select COALESCE(sum(subtotal - item_tax),0) from `{$sit}` where sale_id = `{$sal}`.id and CAST(tax AS DECIMAL(6,2)) > 0) as gravado,"
+                . "(select COALESCE(sum(item_tax),0) from `{$sit}` where sale_id = `{$sal}`.id and CAST(tax AS DECIMAL(6,2)) > 0) as impuesto")
+            ->join($cu, $cu . '.id = sales.customer_id', 'left')
             ->from('sales');
+        // No se une hacienda_tiketes: un comprobante reemitido tiene varias filas
+        // ahi y el JOIN duplicaba la venta, con lo que la columna de totales
+        // sumaba el mismo importe dos veces. La consulta no usaba ninguna de sus
+        // columnas.
+        $this->datatables->where($this->reports_model->sinAnuladas(), NULL, FALSE);
         // $this->db->group_by('tec_hacienda_tiketes.sale_id');
         if ($this->session->userdata('store_id')) {
             $this->datatables->where('sales.store_id', $this->session->userdata('store_id'));
@@ -120,13 +151,13 @@ class Reports extends MY_Controller
         if ($user) {
             $this->datatables->where('created_by', $user);
         }
-        if ($start_date) {
-            $this->datatables->where('date >=', $start_date . '-01 00:00');
-            $this->datatables->where('date <=', $start_date . '-31 23:59');
-        } else {
-            $this->datatables->where('date >=', date('Y-m-') . '01 00:00');
-            $this->datatables->where('date <=', date('Y-m-d H:i'));
-        }
+        // rep_rango_fechas() calcula el ultimo dia real del mes. Concatenar '-31'
+        // produce fechas que no existen (2026-02-31) y MySQL responde
+        // "Incorrect DATETIME value" y tumba la consulta entera: febrero, abril,
+        // junio, septiembre y noviembre no se podian consultar.
+        list($desde, $hasta) = rep_rango_fechas($start_date ?: date('Y-m'), $end_date);
+        $this->datatables->where('date >=', $desde);
+        $this->datatables->where('date <=', $hasta);
 
         echo $this->datatables->generate();
     }
@@ -155,14 +186,9 @@ class Reports extends MY_Controller
         // if ($user) {
         //     $this->datatables->where('id_supplier', $user);
         // }
-        if ($start_date) {
-            $nuevafecha = date("Y-m-d", strtotime($start_date . '-31 23:59' . "+ 1 day"));
-            $this->datatables->where('FechaEmisionDoc >=', $start_date . '-01 00:00');
-            $this->datatables->where('FechaEmisionDoc <=', $nuevafecha);
-        } else {
-            $this->datatables->where('FechaEmisionDoc >=', date('Y-m-') . '01 00:00');
-            $this->datatables->where('FechaEmisionDoc <=', date('Y-m-d H:i'));
-        }
+        list($desde, $hasta) = rep_rango_fechas($start_date ?: date('Y-m'), NULL);
+        $this->datatables->where('FechaEmisionDoc >=', $desde);
+        $this->datatables->where('FechaEmisionDoc <=', $hasta);
 
         echo $this->datatables->generate();
     }
@@ -196,6 +222,7 @@ class Reports extends MY_Controller
         $this->datatables
             ->select("id, date, customer_name, total, total_tax, total_discount, grand_total, paid, (grand_total-paid) as balance, status")
             ->from('sales');
+        $this->datatables->where($this->reports_model->sinAnuladas(), NULL, FALSE);
         if ($this->session->userdata('store_id')) {
             $this->datatables->where('store_id', $this->session->userdata('store_id'));
         }
@@ -315,7 +342,12 @@ class Reports extends MY_Controller
             $this->datatables->where('registers.user_id', $user);
         }
         if ($start_date) {
-            $this->datatables->where('date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+            // El valor llegaba interpolado en la cadena SQL: cualquier cosa en el
+            // parametro entraba en la consulta. escape() lo liga y de paso
+            // rep_rango_fechas() descarta un 31 de febrero antes de que MySQL lo vea.
+            list($desde, $hasta) = rep_rango_fechas($start_date, $end_date);
+            $this->datatables->where('registers.date >=', $desde);
+            $this->datatables->where('registers.date <=', $hasta);
         }
         if ($this->session->userdata('store_id')) {
             $this->datatables->where('registers.store_id', $this->session->userdata('store_id'));
@@ -375,7 +407,61 @@ class Reports extends MY_Controller
             $this->datatables->where('sales.customer_id', $customer);
         }
         if ($start_date) {
-            $this->datatables->where($this->db->dbprefix('payments') . '.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+            list($desde, $hasta) = rep_rango_fechas($start_date, $end_date);
+            $this->datatables->where($this->db->dbprefix('payments') . '.date >=', $desde);
+            $this->datatables->where($this->db->dbprefix('payments') . '.date <=', $hasta);
+        }
+
+        echo $this->datatables->generate();
+    }
+
+    /**
+     * Reporte de SINPE Movil sobre tec_sinpe_transactions, tanto los aplicados
+     * a una venta como los que siguen sueltos.
+     */
+    function sinpe()
+    {
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $bc = array(array('link' => '#', 'page' => lang('reports')), array('link' => '#', 'page' => lang('sinpe_report')));
+        $meta = array('page_title' => lang('sinpe_report'), 'bc' => $bc);
+        $this->page_construct('reports/sinpe', $this->data, $meta);
+    }
+
+    function get_sinpe()
+    {
+        // La tabla la crea la migracion 61->62; sin ella el reporte sale vacio.
+        if (!$this->db->table_exists('sinpe_transactions')) {
+            echo json_encode(array('draw' => 0, 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => array()));
+            return;
+        }
+
+        $estado     = $this->input->get('estado') ?: NULL;
+        $banco      = $this->input->get('banco') ?: NULL;
+        $telefono   = $this->input->get('telefono') ?: NULL;
+        $start_date = $this->input->get('start_date') ?: NULL;
+        $end_date   = $this->input->get('end_date') ?: NULL;
+
+        $st = $this->db->dbprefix('sinpe_transactions');
+
+        $this->load->library('datatables');
+        $this->datatables
+            ->select("{$st}.id_sinpe_transaction as id, {$st}.fecha, {$st}.nombre, {$st}.telefono,
+                      {$st}.monto, {$st}.banco, {$st}.comprobante, {$st}.descripcion,
+                      {$st}.estado, {$st}.sale_id", FALSE)
+            ->from('sinpe_transactions');
+
+        if ($estado) {
+            $this->datatables->where("{$st}.estado", $estado);
+        }
+        if ($banco) {
+            $this->datatables->where("{$st}.banco", $banco);
+        }
+        if ($telefono) {
+            $this->datatables->like("{$st}.telefono", $telefono);
+        }
+        if ($start_date && $end_date) {
+            $this->datatables->where("{$st}.fecha BETWEEN " . $this->db->escape($start_date . ' 00:00:00') .
+                                     " AND " . $this->db->escape($end_date . ' 23:59:59'), NULL, FALSE);
         }
 
         echo $this->datatables->generate();
@@ -392,11 +478,17 @@ class Reports extends MY_Controller
 
     function get_alerts()
     {
+        // Sin sucursal en sesion la interpolacion dejaba "WHERE store_id = " y
+        // MySQL respondia error de sintaxis: el informe de existencias bajas no
+        // cargaba para ningun usuario sin tienda asignada.
+        $tienda = $this->session->userdata('store_id');
+        $filtroTienda = $tienda ? ' WHERE store_id = ' . (int) $tienda : '';
+
         $this->load->library('datatables');
         $this->datatables->select($this->db->dbprefix('products') . ".id as id, " . $this->db->dbprefix('products') . ".image as image, " . $this->db->dbprefix('products') . ".code as code, " . $this->db->dbprefix('products') . ".name as pname, type, " . $this->db->dbprefix('categories') . ".name as cname, (CASE WHEN psq.quantity IS NULL THEN 0 ELSE psq.quantity END) as quantity, alert_quantity, tax, tax_method, cost, (CASE WHEN psq.price > 0 THEN psq.price ELSE {$this->db->dbprefix('products')}.price END) as price", FALSE)
             ->from('products')
             ->join('categories', 'categories.id=products.category_id')
-            ->join("( SELECT product_id, SUM(quantity) as quantity, MAX(price) as price FROM {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$this->session->userdata('store_id')} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left')
+            ->join("( SELECT product_id, SUM(quantity) as quantity, MAX(price) as price FROM {$this->db->dbprefix('product_store_qty')}{$filtroTienda} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left')
             ->where("(CASE WHEN psq.quantity IS NULL THEN 0 ELSE psq.quantity END) < {$this->db->dbprefix('products')}.alert_quantity", NULL, FALSE);
             // psq subquery already aggregates 1 row por producto — no hace falta GROUP BY externo
             // (mismo patrón que Products::get_products(), evita el error 1055 de ONLY_FULL_GROUP_BY)
@@ -631,23 +723,28 @@ class Reports extends MY_Controller
                 $tipoCambio = $DOM->getElementsByTagName('TipoCambio')->item(0) ? $DOM->getElementsByTagName('TipoCambio')->item(0)->nodeValue : '0';
                 $consecutivo = $DOM->getElementsByTagName('NumeroConsecutivo')->item(0) ? $DOM->getElementsByTagName('NumeroConsecutivo')->item(0)->nodeValue : '0';
                 $creditoCompra = $DOM->getElementsByTagName('PlazoCredito')->item(0) ? $DOM->getElementsByTagName('PlazoCredito')->item(0)->nodeValue : '';
-                for ($x = 0; $x <= $DOM->getElementsByTagName('Tarifa')->length; $x++) {
-                    $tipoTarifa = $DOM->getElementsByTagName('Tarifa')->item($x) ? $DOM->getElementsByTagName('Tarifa')->item($x)->nodeValue : '0';
+                // <Tarifa> lleva el porcentaje con cinco decimales ('13.00000',
+                // '0.00000'): comparar contra '13' o '0' como texto no casaba
+                // nunca y los importes exentos se perdian. El cast normaliza.
+                $tarifas = $DOM->getElementsByTagName('Tarifa');
+                $montos  = $DOM->getElementsByTagName('Monto');
+                for ($x = 0; $x < $tarifas->length; $x++) {
+                    $tipoTarifa = (string) (float) $tarifas->item($x)->nodeValue;
                     switch ($tipoTarifa) {
                         case "0":
-                            $tarifa0 += $DOM->getElementsByTagName('Monto')->item($x) ? $DOM->getElementsByTagName('Monto')->item($x)->nodeValue : '0';
+                            $tarifa0 += $montos->item($x) ? (float) $montos->item($x)->nodeValue : 0;
                             break;
                         case "1":
-                            $tarifa1 += $DOM->getElementsByTagName('Monto')->item($x) ? $DOM->getElementsByTagName('Monto')->item($x)->nodeValue : '0';
+                            $tarifa1 += $montos->item($x) ? (float) $montos->item($x)->nodeValue : 0;
                             break;
                         case "2":
-                            $tarifa2 += $DOM->getElementsByTagName('Monto')->item($x) ? $DOM->getElementsByTagName('Monto')->item($x)->nodeValue : '0';
+                            $tarifa2 += $montos->item($x) ? (float) $montos->item($x)->nodeValue : 0;
                             break;
                         case "4":
-                            $tarifa4 += $DOM->getElementsByTagName('Monto')->item($x) ? $DOM->getElementsByTagName('Monto')->item($x)->nodeValue : '0';
+                            $tarifa4 += $montos->item($x) ? (float) $montos->item($x)->nodeValue : 0;
                             break;
                         case "13":
-                            $tarifa13 += $DOM->getElementsByTagName('Monto')->item($x) ? $DOM->getElementsByTagName('Monto')->item($x)->nodeValue : '0';
+                            $tarifa13 += $montos->item($x) ? (float) $montos->item($x)->nodeValue : 0;
                             break;
                     }
                 }
@@ -697,14 +794,17 @@ class Reports extends MY_Controller
             array_push($resultados, $res);
             $n++;
         }
-        $table =  [
-            'recordsTotal' => count($hacienda),
-            'draw' =>  0,
-            'recordsTotal' => count($hacienda),
-            'recordsFiltered' =>  count($hacienda),
-            'data' => $resultados
-        ];
-        echo json_encode($table);
+        // `recordsTotal` estaba dos veces en el mismo literal —la segunda pisaba
+        // a la primera— y `draw` iba fijo en 0. DataTables descarta una respuesta
+        // cuyo `draw` sea menor que el de la peticion, asi que a partir de la
+        // segunda consulta la tabla se quedaba con los datos viejos.
+        $total = count($resultados);
+        echo json_encode(array(
+            'draw'            => (int) $this->input->post('draw'),
+            'recordsTotal'    => $total,
+            'recordsFiltered' => $total,
+            'data'            => $resultados,
+        ));
     }
 
     function monthly_sale_tax()
@@ -896,14 +996,17 @@ class Reports extends MY_Controller
                 $n++;
             }
         }
-        $table =  [
-            'recordsTotal' => count($hacienda),
-            'draw' =>  0,
-            'recordsTotal' => count($hacienda),
-            'recordsFiltered' =>  count($hacienda),
-            'data' => $resultados
-        ];
-        echo json_encode($table);
+        // `recordsTotal` estaba dos veces en el mismo literal —la segunda pisaba
+        // a la primera— y `draw` iba fijo en 0. DataTables descarta una respuesta
+        // cuyo `draw` sea menor que el de la peticion, asi que a partir de la
+        // segunda consulta la tabla se quedaba con los datos viejos.
+        $total = count($resultados);
+        echo json_encode(array(
+            'draw'            => (int) $this->input->post('draw'),
+            'recordsTotal'    => $total,
+            'recordsFiltered' => $total,
+            'data'            => $resultados,
+        ));
     }
 
     function close_register($register_open_time = null, $user_id = null)
@@ -1105,7 +1208,28 @@ class Reports extends MY_Controller
             $this->data['register_open_time'] = $register_open_time;
             $this->data['user_id'] = $user_id;
             $this->data['Totaldepositos'] = $this->reports_model->getDepositos($register_open_time, $register_close_time, $user_id);
-            // dd($user_id."/".$register_open_time);
+
+            $metodos = cobros_por_familia(
+                $this->reports_model->getRegisterPagosPorMetodo($register_open_time, $register_close_time, $user_id)
+            );
+            $cobrado = 0.0;
+            foreach ($metodos as $familia) {
+                $cobrado += $familia['total'];
+            }
+
+            $this->data['resumen'] = array(
+                'desde'             => $register_open_time,
+                'cajero'            => $this->site->getUser($user_id),
+                'fondo'             => (float) $register_data->cash_in_hand,
+                'metodos'           => $metodos,
+                'cobrado'           => $cobrado,
+                'gastos'            => (float) ($this->data['expenses']->total ?? 0),
+                'depositos'         => (float) ($this->data['Totaldepositos']->total ?? 0),
+                'notas_credito'     => (float) ($this->data['notecredits']->total ?? 0),
+                'ventas_credito'    => (float) ($this->data['creditos']->total ?? 0),
+                'efectivo_esperado' => (float) $register_data->total_cash,
+                'tarjeta_esperado'  => $metodos['tarjeta']['total'],
+            );
 
             $this->load->view($this->theme . 'pos/close_register', $this->data);
         }
@@ -1252,9 +1376,9 @@ class Reports extends MY_Controller
                     (object) array('label' => "Efectivo de Apartados", 'value' => $this->tec->formatMoney($datos['cashsalesApart'] ? $datos['cashsalesApart'] : '0.00')),
                     (object) array('label' => "Tarjetas de Apartados", 'value' => $this->tec->formatMoney($datos['ccsalesApart'] ? $datos['ccsalesApart'] : '0.00')),
                     (object) array('label' => 'line', 'value' => ''),
-                    $this->Settings->propina_enable == '1' ? (object) array('label' => lang('Total servicio ' . $this->Settings->propina_rate) . '%', 'value' => $this->tec->formatMoney($datos['ccsalesTips'] ? $datos['ccsalesTips'] : '0.00')) : '',
+                    $this->Settings->propina_enable == '1' ? (object) array('label' => lang('total_servicio') . ' ' . $this->Settings->propina_rate . '%', 'value' => $this->tec->formatMoney($datos['ccsalesTips'] ? $datos['ccsalesTips'] : '0.00')) : '',
                     (object) array('label' => lang('total_cash'), 'value' => $this->tec->formatMoney($datos['total_cash'] ? $datos['total_cash'] : '0.00')),
-                    (object) array('label' => lang('Total en tarjetas'), 'value' => $this->tec->formatMoney((int) ($datos['cc_sale'] ? $datos['cc_sale'] : 0) + (int) ($datos['ccsalesApart'] ? $datos['ccsalesApart'] : 0))),
+                    (object) array('label' => lang('total_en_tarjetas'), 'value' => $this->tec->formatMoney((int) ($datos['cc_sale'] ? $datos['cc_sale'] : 0) + (int) ($datos['ccsalesApart'] ? $datos['ccsalesApart'] : 0))),
                     (object) array('label' => 'line', 'value' => ''),
                     (object) array('label' => lang('total_cash_submitted'), 'value' => $this->tec->formatMoney($datos['total_cash_submitted'] ? $datos['total_cash_submitted'] : '0.00')),
                     (object) array('label' => 'Diferencia en efectivo', 'value' => $this->tec->formatMoney($datos['total_cash_submitted'] ? ($datos['total_cash_submitted'] - $datos['total_cash']) : '0.00')),
@@ -1273,12 +1397,7 @@ class Reports extends MY_Controller
             return $data;
         } elseif ($re == 2) { } else {
             $store = $this->site->getStoreByID($this->session->userdata('store_id'));
-            $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-            if ($printer->type != "web") {
-                $this->load->library('escpos');
-                $this->escpos->load($printer);
-                $this->escpos->print_data($data, $store);
-            }
+            $this->encolar_ticket_qz($data, $store);
         }
     }
 
@@ -1453,98 +1572,33 @@ class Reports extends MY_Controller
         // dd($this->db->last_query());
     }
 
+    /**
+     * D-104 y D-151.
+     *
+     * Las dos declaraciones se resolvian con consultas propias que no
+     * funcionaban: la del D-104 ignoraba el periodo y devolvia todo el
+     * historico, y la del D-151 fallaba entera bajo ONLY_FULL_GROUP_BY, que es
+     * el modo por defecto de MySQL 8. Ahora las sirve el motor de informes, que
+     * es la unica implementacion, y estas rutas conservan sus enlaces.
+     */
     function sale_fe()
     {
-        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-        $this->data['page_title'] = $this->lang->line("model_d104");
-        // $this->data['customers'] = $this->reports_model->getAllCustomers();
-        $bc = array(array('link' => '#', 'page' => lang('reports')), array('link' => '#', 'page' => lang('model_d104')));
-        $meta = array('page_title' => lang('model_d104'), 'bc' => $bc);
-        $this->page_construct('reports/sale_fe', $this->data, $meta);
+        redirect('reportes/ver/d104');
     }
 
     function get_sale_fe()
     {
-        // $start_date = $this->input->get('start_date') ? $this->input->get('start_date') : NULL;
-        // $end_date = $this->input->get('end_date') ? $this->input->get('end_date') : NULL;
-        // $customer = $this->input->get('customer') ? $this->input->get('customer') : NULL;
-        $resultados = array();
-        $n = 0;
-        $facturaEle = $this->reports_model->get_all_fe();
-        if($facturaEle){
-        foreach($facturaEle as $fe){ 
-            $res =
-                [
-                    'name' => $fe['name'],
-                    'tax_0' => $fe['tax_0'],
-                    'tax_1' => $fe['tax_1'],
-                    'tax_2' => $fe['tax_2'],
-                    'tax_4' => $fe['tax_4'],
-                    'tax_13' => $fe['tax_13'],
-                    'subtotal' => $fe['subtotal'],
-                    'exonerado' => $fe['exonerado'],
-                    'total' => $fe['total'],
-                ];
-            array_push($resultados, $res);
-            $n++;
-            }
-        
-        }
-        $table =  [
-            'recordsTotal' => count($facturaEle),
-            'draw' =>  0,
-            'recordsTotal' => count($facturaEle),
-            'recordsFiltered' =>  count($facturaEle),
-            'data' => $resultados
-        ];
-        echo json_encode($table);
+        redirect('reportes/datos/d104');
     }
 
     function d151()
     {
-        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-        $this->data['page_title'] = $this->lang->line("model_d151");
-        // $this->data['customers'] = $this->reports_model->getAllCustomers();
-        $bc = array(array('link' => '#', 'page' => lang('reports')), array('link' => '#', 'page' => lang('model_d151')));
-        $meta = array('page_title' => lang('model_d151'), 'bc' => $bc);
-        $this->page_construct('reports/model_d151', $this->data, $meta);
+        redirect('reportes/ver/d151');
     }
 
     function get_d151()
     {
-        date_default_timezone_set('America/Costa_Rica');
-        date_default_timezone_get();
-        $fecha = date('Y-m-d');
-        $start_date = $this->input->get('start_date') ? $this->input->get('start_date') : $fecha;
-        $end_date = $this->input->get('end_date') ? $this->input->get('end_date') : $fecha;
-        // $customer = $this->input->get('customer') ? $this->input->get('customer') : NULL;
-        $resultados = array();
-        $n = 0;
-        $facturaEle = $this->reports_model->get_d151($start_date,$end_date);
-        // dd($facturaEle);
-        if($facturaEle){
-        foreach($facturaEle as $fe){ 
-            $res =
-                [
-                    'cedula' => $fe['cedula'],
-                    'nombre' => $fe['nombre'],
-                    'subtotal' => $fe['subtotal'],
-                    'CodigoRep' => $fe['CodigoRep'],
-                    'Concepto' => $fe['Concepto']
-                ];
-            array_push($resultados, $res);
-            $n++;
-            }
-        
-        }
-        $table =  [
-            'recordsTotal' => $facturaEle?count($facturaEle):0,
-            'draw' =>  0,
-            'recordsTotal' => $facturaEle?count($facturaEle):0,
-            'recordsFiltered' =>  $facturaEle?count($facturaEle):0,
-            'data' => $resultados
-        ];
-        echo json_encode($table);
+        redirect('reportes/datos/d151');
     }
 
 }

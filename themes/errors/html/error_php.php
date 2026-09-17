@@ -5,7 +5,7 @@
 var CSS=`
 #nx-ov{position:fixed;inset:0;z-index:99999;background:rgba(7,13,26,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:16px;padding:32px 20px 40px;animation:nx-fi .3s ease both;}
 @keyframes nx-fi{from{opacity:0}to{opacity:1}}
-.nx-card{position:relative;background:linear-gradient(145deg,#130e06,#0d1528,#111827);border:1px solid rgba(249,115,22,.18);border-radius:20px;max-width:800px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(249,115,22,.05);overflow:hidden;animation:nx-su .4s cubic-bezier(.22,1,.36,1) both;}
+.nx-card{flex-shrink:0;position:relative;background:linear-gradient(145deg,#130e06,#0d1528,#111827);border:1px solid rgba(249,115,22,.18);border-radius:20px;max-width:800px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(249,115,22,.05);overflow:hidden;animation:nx-su .4s cubic-bezier(.22,1,.36,1) both;}
 @keyframes nx-su{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
 .nx-card::before,.nx-card::after{content:'';position:absolute;width:16px;height:16px;border-color:rgba(249,115,22,.45);border-style:solid;z-index:1;}
 .nx-card::before{top:12px;left:12px;border-width:2px 0 0 2px;border-radius:3px 0 0 0}
@@ -31,7 +31,7 @@ var CSS=`
 .nx-trace-toggle:hover{background:rgba(249,115,22,.13);border-color:rgba(249,115,22,.28);}
 .nx-trace-toggle svg{transition:transform .2s;}
 .nx-trace-toggle.open svg{transform:rotate(90deg);}
-.nx-trace{display:none;background:rgba(0,0,0,.4);border:1px solid rgba(249,115,22,.08);border-radius:10px;overflow:hidden;}
+.nx-trace{max-height:320px;overflow-y:auto;display:none;background:rgba(0,0,0,.4);border:1px solid rgba(249,115,22,.08);border-radius:10px;overflow:hidden;}
 .nx-trace.show{display:block;}
 .nx-trace-item{padding:9px 16px;border-bottom:1px solid rgba(249,115,22,.05);font-family:'Consolas','Monaco',monospace;font-size:11px;line-height:1.6;color:#4b6180;}
 .nx-trace-item:last-child{border-bottom:none}
@@ -45,8 +45,13 @@ var CSS=`
 .nx-btn-home{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#f97316,#fb923c);color:#0a0600;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:transform .15s,box-shadow .15s;}
 .nx-btn-home:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(249,115,22,.4);color:#0a0600;text-decoration:none;}
 .nx-ts{font-size:10px;color:#334155;margin-left:auto;letter-spacing:.5px;}
+.nx-resumen{flex-shrink:0;position:sticky;top:-32px;z-index:2;max-width:800px;width:100%;display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:14px;background:#1a1206;border:1px solid rgba(249,115,22,.3);color:#fed7aa;font:600 13px -apple-system,BlinkMacSystemFont,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.5);}
+.nx-resumen button{margin-left:auto;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.35);color:#fb923c;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;}
+.nx-veces{display:inline-block;margin-left:8px;font-size:10px;font-weight:800;background:#f97316;color:#0a0600;border-radius:999px;padding:2px 8px;vertical-align:middle;}
+.nx-veces[hidden]{display:none;}
 `;
 
+function nxMostrar(){
 if(!document.getElementById('nx-php-style')){
     var st=document.createElement('style');
     st.id='nx-php-style';
@@ -58,6 +63,8 @@ var ov=document.getElementById('nx-ov');
 if(!ov){
     ov=document.createElement('div');
     ov.id='nx-ov';
+    ov.innerHTML='<div class="nx-resumen"><span class="nx-resumen-txt"></span><button type="button">Cerrar todo</button></div>';
+    ov.querySelector('.nx-resumen button').addEventListener('click',function(){ov.remove();});
     document.body.insertBefore(ov,document.body.firstChild);
 }
 
@@ -79,14 +86,30 @@ traceTxt+='  <?php echo htmlspecialchars($fn); ?>()  <?php echo htmlspecialchars
 <?php endforeach; ?>
 <?php endif; ?>
 
-var uid='nx-php-'+Date.now();
+// El mismo error repetido (un warning dentro de un bucle) se cuenta, no se apila.
+var firma=sev+'|'+msg+'|'+fp+'|'+ln;
+var previa=null;
+ov.querySelectorAll('.nx-card').forEach(function(c){if(c.getAttribute('data-firma')===firma){previa=c;}});
+if(previa){
+    var n=parseInt(previa.getAttribute('data-veces'),10)+1;
+    previa.setAttribute('data-veces',n);
+    var v=previa.querySelector('.nx-veces');
+    v.textContent='×'+n;
+    v.hidden=false;
+    nxResumen(ov);
+    return;
+}
+
+var uid='nx-php-'+Date.now()+'-'+Math.floor(Math.random()*1e6);
 var card=document.createElement('div');
 card.className='nx-card';
+card.setAttribute('data-firma',firma);
+card.setAttribute('data-veces','1');
 card.innerHTML=
     '<div class="nx-head">'+
         '<div class="nx-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>'+
-        '<div class="nx-title-wrap"><div class="nx-label">Error de PHP</div><div><span class="nx-sev">PHP Error</span><span class="nx-sev-badge">'+escHtml(sev)+'</span></div></div>'+
-        '<button class="nx-close" onclick="this.closest(\'.nx-card\').remove();if(!document.querySelector(\'.nx-card\')){document.getElementById(\'nx-ov\').remove()}" title="Cerrar">&#215;</button>'+
+        '<div class="nx-title-wrap"><div class="nx-label">Error de PHP</div><div><span class="nx-sev">PHP Error</span><span class="nx-sev-badge">'+escHtml(sev)+'</span><span class="nx-veces" hidden></span></div></div>'+
+        '<button class="nx-close" type="button" title="Cerrar">&#215;</button>'+
     '</div>'+
     '<div class="nx-body">'+
         '<div class="nx-msg"><span class="nx-msg-lbl">Mensaje</span>'+escHtml(msg)+'</div>'+
@@ -103,6 +126,11 @@ card.innerHTML=
     '</div>';
 
 ov.appendChild(card);
+nxResumen(ov);
+card.querySelector('.nx-close').addEventListener('click',function(){
+    card.remove();
+    if(!ov.querySelector('.nx-card')){ov.remove();}else{nxResumen(ov);}
+});
 
 card.querySelector('.nx-btn-copy').addEventListener('click',function(){
     var text='Severity: '+sev+'\nMessage: '+msg+'\nFile: '+fp+'\nLine: '+ln+(traceTxt?'\n\nBacktrace:\n'+traceTxt:'');
@@ -112,6 +140,18 @@ card.querySelector('.nx-btn-copy').addEventListener('click',function(){
     function fallback(){var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');onOk();}catch(e){}document.body.removeChild(ta);}
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(onOk).catch(fallback);}else{fallback();}
 });
+
+}
+
+function nxResumen(ov){
+    var cards=ov.querySelectorAll('.nx-card');
+    var total=0;
+    cards.forEach(function(c){total+=parseInt(c.getAttribute('data-veces'),10);});
+    ov.querySelector('.nx-resumen-txt').textContent=total===1?'1 error de PHP':total+' errores de PHP · '+cards.length+(cards.length===1?' distinto':' distintos');
+}
+
+// Un error en el <head> ocurre antes de que exista el <body>.
+if(document.body){nxMostrar();}else{document.addEventListener('DOMContentLoaded',nxMostrar);}
 
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 })();

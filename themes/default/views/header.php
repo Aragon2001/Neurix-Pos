@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
 <html lang="es" <?= $Settings->rtl ? 'dir="rtl"' : '' ?>>
 <head>
     <meta charset="UTF-8">
@@ -25,15 +31,18 @@
     (function(){
         // document.body todavía no existe aquí (estamos en <head>) — solo tocar
         // document.documentElement, que sí está disponible desde el inicio del parseo.
-        // Antes esto intentaba document.body.setAttribute(...) y lanzaba TypeError,
-        // lo que abortaba el resto de este <script> y dejaba window.base_url sin
-        // definir — rompiendo en silencio cualquier fetch() que dependiera de él
-        // (p.ej. la búsqueda global, que terminaba pidiendo "undefinedsearch/...").
+        // document.body aun no existe en este punto del parseo.
         var t = localStorage.getItem('nx-theme') || 'dark';
         document.documentElement.setAttribute('data-bs-theme', t);
     })();
     // Exponer URL base para AJAX
     window.base_url = '<?= base_url(); ?>';
+    // El token rota en cada POST; main.js lo mantiene al dia desde la cabecera
+    // X-CSRF-Token de cada respuesta AJAX.
+    window.CSRF_NAME = '<?= $this->security->get_csrf_token_name(); ?>';
+    window.CSRF_HASH = '<?= $this->security->get_csrf_hash(); ?>';
+    // Tickets que PHP dejo en cola para que esta computadora los imprima por QZ Tray.
+    window._nx_qz_pendiente = <?= count((array) $this->session->userdata('qz_cola')); ?>;
     </script>
     <script src="<?= $nx_v('themes/default/assets/dist/js/main.min.js'); ?>" defer></script>
 </head>
@@ -122,8 +131,8 @@ $hti = [
                         <a href="<?= site_url('pos/?hold=' . $ss->id) ?>" class="dropdown-item load_suspended d-flex align-items-center gap-2 py-2">
                             <span style="opacity:.5;flex-shrink:0;"><?= ti_svg($hti['receipt'], 14) ?></span>
                             <div>
-                                <div style="font-size:.82rem;font-weight:600;"><?= $this->tec->hrld($ss->date) ?> — <?= $ss->customer_name ?></div>
-                                <div style="font-size:.72rem;opacity:.55;"><?= $ss->hold_ref ?></div>
+                                <div style="font-size:.82rem;font-weight:600;"><?= $this->tec->hrld($ss->date) ?> — <?= html_escape($ss->customer_name); ?></div>
+                                <div style="font-size:.72rem;opacity:.55;"><?= html_escape($ss->hold_ref); ?></div>
                             </div>
                         </a>
                     </li>
@@ -150,7 +159,7 @@ $hti = [
             <!-- Usuario -->
             <div class="dropdown">
                 <button class="nx-user-pill" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                    <img src="<?= base_url('uploads/avatars/thumbs/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')) ?>"
+                    <img src="<?= avatar_usuario($this->session->userdata('avatar'), $this->session->userdata('gender'), true) ?>"
                          class="nx-avatar-sm" alt="Avatar">
                     <span class="d-none d-lg-inline"><?= html_escape($this->session->userdata('first_name') . ' ' . $this->session->userdata('last_name')) ?></span>
                     <span class="nx-chevron-down d-none d-lg-flex"><?= ti_svg($hti['chevrondown'], 13) ?></span>
@@ -160,7 +169,7 @@ $hti = [
                 <div class="dropdown-menu dropdown-menu-end nx-user-card p-0">
                     <div class="nx-user-card-header text-center p-4">
                         <div class="position-relative d-inline-block">
-                            <img src="<?= base_url('uploads/avatars/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')) ?>"
+                            <img src="<?= avatar_usuario($this->session->userdata('avatar'), $this->session->userdata('gender')) ?>"
                                  class="rounded-circle nx-user-card-avatar" alt="Avatar">
                             <span class="nx-user-card-status-dot"></span>
                         </div>
@@ -217,8 +226,8 @@ $hti = [
                             <?= ti_svg($hti['circleuser'], 14) ?> <?= lang('profile') ?>
                         </a>
                         <?php if ($this->session->userdata('register_id')): ?>
-                        <a href="<?= site_url('logout') ?>" class="btn btn-danger btn-sm flex-fill nx-btn-logout d-flex align-items-center justify-content-center gap-1"
-                           data-confirm="<?= htmlspecialchars(lang('register_open_alert') ?: 'Tiene una caja abierta. ¿Cerrar sesión?') ?>">
+                        <a href="<?= site_url('pos') ?>?cerrar_caja=1" class="btn btn-danger btn-sm flex-fill nx-btn-logout d-flex align-items-center justify-content-center gap-1"
+                           data-confirm="<?= htmlspecialchars(lang('close_register_before_logout')) ?>">
                             <?= ti_svg($hti['logout'], 14) ?> <?= lang('sign_out') ?>
                         </a>
                         <?php else: ?>
@@ -272,6 +281,7 @@ $ti = [
   'dollar'    => '<path d="M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2"/><path d="M12 3v3m0 12v3"/>',
   'clock'     => '<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7l0 5l3 3"/>',
   'bookmark'  => '<path d="M9 4h6a2 2 0 0 1 2 2v14l-5 -3l-5 3v-14a2 2 0 0 1 2 -2"/>',
+  'ban'       => '<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M5.7 5.7l12.6 12.6"/>',
   'filetext'  => '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 13l6 0"/><path d="M9 17l6 0"/>',
   'minus'     => '<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l6 0"/>',
   'cloudup'   => '<path d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1"/><path d="M9 15l3 -3l3 3"/><path d="M12 12l0 9"/>',
@@ -306,8 +316,8 @@ $ti = [
     <!-- ── Brand ── -->
     <div class="sidebar-brand">
         <a href="<?= site_url(); ?>" class="brand-link d-flex align-items-center gap-3 text-decoration-none flex-grow-1 min-w-0">
-            <?php if ($store && !empty($store->image)): ?>
-                <img src="<?= $assets ?>uploads/thumbs/<?= $store->image ?>" class="nx-brand-icon" alt="">
+            <?php if ($store && !empty($store->image) && is_file(FCPATH . 'uploads/thumbs/' . $store->image)): ?>
+                <img src="<?= base_url('uploads/thumbs/' . $store->image); ?>" class="nx-brand-icon" alt="">
             <?php else: ?>
                 <span class="nx-brand-icon">
                     <?= mb_strtoupper(mb_substr($store ? $store->name : $Settings->site_name, 0, 1)) ?>
@@ -326,7 +336,7 @@ $ti = [
         <!-- Profile Card -->
         <div class="nx-sidebar-userblock">
             <div class="nx-sb-avatar-wrap">
-                <img src="<?= base_url('uploads/avatars/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')); ?>"
+                <img src="<?= avatar_usuario($this->session->userdata('avatar'), $this->session->userdata('gender')); ?>"
                      class="nx-sb-avatar" alt="Avatar">
                 <span class="nx-sb-status-dot" title="<?= lang('conectado'); ?>"></span>
             </div>
@@ -383,13 +393,9 @@ $ti = [
                     <ul class="nav nav-treeview">
                         <li class="nav-item" id="products_index"><a href="<?= site_url('products'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['list'], 14); ?></span><p><?= lang('list_products'); ?></p></a></li>
                         <li class="nav-item" id="products_add"><a href="<?= site_url('products/add'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['plus'], 14); ?></span><p><?= lang('add_product'); ?></p></a></li>
-                        <?php if ($this->Settings->enable_fastedition == "1"): ?>
-                        <li class="nav-item" id="products_fastedit"><a href="<?= site_url('products/fastedit'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['pencil'], 14); ?></span><p><?= lang('edicion_rapida'); ?></p></a></li>
-                        <?php endif; ?>
-                        <li class="nav-item" id="products_ajuste"><a href="<?= site_url('products/ajuste'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['scale'], 14); ?></span><p><?= lang('ajuste_inventario'); ?></p></a></li>
+                        <li class="nav-item" id="products_inventario"><a href="<?= site_url('products/inventario'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['scale'], 14); ?></span><p><?= lang('ajuste_inventario'); ?></p></a></li>
                         <li class="nav-item" id="products_import"><a href="<?= site_url('products/import'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['upload'], 14); ?></span><p><?= lang('import_products'); ?></p></a></li>
-                        <li class="nav-item" id="products_print_barcodes"><a href="<?= site_url('products/print_barcodes'); ?>" class="nav-link" data-bs-toggle="ajax"><span class="nav-icon"><?= ti_svg($ti['barcode'], 14); ?></span><p><?= lang('print_barcodes'); ?></p></a></li>
-                        <li class="nav-item" id="products_print_labels"><a href="<?= site_url('products/print_labels'); ?>" class="nav-link" data-bs-toggle="ajax"><span class="nav-icon"><?= ti_svg($ti['tagsm'], 14); ?></span><p><?= lang('print_labels'); ?></p></a></li>
+                        <li class="nav-item" id="products_etiquetas"><a href="<?= site_url('products/etiquetas'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['barcode'], 14); ?></span><p><?= lang('etiquetas_codigos'); ?></p></a></li>
                         <?php if ($this->Settings->multiprice_enabled == 1): ?>
                         <li class="nav-item" id="products_prices"><a href="<?= site_url('products/listprices'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['dollar'], 14); ?></span><p><?= lang('lista_precios'); ?></p></a></li>
                         <li class="nav-item" id="products_addprices"><a href="<?= site_url('products/addprices'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['plus'], 14); ?></span><p><?= lang('agregar_precios'); ?></p></a></li>
@@ -414,7 +420,7 @@ $ti = [
                 <li class="nav-header"><?= lang('nav_comercial'); ?></li>
 
                 <!-- Ventas -->
-                <li class="nav-item has-treeview mm_sales">
+                <li class="nav-item has-treeview mm_sales mm_creditnotes mm_debitnotes">
                     <a href="#" class="nav-link">
                         <span class="nx-sico nx-ico-green"><?= ti_svg($ti['trending'], 18); ?></span>
                         <p><?= lang('sales'); ?> <span class="nav-arrow"><?= ti_svg($ti['chevron'], 14); ?></span></p>
@@ -428,16 +434,7 @@ $ti = [
                         <?php if ($Settings->enable_quote): ?>
                         <li class="nav-item" id="sales_proforma"><a href="<?= site_url('sales/proforma'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['filetext'], 14); ?></span><p><?= lang('list_quotes_sales'); ?></p></a></li>
                         <?php endif; ?>
-                    </ul>
-                </li>
-
-                <!-- Notas de Crédito -->
-                <li class="nav-item has-treeview mm_creditnotes">
-                    <a href="#" class="nav-link">
-                        <span class="nx-sico nx-ico-pink"><?= ti_svg($ti['filedollar'], 18); ?></span>
-                        <p><?= lang('credit_notes'); ?> <span class="nav-arrow"><?= ti_svg($ti['chevron'], 14); ?></span></p>
-                    </a>
-                    <ul class="nav nav-treeview">
+                        <li class="nav-item" id="sales_anuladas"><a href="<?= site_url('sales/anuladas'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['ban'], 14); ?></span><p><?= lang('sales_anuladas'); ?></p></a></li>
                         <li class="nav-item" id="creditnotes_index"><a href="<?= site_url('CreditNotes'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['minus'], 14); ?></span><p><?= lang('credit_notes'); ?></p></a></li>
                         <li class="nav-item" id="debitnotes_index"><a href="<?= site_url('debitnotes'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['plus'], 14); ?></span><p><?= lang('notas_debito'); ?></p></a></li>
                     </ul>
@@ -506,7 +503,7 @@ $ti = [
                         <?php endif; ?>
                         <?php if ($this->db->dbdriver != 'sqlite3'): ?>
                         <li class="nav-item" id="settings_backups"><a href="<?= site_url('settings/backups'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['database'], 14); ?></span><p><?= lang('backups'); ?></p></a></li>
-                        <li class="nav-item"><a href="<?= site_url('settings/getDownloadxml'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['filecode'], 14); ?></span><p><?= lang('backup_xmls'); ?></p></a></li>
+                        <li class="nav-item" id="settings_backups_xml"><a href="<?= site_url('settings/backups_xml'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['filecode'], 14); ?></span><p><?= lang('backup_xmls'); ?></p></a></li>
                         <?php endif; ?>
                     </ul>
                 </li>
@@ -518,6 +515,13 @@ $ti = [
                         <p><?= lang('reports'); ?> <span class="nav-arrow"><?= ti_svg($ti['chevron'], 14); ?></span></p>
                     </a>
                     <ul class="nav nav-treeview">
+                        <li class="nav-item" id="reportes_inteligencia"><a href="<?= site_url('reportes'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['trending'], 14); ?></span><p>Centro de Inteligencia</p></a></li>
+                        <li class="nav-item" id="reportes_auditoria"><a href="<?= site_url('reportes/auditoria'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['scale'], 14); ?></span><p>Auditoría Integral</p></a></li>
+                        <li class="nav-item" id="reportes_anomalias"><a href="<?= site_url('reportes/ver/anomalias'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['ban'], 14); ?></span><p>Detector de anomalías</p></a></li>
+                        <li class="nav-item" id="reportes_conciliacion"><a href="<?= site_url('reportes/ver/conciliacion'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['cloud'], 14); ?></span><p>Conciliación con Hacienda</p></a></li>
+                        <li class="nav-item" id="reportes_diccionario"><a href="<?= site_url('reportes/diccionario'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['database'], 14); ?></span><p>Diccionario de datos</p></a></li>
+                        <li class="nav-item" id="reportes_bitacora"><a href="<?= site_url('reportes/bitacora'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['clock'], 14); ?></span><p>Bitácora de informes</p></a></li>
+                        <li class="nav-header" style="padding:8px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.55">Informes clásicos</li>
                         <li class="nav-item" id="reports_credit_customers"><a href="<?= site_url('reports/credit_customers'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['circleuser'], 14); ?></span><p><?= lang('cta_clientes'); ?></p></a></li>
                         <?php if ($Settings->is_shipping == 1): ?>
                         <li class="nav-item" id="reports_credit_shipping"><a href="<?= site_url('reports/credit_shipping'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['truck'], 14); ?></span><p><?= lang('cta_envios'); ?></p></a></li>
@@ -530,6 +534,7 @@ $ti = [
                         <li class="nav-item" id="d151"><a href="<?= site_url('reports/d151'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['filepdf'], 14); ?></span><p><?= lang('model_d151'); ?></p></a></li>
                         <li class="nav-item" id="reports_compras_electronicas"><a href="<?= site_url('reports/compras_electronicas'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['cartshop'], 14); ?></span><p><?= lang('compras_mensuales'); ?></p></a></li>
                         <li class="nav-item" id="reports_payments"><a href="<?= site_url('reports/payments'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['creditcard'], 14); ?></span><p><?= lang('payments_report'); ?></p></a></li>
+                        <li class="nav-item" id="reports_sinpe"><a href="<?= site_url('reports/sinpe'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['receipt'], 14); ?></span><p><?= lang('sinpe_report'); ?></p></a></li>
                         <li class="nav-item" id="reports_registers"><a href="<?= site_url('reports/registers'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['calculator'], 14); ?></span><p><?= lang('registers_report'); ?></p></a></li>
                         <li class="nav-item" id="reports_top_products"><a href="<?= site_url('reports/top_products'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['trophy'], 14); ?></span><p><?= lang('top_products'); ?></p></a></li>
                         <li class="nav-item" id="reports_products"><a href="<?= site_url('reports/products'); ?>" class="nav-link"><span class="nav-icon"><?= ti_svg($ti['box'], 14); ?></span><p><?= lang('products_report'); ?></p></a></li>
@@ -613,19 +618,21 @@ $ti = [
     <div class="app-content">
         <div class="container-fluid">
 
-            <!-- Flash alerts -->
-            <div id="custom-alerts" style="display:none;">
-                <div class="alert alert-dismissable fade show" role="alert">
-                    <div class="custom-msg"></div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </div>
+            <!-- Unico punto donde se emiten los avisos de sesion. Las vistas no repiten
+                 el mensaje: verlo dos veces era el sintoma de tenerlo en los dos lados. -->
             <?php if ($error || $warning || $message): ?>
             <script>
             window._nxAlerts = window._nxAlerts || [];
-            <?php if ($error): ?>window._nxAlerts.push({icon:'error',title:<?= json_encode(strip_tags($error)) ?>});<?php endif; ?>
-            <?php if ($warning): ?>window._nxAlerts.push({icon:'warning',title:<?= json_encode(strip_tags($warning)) ?>});<?php endif; ?>
-            <?php if ($message): ?>window._nxAlerts.push({icon:'success',title:<?= json_encode(strip_tags($message)) ?>});<?php endif; ?>
+            <?php
+            // validation_errors() llega como varios <p>: se pasa a saltos de linea para
+            // que un error de tres campos no salga como un parrafo pegado.
+            $nx_flash = function ($texto) {
+                return json_encode(nl2br(html_escape(trim(preg_replace('/\n{2,}/', "\n", strip_tags($texto))))));
+            };
+            ?>
+            <?php if ($error): ?>window._nxAlerts.push({icon:'error',html:<?= $nx_flash($error) ?>});<?php endif; ?>
+            <?php if ($warning): ?>window._nxAlerts.push({icon:'warning',html:<?= $nx_flash($warning) ?>});<?php endif; ?>
+            <?php if ($message): ?>window._nxAlerts.push({icon:'success',html:<?= $nx_flash($message) ?>});<?php endif; ?>
             </script>
             <?php endif; ?>
 

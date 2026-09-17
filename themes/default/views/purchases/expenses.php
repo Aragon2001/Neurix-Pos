@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="nxt-head">
     <div class="nxt-title">
@@ -26,11 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
         el: '#nxtList',
         url: '<?= site_url('purchases/get_expenses'); ?>',
         csrf: { name: '<?= $this->security->get_csrf_token_name(); ?>', hash: '<?= $this->security->get_csrf_hash(); ?>' },
-        minWidth: '880px',
+        minWidth: '1180px',
         unit: '<?= lang('expenses'); ?>'.toLowerCase(),
         exportName: 'gastos',
-        search: ['date', 'reference', 'note', 'user'],
-        totals: ['amount'],
+        search: ['date', 'reference', 'note', 'user', 'supplier', 'categoria'],
+        totals: ['amount', 'impuesto'],
         columns: [
             { key: 'date', label: '<?= lang('date'); ?>', sortable: 'str', render: function (r) {
                 return '<span class="nxt-dim-mono">' + NxTable.esc(r.date) + '</span>';
@@ -38,9 +44,21 @@ document.addEventListener('DOMContentLoaded', function () {
             { key: 'reference', label: '<?= lang('reference'); ?>', sortable: 'str', render: function (r) {
                 return r.reference ? '<span class="nxt-code">' + NxTable.esc(r.reference) + '</span>' : '—';
             } },
+            { key: 'supplier', label: '<?= lang('supplier'); ?>', sortable: 'str', render: function (r) {
+                return r.supplier ? '<span class="nxt-ent-name">' + NxTable.esc(r.supplier) + '</span>' : '—';
+            } },
+            { key: 'categoria', label: '<?= lang('categoria_gasto'); ?>', sortable: 'str', render: function (r) {
+                return r.categoria ? NxTable.badge(r.categoria, 'info') : '—';
+            } },
             { key: 'amount', label: '<?= lang('amount'); ?>', className: 'num', sortable: 'num', render: function (r) {
                 return '<span class="nxt-price">' + NxTable.money(r.amount) + '</span>';
             } },
+            { key: 'impuesto', label: '<?= lang('tax'); ?>', className: 'num', sortable: 'num', render: function (r) {
+                return r.impuesto != null ? '<span class="nxt-cost">' + NxTable.money(r.impuesto) + '</span>' : '—';
+            } },
+            { key: 'documento_id', label: '<?= lang('origen'); ?>', render: function (r) {
+                return r.documento_id ? NxTable.badge('<?= lang('origen_electronico'); ?>', 'violet') : NxTable.badge('<?= lang('origen_manual'); ?>', 'muted');
+            }, exportValue: function (r) { return r.documento_id ? '<?= lang('origen_electronico'); ?>' : '<?= lang('origen_manual'); ?>'; } },
             { key: 'note', label: '<?= lang('note'); ?>', render: function (r) {
                 return r.note ? '<span class="nxt-ent-meta">' + NxTable.esc(r.note) + '</span>' : '—';
             } },

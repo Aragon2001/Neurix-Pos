@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) or exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) or exit('No direct script access allowed'); ?>
 
 <?php
 $v = "?v=1";

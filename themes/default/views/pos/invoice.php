@@ -1,4 +1,11 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed') ?><!DOCTYPE html>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed') ?>
+<?php include FCPATH . 'themes/default/views/pos/_comprobante_datos.php'; ?><!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -8,12 +15,16 @@
     <body>
         <header class="clearfix">
             <div id="logo" >
-                <img id="logoimg" src="<?= base_url('uploads/logo.png') ?>">
+                <?php if ($logo_file) { ?>
+                    <img id="logoimg" src="<?= base_url('uploads/' . $logo_file) ?>" alt="<?= html_escape($emisor_nombre) ?>">
+                <?php } else { ?>
+                    <div id="logomono"><?= html_escape($monograma) ?></div>
+                <?php } ?>
             </div>
             <div id="company">
                 <h2 class="name"><?= $Settings->nombre_emisor ?></h2>
                 <div><b><?= $Settings->cedula_emisor ?></b></div>
-                <div><?= $Settings->otras_senas ?></div>
+                <div><?= html_escape($Settings->otras_senas); ?></div>
                 <div>(506) <?= $Settings->telefono_emisor ?></div>
                 <div><a href="mailto:<?= $Settings->email_emisor ?>"><?= $Settings->email_emisor ?></a></div>
             </div>
@@ -22,27 +33,27 @@
         <div id="details" class="clearfix">
             <div id="client">
                 <div class="to">Facturado a:</div>
-                <h2 class="name"><?= $customer->name ?> <?= $customer->business_name ? "(" . $customer->business_name . ")" : '' ?></h2>
-                <div class="email"><a href="<?= $customer->email ?>"><?= $customer->email ?></a></div>
+                <h2 class="name"><?= html_escape($customer->name); ?> <?= $customer->business_name ? "(" . $customer->business_name . ")" : '' ?></h2>
+                <div class="email"><a href="<?= html_escape($customer->email); ?>"><?= html_escape($customer->email); ?></a></div>
                 <div class="email">
-                    <? if($customer->cf1 == "01"){ ?>
+                    <?php if($customer->cf1 == "01"){ ?>
                         <?= lang("Cedula Identidad") . ': ' . $customer->cf2; ?>
-                    <? }else if($customer->cf1 == "02"){ ?>
+                    <?php }else if($customer->cf1 == "02"){ ?>
                         <?= lang("Cedula Juridica") . ': ' . $customer->cf2; ?>
-                    <? }else if($customer->cf1 == "03"){ ?>
+                    <?php }else if($customer->cf1 == "03"){ ?>
                         <?= lang("Dimex") . ': ' . $customer->cf2; ?>
-                    <? }else if($customer->cf1 == "04"){ ?>
+                    <?php }else if($customer->cf1 == "04"){ ?>
                         <?= lang("NITE") . ': ' . $customer->cf2; ?>
-                    <? } ?>
+                    <?php } ?>
                 </div>
             </div>
             <div id="invoice">
                 <h1>
-                 <? if($hacienda->tipo_doc === "4"){ ?>
+                 <?php if($hacienda->tipo_doc === "4"){ ?>
                                 <b><?= lang("electronic_bill") ?></b><br>
-                                <? }else if($hacienda->tipo_doc === "1"){ ?>
+                                <?php }else if($hacienda->tipo_doc === "1"){ ?>
                                 <b><?= lang("Factura Electronica") ?></b><br>
-                                <? } ?>
+                                <?php } ?>
                 </h1>
                 <p><b><?= $hacienda->consecutivo ?></b></p>
                 <h1><?= lang('clave'); ?></h1>
@@ -63,19 +74,18 @@
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($rows as $row) { ?>
+                <?php foreach ($rows as $row) {
+                    // nx_linea_comprobante() unifica los nombres de columna,
+                    // que difieren entre las tablas de lineas de cada documento.
+                    $l = nx_linea_comprobante($row); ?>
                     <tr>
-                        <td class="no"><?= $row->product_code ?></td>
-                        <td class="desc"><?= $row->product_name;            
-                             if ($row->tax > 0) {
-                                echo  "(G " . $row->tax . "%)";
-                            } else {
-                                echo "(E)";
-                            } ?></td>
-                        <td class="unit"><?= number_format($row->net_unit_price, $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
-                        <td class="qty"><?= $row->quantity ?></td>
-                        <td class="qty"><?= $row->unit_of_measurement ?></td>
-                        <td class="total"><?= number_format($row->subtotal, $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
+                        <td class="no"><?= html_escape($row->product_code) ?></td>
+                        <td class="desc"><?= html_escape($row->product_name) ?>
+                            (<?= html_escape($l['iva']) ?>)</td>
+                        <td class="unit"><?= number_format($l['precio'], $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
+                        <td class="qty"><?= $this->tec->formatQuantity($row->quantity) ?></td>
+                        <td class="qty"><?= html_escape($l['unidad']) ?></td>
+                        <td class="total"><?= number_format($l['subtotal'], $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
                     </tr>
                 <?php } ?>
             </tbody>
@@ -90,7 +100,7 @@
                     <tr>
                         <td colspan="2"></td>
                         <td colspan="2"><?= $Settings->enable_show_tax ?></td>
-                        <td><?= number_format($inv->product_tax, $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
+                        <td><?= number_format(($inv->product_tax ?? 0), $Settings->decimals, $Settings->decimals_sep, $Settings->thousands_sep) ?></td>
                     </tr>
                 <?php } ?>
                 <?php if ($inv->PorcentajeExoneracion>0) { ?>
@@ -108,13 +118,12 @@
             </tfoot>
         </table>
                 </div>
-        <div class="text-center" >Gravado (G) , Exento (E)</div>
         <div id="thanks">Gracias por su compra!</div>
 
         <?php if ($inv->note) { ?>
             <div id="notices">
                 <div><?= lang('notas_label'); ?>:</div>
-                <div class="notice"><?= $inv->note ?></div>
+                <div class="notice"><?= html_escape($inv->note); ?></div>
             </div>
         <?php } ?>
     </main>

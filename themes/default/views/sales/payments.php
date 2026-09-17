@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -26,7 +32,7 @@
                             <tr class="row<?= $payment->id ?>">
                                 <td><?= $this->tec->hrld($payment->date); ?></td>
                                 <td><?= lang($payment->reference); ?></td>
-                                <td class="text-right"><?= $this->tec->formatMoney($payment->amount) . ' ' . (($payment->attachment) ? '<a href="' . base_url('assets/uploads/' . $payment->attachment) . '" target="_blank"><i class="fa fa-chain"></i></a>' : ''); ?></td>
+                                <td class="text-right"><?= $this->tec->formatMoney($payment->amount) . ' ' . ((!empty($payment->attachment)) ? '<a href="' . base_url('assets/uploads/' . $payment->attachment) . '" target="_blank"><i class="fa fa-chain"></i></a>' : ''); ?></td>
                                 <td><?= lang($payment->paid_by); ?></td>
                                 <td>
                                     <div class="text-center">
@@ -47,11 +53,3 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" charset="UTF-8">
-    $(document).ready(function () {
-        $(document).on('click', '.po-delete', function () {
-            var id = $(this).attr('id');
-            $(this).closest('tr').remove();
-        });
-    });
-</script>

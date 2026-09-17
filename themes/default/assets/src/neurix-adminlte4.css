@@ -857,3 +857,20 @@
 .text-muted {
   color: var(--nx-text-muted, #94a3b8) !important;
 }
+
+/* ── 17. CAPAS ──
+   Un aviso tiene que verse siempre; si queda debajo de algo, no avisa nada.
+   SweetAlert2 se planta en z-index 1060 y en esta aplicación hay cuatro capas
+   por encima:
+
+     1031  barra lateral fija            (nx-sidebar.css)
+     1055  modal de Bootstrap
+     1080  superposición de QZ Tray      (.nx-ov, pos-redesign.css)
+     1085  detalle del comprobante       (.nxd-capa, nx-doc.css)
+     9999  avisos y autocompletado del POS
+
+   Los diálogos y los toast de SweetAlert van sobre todo eso. Al agregar una
+   capa nueva, mantenerla por debajo de este número. */
+.swal2-container {
+  z-index: 10050 !important;
+}

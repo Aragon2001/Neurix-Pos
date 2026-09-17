@@ -61,6 +61,8 @@ $route['pos/view_proforma']              = 'posview/view_proforma';
 $route['pos/viewnc/(:any)']              = 'posview/viewnc/$1';
 $route['pos/viewnc']                     = 'posview/viewnc';
 $route['pos/view_close_register/(:any)'] = 'posview/view_close_register/$1';
+$route['pos/pdf/(:any)']                  = 'posview/pdf/$1';
+$route['pos/pdf']                        = 'posview/pdf';
 
 // ---- PosEmail: correos de comprobantes ----
 $route['pos/email_receipt']              = 'posemail/email_receipt';
@@ -73,24 +75,33 @@ $route['pos/today_sale']                 = 'posregister/today_sale';
 $route['pos/shortcuts']                  = 'posregister/shortcuts';
 $route['pos/close_register/(:any)']      = 'posregister/close_register/$1';
 $route['pos/close_register']             = 'posregister/close_register';
+$route['pos/enviar_cierre']              = 'posregister/enviar_cierre';
+$route['pos/cierre_pdf']                 = 'posregister/cierre_pdf';
 $route['pos/products_sales_in_register'] = 'posregister/products_sales_in_register';
 $route['pos/invoices_in_register']       = 'posregister/invoices_in_register';
 
 // ---- PosPrint: impresión y tickets ----
 $route['pos/view_bill']                  = 'posprint/view_bill';
 $route['pos/print_parquimetro/(:any)']   = 'posprint/print_parquimetro/$1';
-$route['pos/print_comanda/(:any)']       = 'posprint/print_comanda/$1';
 $route['pos/print_register/(:any)']      = 'posprint/print_register/$1';
 $route['pos/print_register']             = 'posprint/print_register';
 $route['pos/print_receipt/(:any)']       = 'posprint/print_receipt/$1';
-$route['pos/print_cuenta/(:any)']        = 'posprint/print_cuenta/$1';
-$route['pos/p/(:any)']                   = 'posprint/p/$1';
-$route['pos/p']                          = 'posprint/p';
 $route['pos/invice_barcode/(:any)']      = 'posprint/invice_barcode/$1';
 $route['pos/invice_barcode_2/(:any)']    = 'posprint/invice_barcode_2/$1';
 
 // ---- PosCredit: nota de crédito ----
 $route['pos/creditnote']                 = 'poscredit/creditnote';
+
+// ---- Salesdoc: detalle de una venta y sus acciones (modal del listado) ----
+$route['sales/documento/(:num)']              = 'salesdoc/documento/$1';
+$route['sales/documento_xml/(:num)/(:any)']   = 'salesdoc/documento_xml/$1/$2';
+$route['sales/descargar_xml/(:num)/(:any)']   = 'salesdoc/descargar_xml/$1/$2';
+$route['sales/bitacora/(:num)']               = 'salesdoc/bitacora/$1';
+$route['sales/reenviar/(:num)']               = 'salesdoc/reenviar/$1';
+$route['sales/consultar/(:num)']              = 'salesdoc/consultar/$1';
+$route['sales/info_anulacion/(:num)']         = 'salesdoc/info_anulacion/$1';
+$route['sales/anular/(:num)']                 = 'salesdoc/anular/$1';
+$route['sales/reintentar_nota/(:num)']       = 'salesdoc/reintentar_nota/$1';
 
 $route['users'] = 'auth/users';
 $route['login'] = 'auth/login';

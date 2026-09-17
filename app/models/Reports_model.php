@@ -1,10 +1,37 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Reports_model extends CI_Model
 {
 
     public function __construct() {
         parent::__construct();
+    }
+
+    /**
+     * Condicion SQL que deja fuera las ventas anuladas.
+     *
+     * Una venta anulada se conserva para control, pero no se contabiliza. No se
+     * mira `estatus_hacienda`: cuando la anulacion se hizo con nota de credito
+     * el comprobante sigue estando aceptado ante Hacienda, y esa columna guarda
+     * la respuesta real, no lo que el negocio decidio despues.
+     *
+     * Se aplica a los informes internos de ventas. Las declaraciones fiscales
+     * (D-151, ventas por impuesto) no la usan a proposito: ahi la factura
+     * anulada existe y es su nota de credito la que la compensa.
+     */
+    public function sinAnuladas() {
+        if (!$this->db->table_exists('sale_anulaciones')) {
+            return '1 = 1';
+        }
+        $sa = $this->db->dbprefix('sale_anulaciones');
+        $s  = $this->db->dbprefix('sales');
+        return "NOT EXISTS (SELECT 1 FROM `{$sa}` WHERE `{$sa}`.sale_id = `{$s}`.id)";
     }
 
     public function getAllProducts() {
@@ -62,6 +89,7 @@ class Reports_model extends CI_Model
         if ($this->session->userdata('store_id')) {
             $this->db->where('store_id', $this->session->userdata('store_id'));
         }
+        $this->db->where($this->sinAnuladas(), NULL, FALSE);
         $q = $this->db->get('sale_items');
         if($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -84,6 +112,7 @@ class Reports_model extends CI_Model
         if ($this->session->userdata('store_id')) {
             $this->db->where('store_id', $this->session->userdata('store_id'));
         }
+        $this->db->where($this->sinAnuladas(), NULL, FALSE);
         $q = $this->db->get('sale_items');
         if($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -110,6 +139,7 @@ class Reports_model extends CI_Model
         if ($this->session->userdata('store_id')) {
             $this->db->where('store_id', $this->session->userdata('store_id'));
         }
+        $this->db->where($this->sinAnuladas(), NULL, FALSE);
         $q = $this->db->get('sale_items');
         if($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -137,6 +167,7 @@ class Reports_model extends CI_Model
         if ($this->session->userdata('store_id')) {
             $this->db->where('store_id', $this->session->userdata('store_id'));
         }
+        $this->db->where($this->sinAnuladas(), NULL, FALSE);
         $q = $this->db->get('sale_items');
         if($q->num_rows() > 0) {
             foreach (($q->result()) as $row) {
@@ -153,6 +184,7 @@ class Reports_model extends CI_Model
             $this->db->select("DATE_FORMAT( date,  '%d' ) AS date, COALESCE(sum(product_tax), 0) as product_tax, COALESCE(sum(order_tax), 0) as order_tax, COALESCE(sum(total), 0) as total, COALESCE(sum(grand_total), 0) as grand_total, COALESCE(sum(total_tax), 0) as total_tax, COALESCE(sum(total_discount), 0) as discount, COALESCE(sum(paid), 0) as paid", FALSE);
         }
         $this->db->like('date', "{$year}-{$month}", 'after');
+        $this->db->where($this->sinAnuladas(), NULL, FALSE);
         if ($this->session->userdata('store_id')) {
             $this->db->where('store_id', $this->session->userdata('store_id'));
         }
@@ -178,6 +210,7 @@ class Reports_model extends CI_Model
         }
 
         $this->db->like('date', "{$year}", 'after');
+        $this->db->where($this->sinAnuladas(), NULL, FALSE);
         if ($this->session->userdata('store_id')) {
             $this->db->where('store_id', $this->session->userdata('store_id'));
         }
@@ -214,6 +247,7 @@ class Reports_model extends CI_Model
             $where .= " AND id_shipping_method IS NULL";
         }
         $where .= " AND customer_id IN(".str_replace(']','',str_replace('[','',json_encode($customers_id))).")";
+        $where .= " AND " . $this->sinAnuladas();
         $q= $this->db->query('SELECT COUNT(id) as number, sum(grand_total) as amount,
          SUM(CASE WHEN `status` = "paid" THEN grand_total ELSE paid END) AS paid FROM '.$this->db->dbprefix('sales').$where);
         //  dd($this->db->last_query());
@@ -272,7 +306,8 @@ class Reports_model extends CI_Model
 
     public function getTotalSales($start, $end) {
         $this->db->select('count(id) as total, sum(COALESCE(grand_total, 0)) as total_amount, SUM(COALESCE(paid, 0)) as paid, SUM(COALESCE(total_tax, 0)) as tax', FALSE)
-            ->where("date >= '{$start}' and date <= '{$end}'", NULL, FALSE);
+            ->where("date >= '{$start}' and date <= '{$end}'", NULL, FALSE)
+            ->where($this->sinAnuladas(), NULL, FALSE);
         if ($this->session->userdata('store_id')) {
             $this->db->where('store_id', $this->session->userdata('store_id'));
         }
@@ -495,6 +530,38 @@ class Reports_model extends CI_Model
         }
         return FALSE;
     }
+    /**
+     * Cobros de un turno cerrado, agrupados por forma de pago.
+     * Equivalente de Pos_model::getRegisterPagosPorMetodo() para un rango.
+     *
+     * @return array paid_by => monto cobrado
+     */
+    public function getRegisterPagosPorMetodo($dateOpen = NULL, $dateClose = NULL, $user_id = NULL) {
+        if (!$user_id) {
+            $user_id = $this->session->userdata('user_id');
+        }
+
+        $this->db
+            ->select("{$this->db->dbprefix('payments')}.paid_by, COALESCE(SUM(COALESCE(
+                CASE WHEN (pos_balance < 0)
+                    THEN COALESCE(amount,0)
+                    ELSE COALESCE((amount - pos_balance),0)
+                END,0)),0) AS total", FALSE)
+            ->join('sales', 'sales.id=payments.sale_id', 'left')
+            ->where('payments.date >', $dateOpen)
+            ->where('payments.date <', $dateClose)
+            ->where('payments.created_by', $user_id)
+            ->group_by("{$this->db->dbprefix('payments')}.paid_by");
+
+        $q = $this->db->get('payments');
+        $totales = array();
+        foreach ($q->result() as $fila) {
+            $totales[(string) $fila->paid_by] = (float) $fila->total;
+        }
+
+        return $totales;
+    }
+
     public function getRegisterCCSales($dateOpen = NULL,$dateClose = NULL, $user_id = NULL) {
         if (!$user_id) {
             $user_id = $this->session->userdata('user_id');

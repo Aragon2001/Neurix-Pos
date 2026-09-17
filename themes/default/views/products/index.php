@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <!-- ═══ Encabezado de página ═══ -->
 <div class="nxt-head">
@@ -149,8 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showing:    '<?= lang('mostrando'); ?>',
         categories: '<?= lang('en_categorias'); ?>',
         view:       '<?= lang('view'); ?>',
-        barcode:    '<?= lang('print_barcodes'); ?>',
-        label:      '<?= lang('print_labels'); ?>',
+        etiqueta:   '<?= lang('etiquetas_codigos'); ?>',
         edit:       '<?= lang('edit_product'); ?>',
         del:        '<?= lang('delete_product'); ?>',
         delConfirm: '<?= lang('alert_x_product'); ?>'
@@ -268,13 +273,20 @@ document.addEventListener('DOMContentLoaded', function () {
         var names = Object.keys(cats).sort(function (a, b) { return a.localeCompare(b); });
         names.forEach(function (c, i) { catColor[c] = PALETTE[i % PALETTE.length]; });
         var box = document.getElementById('nxtChips');
+        // ?cat=<nombre> deja el filtro puesto: es como entra quien viene de la
+        // ficha de una categoría.
+        var pedida = new URLSearchParams(location.search).get('cat');
         names.forEach(function (c) {
             var b = document.createElement('button');
-            b.className = 'nxt-chip';
+            b.className = 'nxt-chip' + (c === pedida ? ' active' : '');
             b.dataset.cat = c;
             b.textContent = c;
             box.appendChild(b);
         });
+        if (names.indexOf(pedida) !== -1) {
+            activeCat = pedida;
+            box.querySelector('.nxt-chip[data-cat="*"]').classList.remove('active');
+        }
     }
 
     /* ── KPIs ── */
@@ -349,10 +361,8 @@ document.addEventListener('DOMContentLoaded', function () {
             var actions =
                 '<a class="nxt-icon-btn js-ajax-modal" href="' + u + 'view/' + p.pid + '" title="' + esc(L.view) + '">' +
                     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4-5.4 6-9 6s-6.6-2-9-6c2.4-4 5.4-6 9-6s6.6 2 9 6"/></svg></a>' +
-                '<a class="nxt-icon-btn js-ajax-modal" href="' + u + 'single_barcode/' + p.pid + '" title="' + esc(L.barcode) + '">' +
+                '<a class="nxt-icon-btn" href="' + u + 'etiquetas?id=' + p.pid + '" title="' + esc(L.etiqueta) + '">' +
                     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7v-1a2 2 0 0 1 2 -2h2"/><path d="M4 17v1a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v1"/><path d="M16 20h2a2 2 0 0 0 2 -2v-1"/><path d="M5 11h1v2h-1z"/><path d="M10 11l0 2"/><path d="M14 11h1v2h-1z"/><path d="M19 11l0 2"/></svg></a>' +
-                '<a class="nxt-icon-btn js-ajax-modal" href="' + u + 'single_label/' + p.pid + '" title="' + esc(L.label) + '">' +
-                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.172 2a2 2 0 0 1 1.414 .586l7.71 7.71a2.41 2.41 0 0 1 0 3.408l-5.592 5.592a2.41 2.41 0 0 1 -3.408 0l-7.71 -7.71a2 2 0 0 1 -.586 -1.414v-4.172a4 4 0 0 1 4 -4z"/><path d="M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg></a>' +
                 '<a class="nxt-icon-btn warn" href="' + u + 'edit/' + p.pid + '" title="' + esc(L.edit) + '">' +
                     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h-1a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1"/><path d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97l-8.415 8.385v3h3z"/></svg></a>' +
                 '<a class="nxt-icon-btn danger" href="' + u + 'delete/' + p.pid + '" data-confirm="' + esc(L.delConfirm) + '" title="' + esc(L.del) + '">' +

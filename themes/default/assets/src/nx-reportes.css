@@ -1,0 +1,232 @@
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NX-REPORTES.CSS — Centro de Inteligencia (namespace .nxr-*)
+
+   Se apoya en las variables de neurix-theme-vars.css y reusa .nxt-card,
+   .nxt-table y .nxt-kpi de nx-tables.css. Solo define lo que el módulo añade:
+   la barra de filtros, los semáforos, el índice de confiabilidad y los
+   gráficos de barras en SVG.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tonos compartidos por semáforos, confiabilidad y celdas ── */
+.nxr-ok     { --nxr-c: var(--nx-emerald); }
+.nxr-warn   { --nxr-c: var(--nx-amber); }
+.nxr-err    { --nxr-c: var(--nx-err); }
+.nxr-info   { --nxr-c: var(--nx-a1); }
+.nxr-orange { --nxr-c: var(--nx-orange); }
+.nxr-muted  { --nxr-c: var(--nx-slate); }
+td.nxr-ok, td.nxr-warn, td.nxr-err { color: var(--nxr-c); font-weight: 600; }
+.nxr-dim { color: var(--nx-txt3); }
+
+/* ═════════════ BARRA DE FILTROS ═════════════ */
+.nxr-filtros {
+  background: var(--nx-card-bg);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius);
+  padding: 14px 16px 12px;
+  margin-bottom: 16px;
+}
+.nxr-fgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px 14px;
+}
+.nxr-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nxr-f-2 { grid-column: span 2; }
+.nxr-f > span {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--nx-txt3);
+  display: flex; align-items: center; gap: 5px;
+}
+.nxr-f input, .nxr-f select {
+  background: var(--nx-input-bg);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-sm);
+  color: var(--nx-txt1);
+  padding: 7px 9px; font-size: 13px; width: 100%;
+  transition: var(--nx-transition);
+}
+.nxr-f input:focus, .nxr-f select:focus {
+  outline: none; border-color: var(--nx-a1);
+  box-shadow: 0 0 0 3px var(--nx-glow);
+}
+/* El ámbito lleva la explicación completa en la opción: sin recorte, un
+   desplegable de 90 caracteres desborda la rejilla y tapa el filtro vecino. */
+.nxr-f select { text-overflow: ellipsis; }
+
+.nxr-ayuda {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--nx-bg3); color: var(--nx-txt3);
+  font-size: 9px; font-style: normal; font-weight: 700; cursor: help;
+}
+.nxr-ayuda:hover, .nxr-ayuda:focus { background: var(--nx-a1); color: #fff; }
+
+.nxr-facciones {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--nx-border);
+}
+.nxr-atajos { display: flex; gap: 4px; flex-wrap: wrap; }
+.nxr-atajo {
+  background: transparent; border: 1px solid var(--nx-border);
+  border-radius: 999px; color: var(--nx-txt2);
+  padding: 4px 11px; font-size: 11.5px; cursor: pointer;
+  transition: var(--nx-transition);
+}
+.nxr-atajo:hover { background: var(--nx-hover-bg); color: var(--nx-txt1); }
+.nxr-atajo.on { background: var(--nx-a1); border-color: var(--nx-a1); color: #fff; }
+.nxr-estado { margin-left: auto; font-size: 12px; color: var(--nx-txt3); }
+.nxr-estado.err { color: var(--nx-err); font-weight: 600; }
+
+/* ═════════════ CABECERA DEL INFORME ═════════════ */
+.nxr-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.nxr-head h1 { font-size: 21px; font-weight: 700; color: var(--nx-txt1); margin: 0; }
+.nxr-head p  { font-size: 13px; color: var(--nx-txt3); margin: 3px 0 0; }
+.nxr-acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* ═════════════ SELECTOR DE INFORME ═════════════ */
+.nxr-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.nxr-tab {
+  background: var(--nx-card-bg); border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-sm); color: var(--nx-txt2);
+  padding: 6px 13px; font-size: 12.5px; text-decoration: none;
+  transition: var(--nx-transition);
+}
+.nxr-tab:hover { border-color: var(--nx-a1); color: var(--nx-txt1); }
+.nxr-tab.on { background: var(--nx-a1); border-color: var(--nx-a1); color: #fff; font-weight: 600; }
+.nxr-grupo {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--nx-txt4);
+  align-self: center; margin-right: 2px;
+}
+
+/* ═════════════ ÍNDICE DE CONFIABILIDAD ═════════════ */
+.nxr-conf {
+  display: flex; gap: 20px; align-items: flex-start;
+  background: var(--nx-card-bg);
+  border: 1px solid var(--nx-border); border-left: 4px solid var(--nxr-c, var(--nx-slate));
+  border-radius: var(--nx-radius); padding: 18px 20px; margin-bottom: 16px;
+}
+.nxr-conf-v {
+  font-size: 40px; font-weight: 800; line-height: 1;
+  color: var(--nxr-c, var(--nx-txt1)); white-space: nowrap;
+}
+.nxr-conf-v small { font-size: 18px; font-weight: 600; margin-left: 2px; }
+.nxr-conf-t { flex: 1; min-width: 0; }
+.nxr-conf-t b { font-size: 13px; color: var(--nx-txt1); }
+.nxr-conf-t p { font-size: 12.5px; color: var(--nx-txt2); margin: 3px 0 0; }
+.nxr-conf-d { list-style: none; margin: 9px 0 0; padding: 0; display: grid; gap: 3px; }
+.nxr-conf-d li { font-size: 12px; color: var(--nx-txt3); }
+.nxr-conf-d span {
+  display: inline-block; min-width: 42px; font-weight: 700;
+  color: var(--nx-err); font-variant-numeric: tabular-nums;
+}
+.nxr-conf-d em { color: var(--nx-txt4); font-style: normal; }
+
+/* ═════════════ SEMÁFOROS ═════════════ */
+.nxr-sem {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px; margin-bottom: 16px;
+}
+.nxr-sem-i {
+  display: grid; grid-template-columns: auto 1fr; gap: 3px 11px;
+  background: var(--nx-card-bg); border: 1px solid var(--nx-border);
+  border-left: 3px solid var(--nxr-c, var(--nx-slate));
+  border-radius: var(--nx-radius); padding: 12px 14px;
+  text-decoration: none; transition: var(--nx-transition);
+}
+.nxr-sem-i:hover { background: var(--nx-hover-bg); box-shadow: var(--nx-shadow-sm); }
+.nxr-sem-ico { grid-row: span 2; font-size: 17px; align-self: center; }
+.nxr-sem-a { font-size: 13px; font-weight: 700; color: var(--nx-txt1); }
+.nxr-sem-d { font-size: 11.5px; color: var(--nx-txt3); line-height: 1.4; }
+
+/* ═════════════ LECTURA DEL PERÍODO ═════════════ */
+.nxr-analisis {
+  background: var(--nx-card-bg2); border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius); padding: 14px 18px; margin-bottom: 16px;
+}
+.nxr-analisis h4 {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--nx-txt3); margin: 0 0 8px;
+}
+.nxr-analisis ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; }
+.nxr-analisis li { font-size: 13px; color: var(--nx-txt2); line-height: 1.5; }
+
+/* ═════════════ GRÁFICOS DE BARRAS ═════════════ */
+.nxr-grafs {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 14px; margin-bottom: 16px;
+}
+.nxr-graf {
+  background: var(--nx-card-bg); border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius); padding: 14px 16px;
+}
+.nxr-graf h4 {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--nx-txt3); margin: 0 0 10px;
+}
+.nxr-barra {
+  display: grid; grid-template-columns: 92px 1fr auto;
+  align-items: center; gap: 9px; margin-bottom: 5px;
+}
+.nxr-barra-l {
+  font-size: 11.5px; color: var(--nx-txt2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nxr-barra-t { height: 8px; background: var(--nx-bg3); border-radius: 999px; overflow: hidden; }
+.nxr-barra-t i {
+  display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--nx-a1), var(--nx-a2));
+}
+.nxr-barra-v {
+  font-size: 11.5px; font-weight: 600; color: var(--nx-txt1);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
+/* ═════════════ ESTADOS ═════════════ */
+.nxr-vacio { text-align: center; color: var(--nx-txt4); padding: 34px 16px; font-style: italic; }
+.nxr-ok-vacio {
+  background: var(--nx-card-bg); border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius); padding: 26px; text-align: center;
+  color: var(--nx-txt2); font-size: 14px;
+}
+.nxr-folio {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px; color: var(--nx-txt4);
+}
+.nxr-cargando { padding: 30px; text-align: center; color: var(--nx-txt3); font-size: 13px; }
+.nxr-error {
+  background: color-mix(in srgb, var(--nx-err) 8%, transparent);
+  border: 1px solid var(--nx-err); border-radius: var(--nx-radius);
+  color: var(--nx-err); padding: 14px 18px; font-size: 13px; margin-bottom: 14px;
+}
+
+/* ═════════════ DICCIONARIO ═════════════ */
+.nxr-dic { display: grid; gap: 10px; }
+.nxr-dic-i {
+  background: var(--nx-card-bg); border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius); padding: 14px 18px;
+}
+.nxr-dic-i h4 { font-size: 14px; font-weight: 700; color: var(--nx-txt1); margin: 0 0 6px; }
+.nxr-dic-f {
+  display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; background: var(--nx-bg3); color: var(--nx-a1);
+  padding: 3px 9px; border-radius: var(--nx-radius-sm); margin-bottom: 7px;
+}
+.nxr-dic-i p { font-size: 12.5px; color: var(--nx-txt2); margin: 0; line-height: 1.55; }
+
+/* ── Impresión: la pantalla también tiene que salir en papel decente ── */
+@media print {
+  .nxr-filtros, .nxr-acciones, .nxr-tabs, .nxt-foot { display: none !important; }
+  .nxt-card, .nxr-conf, .nxr-sem-i { border: 1px solid #999; box-shadow: none; }
+  .nxt-table-wrap { overflow: visible !important; }
+  .nxt-table { font-size: 9pt; }
+}

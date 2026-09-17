@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 /*
  *  ==============================================================================
  *  Author  : Jostin Aragon Barboza
@@ -18,8 +24,18 @@ class Tec
         return get_instance()->$var;
     }
 
+    /**
+     * Limpia una nota antes de guardarla.
+     *
+     * `strip_tags` quita etiquetas pero nunca atributos, asi que `<a>`, `<img>`
+     * y `<div>` entraban con su `onerror` o su `href="javascript:"` intactos.
+     * La lista blanca se reduce a lo que no lleva atributos utiles.
+     */
     public function clear_tags($str) {
-        return htmlentities(strip_tags($str, '<span><div><a><br><p><b><i><u><img><blockquote><small><ul><ol><li><hr><big><pre><code><strong><em><table><tr><td><th><tbody><thead><tfoot><h3><h4><h5><h6>'), ENT_QUOTES | ENT_XHTML | ENT_HTML5, 'UTF-8');
+        return htmlentities(
+            strip_tags($str, '<br><p><b><i><u><strong><em><small><ul><ol><li><hr>'),
+            ENT_QUOTES | ENT_XHTML | ENT_HTML5, 'UTF-8'
+        );
     }
 
     public function decode_html($str) {
@@ -240,10 +256,114 @@ class Tec
         return $this->bc->generate($text, $bcs, $height, $drawText, $get_be);
     }
 
+    /** El mismo codigo de barras en SVG: no necesita GD y escala sin dentarse. */
+    public function barcode_svg($text = null, $bcs = 'code128', $height = 100, $ajuste = 'none') {
+        $this->load->library('tec_barcode', '', 'bc');
+        return $this->bc->generateSvg($text, $bcs, $height, $ajuste);
+    }
+
     public function barcode64($text = null, $bcs = 'code128', $height = 74, $stext = 1, $get_be = false) {
         $drawText = ($stext != 1) ? false : true;
         $this->load->library('tec_barcode', '', 'bc');
         return $this->bc->generateonlycode64($text, $bcs, $height, $drawText, $get_be);
+    }
+
+    /**
+     * Deja el HTML de un comprobante listo para mPDF.
+     *
+     * Las vistas de comprobante ya traen su hoja de estilo en linea, pensada
+     * para que el PDF se vea igual que la pantalla. Aqui solo se retira lo que
+     * mPDF no puede procesar: los bloques de botones y scripts (delimitados por
+     * los marcadores de recorte de la vista), la hoja de estilo externa y la
+     * etiqueta <base>. Las imagenes locales pasan a ruta de disco para que mPDF
+     * no tenga que descargarlas por HTTP.
+     *
+     * @param string $html HTML completo de la vista
+     * @return string
+     */
+    public function pdf_html($html) {
+        $html = preg_replace('#<!-- start -->(.+)<!-- end -->#Usi', '', $html);
+        $html = preg_replace('#<link[^>]*rel=[\x22\x27]?stylesheet[\x22\x27]?[^>]*>#i', '', $html);
+        $html = preg_replace('#<base[^>]*>#i', '', $html);
+        $html = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $html);
+        $html = str_replace(base_url('uploads/'), FCPATH . 'uploads/', $html);
+
+        // El bloque @media print maqueta el comprobante como tiquete de 80 mm.
+        // Se retira del HTML que va a mPDF en vez de confiar en CSSselectMedia,
+        // porque su parser tropieza con la @page anidada y desmaqueta el PDF.
+        // .no-print vive dentro de ese bloque, asi que se repone la regla.
+        $html = $this->quitar_media_print($html);
+        $html = str_ireplace('</head>', '<style>.no-print{display:none !important;}</style></head>', $html);
+
+        return $html;
+    }
+
+    /**
+     * Elimina los bloques `@media print { ... }` contando llaves, porque
+     * pueden contener reglas anidadas (@page) que una expresion regular
+     * simple cortaria a la mitad.
+     *
+     * @param string $css_html
+     * @return string
+     */
+    private function quitar_media_print($css_html) {
+        $pos = 0;
+        while (($ini = stripos($css_html, '@media print', $pos)) !== FALSE) {
+            $llave = strpos($css_html, '{', $ini);
+            if ($llave === FALSE) { break; }
+
+            $nivel = 0;
+            $fin   = NULL;
+            for ($i = $llave, $n = strlen($css_html); $i < $n; $i++) {
+                if ($css_html[$i] === '{') {
+                    $nivel++;
+                } elseif ($css_html[$i] === '}') {
+                    $nivel--;
+                    if ($nivel === 0) { $fin = $i; break; }
+                }
+            }
+            if ($fin === NULL) { break; }
+
+            $css_html = substr($css_html, 0, $ini) . substr($css_html, $fin + 1);
+            $pos = $ini;
+        }
+        return $css_html;
+    }
+
+    /**
+     * Genera un codigo QR como PNG en data URI.
+     *
+     * Se usa data URI (y no un archivo) para que la misma marca sirva tanto en
+     * el navegador como dentro del PDF que arma mPDF, sin peticiones HTTP.
+     *
+     * @param string $text    Contenido a codificar
+     * @param int    $scale   Tamano de cada modulo en px
+     * @param bool   $get_src TRUE devuelve solo el data URI; FALSE la etiqueta <img>
+     * @return string Cadena vacia si el texto viene vacio o falla la generacion
+     */
+    public function qrcode($text = null, $scale = 5, $get_src = false) {
+        if ($text === null || $text === '') {
+            return '';
+        }
+
+        try {
+            $options = new \chillerlan\QRCode\QROptions(array(
+                'outputInterface' => \chillerlan\QRCode\Output\QRGdImagePNG::class,
+                'eccLevel'        => \chillerlan\QRCode\Common\EccLevel::M,
+                'scale'           => (int) $scale,
+                'outputBase64'    => true,
+                'quietzoneSize'   => 2,
+            ));
+            $src = (new \chillerlan\QRCode\QRCode($options))->render($text);
+        } catch (\Throwable $e) {
+            log_message('error', 'No se pudo generar el QR: ' . $e->getMessage());
+            return '';
+        }
+
+        if ($get_src) {
+            return $src;
+        }
+        return '<img src="' . $src . '" alt="' . html_escape($text) . '" class="qrimg" />';
     }
 
     public function send_json($data) {

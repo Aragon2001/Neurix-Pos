@@ -1,4 +1,10 @@
 /**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+
+/**
  * POS Core — Motor del punto de venta en vanilla JS
  * Reemplaza pos.js (jQuery) sin dependencias externas.
  * Se carga únicamente en pos/index.php.
@@ -39,6 +45,95 @@
   }
   function remove(key) {
     try { localStorage.removeItem(key); } catch (e) {}
+  }
+
+  /* ──────────────────────────────────────────────────────
+     PUESTO DE TRABAJO
+  ────────────────────────────────────────────────────── */
+  /**
+   * QZ Tray corre en la computadora del cajero, asi que la impresora es de la
+   * maquina y no del usuario. El equipo se identifica con un device_id propio y
+   * el servidor guarda que impresora le toca; asi cualquiera que entre en esta
+   * caja imprime donde corresponde, sin volver a configurar nada.
+   *
+   * localStorage queda como copia: si el servidor no responde, la caja sigue
+   * imprimiendo con lo ultimo que supo.
+   */
+  var CLAVE_DEVICE   = 'nx-device-id';
+  var CLAVE_IMPRESORA = 'nx-qz-printer';
+  var _puesto = null;
+  var _puestoListo = null;
+
+  function deviceId() {
+    var id = get(CLAVE_DEVICE);
+    if (id && /^[a-f0-9-]{16,64}$/i.test(id)) { return id; }
+    id = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          var r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    store(CLAVE_DEVICE, id);
+    return id;
+  }
+
+  /** Impresora vigente: la que dijo el servidor, o la ultima conocida localmente. */
+  function impresoraDelPuesto() {
+    return (_puesto && _puesto.qz_printer) || get(CLAVE_IMPRESORA) || '';
+  }
+
+  function postPuesto(ruta, datos) {
+    var body = new URLSearchParams();
+    body.set('device_id', deviceId());
+    Object.keys(datos || {}).forEach(function (k) {
+      // PHP arma un arreglo con la clave repetida y el sufijo [].
+      if (Array.isArray(datos[k])) {
+        datos[k].forEach(function (v) { body.append(k + '[]', v); });
+      } else {
+        body.set(k, datos[k]);
+      }
+    });
+    if (window.CSRF_NAME) { body.set(window.CSRF_NAME, window.CSRF_HASH); }
+    return fetch((window.base_url || '') + 'workstation/' + ruta, {
+      method: 'POST',
+      body: body,
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (r) {
+      if (!r.ok) { throw new Error(r.status); }
+      return r.json();
+    });
+  }
+
+  function initPuesto() {
+    return postPuesto('registrar', {})
+      .then(function (p) {
+        _puesto = p;
+        if (p.qz_printer) { store(CLAVE_IMPRESORA, p.qz_printer); }
+        reportarImpresoras();
+        return p;
+      })
+      .catch(function () { return null; });
+  }
+
+  /**
+   * Manda al servidor las impresoras instaladas en esta maquina. Es el unico
+   * momento en que se pueden conocer: QZ Tray solo las enumera desde el navegador
+   * del equipo, y Ajustes se abre casi siempre desde otra computadora.
+   */
+  function reportarImpresoras(intentos) {
+    intentos = intentos || 0;
+    if (!window.qz || !qz.websocket.isActive()) {
+      // QZ tarda en levantar el websocket; se reintenta un rato y se abandona.
+      if (intentos < 10) { setTimeout(function () { reportarImpresoras(intentos + 1); }, 3000); }
+      return;
+    }
+    qz.printers.find().then(function (lista) {
+      var nombres = Array.isArray(lista) ? lista : [lista];
+      nombres = nombres.filter(function (n) { return !!n; });
+      if (!nombres.length) { return; }
+      postPuesto('impresoras', { impresoras: nombres }).catch(function () {});
+    }).catch(function () {});
   }
 
   /* ──────────────────────────────────────────────────────
@@ -89,11 +184,61 @@
   /* ──────────────────────────────────────────────────────
      CARRITO: agregar ítem
   ────────────────────────────────────────────────────── */
+  /* Iconos en linea: las clases fa-* no estan definidas en www.min.css, asi
+     que cualquier <i class="fa ..."> se renderiza vacio. */
+  var SVG_BASURERO =
+    '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/>' +
+    '<path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>' +
+    '<path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>';
+
+  var SVG_ETIQUETA =
+    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M8.5 8.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>' +
+    '<path d="M4 7v3.859c0 .537 .213 1.052 .593 1.432l8.116 8.116a2.025 2.025 0 0 0 2.864 0l4.834 -4.834a2.025 2.025 0 0 0 0 -2.864l-8.117 -8.116a2.025 2.025 0 0 0 -1.431 -.593h-3.859a3 3 0 0 0 -3 3z"/></svg>';
+
+  /**
+   * Existencia disponible de una linea, o NaN si el producto no la controla
+   * (servicios y productos rapidos no descuentan inventario).
+   */
+  function disponibleDe(row) {
+    if (!row || row.type !== 'standard') { return NaN; }
+    return parseFloat(row.quantity);
+  }
+
+  /** TRUE si el ajuste de sobreventa esta desactivado. */
+  function sobreventaBloqueada() {
+    return !parseInt((window.Settings || {}).overselling);
+  }
+
+  // Ultima linea agregada o incrementada: loadItems() la resalta y la deja a la
+  // vista, porque el carrito se vuelve a dibujar entero en cada cambio.
+  var ultimaLinea = null;
+
   function add_invoice_item(item) {
     if (count === 1) spositems = {};
     if (!item) return;
     var S = window.Settings || {};
     var item_id = S.item_addition == 1 ? item.item_id : item.id;
+
+    // Sin sobreventa, un producto agotado no entra al carrito: dejarlo entrar
+    // solo posterga el rechazo hasta el cobro, que tira la venta completa.
+    var disp = disponibleDe(item.row);
+    var enCarrito = spositems[item_id] ? parseFloat(spositems[item_id].row.qty) : 0;
+    if (sobreventaBloqueada() && !isNaN(disp)) {
+      if (disp <= 0) {
+        showAlert(t('sin_inventario', 'No hay inventario de') + ' ' + (item.row.name || ''));
+        return false;
+      }
+      if (enCarrito + 1 > disp) {
+        showAlert(t('quantity_low', 'Cantidad mayor a la disponible') + ' — ' +
+                  (item.row.name || '') + ' (' + disp + ')');
+        return false;
+      }
+    }
+
     if (spositems[item_id]) {
       spositems[item_id].row.qty = parseFloat(spositems[item_id].row.qty) + 1;
     } else {
@@ -102,6 +247,7 @@
       item.row._price_mode = 'normal';
       spositems[item_id] = item;
     }
+    ultimaLinea = String(item_id);
     store('spositems', JSON.stringify(spositems));
     loadItems();
     return true;
@@ -192,6 +338,15 @@
       }
       product_tax += formatDecimal(pr_tax_val * item_qty, 4);
 
+      // El precio de la columna es siempre el original: el ahorro se ve en el
+      // total de la linea, no escondido en el unitario.
+      var unitario_visible = net_price + pr_tax_val;
+      var etiqueta_desc = '';
+      if (item_discount > 0) {
+        unitario_visible += (item_tax_method === 0) ? item_discount : item_discount * (1 + pr_tax / 100);
+        etiqueta_desc = (ds.indexOf('%') !== -1) ? ds : formatMoney(item_discount);
+      }
+
       var row_no = Date.now() + Math.random();
       var line_total = (net_price + pr_tax_val) * item_qty;
       total += formatDecimal(line_total, 4);
@@ -202,39 +357,51 @@
       var tr = document.createElement('tr');
       tr.id = row_no;
       tr.className = item_id;
+      if (ultimaLinea !== null && String(item_id) === ultimaLinea) {
+        tr.classList.add('row-new', 'linea-nueva');
+      }
       tr.setAttribute('data-item-id', item_id);
       tr.setAttribute('data-id', product_id);
 
       tr.innerHTML =
-        '<td>' +
+        '<td class="pcp-c-prod">' +
           '<input name="product_id[]" type="hidden" class="rid" value="' + product_id + '">' +
           '<input name="item_comment[]" type="hidden" class="ritem_comment" value="' + item_comment + '">' +
           '<input name="product_code[]" type="hidden" value="' + item_code + '">' +
           '<input name="product_name[]" type="hidden" value="' + row.name + '">' +
           '<input name="id_tax[]" type="hidden" value="' + (row._id_tax || 0) + '">' +
-          '<button type="button" class="btn btn-sm btn-outline-secondary w-100 text-start edit" data-item="' + item_id + '">' +
-            '<span class="sname">' + item_name + ' (' + item_code + ')</span>' +
+          '<button type="button" class="pcp-item-btn edit" data-item="' + item_id + '"' +
+                  ' title="' + t('editar_linea', 'Editar línea') + '">' +
+            '<span class="pcp-item-name sname">' + item_name + '</span>' +
+            '<span class="pcp-item-code">' + item_code + '</span>' +
           '</button>' +
         '</td>' +
-        '<td class="text-end align-middle">' +
+        '<td class="pcp-c-price">' +
           '<input class="realuprice" name="real_unit_price[]" type="hidden" value="' + row.real_unit_price + '">' +
           '<input class="rdiscount" name="product_discount[]" type="hidden" value="' + ds + '">' +
-          '<small class="sprice">' + formatMoney(net_price + pr_tax_val) + '</small>' +
+          '<span class="sprice">' + formatMoney(unitario_visible) + '</span>' +
+          (item_discount > 0 ? '<span class="pcp-desc-badge" title="' + t('precio_original', 'Precio sin descuento') + '">-' + etiqueta_desc + '</span>' : '') +
           (row.offer_price && parseFloat(row.offer_price) > 0
             ? '<button type="button" class="price-toggle-btn ' + (row._price_mode === 'offer' ? 'active' : '') + '"' +
-              ' data-item="' + item_id + '" title="' + (row._price_mode === 'offer' ? t('usando_precio_oferta', 'Usando precio oferta — click para precio normal') : t('precio_oferta_disponible', 'Precio oferta disponible — click para activar')) + '">' +
-              '<i class="fa fa-tag"></i></button>'
+              ' data-item="' + item_id + '" title="' + (row._price_mode === 'offer' ? t('usando_precio_oferta', 'Usando precio oferta — click para precio normal') : t('precio_oferta_disponible', 'Precio oferta disponible — click para activar')) + '">' + SVG_ETIQUETA + '</button>'
             : '') +
         '</td>' +
-        '<td class="align-middle" style="min-width:70px">' +
+        '<td class="pcp-c-qty">' +
           '<input name="item_was_ordered[]" type="hidden" class="riwo" value="' + item_was_ordered + '">' +
-          '<input class="form-control form-control-sm text-center rquantity" name="quantity[]" type="number" min="0.01" step="any" value="' + item_qty + '" data-id="' + row_no + '" data-item="' + item_id + '" style="width:70px">' +
+          '<div class="pcp-stepper">' +
+            '<button type="button" class="pcp-step menos" data-item="' + item_id + '" tabindex="-1" aria-label="-">&minus;</button>' +
+            '<input class="rquantity" name="quantity[]" type="number" min="0.01" step="any" value="' + item_qty + '" data-id="' + row_no + '" data-item="' + item_id + '">' +
+            '<button type="button" class="pcp-step mas" data-item="' + item_id + '" tabindex="-1" aria-label="+">+</button>' +
+          '</div>' +
         '</td>' +
-        '<td class="text-end align-middle">' +
-          '<span class="ssubtotal">' + formatMoney(line_total) + '</span>' +
+        '<td class="pcp-c-total">' +
+          '<span class="ssubtotal' + (item_discount > 0 ? ' con-desc' : '') + '">' + formatMoney(line_total) + '</span>' +
         '</td>' +
-        '<td class="text-center align-middle">' +
-          '<i class="fa fa-trash text-danger pointer posdel" data-id="' + row_no + '" data-item="' + item_id + '" style="cursor:pointer" title="' + t('remove', 'Eliminar') + '"></i>' +
+        '<td class="pcp-c-del">' +
+          '<button type="button" class="pcp-del posdel" data-id="' + row_no + '" data-item="' + item_id + '"' +
+                  ' title="' + t('remove', 'Eliminar') + '" aria-label="' + t('remove', 'Eliminar') + '">' +
+            SVG_BASURERO +
+          '</button>' +
         '</td>';
 
       if (tbody) tbody.prepend(tr);
@@ -264,13 +431,32 @@
     grand_total = formatDecimal(total - order_discount + order_tax, 4);
     updateTotalsDisplay(total, product_discount, order_discount, order_tax, grand_total);
 
+    mostrarLineaNueva();
+
     // Re-focus búsqueda
     var si = $('add_item');
     if (si) si.focus();
   }
 
+  /**
+   * Deja a la vista la linea recien agregada. Las filas se insertan con
+   * prepend(), asi que la nueva queda arriba: basta subir el scroll del
+   * carrito para que nunca se pierda bajo la lista.
+   */
+  function mostrarLineaNueva() {
+    if (ultimaLinea === null) { return; }
+    var fila = qs('#posTable .linea-nueva') || qs('#posTable tr.row-new');
+    ultimaLinea = null;
+    if (!fila) { return; }
+
+    var lista = qs('.pcp-items');
+    if (lista) { lista.scrollTop = 0; }
+
+    // El resaltado se quita solo: es un aviso, no un estado del carrito.
+    setTimeout(function () { fila.classList.remove('linea-nueva'); }, 1400);
+  }
+
   function updateTotalsDisplay(tot, prod_ds, ord_ds, ord_tx, g_total) {
-    var elCount    = $('count');
     var elCountItems = $('count-items');
     var elTotal    = $('total');
     var elDs       = $('ds_con');
@@ -279,7 +465,6 @@
     var elTaxDisp  = $('total_tax_display');
 
     var itemsLabel = (an - 1) + ' líneas (' + formatDecimal(count - 1) + ' uds.)';
-    if (elCount)      elCount.textContent = (an - 1);
     if (elCountItems) elCountItems.textContent = itemsLabel;
     if (elTotal)      elTotal.textContent = formatMoney(tot);
     if (elDs)         elDs.textContent = formatMoney(prod_ds + ord_ds);
@@ -309,13 +494,15 @@
         var data = null;
         try { data = JSON.parse(text); } catch (e) {}
         if (data && data.id !== undefined) {
-          if (btnEl) animateProductBtn(btnEl);
-          add_invoice_item(data);
-          showToast(data.row ? data.row.name : code);
-          var si = $('add_item');
-          if (si) { si.value = ''; si.focus(); }
+          agregarConCabys(data).then(function (res) {
+            if (res === false) { return; }
+            if (btnEl) animateProductBtn(btnEl);
+            showToast(data.row ? data.row.name : code);
+            var si = $('add_item');
+            if (si) { si.value = ''; si.focus(); }
+          });
         } else {
-          showAlert(t('no_match_found', 'Producto no encontrado'));
+          showToast(t('no_match_found', 'Producto no encontrado'), 'fa-exclamation-circle');
           var si = $('add_item');
           if (si) { si.value = ''; si.focus(); }
         }
@@ -338,16 +525,49 @@
 
     var dropdown = document.createElement('div');
     dropdown.id = 'pos-autocomplete';
-    dropdown.className = 'list-group shadow-sm';
-    dropdown.style.cssText =
-      'position:absolute;left:0;right:0;top:100%;z-index:9999;display:none;max-height:320px;overflow-y:auto;border:1px solid var(--bs-border-color);background:var(--bs-body-bg);';
+    dropdown.className = 'pos-ac';
     wrapper.appendChild(dropdown);
 
     var searchTimer;
 
     function hideDropdown() {
-      dropdown.style.display = 'none';
+      dropdown.classList.remove('abierto');
       dropdown.innerHTML = '';
+    }
+
+    // La existencia llega como 30.0000: en la lista estorba mas de lo que informa.
+    function cantidadCorta(n) {
+      return String(Math.round((Number(n) || 0) * 1000) / 1000);
+    }
+
+    // El tono del stock es la unica lectura urgente de la lista: rojo sin
+    // existencias, ambar bajo minimo, normal el resto.
+    function tonoStock(cantidad, alerta) {
+      if (!(cantidad > 0)) { return 'sin'; }
+      if (alerta > 0 && cantidad <= alerta) { return 'bajo'; }
+      return 'ok';
+    }
+
+    function filaProducto(item) {
+      var fila = document.createElement('button');
+      fila.type = 'button';
+      fila.className = 'pos-ac-item';
+
+      var cant = Number(item.existencias || 0);
+      // Una sola linea: nombre y codigo a la izquierda, precio y existencias a
+      // la derecha. La ubicacion cabe en el tooltip y no gasta alto.
+      if (item.ubicacion) {
+        fila.title = t('ubicacion', 'Ubicacion') + ': ' + item.ubicacion;
+      }
+      fila.innerHTML =
+        '<span class="pos-ac-fila">' +
+          '<span class="pos-ac-name">' + escaparHtml(item.nombre || item.label || '') + '</span>' +
+          '<span class="pos-ac-code">' + escaparHtml(item.codigo || '') + '</span>' +
+          '<span class="pos-ac-price">' + escaparHtml(item.precio_fmt || '') + '</span>' +
+          '<span class="pos-ac-stock ' + tonoStock(cant, Number(item.row && item.row.alert_quantity)) + '">' +
+            escaparHtml(cantidadCorta(cant)) + '</span>' +
+        '</span>';
+      return fila;
     }
 
     function showDropdown(items) {
@@ -356,22 +576,19 @@
       items.forEach(function (item) {
         if (!item || item.id == 0) return;
         hasItems = true;
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'list-group-item list-group-item-action py-2 px-3';
-        btn.style.fontSize = '0.9rem';
-        btn.textContent = item.label || item.value || '';
-        btn.addEventListener('mousedown', function (e) {
+        var fila = filaProducto(item);
+        fila.addEventListener('mousedown', function (e) {
           e.preventDefault();
           hideDropdown();
           searchInput.value = '';
-          add_invoice_item(item);
-          showToast(item.row ? item.row.name : (item.label || ''));
+          agregarConCabys(item).then(function (res) {
+            if (res !== false) { showToast(item.row ? item.row.name : (item.label || '')); }
+          });
           searchInput.focus();
         });
-        dropdown.appendChild(btn);
+        dropdown.appendChild(fila);
       });
-      dropdown.style.display = hasItems ? 'block' : 'none';
+      dropdown.classList.toggle('abierto', hasItems);
     }
 
     function doSearch(term, autoSelect) {
@@ -379,28 +596,24 @@
       fetch(window.base_url + 'pos/suggestions?term=' + encodeURIComponent(term))
         .then(function (r) { return r.json(); })
         .then(function (data) {
-          if (!data || !Array.isArray(data) || data.length === 0) {
+          var vacio = !data || !Array.isArray(data) || data.length === 0 ||
+                      data[0].id == 0 || !data[0].item_id;
+          if (vacio) {
+            // Escribiendo, un modal por tecla es insoportable: el aviso vive
+            // dentro de la lista y solo suena al confirmar con Enter.
+            sinResultados();
             if (autoSelect) {
-              showAlert(t('no_match_found', 'Producto no encontrado'));
+              showToast(t('no_match_found', 'Producto no encontrado'), 'fa-exclamation-circle');
               searchInput.value = '';
+              hideDropdown();
             }
-            hideDropdown();
-            return;
-          }
-          // Sin resultados reales: endpoint devuelve [{id:0, label:'no_match...'}]
-          if (data[0].id == 0 || !data[0].item_id) {
-            if (autoSelect) {
-              showAlert(t('no_match_found', 'Producto no encontrado'));
-              searchInput.value = '';
-            }
-            hideDropdown();
             return;
           }
           // Un único resultado real → agregar directo
           if (data.length === 1) {
             hideDropdown();
             searchInput.value = '';
-            add_invoice_item(data[0]);
+            agregarConCabys(data[0]);
             return;
           }
           // Múltiples → mostrar dropdown de selección
@@ -427,15 +640,15 @@
         var term = this.value.trim();
         if (!term) return;
         // Si hay items en dropdown, seleccionar el primero
-        var first = qs('button', dropdown);
-        if (first && dropdown.style.display !== 'none') {
+        var first = qs('.pos-ac-item', dropdown);
+        if (first && dropdown.classList.contains('abierto')) {
           first.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
           return;
         }
         doSearch(term, true);
       }
       if (e.key === 'ArrowDown') {
-        var first = qs('button', dropdown);
+        var first = qs('.pos-ac-item', dropdown);
         if (first) first.focus();
         e.preventDefault();
       }
@@ -448,7 +661,7 @@
     // Navegación con teclado en el dropdown
     dropdown.addEventListener('keydown', function (e) {
       var focused = document.activeElement;
-      var items = Array.from(qsa('button', dropdown));
+      var items = Array.from(qsa('.pos-ac-item', dropdown));
       var idx = items.indexOf(focused);
       if (e.key === 'ArrowDown' && idx < items.length - 1) {
         items[idx + 1].focus();
@@ -470,6 +683,34 @@
     // Click fuera: cerrar dropdown
     document.addEventListener('click', function (e) {
       if (!wrapper.contains(e.target)) hideDropdown();
+    });
+
+    initCapturaEscaner(searchInput);
+  }
+
+  /**
+   * El lector de barras teclea igual que una persona, pero el cajero rara vez
+   * deja el cursor en la busqueda. Cualquier caracter escrito fuera de un campo
+   * se redirige aca, asi el codigo entra sin tener que hacer clic primero.
+   */
+  function initCapturaEscaner(searchInput) {
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) { return; }
+      if (e.key.length !== 1) { return; }
+
+      var act = document.activeElement;
+      if (act === searchInput) { return; }
+      if (act && (act.isContentEditable ||
+                  act.tagName === 'INPUT' || act.tagName === 'TEXTAREA' || act.tagName === 'SELECT')) {
+        return;
+      }
+      // Con un modal abierto el foco es de esa pantalla, no del carrito.
+      if (document.querySelector('.modal.show') || document.querySelector('.nx-ov.abierto')) { return; }
+
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.value += e.key;
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }
 
@@ -578,6 +819,166 @@
   }
 
   /* ──────────────────────────────────────────────────────
+     CARRITO: editar línea
+  ────────────────────────────────────────────────────── */
+  /**
+   * La fila del carrito ya dibujaba un boton `.edit`, pero no habia ningun
+   * listener: ninguna linea se podia editar, y la de producto rapido (que no
+   * existe en catalogo) no tenia otra forma de corregirse.
+   */
+  function initEditItem() {
+    var overlay = document.getElementById('editItemModal');
+    if (!overlay) { return; }
+
+    var fId    = $('ei-item');
+    var fName  = $('ei-nombre');
+    var fQty   = $('ei-cantidad');
+    var fPrice = $('ei-precio');
+    var fCom   = $('ei-comentario');
+    var fDesc  = $('ei-descuento');
+    var fTipo  = $('ei-desc-tipo');
+    var fDescAyuda = $('ei-desc-ayuda');
+
+    /** Monto por unidad o porcentaje: el cajero elige, no escribe el simbolo. */
+    function tipoDescuento(tipo) {
+      if (!fTipo) { return 'monto'; }
+      if (tipo) {
+        qsa('button', fTipo).forEach(function (b) {
+          b.classList.toggle('activo', b.dataset.tipo === tipo);
+        });
+        if (fDescAyuda) {
+          fDescAyuda.textContent = tipo === 'pct'
+            ? t('descuento_tipo_pct', 'Porcentaje sobre el precio')
+            : t('descuento_tipo_monto', 'Monto por unidad');
+        }
+      }
+      var activo = qs('button.activo', fTipo);
+      return activo ? activo.dataset.tipo : 'monto';
+    }
+
+    if (fTipo) {
+      fTipo.addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) { return; }
+        tipoDescuento(b.dataset.tipo);
+        if (fDesc) { fDesc.focus(); }
+      });
+    }
+    var fErr   = $('ei-error');
+    var fStock = $('ei-stock');
+
+    function error(msg) {
+      if (!fErr) { return; }
+      fErr.textContent = msg;
+      fErr.classList.add('visible');
+    }
+    function limpiarError() {
+      if (fErr) { fErr.classList.remove('visible'); fErr.textContent = ''; }
+    }
+    function abrir()  { overlay.classList.add('abierto'); }
+    function cerrar() { overlay.classList.remove('abierto'); limpiarError(); }
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.edit');
+      if (!btn) { return; }
+      e.preventDefault();
+
+      var item_id = btn.dataset.item || btn.getAttribute('data-item');
+      var item = item_id ? spositems[item_id] : null;
+      if (!item) { return; }
+
+      limpiarError();
+      if (fId)    { fId.value = item_id; }
+      if (fName)  { fName.value = item.row.name || ''; }
+      if (fQty)   { fQty.value = item.row.qty; }
+      if (fPrice) { fPrice.value = item.row.real_unit_price; }
+      if (fCom)   { fCom.value = item.row.comment || ''; }
+      if (fDesc) {
+        var guardado = String(item.row.discount || '0');
+        var esPct = guardado.indexOf('%') !== -1;
+        fDesc.value = (parseFloat(guardado) > 0) ? parseFloat(guardado) : '';
+        tipoDescuento(esPct ? 'pct' : 'monto');
+      }
+      if (fStock) {
+        var disp = parseFloat(item.row.quantity);
+        fStock.textContent = (item.row.type === 'standard' && !isNaN(disp))
+          ? t('available', 'Disponible') + ': ' + disp
+          : '';
+      }
+      abrir();
+      if (fQty) { fQty.focus(); fQty.select(); }
+    });
+
+    if ($('ei-cerrar'))   { $('ei-cerrar').addEventListener('click', cerrar); }
+    if ($('ei-cancelar')) { $('ei-cancelar').addEventListener('click', cerrar); }
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) { cerrar(); } });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && overlay.classList.contains('abierto')) { cerrar(); }
+    });
+
+    var btnGuardar = $('ei-guardar');
+    if (btnGuardar) {
+      btnGuardar.addEventListener('click', function () {
+        var item = spositems[fId ? fId.value : ''];
+        if (!item) { return; }
+
+        var nombre = (fName ? fName.value : '').trim();
+        var cant   = parseFloat(fQty ? fQty.value : 0);
+        var precio = parseFloat(fPrice ? fPrice.value : 0);
+
+        if (!nombre)                     { error(t('unexpected_value', 'Escriba un nombre.')); return; }
+        if (!(cant > 0))                 { error(t('unexpected_value', 'La cantidad debe ser mayor a cero.')); return; }
+        if (isNaN(precio) || precio < 0) { error(t('unexpected_value', 'Precio inválido.')); return; }
+
+        // Con sobreventa desactivada el servidor rechaza la venta entera al
+        // cobrar; conviene avisarlo aqui y no al final.
+        var S = window.Settings || {};
+        var disp = parseFloat(item.row.quantity);
+        if (!parseInt(S.overselling) && item.row.type === 'standard' && !isNaN(disp) && cant > disp) {
+          error(t('quantity_low', 'Cantidad mayor a la disponible') + ' (' + disp + ')');
+          return;
+        }
+
+        // product_discount[] en Pos.php espera "150" o "10%": el sufijo lo pone
+        // el selector, el cajero solo teclea el numero.
+        var descNum = parseFloat((fDesc ? fDesc.value : '').toString().replace(',', '.'));
+        if (isNaN(descNum) || descNum < 0) { descNum = 0; }
+        var esPct = tipoDescuento() === 'pct';
+        if (esPct ? descNum > 100 : descNum > precio) {
+          error(t('unexpected_value', 'El descuento supera el precio.'));
+          return;
+        }
+        var desc = descNum > 0 ? (esPct ? descNum + '%' : String(descNum)) : '0';
+
+        item.row.name = nombre;
+        item.row.qty = cant;
+        item.row.discount = desc;
+        item.row.comment = (fCom ? fCom.value : '').trim();
+        item.row.real_unit_price = precio;
+        item.row.price = precio;
+        item.row._orig_price = precio;
+        item.row._price_mode = 'normal';
+
+        store('spositems', JSON.stringify(spositems));
+        loadItems();
+        cerrar();
+      });
+    }
+
+    var btnQuitar = $('ei-quitar');
+    if (btnQuitar) {
+      btnQuitar.addEventListener('click', function () {
+        var id = fId ? fId.value : '';
+        if (!id || !spositems[id]) { return; }
+        delete spositems[id];
+        store('spositems', JSON.stringify(spositems));
+        loadItems();
+        cerrar();
+      });
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────
      CARRITO: eliminar ítem
   ────────────────────────────────────────────────────── */
   function initDeleteItem() {
@@ -614,6 +1015,36 @@
   /* ──────────────────────────────────────────────────────
      CARRITO: cambio de cantidad
   ────────────────────────────────────────────────────── */
+  /** Botones - / + del contador de cada linea. */
+  function initStepper() {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.pcp-step');
+      if (!btn) { return; }
+      var item_id = btn.dataset.item;
+      var item = item_id ? spositems[item_id] : null;
+      if (!item) { return; }
+
+      var paso = btn.classList.contains('mas') ? 1 : -1;
+      var nueva = parseFloat(item.row.qty) + paso;
+      if (nueva <= 0) {
+        delete spositems[item_id];
+        store('spositems', JSON.stringify(spositems));
+        loadItems();
+        return;
+      }
+
+      var disp = disponibleDe(item.row);
+      if (paso > 0 && sobreventaBloqueada() && !isNaN(disp) && nueva > disp) {
+        showAlert(t('quantity_low', 'Cantidad mayor a la disponible') + ' (' + disp + ')');
+        return;
+      }
+
+      item.row.qty = nueva;
+      store('spositems', JSON.stringify(spositems));
+      loadItems();
+    });
+  }
+
   function initQuantityChange() {
     document.addEventListener('change', function (e) {
       if (!e.target.classList.contains('rquantity')) return;
@@ -633,7 +1064,18 @@
         }
       }
       if (spositems[item_id]) {
-        spositems[item_id].row.qty = new_qty;
+        // Con sobreventa desactivada el servidor rechaza la venta completa al
+        // cobrar; se avisa aqui para no perder el carrito al final.
+        var S = window.Settings || {};
+        var fila = spositems[item_id].row;
+        var disp = parseFloat(fila.quantity);
+        if (!parseInt(S.overselling) && fila.type === 'standard' && !isNaN(disp) && new_qty > disp) {
+          loadItems();
+          showAlert(t('quantity_low', 'Cantidad mayor a la disponible') + ' (' + disp + ')');
+          return;
+        }
+
+        fila.qty = new_qty;
         store('spositems', JSON.stringify(spositems));
         loadItems();
       }
@@ -688,6 +1130,10 @@
       }
       var twt = $('twt');
       if (twt) twt.textContent = formatMoney(displayTotal);
+      // La cabecera del modal repite el total: con el teclado y el desglose de
+      // por medio, el cajero deja de verlo si solo esta al pie.
+      var cab = $('payHeadTotal');
+      if (cab) cab.textContent = formatMoney(displayTotal);
 
       var balanceEl = $('balance');
       if (balanceEl) balanceEl.textContent = '0.00';
@@ -700,22 +1146,380 @@
       }
     });
 
+    // ── Comprobante y condición de venta ──────────────────────────────────
+    // Qué comprobante admite el cliente lo decide el servidor
+    // (pos/estado_cliente); acá solo se pinta y se bloquea lo que no puede ser.
+    // Pos.php vuelve a comprobarlo al cobrar, que es la comprobación que cuenta.
+    var estadoCliente = null;
+
+    function docBotones() {
+      return Array.prototype.slice.call(document.querySelectorAll('[data-doc]'));
+    }
+
+    function marcarDoc(tipo) {
+      var elegido = null;
+      docBotones().forEach(function (b) {
+        var activo = b.dataset.doc === tipo && !b.disabled;
+        b.classList.toggle('active', activo);
+        if (activo) { elegido = b.dataset.doc; }
+      });
+      var campo = $('tipo_doc_val');
+      if (campo) { campo.value = elegido || ''; }
+
+      var motivo = $('docMotivo');
+      if (motivo) {
+        var btn = docBotones().filter(function (b) { return b.dataset.doc === '01'; })[0];
+        motivo.textContent = (btn && btn.disabled) ? (btn.dataset.motivo || '') : '';
+      }
+    }
+
+    function pintarEstadoCliente(d) {
+      estadoCliente = d;
+      estadoClientePago = d;
+      if (!d) { return; }
+
+      docBotones().forEach(function (b) {
+        var permiso = (d.comprobantes || {})[b.dataset.doc] || { ok: true, motivo: '' };
+        b.disabled = !permiso.ok;
+        b.dataset.motivo = permiso.motivo || '';
+        b.title = permiso.motivo || '';
+      });
+
+      // Precarga: lo que el cliente tenga puesto; si no, factura cuando se
+      // puede y tiquete cuando no.
+      var porDefecto = (d.defectos && d.defectos.tipo_doc) || '';
+      var permitido = function (t) { return ((d.comprobantes || {})[t] || {}).ok; };
+      if (!porDefecto || !permitido(porDefecto)) {
+        porDefecto = permitido('01') ? '01' : '04';
+      }
+      marcarDoc(porDefecto);
+
+      var btnCredito = $('pmCredito');
+      if (btnCredito) {
+        var c = d.credito || {};
+        btnCredito.disabled = !c.permitido;
+        // El motivo va en el tooltip: la pantalla no necesita el renglon.
+        btnCredito.title = c.permitido ? '' : (c.motivo || '');
+
+        // Si el cliente venia con credito elegido y ya no lo admite, se vuelve
+        // a efectivo antes de que el cajero lo note al cobrar.
+        if (!c.permitido && metodoActual() === 'credito') { seleccionarMetodo('cash'); }
+      }
+    }
+
+    function cargarEstadoCliente() {
+      var hidden = $('pos-customer-hidden');
+      var id = hidden ? hidden.value : '';
+      if (!id || !window._urlEstadoCliente) { return; }
+
+      fetch(window._urlEstadoCliente + '/' + encodeURIComponent(id), {
+        credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { if (d && !d.error) { pintarEstadoCliente(d); } })
+        .catch(function () { /* sin respuesta: el servidor decide igual al cobrar */ });
+    }
+    window.posCargarEstadoCliente = cargarEstadoCliente;
+
+    var chkConting = $('docContingencia');
+    if (chkConting) {
+      chkConting.addEventListener('change', function () {
+        var campo = $('situacion_val');
+        if (campo) { campo.value = chkConting.checked ? '2' : '1'; }
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      var doc = e.target.closest('[data-doc]');
+      if (doc && !doc.disabled) { marcarDoc(doc.dataset.doc); }
+    });
+
     // Al mostrar el modal: focus en el monto
     var payModalEl = $('payModal');
     if (payModalEl) {
       payModalEl.addEventListener('shown.bs.modal', function () {
+        payLines = [];
+        cargarEstadoCliente();
         var amountInput = $('amount');
         if (amountInput) { amountInput.focus(); amountInput.value = ''; }
+        var ref = $('payRef');
+        if (ref) ref.value = '';
+        var pv = $('paid_by_val');
+        onPayMethodChange(pv ? pv.value : 'cash');
+        renderPayLines();
       });
 
-      // Cambio en el campo monto
+      // Al cerrar el modal (sin completar la venta): dejar de sondear SINPE.
+      // No se limpia #sinpe_reference acá — si el cajero reabre el modal con
+      // el mismo comprobante ya elegido, lo mantiene.
+      payModalEl.addEventListener('hidden.bs.modal', function () {
+        sinpeStopPolling();
+      });
+
+      // Cualquier cambio en el monto o en la referencia recalcula el resumen.
       payModalEl.addEventListener('input', function (e) {
-        if (e.target.id !== 'amount') return;
-        var paying = parseFloat(e.target.value) || 0;
-        var balanceEl = $('balance');
-        if (balanceEl) balanceEl.textContent = formatMoney(paying - gtotal);
-        var amountVal = $('amount_val');
-        if (amountVal) amountVal.value = formatDecimal(paying);
+        if (e.target.id !== 'amount' && e.target.id !== 'payRef') { return; }
+        // Una referencia con espacios no cuadra con la del banco ni con la del
+        // datafono, y el usuario no ve la diferencia.
+        if (e.target.id === 'payRef') {
+          var limpio = e.target.value.replace(/\s+/g, '');
+          if (limpio !== e.target.value) { e.target.value = limpio; }
+        }
+        recalcPago();
+      });
+
+      // El datafono todavia no esta conectado: el boton queda listo para
+      // engancharlo sin tocar el resto del modal.
+      var datafonoBtn = $('payDatafonoBtn');
+      if (datafonoBtn) {
+        datafonoBtn.addEventListener('click', function () {
+          showToast(t('enviar_cobro_pendiente', 'El datafono aun no esta conectado'), 'fa-credit-card');
+        });
+      }
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────
+     PAGO DIVIDIDO — hasta 4 formas de pago por venta (tope de Pos.php)
+  ────────────────────────────────────────────────────── */
+  var payLines = [];
+  var MAX_PAGOS = 4;
+
+  // refRequerida: métodos que exigen número de transacción.
+  var METODOS = {
+    cash:     { etiqueta: 'Efectivo',       refRequerida: false },
+    card:     { etiqueta: 'Tarjeta',        refRequerida: true  },
+    sinpe:    { etiqueta: 'SINPE',          refRequerida: true  },
+    transfer: { etiqueta: 'Transferencia',  refRequerida: true  },
+    // El credito no es dinero que entra: cubre el resto de la venta y no viaja
+    // como pago al backend, que deduce la condicion de venta de lo que falta.
+    credito:  { etiqueta: 'Credito',        refRequerida: false, esCredito: true }
+  };
+
+  function esCredito(metodo) { return !!(METODOS[metodo] || {}).esCredito; }
+
+  /** Ultimo estado de credito que devolvio pos/estado_cliente. */
+  var estadoClientePago = null;
+
+  function metodoActual() {
+    var pv = $('paid_by_val');
+    return (pv && pv.value) || 'cash';
+  }
+
+  function totalLineas() {
+    return payLines.reduce(function (a, l) { return a + (parseFloat(l.monto) || 0); }, 0);
+  }
+
+  /** Monto tecleado que aún no se agregó al desglose. */
+  function montoEnCurso() {
+    var el = $('amount');
+    return el ? (parseFloat(el.value) || 0) : 0;
+  }
+
+  /**
+   * Recalcula pagado / falta / vuelto y sincroniza los campos ocultos.
+   * Llamar directamente: los eventos sintéticos no burbujean hasta el modal.
+   */
+  function recalcPago() {
+    var total  = parseFloat(gtotal) || 0;
+    var pagado = totalLineas() + montoEnCurso();
+    var dif    = pagado - total;
+
+    var elPagado = $('payPagado');
+    if (elPagado) elPagado.textContent = formatMoney(pagado);
+
+    var elBal   = $('balance');
+    var elLabel = $('balanceLabel');
+    if (elBal) {
+      // El recuadro muestra vuelto o faltante segun el signo.
+      elBal.textContent = formatMoney(Math.abs(dif));
+      elBal.style.color = dif < -0.005 ? 'var(--nx-err, #e74c3c)' : '';
+    }
+    if (elLabel) {
+      elLabel.textContent = dif < -0.005 ? (window.LANG_FALTA || 'Falta') : (window.LANG_VUELTO || 'Vuelto');
+    }
+
+    var hidden = $('amount_val');
+    if (hidden) hidden.value = formatDecimal(pagado);
+    var bal = $('balance_amount_val');
+    if (bal) bal.value = formatDecimal(dif > 0 ? dif : 0);
+
+    return { total: total, pagado: pagado, dif: dif };
+  }
+
+  function renderPayLines() {
+    var wrap = $('payLinesWrap');
+    var cont = $('payLines');
+    var cnt  = $('payLinesCount');
+    if (!wrap || !cont) return;
+
+    if (!payLines.length) {
+      wrap.style.display = 'none';
+      cont.innerHTML = '';
+      if (cnt) cnt.textContent = '';
+      recalcPago();
+      return;
+    }
+
+    wrap.style.display = '';
+    if (cnt) cnt.textContent = '(' + payLines.length + '/' + MAX_PAGOS + ')';
+
+    cont.innerHTML = payLines.map(function (l, i) {
+      var m = METODOS[l.metodo] || { etiqueta: l.metodo };
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;' +
+        'padding:.4rem .6rem;font-size:12.5px;border-bottom:1px solid rgba(255,255,255,.06);">' +
+        '<div style="min-width:0;">' +
+          '<strong>' + esc(m.etiqueta) + '</strong>' +
+          (l.referencia ? '<div class="text-muted" style="font-size:11px;word-break:break-all;">' +
+            esc(l.referencia) + '</div>' : '') +
+        '</div>' +
+        '<div style="white-space:nowrap;">' +
+          '<strong>' + formatMoney(parseFloat(l.monto) || 0) + '</strong>' +
+          ' <button type="button" class="btn btn-link btn-sm p-0 ms-2 js-quitar-pago" data-i="' + i +
+          '" title="Quitar">&times;</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    recalcPago();
+  }
+
+  /** Agrega el monto tecleado como una forma de pago del desglose. */
+  function agregarLineaPago() {
+    if (payLines.length >= MAX_PAGOS) {
+      alert(window.LANG_MAX_PAGOS || 'Solo se pueden registrar hasta 4 formas de pago por venta.');
+      return false;
+    }
+
+    var metodo = metodoActual();
+    var monto  = montoEnCurso();
+    var refEl  = $('payRef');
+    var ref    = refEl ? refEl.value.trim() : '';
+
+    if (monto <= 0) {
+      alert(window.LANG_MONTO_REQ || 'Ingrese un monto mayor a cero.');
+      return false;
+    }
+    if ((METODOS[metodo] || {}).refRequerida && !ref) {
+      alert(window.LANG_REF_REQ || 'Ingrese el numero de transaccion o referencia.');
+      if (refEl) refEl.focus();
+      return false;
+    }
+
+    payLines.push({ metodo: metodo, monto: monto, referencia: ref });
+
+    // Preparar el campo para la siguiente forma de pago.
+    var amountInput = $('amount');
+    if (amountInput) { amountInput.value = ''; amountInput.focus(); }
+    if (refEl) refEl.value = '';
+    if (metodo === 'sinpe') sinpeLimpiarSeleccion();
+
+    renderPayLines();
+    return true;
+  }
+
+  /**
+   * Vuelca el desglose a los campos ocultos del formulario.
+   * Pos.php espera amount/paid_by/sinpe_reference para el primer pago y
+   * amount2..4 / paid_by2..4 / freferencia1..3 para el resto (freferencia1
+   * corresponde al pago 2).
+   */
+  function volcarPagosAlFormulario() {
+    // El credito solo marca que la venta queda debiendo: el backend lo deduce
+    // de la diferencia, asi que esas lineas no ocupan un amount/paid_by.
+    var lineas = payLines.filter(function (l) { return !esCredito(l.metodo); });
+
+    // El monto tecleado sin agregar cuenta como una forma de pago más.
+    if (!esCredito(metodoActual()) && montoEnCurso() > 0 && lineas.length < MAX_PAGOS) {
+      var refEl = $('payRef');
+      lineas.push({
+        metodo: metodoActual(),
+        monto: montoEnCurso(),
+        referencia: refEl ? refEl.value.trim() : ''
+      });
+    }
+    // Sin monto ni desglose se asume pago exacto con el método seleccionado,
+    // salvo a credito: ahi no se recibe nada y la venta queda debiendo entera.
+    if (!lineas.length && !esCredito(metodoActual())) {
+      lineas.push({ metodo: metodoActual(), monto: parseFloat(gtotal) || 0, referencia: '' });
+    }
+
+    var set = function (id, val) { var el = $(id); if (el) el.value = val; };
+
+    // Una venta enteramente a credito no recibe nada: los cuatro pagos van
+    // vacios y el backend la deja en 'due'.
+    var primera = lineas[0] || { metodo: 'cash', monto: 0, referencia: '' };
+    set('paid_by_val', primera.metodo);
+    set('amount_val', formatDecimal(primera.monto));
+    set('sinpe_reference', primera.referencia || '');
+
+    var mapa = [
+      null,
+      { monto: 'amount2_val', metodo: 'paid_by2_val', ref: 'freferencia1_val' },
+      { monto: 'amount3_val', metodo: 'paid_by3_val', ref: 'freferencia2_val' },
+      { monto: 'amount4_val', metodo: 'paid_by4_val', ref: 'freferencia3_val' }
+    ];
+    for (var i = 1; i < MAX_PAGOS; i++) {
+      var m = mapa[i];
+      var l = lineas[i];
+      set(m.monto, l ? formatDecimal(l.monto) : '');
+      set(m.metodo, l ? l.metodo : '');
+      set(m.ref, l ? (l.referencia || '') : '');
+    }
+
+    // amount_val es el primer pago, no el total: el backend suma los cuatro.
+    var pagado = lineas.reduce(function (a, l) { return a + l.monto; }, 0);
+    var dif = pagado - (parseFloat(gtotal) || 0);
+    set('balance_amount_val', formatDecimal(dif > 0 ? dif : 0));
+
+    return { lineas: lineas, pagado: pagado };
+  }
+
+  /**
+   * Teclado en pantalla del cobro. Escribe sobre #amount y dispara el mismo
+   * recalculo que el tecleo manual.
+   */
+  function initTecladoCobro() {
+    var pad = $('payKeypad');
+    var campo = $('amount');
+    if (!pad || !campo) { return; }
+
+    pad.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-key]');
+      if (!b || b.disabled) { return; }
+      var k = b.dataset.key;
+      var v = campo.value;
+
+      if (k === 'clear') {
+        v = '';
+      } else if (k === 'back') {
+        v = v.slice(0, -1);
+      } else if (k === '.') {
+        // Un solo separador decimal, y nunca como primer caracter.
+        v = v.indexOf('.') === -1 ? (v === '' ? '0.' : v + '.') : v;
+      } else {
+        v = v + k;
+      }
+
+      campo.value = v;
+      // El listener de #amount esta delegado en el modal: un evento sintetico
+      // sin bubbles no llegaria.
+      campo.dispatchEvent(new Event('input', { bubbles: true }));
+      campo.focus();
+    });
+  }
+
+  function initPagoDividido() {
+    var addBtn = $('payAddLine');
+    if (addBtn) addBtn.addEventListener('click', agregarLineaPago);
+
+    var cont = $('payLines');
+    if (cont) {
+      cont.addEventListener('click', function (e) {
+        var b = e.target.closest('.js-quitar-pago');
+        if (!b) return;
+        payLines.splice(parseInt(b.dataset.i, 10), 1);
+        renderPayLines();
       });
     }
   }
@@ -728,11 +1532,38 @@
     if (submitBtn) {
       submitBtn.addEventListener('click', function () {
         var elCount = $('total_item');
-        var elAmt = $('amount_val');
         if (elCount) elCount.value = an - 1;
-        // Actualizar monto
-        var amtInput = $('amount');
-        if (amtInput && elAmt) elAmt.value = amtInput.value || formatDecimal(gtotal);
+
+        // Arma amount/paid_by + amount2..4 desde el desglose.
+        var res = volcarPagosAlFormulario();
+
+        // Con la venta de contado, el backend aceptaria un pago parcial en
+        // silencio y la factura saldria mal cuadrada. A credito el faltante es
+        // justamente lo que se fia, y lo que se comprueba es el limite.
+        var total = parseFloat(gtotal) || 0;
+        // A credito se vende cuando esa forma de pago esta elegida o ya figura
+        // en el desglose: lo que quede sin cubrir es lo que se fia.
+        var aCredito = esCredito(metodoActual())
+          || payLines.some(function (l) { return esCredito(l.metodo); });
+        var falta = total - res.pagado;
+
+        if (!aCredito && falta > 0.005) {
+          showAlert(t('pago_incompleto_bloqueo', 'No se puede facturar: falta cubrir %s del total.')
+            .replace('%s', formatMoney(falta)));
+          return;
+        }
+
+        if (aCredito && falta > 0.005) {
+          var disponible = estadoCliente && estadoCliente.credito ? estadoCliente.credito.disponible : 0;
+          if (falta > disponible + 0.005) {
+            showAlert(t('credito_excede_limite', 'La venta supera el crédito disponible.') + ' ' +
+              t('credito_faltante', 'Faltan %1: el disponible es %2.')
+                .replace('%1$s', formatMoney(falta - disponible))
+                .replace('%2$s', formatMoney(disponible)));
+            return;
+          }
+        }
+
         // Cerrar modal y enviar form
         var payModalEl = $('payModal');
         if (payModalEl && window.bootstrap) {
@@ -742,7 +1573,10 @@
         // Pequeño delay para que el modal cierre antes del submit
         setTimeout(function () {
           var form = $('pos-sale-form');
-          if (form) form.submit();
+          // Un control del formulario cuyo id o name sea "submit" tapa a
+          // form.submit y la llamada directa lanzaria TypeError; invocar el
+          // metodo del prototipo lo evita.
+          if (form) HTMLFormElement.prototype.submit.call(form);
         }, 150);
       });
     }
@@ -751,17 +1585,107 @@
   /* ──────────────────────────────────────────────────────
      RESET: cancelar venta
   ────────────────────────────────────────────────────── */
+  /**
+   * Descuento sobre el total de la factura. Se guarda como "150" o "10%" en
+   * spos_discount, que es lo que loadItems() y order_discount ya interpretan.
+   */
+  function initDescuentoTotal() {
+    var btn = $('add_discount');
+    var modalEl = $('descuentoModal');
+    if (!btn || !modalEl || !window.bootstrap) { return; }
+
+    var campo   = $('ds-valor');
+    var tipoBox = $('ds-tipo');
+    var ayuda   = $('ds-ayuda');
+    var err     = $('ds-error');
+    var resumen = $('ds-resumen');
+    var modal   = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    function tipo(valor) {
+      if (!tipoBox) { return 'monto'; }
+      if (valor) {
+        qsa('button', tipoBox).forEach(function (b) { b.classList.toggle('activo', b.dataset.tipo === valor); });
+        if (ayuda) {
+          ayuda.textContent = valor === 'pct'
+            ? t('descuento_tipo_pct', 'Porcentaje sobre el precio')
+            : t('descuento_tipo_monto', 'Monto por unidad');
+        }
+      }
+      var act = qs('button.activo', tipoBox);
+      return act ? act.dataset.tipo : 'monto';
+    }
+
+    function pintarResumen() {
+      if (!resumen) { return; }
+      var bruto = parseFloat(total) || 0;
+      var val = parseFloat(campo ? campo.value : 0) || 0;
+      var desc = tipo() === 'pct' ? (bruto * val) / 100 : val;
+      if (desc > bruto) { desc = bruto; }
+      resumen.textContent = formatMoney(bruto) + ' − ' + formatMoney(desc) + ' = ' + formatMoney(bruto - desc);
+    }
+
+    btn.addEventListener('click', function () {
+      var guardado = String(get('spos_discount') || '0');
+      var esPct = guardado.indexOf('%') !== -1;
+      if (campo) { campo.value = parseFloat(guardado) > 0 ? parseFloat(guardado) : ''; }
+      tipo(esPct ? 'pct' : 'monto');
+      if (err) { err.classList.remove('visible'); }
+      pintarResumen();
+      modal.show();
+    });
+
+    if (tipoBox) {
+      tipoBox.addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) { return; }
+        tipo(b.dataset.tipo);
+        pintarResumen();
+        if (campo) { campo.focus(); }
+      });
+    }
+    if (campo) { campo.addEventListener('input', pintarResumen); }
+
+    var aplicar = $('ds-aplicar');
+    if (aplicar) {
+      aplicar.addEventListener('click', function () {
+        var val = parseFloat(campo ? campo.value : 0);
+        if (isNaN(val) || val < 0) { val = 0; }
+        var esPct = tipo() === 'pct';
+        var bruto = parseFloat(total) || 0;
+        if (esPct ? val > 100 : val > bruto) {
+          if (err) { err.textContent = t('unexpected_value', 'El descuento supera el total.'); err.classList.add('visible'); }
+          return;
+        }
+        store('spos_discount', val > 0 ? (esPct ? val + '%' : String(val)) : '0');
+        var dv = $('discount_val');
+        if (dv) { dv.value = get('spos_discount'); }
+        loadItems();
+        modal.hide();
+      });
+    }
+
+    var quitar = $('ds-quitar');
+    if (quitar) {
+      quitar.addEventListener('click', function () {
+        remove('spos_discount');
+        var dv = $('discount_val');
+        if (dv) { dv.value = ''; }
+        if (campo) { campo.value = ''; }
+        loadItems();
+        modal.hide();
+      });
+    }
+  }
+
   function initReset() {
     var resetBtn = $('reset');
     if (!resetBtn) return;
     resetBtn.addEventListener('click', function () {
       if (count <= 1) return;
-      if (!window.confirm(t('r_u_sure', '¿Está seguro de cancelar la venta?'))) return;
-      remove('spositems');
-      remove('spos_tax');
-      remove('spos_discount');
-      remove('spos_customer');
-      window.location.href = window.base_url + 'pos';
+      confirmar(t('r_u_sure', '¿Está seguro de cancelar la venta?'), function () {
+        limpiarCarrito();
+        window.location.href = window.base_url + 'pos';
+      });
     });
   }
 
@@ -776,11 +1700,81 @@
         showAlert(t('please_add_product', 'Agregue productos al carrito'));
         return;
       }
-      var modal = document.getElementById('ModalNotes');
-      if (modal && window.bootstrap) {
-        window.bootstrap.Modal.getOrCreateInstance(modal).show();
+      // La referencia identifica la cuenta en la lista de suspendidas; sin
+      // ella el cajero no sabe cual retomar.
+      var ref = $('hold_ref');
+      if (!ref || !ref.value.trim()) {
+        pedirReferencia();
+        return;
       }
+      enviarSuspension();
     });
+
+    // Aceptar en el modal: sin referencia no cierra, marca el campo y avisa.
+    var aceptar = $('notasAceptar');
+    if (aceptar) {
+      aceptar.addEventListener('click', function () {
+        var ref = $('hold_ref');
+        if (!ref || !ref.value.trim()) {
+          marcarReferencia(true);
+          ref && ref.focus();
+          return;
+        }
+        marcarReferencia(false);
+        var modal = document.getElementById('ModalNotes');
+        if (modal && window.bootstrap) {
+          var inst = window.bootstrap.Modal.getInstance(modal);
+          if (inst) { inst.hide(); }
+        }
+      });
+    }
+    var refInput = $('hold_ref');
+    if (refInput) {
+      refInput.addEventListener('input', function () {
+        if (this.value.trim()) { marcarReferencia(false); }
+      });
+    }
+  }
+
+  function marcarReferencia(malo) {
+    var ref = $('hold_ref');
+    var err = $('hold_ref_error');
+    if (ref) { ref.classList.toggle('is-invalid', !!malo); }
+    if (err) {
+      err.textContent = malo ? t('referencia_requerida', 'Agregue una nota de referencia') : '';
+      err.style.setProperty('display', malo ? 'block' : 'none', 'important');
+    }
+  }
+
+  function pedirReferencia() {
+    var modal = document.getElementById('ModalNotes');
+    var ref = $('hold_ref');
+    if (modal && window.bootstrap) {
+      window.bootstrap.Modal.getOrCreateInstance(modal).show();
+      modal.addEventListener('shown.bs.modal', function una() {
+        modal.removeEventListener('shown.bs.modal', una);
+        marcarReferencia(true);
+        if (ref) { ref.focus(); }
+      });
+    }
+  }
+
+  /** Manda el carrito como cuenta en espera: Pos.php lo detecta por el campo suspend. */
+  function enviarSuspension() {
+    var form = $('pos-sale-form');
+    if (!form) { return; }
+    var elCount = $('total_item');
+    if (elCount) { elCount.value = an - 1; }
+
+    var marca = document.createElement('input');
+    marca.type = 'hidden';
+    marca.name = 'suspend';
+    marca.value = '1';
+    form.appendChild(marca);
+    // Los articulos ya viajan como campos del formulario; el carrito guardado
+    // solo reapareceria encima de la venta siguiente.
+    limpiarCarrito();
+    HTMLFormElement.prototype.submit.call(form);
   }
 
   /* ──────────────────────────────────────────────────────
@@ -802,30 +1796,35 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.status === 'success') {
-            // Agregar al TomSelect del cliente y actualizar _customers map
+            // El buscador filtra sobre _customers, asi que el alta se ve de
+            // inmediato con solo agregarlo al mapa.
             if (window._customers && res.customer) {
               window._customers[res.id] = res.customer;
             }
-            var sel = document.getElementById('spos_customer');
-            var hiddenCust = document.getElementById('pos-customer-hidden');
-            if (sel && sel.tomselect) {
-              var cust = res.customer || {};
-              var optText = res.val + (cust.cf2 ? ' (' + cust.cf2 + ')' : '');
-              sel.tomselect.addOption({ value: String(res.id), text: optText });
-              sel.tomselect.setValue(String(res.id));
-              if (hiddenCust) hiddenCust.value = String(res.id);
-            } else if (sel) {
-              var opt = document.createElement('option');
-              opt.value = res.id;
-              opt.textContent = res.val;
-              opt.selected = true;
-              sel.appendChild(opt);
+            if (window.posElegirCliente) {
+              window.posElegirCliente(res.id);
+            } else {
+              renderCustomerCard(res.id);
             }
-            renderCustomerCard(res.id);
             var modal = document.getElementById('customerModal');
             if (modal && window.bootstrap) {
               window.bootstrap.Modal.getInstance(modal).hide();
             }
+          } else if (res.duplicado) {
+            // La identificacion ya esta registrada: el cajero queria ese cliente,
+            // no uno nuevo, asi que se elige el que ya existe.
+            // El POS ya carga todos los clientes al abrir: solo falta en el mapa
+            // si lo dio de alta otra caja mientras esta pantalla estaba abierta.
+            if (window._customers && !window._customers[res.duplicado.id]) {
+              window._customers[res.duplicado.id] = {
+                name: res.duplicado.name, cf1: res.duplicado.cf1, cf2: res.duplicado.cf2,
+                email: '', phone: '', company: '', credito: 0
+              };
+            }
+            if (window.posElegirCliente) { window.posElegirCliente(res.duplicado.id); }
+            if (typeof avisoVenta === 'function') { avisoVenta(esc(res.msg || ''), 'fa-user'); }
+            var mDup = document.getElementById('customerModal');
+            if (mDup && window.bootstrap) { window.bootstrap.Modal.getInstance(mDup).hide(); }
           } else {
             if (alertEl) { alertEl.textContent = res.msg || t('error', 'Error'); alertEl.classList.remove('d-none'); }
           }
@@ -844,8 +1843,83 @@
         if (alertEl) alertEl.classList.add('d-none');
         var hacAlert = $('hac-alert');
         if (hacAlert) hacAlert.classList.add('d-none');
+
+        // form.reset() devuelve los valores, no las opciones que trajo el padron
+        // ni las secciones que se abrieron.
+        var act = $('cActividadWrap');
+        if (act) { act.classList.add('d-none'); }
+        var sel = $('cactividad');
+        if (sel) { sel.innerHTML = ''; }
+        var ocultos = $('cActividadesHidden');
+        if (ocultos) { ocultos.innerHTML = ''; }
+        ['codigo_canton', 'codigo_distrito', 'codigo_barrio'].forEach(function (id) {
+          var el = $(id);
+          if (el && el.options.length) { el.innerHTML = el.options[0].outerHTML; }
+        });
+        ['cUbicacionBox', 'cComercialBox'].forEach(function (id) {
+          var el = $(id);
+          if (el) { el.open = false; }
+        });
       });
     }
+  }
+
+  /* ──────────────────────────────────────────────────────
+     ALTA RAPIDA DE CLIENTE: ubicacion y tipo de identificacion
+  ────────────────────────────────────────────────────── */
+  function initClienteRapido() {
+    var cf1 = $('cf1');
+    if (!cf1) { return; }
+
+    // El tipo 05 no lleva <Ubicacion> del pais: su direccion va en
+    // OtrasSenasExtranjero, que solo ese tipo admite.
+    function alternarExtranjero() {
+      var extranjero = cf1.value === '05';
+      var cr = $('cUbicacionCR');
+      var ex = $('cUbicacionExtranjero');
+      if (cr) { cr.classList.toggle('d-none', extranjero); }
+      if (ex) { ex.classList.toggle('d-none', !extranjero); }
+      var num = $('cf2');
+      if (num) { num.setAttribute('inputmode', extranjero ? 'text' : 'numeric'); }
+    }
+    cf1.addEventListener('change', alternarExtranjero);
+    alternarExtranjero();
+
+    // Provincia -> canton -> distrito -> barrio. Cada nivel invalida los de abajo.
+    var padres = document.querySelectorAll('#customerModal [data-hijo]');
+    Array.prototype.forEach.call(padres, function (padre) {
+      padre.addEventListener('change', function () {
+        var vacia = padre.dataset.hijo === 'codigo_canton'
+          ? padre.options[0].outerHTML
+          : '<option value=""></option>';
+
+        var actual = $(padre.dataset.hijo);
+        while (actual) {
+          actual.innerHTML = actual.options.length ? actual.options[0].outerHTML : vacia;
+          actual = actual.dataset.hijo ? $(actual.dataset.hijo) : null;
+        }
+        if (!padre.value) { return; }
+
+        var ruta = [$('codigo_provincia').value];
+        if (padre.id !== 'codigo_provincia') { ruta.push($('codigo_canton').value); }
+        if (padre.id === 'codigo_distrito') { ruta.push($('codigo_distrito').value); }
+
+        var hijo = $(padre.dataset.hijo);
+        fetch(padre.dataset.url + '/' + ruta.join('/'), {
+          credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (filas) {
+            filas.forEach(function (f) {
+              var o = document.createElement('option');
+              o.value = f.codigo;
+              o.textContent = f.nombre;
+              hijo.appendChild(o);
+            });
+          })
+          .catch(function () {});
+      });
+    });
   }
 
   /* ──────────────────────────────────────────────────────
@@ -876,7 +1950,10 @@
     function setLoading(loading) {
       if (!btn || !iconEl) return;
       btn.disabled = loading;
-      iconEl.className = loading ? 'fa fa-spinner fa-spin' : 'fa fa-search';
+      // El span envuelve un SVG en linea: se gira el SVG, no se sustituye por
+      // una clase de Font Awesome que dibujaria un segundo icono.
+      var svg = iconEl.querySelector('svg');
+      if (svg) { svg.classList.toggle('nxf-spin', loading); }
     }
 
     function consultarHacienda(cedula) {
@@ -901,6 +1978,8 @@
           if (data.tipoIdentificacion && cf1El) {
             cf1El.value = data.tipoIdentificacion;
           }
+          volcarActividades(data.actividades || []);
+
           var alertas = [];
           if (data.situacion) {
             if (data.situacion.moroso) alertas.push('MOROSO');
@@ -918,6 +1997,34 @@
         .finally(function () {
           setLoading(false);
         });
+    }
+
+    /**
+     * Guarda las actividades inscritas del contribuyente: la elegida viaja como
+     * codigo_actividad y todas como actividades[] para tec_customer_actividades.
+     */
+    function volcarActividades(acts) {
+      var wrap = $('cActividadWrap');
+      var sel = $('cactividad');
+      var ocultos = $('cActividadesHidden');
+      if (!wrap || !sel || !ocultos) { return; }
+
+      sel.innerHTML = '';
+      ocultos.innerHTML = '';
+      if (!acts.length) { wrap.classList.add('d-none'); return; }
+
+      acts.forEach(function (a, i) {
+        var o = document.createElement('option');
+        o.value = a.codigo;
+        o.textContent = a.codigo + ' — ' + a.descripcion;
+        sel.appendChild(o);
+
+        ocultos.insertAdjacentHTML('beforeend',
+          '<input type="hidden" name="actividades[]" value="' + escAttr(a.codigo) + '">' +
+          '<input type="hidden" name="actividades_desc[]" value="' + escAttr(a.descripcion || '') + '">');
+        if (i === 0) { sel.value = a.codigo; }
+      });
+      wrap.classList.remove('d-none');
     }
 
     btn.addEventListener('click', function () {
@@ -955,7 +2062,6 @@
   function renderCustomerCard(id) {
     var searchWrap = document.getElementById('pos-cust-search-wrap');
     var card       = document.getElementById('pos-cust-card');
-    var lupaBtn    = document.getElementById('pos-cust-lupa');
     var clearBtn   = document.getElementById('pos-cust-clear');
     var avatar     = document.getElementById('pos-cust-avatar');
     var nameEl     = document.getElementById('pos-cust-name');
@@ -966,11 +2072,13 @@
     var cmap = window._customers || {};
     var c    = cmap[id];
 
-    // Sin cliente → mostrar barra, ocultar lupa y X, card en modo "contado"
+    // Sin cliente elegido la venta sale al de contado: basta una linea que lo
+    // diga. El buscador aparece con la lupa, no ocupa sitio de entrada.
     if (!c) {
-      if (searchWrap) searchWrap.style.display = '';
-      if (lupaBtn)    lupaBtn.style.display    = 'none';
+      if (searchWrap) searchWrap.style.display = 'none';
       if (clearBtn)   clearBtn.style.display   = 'none';
+      var lupa = document.getElementById('pos-cust-buscar');
+      if (lupa) lupa.style.display = 'inline-flex';
       card.className = 'pcp-cust-card is-default';
       if (avatar) avatar.textContent = 'C';
       if (nameEl) nameEl.textContent = t('cliente_contado', 'Cliente de Contado');
@@ -979,126 +2087,206 @@
       return;
     }
 
-    // Con cliente → ocultar barra, mostrar lupa y X dentro del card
     if (searchWrap) searchWrap.style.display = 'none';
-    if (lupaBtn)    lupaBtn.style.display    = 'flex';
-    if (clearBtn)   clearBtn.style.display   = 'flex';
+    if (clearBtn)   clearBtn.style.display   = 'inline-flex';
+    var lupaSel = document.getElementById('pos-cust-buscar');
+    if (lupaSel) lupaSel.style.display = 'none';
 
     var name     = c.name || '—';
     var initials = name.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
 
     card.className = 'pcp-cust-card';
     if (avatar) avatar.textContent = initials;
-    if (nameEl) nameEl.textContent = name;
-
-    // Badge: tipo + número documento
-    if (metaEl) {
-      var label = getCf1Labels()[c.cf1] || t('documento_label', 'Doc.');
-      metaEl.innerHTML = c.cf2
-        ? '<span class="pcp-cust-badge"><i class="fa fa-id-card"></i>' + label + ': ' + c.cf2 + '</span>'
-        : '';
+    if (nameEl) {
+      nameEl.textContent = name;
+      nameEl.setAttribute('title', name);
     }
 
-    // Contacto: email + teléfono
+    // Identificación y razón social
+    if (metaEl) {
+      var filas = '';
+      if (c.cf2) {
+        var label = getCf1Labels()[c.cf1] || t('documento_label', 'Doc.');
+        filas += '<div class="pcp-cust-dato"><span class="k">' + escaparHtml(label) + '</span>' +
+                 '<span class="v mono">' + escaparHtml(c.cf2) + '</span></div>';
+      }
+      if (c.company) {
+        filas += '<div class="pcp-cust-dato"><span class="k">' + t('business_name', 'Razón social') + '</span>' +
+                 '<span class="v">' + escaparHtml(c.company) + '</span></div>';
+      }
+      metaEl.innerHTML = filas;
+    }
+
+    // Contacto y credito
     if (contEl) {
-      var contact = '';
-      if (c.email) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-envelope"></i>' + c.email + '</span>';
-      if (c.phone) contact += '<span class="pcp-cust-contact-item"><i class="fa fa-phone"></i>' + c.phone + '</span>';
-      contEl.innerHTML = contact;
+      var filas2 = '';
+      if (c.email) {
+        filas2 += '<div class="pcp-cust-dato"><span class="k">' + t('email', 'Correo') + '</span>' +
+                  '<span class="v" title="' + escaparHtml(c.email) + '">' + escaparHtml(c.email) + '</span></div>';
+      }
+      if (c.phone) {
+        filas2 += '<div class="pcp-cust-dato"><span class="k">' + t('phone', 'Teléfono') + '</span>' +
+                  '<span class="v">' + escaparHtml(c.phone) + '</span></div>';
+      }
+      if (c.credito && parseFloat(c.credito) > 0) {
+        filas2 += '<div class="pcp-cust-dato"><span class="k">' + t('credit_limit', 'Límite crédito') + '</span>' +
+                  '<span class="v">' + formatMoney(c.credito) + '</span></div>';
+      }
+      contEl.innerHTML = filas2;
     }
   }
 
+  function escaparHtml(s) {
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   function initCustomerSelect() {
-    var sel = document.getElementById('spos_customer');
-    if (!sel || sel.tomselect) return;
-    if (!window.TomSelect) return;
+    var input = $('pos-cust-search');
+    if (!input) { return; }
 
-    var defaultId = getDefaultCustomerId();
-
-    var hiddenInput = document.getElementById('pos-customer-hidden');
+    var defaultId   = getDefaultCustomerId();
+    var hiddenInput = $('pos-customer-hidden');
+    var lista       = document.createElement('div');
+    lista.className = 'pos-ac pos-ac-cust';
+    input.parentNode.style.position = 'relative';
+    input.parentNode.appendChild(lista);
 
     function setCustomer(val) {
       store('spos_customer', val || '');
       renderCustomerCard(val || '');
-      if (hiddenInput) hiddenInput.value = val || defaultId;
+      if (hiddenInput) { hiddenInput.value = val || defaultId; }
+      // Otro cliente admite otros comprobantes y otro crédito.
+      if (window.posCargarEstadoCliente) { window.posCargarEstadoCliente(); }
     }
 
-    function escapeHtml(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    function cerrar() {
+      lista.classList.remove('abierto');
+      lista.innerHTML = '';
     }
 
-    var ts = new window.TomSelect(sel, {
-      maxItems: 1,
-      allowEmptyOption: false,
-      placeholder: t('buscar_cliente_placeholder', 'Buscar cliente…'),
-      plugins: [],
-      dropdownParent: 'body',
-      dropdownClass: 'ts-dropdown ts-cust-dropdown',
-      openOnFocus: true,
-      onDropdownOpen: function () {
-        // Cerrar inmediatamente si el input está vacío (clic sin escribir)
-        if (!this.control_input.value.trim()) {
-          var self = this;
-          setTimeout(function () { self.close(); }, 0);
+    /** Todas las palabras tecleadas tienen que aparecer en el nombre, la cedula o el correo. */
+    function coincide(c, palabras) {
+      var heno = ((c.name || '') + ' ' + (c.cf2 || '') + ' ' + (c.company || '') + ' ' +
+                  (c.email || '') + ' ' + (c.phone || '')).toLowerCase();
+      return palabras.every(function (w) { return heno.indexOf(w) !== -1; });
+    }
+
+    function buscar(term) {
+      var palabras = term.toLowerCase().split(/\s+/).filter(Boolean);
+      if (!palabras.length) { return []; }
+      var cmap = window._customers || {};
+      var res = [];
+      for (var id in cmap) {
+        if (!Object.prototype.hasOwnProperty.call(cmap, id)) { continue; }
+        if (String(id) === defaultId) { continue; }
+        if (coincide(cmap[id], palabras)) {
+          res.push({ id: id, c: cmap[id] });
+          if (res.length >= 25) { break; }
         }
-      },
-      // Nunca mostrar el ítem seleccionado dentro del control (la info va en la card)
-      render: {
-        item: function () { return '<div style="display:none"></div>'; },
-        option: function (data) {
-          // Separar nombre y documento: "NOMBRE (documento)"
-          var raw  = data.text || '';
-          var m    = raw.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
-          var name = m ? m[1].trim() : raw;
-          var doc  = m ? m[2] : '';
-          var initials = name.split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
-          return '<div class="ts-cust-opt">' +
-            '<div class="ts-cust-opt-av">' + escapeHtml(initials) + '</div>' +
-            '<div class="ts-cust-opt-info">' +
-              '<div class="ts-cust-opt-name">' + escapeHtml(name) + '</div>' +
-              (doc ? '<div class="ts-cust-opt-doc"><i class="fa fa-id-card" style="font-size:.58rem;margin-right:.2rem"></i>' + escapeHtml(doc) + '</div>' : '') +
-            '</div>' +
-          '</div>';
-        }
-      },
-      onChange: function (val) { setCustomer(val); }
+      }
+      return res;
+    }
+
+    function pintar(res) {
+      lista.innerHTML = '';
+      if (!res.length) {
+        var vacio = document.createElement('div');
+        vacio.className = 'pos-ac-vacio';
+        vacio.textContent = t('cliente_sin_coincidencias', 'Ningun cliente coincide');
+        lista.appendChild(vacio);
+        lista.classList.add('abierto');
+        return;
+      }
+      res.forEach(function (r) {
+        var nombre = r.c.name || '';
+        var iniciales = nombre.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('').toUpperCase() || '?';
+        var meta = [];
+        if (r.c.cf2)     { meta.push('<span class="pos-ac-code">' + escaparHtml(r.c.cf2) + '</span>'); }
+        if (r.c.company) { meta.push('<span>' + escaparHtml(r.c.company) + '</span>'); }
+        if (r.c.phone)   { meta.push('<span>' + escaparHtml(r.c.phone) + '</span>'); }
+
+        var fila = document.createElement('button');
+        fila.type = 'button';
+        fila.className = 'pos-ac-item';
+        fila.innerHTML =
+          '<span class="pos-ac-fila">' +
+            '<span class="pos-ac-av">' + escaparHtml(iniciales) + '</span>' +
+            '<span class="pos-ac-main">' +
+              '<span class="pos-ac-name">' + escaparHtml(nombre) + '</span>' +
+              (meta.length ? '<span class="pos-ac-meta">' + meta.join('<i>·</i>') + '</span>' : '') +
+            '</span>' +
+          '</span>';
+        fila.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          cerrar();
+          input.value = '';
+          setCustomer(r.id);
+          var si = $('add_item');
+          if (si) { si.focus(); }
+        });
+        lista.appendChild(fila);
+      });
+      lista.classList.add('abierto');
+    }
+
+    var temporizador;
+    input.addEventListener('input', function () {
+      clearTimeout(temporizador);
+      var term = this.value.trim();
+      if (!term) { cerrar(); return; }
+      temporizador = setTimeout(function () { pintar(buscar(term)); }, 120);
     });
 
-    // Restaurar cliente guardado (si sigue existiendo como opción)
-    var savedCustomer = get('spos_customer');
-    if (savedCustomer && savedCustomer !== defaultId && ts.getOption(savedCustomer)) {
-      ts.setValue(savedCustomer, true);
-      renderCustomerCard(savedCustomer);
-      if (hiddenInput) hiddenInput.value = savedCustomer;
+    input.addEventListener('keydown', function (e) {
+      var filas = Array.from(qsa('.pos-ac-item', lista));
+      if (e.key === 'ArrowDown' && filas.length) { filas[0].focus(); e.preventDefault(); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filas.length) { filas[0].dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); }
+      } else if (e.key === 'Escape') { cerrar(); this.value = ''; }
+    });
+
+    lista.addEventListener('keydown', function (e) {
+      var filas = Array.from(qsa('.pos-ac-item', lista));
+      var i = filas.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' && i < filas.length - 1) { filas[i + 1].focus(); e.preventDefault(); }
+      else if (e.key === 'ArrowUp') { if (i > 0) { filas[i - 1].focus(); } else { input.focus(); } e.preventDefault(); }
+      else if (e.key === 'Enter' && i >= 0) { filas[i].dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); e.preventDefault(); }
+      else if (e.key === 'Escape') { cerrar(); input.focus(); }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!input.parentNode.contains(e.target)) { cerrar(); }
+    });
+
+    var guardado = get('spos_customer');
+    if (guardado && guardado !== defaultId && (window._customers || {})[guardado]) {
+      setCustomer(guardado);
     } else {
-      ts.clear(true);
       renderCustomerCard('');
     }
 
-    // Botón X (dentro del card) → limpiar y volver a contado
-    var clearBtn = document.getElementById('pos-cust-clear');
+    var clearBtn = $('pos-cust-clear');
     if (clearBtn) {
-      clearBtn.addEventListener('click', function () {
-        ts.clear(true);
-        setCustomer('');
-      });
+      clearBtn.addEventListener('click', function () { setCustomer(''); });
     }
 
-    // Botón lupa (dentro del card) → volver a mostrar la barra de búsqueda
-    var lupaBtn = document.getElementById('pos-cust-lupa');
+    var lupaBtn = $('pos-cust-buscar');
     if (lupaBtn) {
-      lupaBtn.addEventListener('click', function () {
-        // Limpiar selección y mostrar la barra
-        ts.clear(true);
-        setCustomer('');
-        // Abrir el dropdown automáticamente
-        setTimeout(function () {
-          var searchWrap = document.getElementById('pos-cust-search-wrap');
-          if (searchWrap) searchWrap.style.display = '';
-          ts.focus();
-        }, 30);
-      });
+      lupaBtn.addEventListener('click', function () { window.posCambiarCliente(); });
     }
+
+    window.posCambiarCliente = function () {
+      setCustomer('');
+      var wrap = $('pos-cust-search-wrap');
+      if (wrap) { wrap.style.display = ''; }
+      setTimeout(function () { input.value = ''; input.focus(); }, 30);
+    };
+
+    // Alta de cliente: el formulario avisa para dejarlo elegido al volver.
+    window.posElegirCliente = function (id) { setCustomer(String(id)); };
   }
 
   /* ──────────────────────────────────────────────────────
@@ -1156,6 +2344,7 @@
         if (pv) pv.value = method;
         // Sincronizar con el modal
         syncPayModal(method);
+        onPayMethodChange(method);
       });
     });
 
@@ -1171,14 +2360,283 @@
         qsa('.pcp-pay-btn').forEach(function (b) {
           b.classList.toggle('active', b.dataset.method === method);
         });
+        onPayMethodChange(method);
       });
     });
+  }
+
+  /** Elige una forma de pago desde codigo, sincronizando modal y carrito. */
+  function seleccionarMetodo(method) {
+    var pv = $('paid_by_val');
+    if (pv) { pv.value = method; }
+    syncPayModal(method);
+    qsa('.pcp-pay-btn').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.method === method);
+    });
+    onPayMethodChange(method);
   }
 
   function syncPayModal(method) {
     qsa('.pay-method-btn').forEach(function (b) {
       b.classList.toggle('active', b.dataset.method === method);
     });
+  }
+
+  /* ──────────────────────────────────────────────────────
+     LISTA SINPE EN TIEMPO REAL (modal de pago → método "sinpe")
+     Sondea pos/ajax_sinpe_pending mientras el método activo sea SINPE. Al
+     elegir un pago se rellena el monto y su comprobante, que viaja con el
+     formulario para que Pos.php lo marque como usado.
+  ────────────────────────────────────────────────────── */
+  var sinpePollTimer = null;
+  var sinpeCurrentMethod = 'cash';
+
+  function onPayMethodChange(method) {
+    sinpeCurrentMethod = method;
+
+    // El campo de referencia solo aparece donde hace falta. En SINPE se rellena
+    // solo al elegir un pago del desplegable, pero queda visible y editable.
+    var grupoRef = $('payRefGroup');
+    if (grupoRef) {
+      var necesita = !!(METODOS[method] || {}).refRequerida;
+      grupoRef.style.display = necesita ? '' : 'none';
+      if (!necesita) { var r = $('payRef'); if (r) r.value = ''; }
+    }
+
+    var panel = $('sinpePendingPanel');
+    if (panel) {
+      if (method === 'sinpe') {
+        panel.style.display = '';
+        sinpeStartPolling();
+      } else {
+        panel.style.display = 'none';
+        sinpeStopPolling();
+      }
+    }
+
+    aplicarModoMetodo(method);
+    aplicarModoCredito(method);
+    recalcPago();
+  }
+
+  /**
+   * A credito no se recibe dinero: el campo de monto y el teclado se apagan y
+   * el disponible del cliente queda a la vista.
+   */
+  function aplicarModoCredito(method) {
+    var credito = esCredito(method);
+    var monto = $('amount');
+    if (monto) {
+      monto.readOnly = credito;
+      if (credito) { monto.value = ''; }
+    }
+    var teclado = $('payKeypad');
+    if (teclado) {
+      qsa('#payKeypad button').forEach(function (b) { b.disabled = credito; });
+    }
+    var rapidos = $('payQuickAmounts');
+    if (rapidos) { rapidos.style.display = credito ? 'none' : ''; }
+
+    var info = $('payCreditInfo');
+    if (info) {
+      var c = (estadoClientePago && estadoClientePago.credito) || null;
+      if (credito && c && c.permitido) {
+        info.textContent = formatMoney(c.disponible) + ' · ' + c.dias + ' d';
+        info.hidden = false;
+      } else {
+        info.hidden = true;
+      }
+    }
+  }
+
+  // En tarjeta y SINPE el monto y la referencia los fija el cobro, no el cajero:
+  // los montos sugeridos y el campo editable solo invitan a descuadrar.
+  var METODOS_COBRO_EXTERNO = { card: 1, sinpe: 1 };
+
+  function aplicarModoMetodo(method) {
+    var externo = !!METODOS_COBRO_EXTERNO[method];
+
+    var rapidos = $('payQuickAmounts');
+    if (rapidos) { rapidos.style.display = externo ? 'none' : ''; }
+
+    var datafono = $('payDatafonoWrap');
+    if (datafono) { datafono.style.display = (method === 'card') ? '' : 'none'; }
+
+    var monto = $('amount');
+    if (monto) {
+      monto.readOnly = externo;
+      monto.classList.toggle('fijo', externo);
+      // Tarjeta: hasta que llegue el cobro, lo que se cobra es lo que falta.
+      if (externo && !parseFloat(monto.value)) {
+        var pend = (parseFloat(gtotal) || 0) - totalLineas();
+        monto.value = pend > 0 ? formatDecimal(pend) : '';
+      }
+    }
+
+    var ref = $('payRef');
+    if (ref) {
+      ref.readOnly = externo;
+      ref.classList.toggle('fijo', externo);
+    }
+  }
+
+  function sinpeStartPolling() {
+    sinpeStopPolling();
+    sinpeFetchPending();
+    sinpePollTimer = setInterval(sinpeFetchPending, 4000);
+  }
+
+  function sinpeStopPolling() {
+    if (sinpePollTimer) { clearInterval(sinpePollTimer); sinpePollTimer = null; }
+  }
+
+  function sinpeFetchPending() {
+    if (sinpeCurrentMethod !== 'sinpe') { sinpeStopPolling(); return; }
+    var dot = $('sinpeLiveDot');
+    fetch(window.base_url + 'pos/ajax_sinpe_pending?monto=' + encodeURIComponent(gtotal || 0), { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (dot) dot.style.color = '#2ecc71';
+        sinpeRenderList((data && data.pendientes) || []);
+      })
+      .catch(function () {
+        if (dot) dot.style.color = '#e74c3c';
+      });
+  }
+
+  // Detalles de cada pago indexados por comprobante; el <select> solo guarda el id.
+  var sinpeCache = {};
+
+  function sinpeRenderList(rows) {
+    var sel = $('sinpePendingSelect');
+    var countEl = $('sinpePendingCount');
+    if (!sel) return;
+
+    var refInput = $('sinpe_reference');
+    var seleccionado = refInput ? refInput.value : '';
+
+    sinpeCache = {};
+    rows.forEach(function (p) {
+      if (p.comprobante) sinpeCache[p.comprobante] = p;
+    });
+
+    if (countEl) {
+      countEl.textContent = rows.length
+        ? (rows.length + (rows.length === 1 ? ' disponible' : ' disponibles'))
+        : '';
+    }
+
+    // Repintar con la lista desplegada la cierra: solo se toca si cambió el contenido.
+    var firma = rows.map(function (p) { return p.comprobante; }).join('|');
+    if (sel.dataset.firma === firma) return;
+    sel.dataset.firma = firma;
+
+    if (!rows.length) {
+      sel.innerHTML = '<option value="">Sin pagos SINPE que cubran ' + formatMoney(parseFloat(gtotal) || 0) + '</option>';
+      return;
+    }
+
+    var html = '<option value="">Seleccione el pago SINPE recibido…</option>';
+    rows.forEach(function (p) {
+      var hora = sinpeHora(p.fecha);
+      var etiqueta = formatMoney(parseFloat(p.monto) || 0) +
+        ' · ' + (p.nombre || 'SINPE') +
+        (p.telefono ? ' · ' + p.telefono : '') +
+        (hora ? ' · ' + hora : '');
+      html += '<option value="' + escAttr(p.comprobante || '') + '"' +
+        (seleccionado && p.comprobante === seleccionado ? ' selected' : '') + '>' +
+        esc(etiqueta) + '</option>';
+    });
+    sel.innerHTML = html;
+  }
+
+  function sinpeHora(fecha) {
+    try {
+      return new Date(String(fecha || '').replace(' ', 'T'))
+        .toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
+
+  function sinpeLimpiarSeleccion() {
+    var refInput = $('sinpe_reference');
+    if (refInput) refInput.value = '';
+    var refVis = $('payRef');
+    if (refVis) refVis.value = '';
+    var sel = $('sinpePendingSelect');
+    if (sel) sel.value = '';
+    var infoBox = $('sinpeSelectedInfo');
+    if (infoBox) infoBox.style.display = 'none';
+  }
+
+  function sinpeAplicarSeleccion(comprobante) {
+    if (!comprobante) { sinpeLimpiarSeleccion(); return; }
+
+    var p = sinpeCache[comprobante];
+    if (!p) return;
+
+    var refInput = $('sinpe_reference');
+    if (refInput) refInput.value = comprobante;
+
+    var monto = parseFloat(p.monto) || 0;
+    var amountInput = $('amount');
+    if (amountInput) {
+      amountInput.value = formatDecimal(monto);
+    }
+    // El comprobante es la referencia de esa forma de pago.
+    var refEl = $('payRef');
+    if (refEl) refEl.value = comprobante;
+    recalcPago();
+
+    var set = function (id, valor) { var el = $(id); if (el) el.textContent = valor; };
+    set('sinpeSelNombre', p.nombre || 'SINPE');
+    set('sinpeSelTelefono', p.telefono || 'sin numero');
+    set('sinpeSelBanco', p.banco || 'banco no identificado');
+    set('sinpeSelFecha', sinpeHora(p.fecha) || '—');
+    set('sinpeSelectedComprobante', comprobante);
+    set('sinpeSelMonto', formatMoney(monto));
+
+    var descRow = $('sinpeSelDescRow');
+    if (descRow) {
+      if (p.descripcion) {
+        set('sinpeSelDescripcion', p.descripcion);
+        descRow.style.display = '';
+      } else {
+        descRow.style.display = 'none';
+      }
+    }
+
+    // Excedente sobre el total: corresponde vuelto.
+    var sobrante = $('sinpeSobrantePago');
+    if (sobrante) {
+      var dif = monto - (parseFloat(gtotal) || 0);
+      if (dif > 0.5) {
+        sobrante.textContent = 'El pago supera el total en ' + formatMoney(dif) + ' — corresponde vuelto.';
+        sobrante.style.display = '';
+      } else {
+        sobrante.style.display = 'none';
+      }
+    }
+
+    var infoBox = $('sinpeSelectedInfo');
+    if (infoBox) infoBox.style.display = '';
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function escAttr(s) { return esc(s); }
+
+  function initSinpePending() {
+    var sel = $('sinpePendingSelect');
+    if (sel) {
+      sel.addEventListener('change', function () { sinpeAplicarSeleccion(sel.value); });
+    }
+    var clearBtn = $('sinpeClearSelection');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', sinpeLimpiarSeleccion);
+    }
   }
 
   /* ──────────────────────────────────────────────────────
@@ -1190,8 +2648,10 @@
       exactBtn.addEventListener('click', function () {
         var amountInput = $('amount');
         if (amountInput) {
-          amountInput.value = formatDecimal(grand_total || 0);
-          amountInput.dispatchEvent(new Event('input'));
+          // Con pago dividido, "exacto" es el faltante, no el total.
+          var falta = (parseFloat(gtotal) || 0) - totalLineas();
+          amountInput.value = formatDecimal(falta > 0 ? falta : 0);
+          recalcPago();
         }
       });
     }
@@ -1201,7 +2661,7 @@
         var amountInput = $('amount');
         if (amountInput) {
           amountInput.value = parseFloat(this.dataset.amount);
-          amountInput.dispatchEvent(new Event('input'));
+          recalcPago();
         }
       });
     });
@@ -1210,58 +2670,225 @@
   /* ──────────────────────────────────────────────────────
      ATAJOS DE TECLADO
   ────────────────────────────────────────────────────── */
+  /**
+   * Cada accion declara el ajuste que la controla y su combinacion por omision.
+   * Si el elemento destino no esta en pantalla (por ejemplo "suspender" en una
+   * nota de credito) el atajo simplemente no se registra.
+   *
+   * Las combinaciones por omision evitan F11 y F12: el navegador se queda con
+   * esas teclas (pantalla completa y herramientas de desarrollo) y la pagina
+   * nunca llega a verlas.
+   */
+  var ACCIONES_ATAJO = [
+    { id: 'quick_product',          fijo: 'F2',     etiqueta: 'modal_producto_rapido', accion: function () { abrirModal('adHocModal'); } },
+    { id: 'focus_add_item',         def: 'F3',      etiqueta: 'atajo_agregar_item', accion: function () { var i = $('add_item'); if (i) { i.focus(); i.select(); } } },
+    { id: 'finalize_sale',          def: 'F4',      etiqueta: 'atajo_finalizar_venta', accion: function () { clic('payment') || clic('submit-sale'); } },
+    { id: 'add_customer',           def: 'F6',      etiqueta: 'atajo_agregar_cliente', accion: function () { if (window.posCambiarCliente) { window.posCambiarCliente(); } } },
+    { id: 'edit_last_product',      def: 'F7',      etiqueta: 'atajo_editar_ultimo', accion: editarUltimaLinea },
+    { id: 'toggle_category_slider', def: 'F8',      etiqueta: 'atajo_alternar_cats', accion: alternarCategorias },
+    { id: 'cancel_sale',            def: 'F9',      etiqueta: 'atajo_cancelar_venta', accion: function () { clic('reset'); } },
+    { id: 'suspend_sale',           def: 'F10',     etiqueta: 'atajo_suspender_venta', accion: function () { clic('suspend'); } },
+    { id: 'open_hold_bills',        def: 'ALT+S',   etiqueta: 'atajo_retomar', accion: function () { clic('holdBillsBtn'); } },
+    { id: 'today_sale',             def: 'ALT+V',   etiqueta: 'atajo_ventas_hoy', accion: function () { abrirParcial('pos/today_sale'); } },
+    { id: 'close_register',         def: 'ALT+R',   etiqueta: 'atajo_cerrar_caja', accion: function () { abrirParcial('pos/close_register'); } }
+  ];
+
+  function clic(id) {
+    var el = document.getElementById(id);
+    if (!el) { return false; }
+    el.click();
+    return true;
+  }
+
+  function abrirModal(id) {
+    var el = document.getElementById(id);
+    if (el && window.bootstrap) { window.bootstrap.Modal.getOrCreateInstance(el).show(); }
+  }
+
+  function alternarCategorias() {
+    var bar = $('posCatBar');
+    if (bar) { bar.classList.toggle('d-none'); }
+  }
+
+  function editarUltimaLinea() {
+    var botones = document.querySelectorAll('#posTable .edit');
+    if (botones.length) { botones[botones.length - 1].click(); }
+  }
+
+  /** Mensaje que el servidor dejo en flashdata (apertura de caja, errores). */
+  function initAvisoServidor() {
+    var a = window._pos_aviso;
+    if (!a || !a.texto) { return; }
+    window._pos_aviso = null;
+    avisoVenta(a.texto, a.error ? 'fa-exclamation-triangle' : 'fa-info-circle');
+  }
+
+  /**
+   * Empuja los comprobantes pendientes hacia Hacienda.
+   *
+   * El envio no ocurre al cobrar: la venta solo deja el XML guardado y
+   * shacienda lo firma y lo remite por tandas. Sin alguien que llame a ese
+   * endpoint los comprobantes se quedan en "pendiente" para siempre.
+   */
+  function initEnvioHacienda() {
+    function empujar() {
+      fetch(window.base_url + 'shacienda', { credentials: 'same-origin' })
+        .catch(function () { /* la proxima tanda reintenta */ });
+    }
+    empujar();
+    setInterval(empujar, 120000);
+  }
+
+  /** Cierre de caja desde la barra superior, el mismo modal que el atajo. */
+  function initCierreCaja() {
+    var boton = $('cerrarCajaBtn');
+    if (boton) {
+      boton.addEventListener('click', function () { abrirParcial('pos/close_register'); });
+    }
+  }
+
+  /**
+   * Vuelve a insertar los <script> de un fragmento para que corran.
+   *
+   * Asignar innerHTML no ejecuta el script: el navegador lo deja inerte. Sin
+   * esto, ninguna pantalla parcial del POS tiene comportamiento.
+   */
+  function activarScripts(contenedor) {
+    var viejos = contenedor.querySelectorAll('script');
+    Array.prototype.forEach.call(viejos, function (viejo) {
+      var nuevo = document.createElement('script');
+      Array.prototype.forEach.call(viejo.attributes, function (a) {
+        nuevo.setAttribute(a.name, a.value);
+      });
+      nuevo.textContent = viejo.textContent;
+      viejo.parentNode.replaceChild(nuevo, viejo);
+    });
+  }
+
+  /**
+   * Abre el cierre de caja al cargar cuando el servidor rechazo una salida con
+   * la caja abierta (Auth::logout redirige con ?cerrar_caja=1).
+   */
+  function initCierreForzado() {
+    if (new URLSearchParams(window.location.search).get('cerrar_caja') !== '1') { return; }
+    abrirParcial('pos/close_register');
+    // La marca ya cumplio: si no se limpia, recargar la pagina reabre el modal.
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }
+
+  /** Carga una vista parcial del POS (ventas de hoy, cierre de caja) en un modal. */
+  function abrirParcial(ruta) {
+    if (!window.bootstrap) { window.location.href = (window.base_url || '') + ruta; return; }
+    var cont = $('posParcialModal');
+    if (!cont) {
+      cont = document.createElement('div');
+      cont.id = 'posParcialModal';
+      cont.className = 'modal fade';
+      cont.tabIndex = -1;
+      cont.innerHTML = '<div class="modal-dialog modal-lg modal-dialog-scrollable">' +
+        '<div class="modal-content"><div class="modal-body" id="posParcialBody"></div></div></div>';
+      document.body.appendChild(cont);
+    }
+    var cuerpo = $('posParcialBody');
+    cuerpo.innerHTML = '<div class="p-4 text-center text-muted">…</div>';
+    window.bootstrap.Modal.getOrCreateInstance(cont).show();
+    fetch((window.base_url || '') + ruta, { credentials: 'same-origin' })
+      .then(function (r) {
+        if (!r.ok) { throw new Error(r.status); }
+        return r.text();
+      })
+      .then(function (html) {
+        cuerpo.innerHTML = html;
+        activarScripts(cuerpo);
+      })
+      .catch(function () {
+        cuerpo.innerHTML = '<div class="p-4 text-center text-danger">' +
+          t('no_se_pudo_cargar', 'No se pudo cargar la pantalla.') + '</div>';
+      });
+  }
+
+  /**
+   * Lee una combinacion escrita por el usuario ("ALT+I", "F9", "CTRL+SHIFT+P")
+   * y la deja comparable con un evento de teclado.
+   */
+  function leerCombinacion(texto) {
+    if (!texto) { return null; }
+    var partes = String(texto).toUpperCase().split('+').map(function (x) { return x.trim(); }).filter(Boolean);
+    var tecla = partes.pop();
+    if (!tecla) { return null; }
+    return {
+      alt:   partes.indexOf('ALT') !== -1,
+      ctrl:  partes.indexOf('CTRL') !== -1 || partes.indexOf('CONTROL') !== -1,
+      shift: partes.indexOf('SHIFT') !== -1,
+      tecla: tecla
+    };
+  }
+
+  /** Nombre canonico de la tecla de un evento, en el mismo alfabeto que leerCombinacion. */
+  function teclaDeEvento(e) {
+    var k = e.key;
+    if (!k) { return ''; }
+    if (k === 'Escape') { return 'ESC'; }
+    if (k === ' ') { return 'SPACE'; }
+    if (k === 'Delete') { return 'DEL'; }
+    if (k === 'Insert') { return 'INS'; }
+    return k.length === 1 ? k.toUpperCase() : k.toUpperCase();
+  }
+
+  function coincide(combo, e) {
+    return !!combo &&
+      combo.alt === e.altKey &&
+      combo.ctrl === (e.ctrlKey || e.metaKey) &&
+      combo.shift === e.shiftKey &&
+      combo.tecla === teclaDeEvento(e);
+  }
+
   function initKeyboardShortcuts() {
+    var S = window.Settings || {};
+
+    var registrados = [];
+    ACCIONES_ATAJO.forEach(function (a) {
+      var texto = a.fijo || (S[a.id] != null && S[a.id] !== '' ? S[a.id] : a.def);
+      var combo = leerCombinacion(texto);
+      if (combo) { registrados.push({ combo: combo, accion: a.accion, etiqueta: a.etiqueta, texto: texto }); }
+    });
+    window._posAtajos = registrados;
+
     document.addEventListener('keydown', function (e) {
-      // No disparar si estamos escribiendo en un input que no es #add_item
-      var tag = document.activeElement ? document.activeElement.tagName : '';
-      var isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-      var isSearch = document.activeElement && document.activeElement.id === 'add_item';
+      var activo = document.activeElement;
+      var tag = activo ? activo.tagName : '';
+      var escribiendo = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      var esBusqueda = activo && activo.id === 'add_item';
 
-      // F2 → Producto rápido ad-hoc
-      if (e.key === 'F2') {
+      // Escribir en un campo no debe disparar atajos de una sola letra; las teclas
+      // de funcion y las combinaciones con modificador si valen en cualquier parte.
+      var teclaFn = /^F\d{1,2}$/.test(teclaDeEvento(e));
+      var conModificador = e.altKey || e.ctrlKey || e.metaKey;
+
+      for (var i = 0; i < registrados.length; i++) {
+        if (!coincide(registrados[i].combo, e)) { continue; }
+        if (escribiendo && !teclaFn && !conModificador) { continue; }
         e.preventDefault();
-        var ahBtn = document.getElementById('adHocBtn');
-        if (ahBtn && window.bootstrap) {
-          var m = window.bootstrap.Modal.getOrCreateInstance(document.getElementById('adHocModal'));
-          if (m) m.show();
-        }
+        registrados[i].accion();
         return;
       }
 
-      // F3 → focus en búsqueda
-      if (e.key === 'F3') {
-        e.preventDefault();
+      // F5 recarga y perderia la venta en curso.
+      if (e.key === 'F5') { e.preventDefault(); return; }
+
+      if (e.key === 'Escape' && esBusqueda) {
         var si = $('add_item');
-        if (si) { si.focus(); si.select(); }
+        if (si) { si.value = ''; }
         return;
       }
 
-      // F4 → activar pago
-      if (e.key === 'F4') {
+      // + del teclado numerico: volver a la busqueda sin soltar la mano del teclado.
+      if ((e.key === '+' || e.key === '=') && !escribiendo) {
         e.preventDefault();
-        var payBtn = $('payment') || $('submit-sale');
-        if (payBtn) payBtn.click();
-        return;
-      }
-
-      // F5 → prevenir recarga accidental (solo dentro del POS)
-      if (e.key === 'F5') {
-        e.preventDefault();
-        return;
-      }
-
-      // ESC → si estamos en búsqueda, limpiar
-      if (e.key === 'Escape' && isSearch) {
-        var si = $('add_item');
-        if (si) si.value = '';
-        return;
-      }
-
-      // + en teclado numérico o = → focus búsqueda (acceso rápido)
-      if ((e.key === '+' || e.key === '=') && !isInput) {
-        e.preventDefault();
-        var si = $('add_item');
-        if (si) { si.focus(); si.value = ''; }
+        var sb = $('add_item');
+        if (sb) { sb.focus(); sb.value = ''; }
       }
     });
   }
@@ -1272,21 +2899,49 @@
   function initSidebarToggle() {
     var nav = $('posNav');
     var btn = $('navToggle');
-    var icon = $('navToggleIcon');
     if (!nav || !btn) return;
+    // El swap de icono (panelleftclose/panelleftopen) lo resuelve el CSS via
+    // el selector hermano '#posNav.collapsed ~ .pos-main .pos-topbar ...'
+    // (nx-sidebar.css). Acá solo se alterna la clase; tocar navToggleIcon.className
+    // pisaba esa clase con 'fa fa-bars'/'fa fa-indent' (icono viejo de FontAwesome)
+    // y dejaba el SVG nuevo y el glifo FA superpuestos en el mismo botón.
     btn.addEventListener('click', function () {
-      nav.classList.toggle('collapsed');
-      if (icon) {
-        icon.className = nav.classList.contains('collapsed')
-          ? 'fa fa-indent'
-          : 'fa fa-bars';
-      }
+      var collapsed = nav.classList.toggle('collapsed');
+      btn.setAttribute('aria-expanded', String(!collapsed));
     });
+
+    // El POS necesita el ancho para el carrito y la rejilla de productos.
+    nav.classList.add('collapsed');
+    btn.setAttribute('aria-expanded', 'false');
   }
 
   /* ──────────────────────────────────────────────────────
      ALERTA SIMPLE (sin dependencias)
   ────────────────────────────────────────────────────── */
+  /** Confirmacion con el mismo dialogo que usa el resto del POS. */
+  function confirmar(msg, alAceptar) {
+    if (window.Swal) {
+      Swal.fire({
+        text: msg,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: t('accept', 'Aceptar'),
+        cancelButtonText: t('cancel', 'Cancelar'),
+        reverseButtons: true
+      }).then(function (r) { if (r.isConfirmed) { alAceptar(); } });
+    } else if (window.confirm(msg)) {
+      alAceptar();
+    }
+  }
+
+  /** El carrito vive en localStorage: al soltarlo hay que vaciarlo. */
+  function limpiarCarrito() {
+    remove('spositems');
+    remove('spos_tax');
+    remove('spos_discount');
+    remove('spos_customer');
+  }
+
   function showAlert(msg) {
     if (window.Swal) {
       Swal.fire({ text: msg, icon: 'warning', confirmButtonText: 'OK', timer: 3000 });
@@ -1380,12 +3035,27 @@
     modalEl.addEventListener('show.bs.modal', function () {
       select.innerHTML = '<option value="">' + t('cargando', 'Cargando…') + '</option>';
       if (!window.qz || !qz.websocket.isActive()) {
-        select.innerHTML = '<option value="">' + t('qz_desconectado', 'QZ Tray no conectado') + '</option>';
+        // Sin QZ se ofrecen las que el equipo reporto la ultima vez.
+        var conocidas = (_puesto && _puesto.impresoras) || [];
+        if (!conocidas.length) {
+          select.innerHTML = '<option value="">' + t('qz_desconectado', 'QZ Tray no conectado') + '</option>';
+          return;
+        }
+        select.innerHTML = '';
+        var actual = impresoraDelPuesto();
+        conocidas.forEach(function (name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          if (name === actual) { opt.selected = true; }
+          select.appendChild(opt);
+        });
         return;
       }
       qz.printers.find().then(function (list) {
         var names = Array.isArray(list) ? list : [list];
-        var current = get('nx-qz-printer');
+        var current = impresoraDelPuesto();
+        if (names.length) { postPuesto('impresoras', { impresoras: names }).catch(function () {}); }
         select.innerHTML = '';
         names.forEach(function (name) {
           var opt = document.createElement('option');
@@ -1402,8 +3072,17 @@
     if (saveBtn) {
       saveBtn.addEventListener('click', function () {
         if (select.value) {
-          store('nx-qz-printer', select.value);
-          showToast(t('impresora_guardada', 'Impresora configurada para esta computadora'), 'fa-print');
+          store(CLAVE_IMPRESORA, select.value);
+          if (_puesto) { _puesto.qz_printer = select.value; }
+          // Queda en el servidor: la proxima sesion en esta maquina, sea de quien
+          // sea, encuentra la impresora ya elegida.
+          postPuesto('impresora', { qz_printer: select.value })
+            .then(function () {
+              showToast(t('impresora_guardada', 'Impresora configurada para esta computadora'), 'fa-print');
+            })
+            .catch(function () {
+              showToast(t('impresora_guardada_local', 'Impresora guardada solo en esta computadora'), 'fa-print');
+            });
         }
         if (window.bootstrap) {
           var modal = window.bootstrap.Modal.getInstance(modalEl);
@@ -1449,7 +3128,7 @@
               var modal = window.bootstrap.Modal.getInstance(modalEl);
               if (modal) modal.hide();
             }
-            var printerName = get('nx-qz-printer');
+            var printerName = impresoraDelPuesto();
             if (window.qz && qz.websocket.isActive() && printerName) {
               var config = qz.configs.create(printerName);
               qz.print(config, [{ type: 'raw', format: 'command', flavor: 'base64', data: res.bytes }])
@@ -1505,26 +3184,34 @@
     var btn = document.getElementById('kbdShortcutsBtn');
     if (!btn || !window.bootstrap) return;
 
-    var pop = new window.bootstrap.Popover(btn, {
+    // La lista sale de los atajos que quedaron activos: si se cambia uno en
+    // Ajustes, la ayuda cambia con el, sin tocar este archivo.
+    // Bootstrap sanea el HTML del popover y <kbd> no esta en su lista blanca:
+    // las teclas desaparecian y solo quedaba la descripcion.
+    function tecla(txt) {
+      return '<span class="pos-kbd">' + escaparHtml(txt) + '</span>';
+    }
+    function fila(combo, etiqueta) {
+      // "+" es a la vez separador y tecla valida: partirlo lo dejaria vacio.
+      var partes = String(combo) === '+' ? ['+'] : String(combo).split('+');
+      var teclas = partes.map(function (k) { return tecla(k.trim()); }).join('<i class="pos-kbd-mas">+</i>');
+      return '<div class="pos-kbd-fila">' + teclas + '<span>' + escaparHtml(etiqueta) + '</span></div>';
+    }
+
+    var filas = (window._posAtajos || []).map(function (a) {
+      return fila(a.texto, t(a.etiqueta, a.etiqueta));
+    });
+    filas.push(fila('ESC', t('kbd_cancelar_busqueda', 'Cancelar busqueda')));
+    filas.push(fila('↑↓', t('kbd_navegar_lista', 'Navegar lista')));
+    filas.push(fila('Enter', t('kbd_agregar_producto', 'Agregar producto')));
+    filas.push(fila('+', t('kbd_foco_busqueda', 'Ir a la busqueda')));
+
+    new window.bootstrap.Popover(btn, {
       html: true,
       trigger: 'click',
       placement: 'bottom',
       title: t('atajos_teclado', 'Atajos de teclado'),
-      content:
-        '<div style="font-size:.82rem;line-height:2;">' +
-        '<div><kbd>F2</kbd>&nbsp; ' + t('modal_producto_rapido', 'Producto rápido') + '</div>' +
-        '<div><kbd>F3</kbd>&nbsp; ' + t('buscar', 'Buscar') + '</div>' +
-        '<div><kbd>F4</kbd>&nbsp; ' + t('kbd_cobrar', 'Cobrar') + '</div>' +
-        '<div><kbd>ESC</kbd>&nbsp; ' + t('kbd_cancelar_busqueda', 'Cancelar búsqueda') + '</div>' +
-        '<div><kbd>↑↓</kbd>&nbsp; ' + t('kbd_navegar_lista', 'Navegar lista') + '</div>' +
-        '<div><kbd>Enter</kbd>&nbsp; ' + t('kbd_agregar_producto', 'Agregar producto') + '</div>' +
-        '<div><kbd>+</kbd>&nbsp; ' + t('kbd_foco_busqueda', 'Foco rápido a búsqueda') + '</div>' +
-        '</div>'
-    });
-
-    // Cerrar al hacer clic fuera
-    document.addEventListener('click', function (e) {
-      if (!btn.contains(e.target)) pop.hide();
+      content: '<div class="pos-kbd-lista">' + filas.join('') + '</div>'
     });
   }
 
@@ -1549,6 +3236,157 @@
     // Retornar foco también cuando cualquier dropdown de Bootstrap se cierra
     document.addEventListener('hidden.bs.dropdown', function () {
       returnFocusToSearch();
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────
+     CABYS: VERIFICACION ANTES DE COBRAR
+     Un CABYS vacio o fuera del catalogo de Hacienda rechaza el comprobante
+     entero. Se detiene al agregar el producto, no al emitir.
+  ────────────────────────────────────────────────────── */
+  var _cabysVerificados = {};
+
+  function agregarConCabys(item) {
+    var VR = window._posVR || {};
+    var row = item && item.row;
+    if (!VR.fe || !row || !(parseInt(row.id, 10) > 0)) {
+      return Promise.resolve(add_invoice_item(item));
+    }
+    var codigo = String(row.cabys || '');
+    if (_cabysVerificados[codigo]) {
+      return Promise.resolve(add_invoice_item(item));
+    }
+
+    var consulta = /^\d{13}$/.test(codigo)
+      ? fetch(VR.verificar + '?codigo=' + encodeURIComponent(codigo), {
+          credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (r) { return r.json(); }).catch(function () { return { verificado: false }; })
+      : Promise.resolve({ verificado: true, existe: false, falta: true });
+
+    return consulta.then(function (v) {
+      // Sin respuesta de Hacienda no se frena la venta: el servidor vuelve a
+      // intentarlo al cobrar.
+      if (!v.verificado || v.existe) {
+        if (v.existe) { _cabysVerificados[codigo] = true; }
+        return add_invoice_item(item);
+      }
+      return pedirCabys(row, v.falta ? 'falta' : 'inexistente').then(function (nuevo) {
+        if (!nuevo) { return false; }
+        row.cabys = nuevo.cabys;
+        row.tax = nuevo.tax;
+        if (nuevo.id_tax) { row.id_tax = nuevo.id_tax; }
+        _cabysVerificados[nuevo.cabys] = true;
+        return add_invoice_item(item);
+      });
+    });
+  }
+
+  /** Pide el CABYS del producto, lo guarda en su ficha y devuelve lo asignado (o null). */
+  function pedirCabys(row, motivo) {
+    var VR = window._posVR || {};
+    return new Promise(function (resolver) {
+      var viejo = document.getElementById('vrCabysModal');
+      if (viejo) { viejo.remove(); }
+
+      var titulo = motivo === 'falta'
+        ? t('vr_falta_cabys', 'Este producto no tiene CABYS')
+        : t('vr_cabys_inexistente', 'El CABYS de este producto no existe en Hacienda');
+      var el = document.createElement('div');
+      el.className = 'modal fade';
+      el.id = 'vrCabysModal';
+      el.tabIndex = -1;
+      el.innerHTML =
+        '<div class="modal-dialog modal-lg"><div class="modal-content">' +
+          '<div class="modal-header"><h5 class="modal-title"><i class="fa fa-exclamation-triangle text-warning"></i> <span class="vr-tit"></span></h5>' +
+          '<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>' +
+          '<div class="modal-body">' +
+            '<p class="mb-2"><strong class="vr-prod"></strong></p>' +
+            '<p class="text-muted small mb-3 vr-ayuda"></p>' +
+            '<input type="search" class="form-control mb-2 vr-q" autocomplete="off">' +
+            '<div class="text-danger small mb-2 vr-err" hidden></div>' +
+            '<div class="vr-res" style="max-height:340px;overflow-y:auto"></div>' +
+          '</div>' +
+          '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"></button></div>' +
+        '</div></div>';
+      el.querySelector('.vr-tit').textContent = titulo;
+      el.querySelector('.vr-prod').textContent = (row.name || '') + (row.cabys ? ' · ' + row.cabys : '');
+      el.querySelector('.vr-ayuda').textContent = t('vr_cabys_ayuda', 'Hacienda rechazaría la factura. Busque el CABYS correcto: queda guardado en la ficha del producto y el IVA se toma del catálogo.');
+      el.querySelector('.vr-q').placeholder = t('buscar_cabys_desc_min3', 'Buscar por descripción (mín. 3 caracteres)...');
+      el.querySelector('.modal-footer .btn').textContent = t('vr_no_agregar', 'No agregar');
+      document.body.appendChild(el);
+
+      var q = el.querySelector('.vr-q');
+      var res = el.querySelector('.vr-res');
+      var err = el.querySelector('.vr-err');
+      var resuelto = false;
+      var temporizador;
+
+      function buscar() {
+        var texto = q.value.trim();
+        if (texto.length < 3) { res.innerHTML = ''; return; }
+        res.innerHTML = '<div class="cabys-result-empty"><i class="fa fa-spinner fa-spin"></i></div>';
+        fetch(VR.buscar + '?q=' + encodeURIComponent(texto), { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var items = Array.isArray(data) ? data : (data.data || data.cabys || []);
+            res.innerHTML = '';
+            if (!items.length) {
+              res.innerHTML = '<div class="cabys-result-empty">' + t('sin_resultados', 'Sin resultados') + '</div>';
+              return;
+            }
+            items.slice(0, 50).forEach(function (it) {
+              var b = document.createElement('button');
+              b.type = 'button';
+              b.className = 'cabys-result-row';
+              b.innerHTML = '<span class="cabys-result-txt"><span class="cabys-result-desc"></span><span class="cabys-result-code"></span></span><span class="cabys-result-tax"></span>';
+              b.querySelector('.cabys-result-desc').textContent = it.descripcion || '';
+              b.querySelector('.cabys-result-code').textContent = it.codigo || '';
+              b.querySelector('.cabys-result-tax').textContent = (parseFloat(it.impuesto) || 0) + '%';
+              b.addEventListener('click', function () { asignar(it.codigo, b); });
+              res.appendChild(b);
+            });
+          })
+          .catch(function () {
+            res.innerHTML = '<div class="cabys-result-empty">' + t('hacienda_sin_respuesta', 'Hacienda no respondió. Intente de nuevo.') + '</div>';
+          });
+      }
+
+      function asignar(codigo, boton) {
+        boton.disabled = true;
+        err.hidden = true;
+        var body = new URLSearchParams();
+        body.set('product_id', row.id);
+        body.set('cabys', codigo);
+        if (window.CSRF_NAME) { body.set(window.CSRF_NAME, window.CSRF_HASH); }
+        fetch(VR.asignar, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (x) {
+            if (!x.ok || x.j.error) { throw new Error(x.j.error || 'error'); }
+            resuelto = true;
+            resolver(x.j);
+            window.bootstrap.Modal.getInstance(el).hide();
+          })
+          .catch(function (e) {
+            boton.disabled = false;
+            err.textContent = e.message;
+            err.hidden = false;
+          });
+      }
+
+      q.addEventListener('input', function () {
+        clearTimeout(temporizador);
+        temporizador = setTimeout(buscar, 350);
+      });
+      el.addEventListener('shown.bs.modal', function () {
+        q.value = row.name || '';
+        q.focus();
+        buscar();
+      });
+      el.addEventListener('hidden.bs.modal', function () {
+        if (!resuelto) { resolver(null); }
+        el.remove();
+      });
+      window.bootstrap.Modal.getOrCreateInstance(el).show();
     });
   }
 
@@ -1630,6 +3468,63 @@
       });
     }
 
+    var guardarEl = document.getElementById('ah-guardar');
+    var rapidosWrap = document.getElementById('ah-rapidos-wrap');
+    var rapidosEl = document.getElementById('ah-rapidos');
+
+    // El IVA lo fija el CABYS elegido: una tarifa distinta a la del catalogo
+    // es un comprobante mal declarado.
+    function bloquearIva(bloquear) {
+      if (ivaSwitch) ivaSwitch.disabled = bloquear;
+      if (ivaSelect) ivaSelect.disabled = bloquear;
+    }
+
+    function cargarRapidos() {
+      var VR = window._posVR || {};
+      if (!rapidosEl || !VR.lista) return;
+      fetch(VR.lista, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var lista = (j && j.articulos) || [];
+          rapidosEl.innerHTML = '';
+          if (rapidosWrap) rapidosWrap.hidden = !lista.length;
+          lista.forEach(function (a) {
+            var chip = document.createElement('span');
+            chip.className = 'ah-rapido';
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn btn-outline-success btn-sm';
+            b.textContent = a.nombre + ' · ' + a.impuesto + '%' + (a.precio ? ' · ' + formatMoney(a.precio) : '');
+            b.title = a.cabys + ' — ' + (a.cabys_desc || '');
+            b.addEventListener('click', function () {
+              if (nameEl) nameEl.value = a.nombre;
+              aplicarCabys(a.cabys, a.cabys_desc || '', a.impuesto);
+              if (a.precio && priceEl) { priceEl.value = a.precio; priceManuallyEdited = true; }
+              updatePreview();
+              if (priceEl) { priceEl.focus(); priceEl.select(); }
+            });
+            chip.appendChild(b);
+            if (VR.admin) {
+              var x = document.createElement('button');
+              x.type = 'button';
+              x.className = 'btn btn-link btn-sm text-danger px-1';
+              x.innerHTML = '&times;';
+              x.title = t('delete', 'Eliminar');
+              x.addEventListener('click', function () {
+                if (!window.confirm(t('r_u_sure', '¿Está seguro?'))) return;
+                var body = new URLSearchParams();
+                if (window.CSRF_NAME) body.set(window.CSRF_NAME, window.CSRF_HASH);
+                fetch(VR.borrar + '/' + a.id, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                  .then(cargarRapidos);
+              });
+              chip.appendChild(x);
+            }
+            rapidosEl.appendChild(chip);
+          });
+        })
+        .catch(function () {});
+    }
+
     // Reset al abrir modal
     modal.addEventListener('show.bs.modal', function () {
       if (nameEl)    nameEl.value = '';
@@ -1640,8 +3535,11 @@
       if (priceEl)   priceEl.value = '';
       if (ivaSwitch) ivaSwitch.checked = false;
       if (ivaSel)    ivaSel.style.display = 'none';
+      if (guardarEl) guardarEl.checked = false;
+      bloquearIva(false);
       priceManuallyEdited = false;
       updatePreview();
+      cargarRapidos();
     });
     modal.addEventListener('shown.bs.modal', function () {
       if (nameEl) nameEl.focus();
@@ -1657,12 +3555,38 @@
       });
     }
 
-    // CABYS: búsqueda en el sub-modal
+    // CABYS: búsqueda en el sub-modal. La fila entera es clicable y muestra
+    // código, nombre e impuesto — ese impuesto es el que se aplica al elegirla.
+    function aplicarCabys(codigo, desc, tasa) {
+      tasa = parseFloat(tasa) || 0;
+      if (cabysEl)   cabysEl.value = codigo;
+      if (cabysDesc) cabysDesc.value = desc;
+      if (ivaSwitch) ivaSwitch.checked = tasa > 0;
+      if (ivaSel) ivaSel.style.display = tasa > 0 ? '' : 'none';
+      if (tasa > 0 && ivaSelect) {
+        var opts = ivaSelect.querySelectorAll('option');
+        for (var i = 0; i < opts.length; i++) {
+          if (parseFloat(opts[i].dataset.tasa) === tasa) {
+            ivaSelect.value = opts[i].value;
+            break;
+          }
+        }
+        if (ivaRate) ivaRate.textContent = tasa + '%';
+      }
+      bloquearIva(true);
+      updatePreview();
+      if (cabysModal && window.bootstrap) {
+        var m = window.bootstrap.Modal.getInstance(cabysModal);
+        if (m) m.hide();
+      }
+    }
+
     function doCabysSearch() {
       var q = cabysQ ? cabysQ.value.trim() : '';
       if (!q || !cabysResults) return;
       var icon = document.getElementById('ah-cabys-icon');
       if (icon) icon.className = 'fa fa-spinner fa-spin';
+      cabysResults.innerHTML = '<div class="cabys-result-empty"><i class="fa fa-spinner fa-spin"></i> ' + t('buscando', 'Buscando...') + '</div>';
       fetch(window.base_url + 'hacienda_proxy/cabys?q=' + encodeURIComponent(q))
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -1670,52 +3594,31 @@
           cabysResults.innerHTML = '';
           var items = data.data || data.cabys || data || [];
           if (!Array.isArray(items) || !items.length) {
-            cabysResults.innerHTML = '<div class="p-3 text-muted text-center">Sin resultados</div>';
+            cabysResults.innerHTML = '<div class="cabys-result-empty">' + t('sin_resultados', 'No hay resultados que coincidan con la búsqueda.') + '</div>';
             return;
           }
           items.slice(0, 50).forEach(function (it) {
-            var row = document.createElement('div');
-            row.className = 'p-2 border-bottom d-flex align-items-start justify-content-between gap-2';
-            row.style.cssText = 'cursor:pointer;font-size:.85rem;';
             var tasa   = parseFloat(it.impuesto) || 0;
             var codigo = it.codigo || it.Codigo || '';
             var desc   = it.descripcion || it.Descripcion || '';
+            var row = document.createElement('button');
+            row.type = 'button';
+            row.className = 'cabys-result-row';
             row.innerHTML =
-              '<div>' +
-                '<span class="font-monospace text-info">' + codigo + '</span>' +
-                ' &mdash; ' + desc +
-              '</div>' +
-              '<button type="button" class="btn btn-sm btn-outline-success flex-shrink-0" style="font-size:.75rem;">Aplicar</button>';
-            row.querySelector('button').addEventListener('click', function () {
-              if (cabysEl)   cabysEl.value = codigo;
-              if (cabysDesc) cabysDesc.value = desc;
-              // Precargar impuesto sugerido si IVA switch está activo
-              if (tasa > 0 && ivaSelect) {
-                var opts = ivaSelect.querySelectorAll('option');
-                for (var i = 0; i < opts.length; i++) {
-                  if (parseFloat(opts[i].dataset.tasa) === parseFloat(tasa)) {
-                    ivaSelect.value = opts[i].value;
-                    if (!ivaSwitch.checked) {
-                      ivaSwitch.checked = true;
-                      if (ivaSel) ivaSel.style.display = '';
-                    }
-                    if (ivaRate) ivaRate.textContent = tasa + '%';
-                    break;
-                  }
-                }
-              }
-              updatePreview();
-              if (cabysModal && window.bootstrap) {
-                var m = window.bootstrap.Modal.getInstance(cabysModal);
-                if (m) m.hide();
-              }
-            });
+              '<span class="cabys-result-txt">' +
+                '<span class="cabys-result-desc"></span>' +
+                '<span class="cabys-result-code"></span>' +
+              '</span>' +
+              '<span class="cabys-result-tax">' + tasa + '%</span>';
+            row.querySelector('.cabys-result-desc').textContent = desc;
+            row.querySelector('.cabys-result-code').textContent = codigo;
+            row.addEventListener('click', function () { aplicarCabys(codigo, desc, tasa); });
             cabysResults.appendChild(row);
           });
         })
         .catch(function () {
           if (icon) icon.className = 'fa fa-search';
-          if (cabysResults) cabysResults.innerHTML = '<div class="p-3 text-danger text-center">Error al consultar CABYS</div>';
+          if (cabysResults) cabysResults.innerHTML = '<div class="cabys-result-empty">' + t('hacienda_sin_respuesta', 'Hacienda no respondió. Intente de nuevo.') + '</div>';
         });
     }
 
@@ -1724,11 +3627,21 @@
       cabysQ.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') doCabysSearch();
       });
+      var cabysTimer;
+      cabysQ.addEventListener('input', function () {
+        clearTimeout(cabysTimer);
+        var q = cabysQ.value.trim();
+        if (q.length < 3) {
+          if (cabysResults) cabysResults.innerHTML = '<div class="cabys-result-empty">' + t('buscar_cabys_desc_min3', 'Buscar por descripción (mín. 3 caracteres)...') + '</div>';
+          return;
+        }
+        cabysTimer = setTimeout(doCabysSearch, 300);
+      });
     }
     if (cabysModal) {
       cabysModal.addEventListener('shown.bs.modal', function () {
         if (cabysQ) { cabysQ.value = ''; cabysQ.focus(); }
-        if (cabysResults) cabysResults.innerHTML = '';
+        if (cabysResults) cabysResults.innerHTML = '<div class="cabys-result-empty">' + t('buscar_cabys_desc_min3', 'Buscar por descripción (mín. 3 caracteres)...') + '</div>';
       });
     }
 
@@ -1750,6 +3663,10 @@
           idTax = parseInt(ivaSelect.value) || 0;
         }
 
+        // Hacienda clasifica por el CABYS: las secciones 0 a 4 son bienes
+        // y de la 5 en adelante servicios.
+        var esServicio = parseInt(cabys.charAt(0), 10) >= 5;
+
         var uid = 'adhoc_' + Date.now();
         var item = {
           id: uid,
@@ -1757,7 +3674,8 @@
           label: name + ' (' + cabys + ')',
           row: {
             id: 0,
-            type: 'service',
+            type: esServicio ? 'service' : 'standard',
+            unit_of_measurement: esServicio ? 'Sp' : 'Unid',
             tax_method: 1,
             qty: qty,
             quantity: 999999,
@@ -1779,6 +3697,19 @@
         add_invoice_item(item);
         showToast(name);
 
+        var VRg = window._posVR || {};
+        if (guardarEl && guardarEl.checked && VRg.guardar) {
+          var body = new URLSearchParams();
+          body.set('nombre', name);
+          body.set('cabys', cabys);
+          body.set('precio', price);
+          if (window.CSRF_NAME) body.set(window.CSRF_NAME, window.CSRF_HASH);
+          fetch(VRg.guardar, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (j && j.error) showAlert(j.error); })
+            .catch(function () {});
+        }
+
         if (modal && window.bootstrap) {
           var m = window.bootstrap.Modal.getInstance(modal);
           if (m) m.hide();
@@ -1790,6 +3721,136 @@
   /* ──────────────────────────────────────────────────────
      INICIALIZACIÓN
   ────────────────────────────────────────────────────── */
+  /**
+   * Cierre de venta visto desde el POS.
+   *
+   * Al cobrar, Pos.php vuelve al POS (la pantalla del comprobante queda para
+   * consultarlo desde el listado de ventas) y deja en `_pos_venta_ok` el id de
+   * la venta, si hubo efectivo y si la impresion automatica esta activa.
+   * Aqui se limpia el carrito, se avisa y, si corresponde, se manda el tiquete
+   * a la impresora termica y se abre el cajon.
+   */
+  /**
+   * Vuelca al carrito la venta que manda el servidor al retomar una cuenta en
+   * espera o al reeditar. Pisa el localStorage: lo guardado es de otra venta.
+   */
+  function precargarVenta() {
+    var v = window._pos_precargada;
+    if (!v || !v.items) { return; }
+    window._pos_precargada = null;
+
+    store('spositems', JSON.stringify(v.items));
+    remove('spos_discount');
+    remove('spos_tax');
+
+    if (v.cliente && v.cliente !== getDefaultCustomerId() && (window._customers || {})[v.cliente]) {
+      store('spos_customer', v.cliente);
+    } else {
+      remove('spos_customer');
+    }
+
+    var nota = $('spos_note');
+    if (nota && v.nota) { nota.value = v.nota; }
+  }
+
+  function cerrarVentaEnPos() {
+    var v = window._pos_venta_ok;
+
+    // Con Ajustes > POS = "Recibo" el cobro pasa por la pantalla del
+    // comprobante, que al volver deja esta marca en localStorage. Ahi el
+    // tiquete ya se imprimio, asi que solo queda avisar y limpiar.
+    if (!v) {
+      var desdeRecibo;
+      try { desdeRecibo = localStorage.getItem('nx_venta_ok'); } catch (e) { return; }
+      if (!desdeRecibo) { return; }
+      remove('nx_venta_ok');
+      v = { id: -1, efectivo: false, autoprint: false };
+    }
+
+    if (!v.id) { return; }
+    window._pos_venta_ok = null;
+
+    // El carrito vive en localStorage, asi que sobrevive al redirect
+    remove('spositems');
+    remove('spos_tax');
+    remove('spos_discount');
+    remove('spos_customer');
+
+    avisoVenta(t('sale_added', 'Venta agregada exitosamente'), 'fa-check-circle');
+
+    if (v.autoprint) {
+      imprimirYAbrirCajon(v);
+    }
+  }
+
+  function avisoVenta(texto, icono) {
+    var wrap = $('pos-toast-wrap');
+    if (!wrap) { return; }
+    var el = document.createElement('div');
+    el.className = 'pos-toast in';
+    el.innerHTML = '<i class="fa ' + (icono || 'fa-check-circle') + '"></i><span><strong>' + texto + '</strong></span>';
+    wrap.appendChild(el);
+    setTimeout(function () {
+      el.classList.remove('in');
+      el.classList.add('out');
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
+    }, 3000);
+  }
+
+  /**
+   * Envia bytes ESC/POS por QZ Tray. Devuelve una promesa que se rechaza si
+   * QZ no esta conectado o no hay impresora elegida.
+   */
+  function caracteresDelPuesto() {
+    return (_puesto && _puesto.caracteres) || 42;
+  }
+
+  function enviarBytesQz(url) {
+    url += (url.indexOf('?') < 0 ? '?' : '&') + 'cpl=' + caracteresDelPuesto();
+    return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || res.status !== 1) { throw new Error('print_bytes_failed'); }
+        if (!(window.qz && qz.websocket.isActive())) { throw new Error('qz_not_connected'); }
+        var impresora = impresoraDelPuesto();
+        if (!impresora) { throw new Error('no_printer_configured'); }
+        return qz.print(qz.configs.create(impresora), [
+          { type: 'raw', format: 'command', flavor: 'base64', data: res.bytes }
+        ]);
+      });
+  }
+
+  /**
+   * La venta se cierra apenas carga el POS, antes de que QZ Tray termine de
+   * conectar y de que el servidor devuelva la impresora del puesto: imprimir en
+   * ese instante falla siempre. Se espera a las dos cosas con un tope.
+   */
+  function esperarImpresion(tope) {
+    var limite = Date.now() + tope;
+    var qzListo = new Promise(function (listo, falla) {
+      (function revisar() {
+        if (window.qz && qz.websocket.isActive()) { return listo(); }
+        if (Date.now() > limite) { return falla(new Error('qz_not_connected')); }
+        setTimeout(revisar, 250);
+      })();
+    });
+    // _puestoListo se asigna despues en init(): se lee cuando QZ ya conecto.
+    return qzListo.then(function () { return _puestoListo; });
+  }
+
+  function imprimirYAbrirCajon(v) {
+    esperarImpresion(15000)
+      .then(function () { return enviarBytesQz(v.url_bytes + '/' + v.id + '/1'); })
+      .then(function () {
+        // El cajon solo se abre si la venta llevo efectivo: en tarjeta o
+        // SINPE no hay vuelto que entregar.
+        if (v.efectivo) { return enviarBytesQz(v.url_cajon); }
+      })
+      .catch(function (e) {
+        avisoVenta('No se pudo imprimir el tiquete (' + (e && e.message ? e.message : 'error') + ')', 'fa-exclamation-circle');
+      });
+  }
+
   function init() {
     var S = window.Settings || {};
     // Leer variables del scope global (definidas en la vista PHP)
@@ -1799,23 +3860,34 @@
     protect_delete = parseInt(S.protect_delete) || 0;
     sid = window._pos_sid || 0;
 
+    cerrarVentaEnPos();
+    precargarVenta();
+
     initSearch();
     initProductClick();
     initCategoryNav();
     initCategoryFilter();
     initDeleteItem();
+    initEditItem();
     initPriceToggle();
     initQuantityChange();
+    initStepper();
     initPayment();
     initSubmit();
     initReset();
+    initDescuentoTotal();
     initSuspend();
     initCustomerForm();
     initHaciendaLookup();
+    initClienteRapido();
+    initTecladoCobro();
     initCustomerSelect();
     initClock();
     initPaymentMethods();
     initQuickAmounts();
+    initSinpePending();
+    initPagoDividido();
+    _puestoListo = initPuesto();
     initKeyboardShortcuts();
     initSidebarToggle();
     initModalFocusReturn();
@@ -1825,6 +3897,10 @@
     initQzGate();
     initPrinterConfigModal();
     initDrawerButton();
+    initCierreCaja();
+    initCierreForzado();
+    initAvisoServidor();
+    initEnvioHacienda();
 
     // Renderizar carrito al cargar
     loadItems();

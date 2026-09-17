@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Gift_cards extends MY_Controller
 {
@@ -34,7 +40,7 @@ class Gift_cards extends MY_Controller
         }
         $this->datatables->join('users', 'users.id=gift_cards.created_by', 'left')
             ->from("gift_cards");
-        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('gift_cards/view/$1') . "' title='".lang("view_gift_card")."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-eye'></i></a> <a href='" . site_url('gift_cards/edit/$1') . "' title='" . lang("edit_gift_card") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('gift_cards/delete/$1') . "' data-confirm=\"" . lang('alert_x_gift_card') . "\" title='" . lang("delete_gift_card") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
+        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('gift_cards/view/$1') . "' title='".lang("view_gift_card")."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-eye'></i></a> <a href='" . site_url('gift_cards/edit/$1') . "' title='" . lang("edit_gift_card") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('gift_cards/delete/$1' . '?t=' . $this->token_accion()) . "' data-confirm=\"" . lang('alert_x_gift_card') . "\" title='" . lang("delete_gift_card") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
         ->unset_column('id');
 
         echo $this->datatables->generate();
@@ -67,6 +73,13 @@ class Gift_cards extends MY_Controller
     }
 
     function add() {
+        // Emite dinero o comprobantes: solo administrador (auditoria §14.5).
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('pos');
+            exit;
+        }
+
 
         $this->form_validation->set_rules('card_no', lang("card_no"), 'trim|is_unique[gift_cards.card_no]|required');
         $this->form_validation->set_rules('value', lang("value"), 'required');
@@ -137,6 +150,13 @@ class Gift_cards extends MY_Controller
     }
 
     function sell_gift_card() {
+        // Emite dinero o comprobantes: solo administrador (auditoria §14.5).
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('pos');
+            exit;
+        }
+
 
         $error = NULL;
         $gcData = $this->input->get('gcdata');
@@ -165,6 +185,9 @@ class Gift_cards extends MY_Controller
     }
 
     function delete($id = NULL) {
+        // El enlace tiene que venir de una pantalla de esta sesion.
+        $this->exigir_token_accion();
+
         if(DEMO) {
             $this->session->set_flashdata('error', lang('disabled_in_demo'));
             redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome');

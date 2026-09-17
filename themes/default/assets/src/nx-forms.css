@@ -1,0 +1,181 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NX-FORMS.CSS — Sistema de diseño para formularios (.nxf-*)
+   Hermano de nx-tables.css: mismo lenguaje visual (glass, --nx-*) aplicado a
+   las pantallas de alta y edición.
+
+   .nxf-page          → columna central del formulario
+     .nxf-card        → tarjeta glass de una sección
+       .nxf-card-head → número de paso + título + subtítulo
+       .nxf-grid      → rejilla de 12 columnas para los campos
+         .nxf-field   → campo (span vía .sp-3 … .sp-12)
+     .nxf-actions     → barra pegajosa de guardar/cancelar
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.nxf-page{max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+/* ── Tarjeta de sección ── */
+.nxf-card{
+  background:var(--nx-card-bg);border:1px solid var(--nx-border);border-radius:var(--nx-radius-lg);
+  backdrop-filter:blur(16px);box-shadow:var(--nx-shadow-sm);overflow:hidden;
+  transition:border-color var(--nx-transition),opacity var(--nx-transition);
+}
+.nxf-card-head{display:flex;align-items:flex-start;gap:13px;padding:16px 20px;border-bottom:1px solid var(--nx-border)}
+.nxf-step{
+  flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font:700 12.5px inherit;font-family:inherit;
+  color:#06121f;background:linear-gradient(135deg,var(--nx-a1),var(--nx-info));
+  box-shadow:0 4px 12px -4px rgba(56,189,248,.6);
+}
+[data-theme="light"] .nxf-step{color:#fff}
+.nxf-card-title{font-size:15.5px;font-weight:700;color:var(--nx-txt1);letter-spacing:-.01em;line-height:1.3}
+.nxf-card-title small{display:block;font-size:12.5px;font-weight:400;color:var(--nx-txt3);margin-top:4px;letter-spacing:0;line-height:1.45}
+.nxf-card-body{padding:18px 20px}
+
+/* La sección aún no habilitada se ve, pero no invita a escribir en ella. */
+.nxf-card.is-locked{opacity:.5;pointer-events:none}
+
+/* ── Rejilla de campos ── */
+.nxf-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:15px 16px}
+.nxf-field{grid-column:span 12;min-width:0}
+.sp-2{grid-column:span 2}
+.sp-3{grid-column:span 3}
+.sp-4{grid-column:span 4}
+.sp-5{grid-column:span 5}
+.sp-6{grid-column:span 6}
+.sp-7{grid-column:span 7}
+.sp-8{grid-column:span 8}
+.sp-9{grid-column:span 9}
+.sp-12{grid-column:span 12}
+@media (max-width:760px){
+  .nxf-field,.sp-2,.sp-3,.sp-4,.sp-5,.sp-6,.sp-7,.sp-8,.sp-9{grid-column:span 12}
+}
+
+/* ── Etiquetas y controles ── */
+.nxf-label{
+  display:flex;align-items:center;gap:6px;margin-bottom:7px;
+  font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--nx-txt3);
+}
+.nxf-label .req{color:var(--nx-err);font-weight:700}
+.nxf-label .opt{
+  margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400;font-size:11px;color:var(--nx-txt4);
+}
+
+.nxf-input,.nxf-select,.nxf-textarea{
+  width:100%;background:var(--nx-input-bg);color:var(--nx-txt1);
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius-sm);
+  padding:10px 12px;font:400 14px inherit;font-family:inherit;
+  transition:var(--nx-transition);outline:0;
+}
+.nxf-textarea{resize:vertical;min-height:74px;line-height:1.5}
+.nxf-input::placeholder,.nxf-textarea::placeholder{color:var(--nx-txt4)}
+.nxf-input:focus,.nxf-select:focus,.nxf-textarea:focus{
+  border-color:var(--nx-border3);background:var(--nx-input-focus);box-shadow:0 0 0 3px rgba(56,189,248,.14);
+}
+.nxf-input:disabled,.nxf-select:disabled,.nxf-textarea:disabled{opacity:.55;cursor:not-allowed}
+.nxf-input.is-bad,.nxf-select.is-bad{border-color:var(--nx-err);box-shadow:0 0 0 3px rgba(239,68,68,.14)}
+.nxf-input.is-good{border-color:var(--nx-ok);box-shadow:0 0 0 3px rgba(34,197,94,.12)}
+.nxf-select{
+  appearance:none;padding-right:34px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center;
+}
+.nxf-select option{background:var(--nx-bg2);color:var(--nx-txt1)}
+
+/* Número de identificación: cifras alineadas y algo más grandes. */
+.nxf-input.mono{font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:.04em;font-size:15px}
+
+.nxf-hint{margin-top:6px;font-size:12px;color:var(--nx-txt4);line-height:1.45}
+
+/* ── Campo con botón pegado (identificación + consulta a Hacienda) ── */
+.nxf-inline{display:flex;gap:0}
+.nxf-inline > .nxf-input{border-top-right-radius:0;border-bottom-right-radius:0}
+.nxf-inline > .nxf-btn{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-1px}
+
+/* ── Botones ── */
+.nxf-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;text-decoration:none;
+  font:600 13.5px inherit;font-family:inherit;border-radius:10px;padding:10px 16px;white-space:nowrap;
+  transition:var(--nx-transition);
+  color:#06121f;background:linear-gradient(135deg,var(--nx-a1),var(--nx-info));
+  box-shadow:0 6px 18px -6px rgba(56,189,248,.55);
+}
+.nxf-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px -6px rgba(56,189,248,.65);color:#06121f}
+.nxf-btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+[data-theme="light"] .nxf-btn,[data-theme="light"] .nxf-btn:hover{color:#fff}
+.nxf-btn-ghost{background:var(--nx-card-bg2);color:var(--nx-txt2);border:1px solid var(--nx-border);box-shadow:none}
+.nxf-btn-ghost:hover:not(:disabled){border-color:var(--nx-border3);color:var(--nx-txt1);box-shadow:none}
+[data-theme="light"] .nxf-btn-ghost,[data-theme="light"] .nxf-btn-ghost:hover{color:var(--nx-txt1)}
+.nxf-btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px}
+
+/* ── Avisos ── */
+.nxf-note{
+  display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:var(--nx-radius-sm);
+  font-size:13px;line-height:1.5;border:1px solid var(--nx-border);background:var(--nx-card-bg2);color:var(--nx-txt2);
+}
+.nxf-note svg{flex:0 0 auto;margin-top:1px}
+.nxf-note b{color:var(--nx-txt1)}
+.nxf-note-ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:var(--nx-ok)}
+.nxf-note-warn{border-color:rgba(234,179,8,.35);background:rgba(234,179,8,.10);color:var(--nx-warn)}
+.nxf-note-err{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:var(--nx-err)}
+.nxf-note-info{border-color:var(--nx-border3);background:var(--nx-active-bg);color:var(--nx-a1)}
+.nxf-note-ok b,.nxf-note-warn b,.nxf-note-err b,.nxf-note-info b{color:inherit}
+.nxf-note .nxf-btn-sm{margin-left:auto;align-self:center}
+.nxf-note + .nxf-note,.nxf-note + .nxf-grid,.nxf-grid + .nxf-note{margin-top:14px}
+
+/* ── Barra de acciones ── */
+.nxf-actions{
+  position:sticky;bottom:0;z-index:5;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 20px;border:1px solid var(--nx-border);border-radius:var(--nx-radius-lg);
+  background:var(--nx-card-bg);backdrop-filter:blur(16px);box-shadow:var(--nx-shadow);
+}
+.nxf-actions .nxf-spacer{margin-left:auto}
+
+/* ── Resumen del cliente ya identificado ── */
+.nxf-ident{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nxf-ident-code{
+  font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;font-size:15px;font-weight:600;
+  color:var(--nx-txt1);letter-spacing:.04em;
+}
+.nxf-ident-type{
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  padding:3px 9px;border-radius:99px;border:1px solid var(--nx-border3);background:var(--nx-active-bg);color:var(--nx-a1);
+}
+
+/* Girador del botón mientras se consulta Hacienda. */
+.nxf-spin{animation:nxf-turn .8s linear infinite;transform-origin:50% 50%}
+@keyframes nxf-turn{to{transform:rotate(360deg)}}
+
+/* ── Perfil de usuario (auth/profile) ── */
+.nxp-page{max-width:1040px}
+
+.nxp-hero{display:flex;align-items:center;gap:20px;padding:20px 22px;flex-wrap:wrap}
+.nxp-avatar{
+  width:84px;height:84px;flex:0 0 auto;border-radius:50%;object-fit:cover;
+  border:1px solid var(--nx-border3);box-shadow:var(--nx-shadow-sm);background:var(--nx-bg3);
+}
+.nxp-hero-datos{min-width:0;flex:1 1 260px}
+.nxp-hero-nombre{font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--nx-txt1)}
+.nxp-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+.nxp-meta{display:flex;gap:26px;flex-wrap:wrap;margin:14px 0 0}
+.nxp-meta dt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--nx-txt4)}
+.nxp-meta dd{margin:3px 0 0;font-size:13.5px;color:var(--nx-txt2)}
+
+/* ── Pestañas ── */
+.nxp-tabs{
+  display:flex;gap:4px;flex-wrap:wrap;padding:5px;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius-lg);background:var(--nx-card-bg2);
+}
+.nxp-tab{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  padding:8px 15px;border-radius:var(--nx-radius-sm);
+  font-size:13.5px;font-weight:600;color:var(--nx-txt3);transition:var(--nx-transition);
+}
+.nxp-tab:hover{color:var(--nx-txt1);background:var(--nx-hover-bg)}
+.nxp-tab.is-on{color:var(--nx-a1);background:var(--nx-active-bg);box-shadow:inset 0 0 0 1px var(--nx-border3)}
+
+.nxp-panel{display:flex;flex-direction:column;gap:16px}
+
+.nxp-foto{display:flex;align-items:flex-start;gap:22px;flex-wrap:wrap}
+.nxp-foto .nxf-field{flex:1 1 260px}

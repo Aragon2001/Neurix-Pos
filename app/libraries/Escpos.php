@@ -14,11 +14,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\CapabilityProfile;
-use Mike42\Escpos\PrintConnectors\FilePrintConnector;
-use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\ImagickEscposImage;
 use Mike42\Escpos\Imagick;
-use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 
 require_once __DIR__ . '/EscposBufferConnector.php';
 
@@ -41,38 +38,6 @@ class Escpos
         return get_instance()->$var;
     }
 
-    function intLowHigh($input, $length)
-    {
-        // Function to encode a number as two bytes. This is straight out of Mike42\Escpos\Printer
-        $outp = "";
-        for ($i = 0; $i < $length; $i++) {
-            $outp .= chr($input % 256);
-            $input = (int) ($input / 256);
-        }
-        return $outp;
-    }
-
-    function load($printer)
-    {
-        $div = explode("/", $printer->ip_address);
-        if (isset($div[1])) {
-            $this->barcodeprinter = $div[1];
-            $printer->ip_address = $div[0];
-        }
-        if ($printer->type == 'network') {
-            set_time_limit(30);
-            $connector = new WindowsPrintConnector($printer->path);
-        } elseif ($printer->type == 'linux') {
-            $connector = new FilePrintConnector($printer->path);
-        } else {
-            $connector = new WindowsPrintConnector($printer->path);
-        }
-        $connector->write(Printer::GS . 'L' . $this->intLowHigh(8, 8));
-        $this->char_per_line = $printer->char_per_line;
-        $profile = CapabilityProfile::load($printer->profile);
-        $this->printer = new Printer($connector, $profile);
-    }
-
     /**
      * Load a printer that accumulates ESC/POS bytes in memory instead of
      * writing to a physical connector, so the caller can hand the bytes to
@@ -86,6 +51,30 @@ class Escpos
         $this->char_per_line = get_printer_chars_per_line();
         $capabilityProfile = CapabilityProfile::load($profile);
         $this->printer = new Printer($this->connector, $capabilityProfile);
+    }
+
+    /**
+     * Caracteres por linea del papel del puesto: 32 en rollo de 58 mm, 42 o 48 en
+     * 80 mm segun la fuente de la impresora. Fuera de ese rango se usa el del sistema.
+     */
+    function setCaracteres($caracteres)
+    {
+        $caracteres = (int) $caracteres;
+        $this->char_per_line = ($caracteres >= 24 && $caracteres <= 64) ? $caracteres : get_printer_chars_per_line();
+    }
+
+    /** Arma el tiquete sobre una impresora falsa que guarda las lineas para mostrarlas. */
+    function loadPreview()
+    {
+        require_once __DIR__ . '/Ticket_preview.php';
+        $this->connector = null;
+        $this->printer = new Ticket_preview();
+    }
+
+    /** @return array lineas del tiquete armado con loadPreview() */
+    function getPreview()
+    {
+        return $this->printer->lineas();
     }
 
     /**
@@ -111,137 +100,6 @@ class Escpos
     }
 
     function print_data($data, $store = null)
-    {
-
-
-        if (isset($data->headingTiquete) && !empty($data->headingTiquete)) {
-            $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-            $this->printer->setEmphasis(true);
-            $this->printer->setTextSize(2, 2);
-            $this->printer->text($data->headingTiquete . "\n");
-            $this->printer->setEmphasis(false);
-            $this->printer->setTextSize(1, 1);
-            $this->printer->feed();
-            $this->printer->feed();
-            $this->printer->feed();
-        }
-
-        if ($store) {
-            $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-            $this->printer->setEmphasis(true);
-            $this->printer->setTextSize(2, 2);
-            $this->printer->text($store->name . "\n");
-            $this->printer->setEmphasis(false);
-            $this->printer->setTextSize(1, 1);
-            $this->printer->text($store->address1 . "\n");
-            if ($store->address2) {
-                $this->printer->text($store->address2 . "\n");
-            }
-            $this->printer->text($store->city . "\n");
-            $this->printer->text(lang('tel') . ': ' . $store->phone . "\n");
-        }
-
-        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-        if (isset($data->logo) && !empty($data->logo)) {
-            $logo = EscposImage::load(FCPATH . 'uploads' . DIRECTORY_SEPARATOR . $data->logo, false);
-            $this->printer->bitImage($logo);
-        }
-
-        if (isset($data->heading) && !empty($data->heading)) {
-            $this->printer->setEmphasis(true);
-            $this->printer->setTextSize(2, 2);
-            $this->printer->text($data->heading . "\n");
-            $this->printer->setEmphasis(false);
-            $this->printer->setTextSize(1, 1);
-            $this->printer->feed();
-        }
-        $this->printer->setJustification(Printer::JUSTIFY_LEFT);
-
-        if (isset($data->info) && !empty($data->info)) {
-            foreach ($data->info as $info) {
-                if ($info->label == 'line') {
-                    $this->printer->text($this->drawLine());
-                } else if ($info->label == 'space') {
-                    $this->printer->text(' ' . $info->value . "\n");
-                } else {
-                    $this->printer->text($info->label . ': ' . $info->value . "\n");
-                }
-            }
-            $this->printer->feed();
-        }
-
-        if (isset($data->infoTiquete) && !empty($data->infoTiquete)) {
-            $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-            $this->printer->setTextSize(2, 2);
-            foreach ($data->infoTiquete as $info) {
-                if ($info->label == 'line') {
-                    $this->printer->text($this->drawLine());
-                } else {
-                    $this->printer->text($info->label . ': ' . $info->value . "\n");
-                }
-            }
-            $this->printer->setTextSize(1, 1);
-            $this->printer->feed();
-            $this->printer->feed();
-            $this->printer->setJustification(Printer::JUSTIFY_LEFT);
-        }
-
-        if (isset($data->items) && !empty($data->items)) {
-            $r = 1;
-            foreach ($data->items as $item) {
-                $this->printer->text('#' . $r . ' ' . $this->product_name(addslashes($item->product_name)) . "\n");
-                $this->printer->text($this->printLine('   ' . $item->quantity . " x " . $item->unit_price . ":  " . $item->subtotal) . "\n");
-                $r++;
-            }
-            $this->printer->feed();
-        }
-
-        if (isset($data->totals) && !empty($data->totals)) {
-            foreach ($data->totals as $total) {
-                if ($total) {
-                    if ($total->label == 'line') {
-                        $this->printer->text($this->drawLine());
-                    } else {
-                        $this->printer->text($this->printLine($total->label . ': ' . $total->value) . "\n");
-                    }
-                }
-            }
-            $this->printer->feed();
-        }
-
-
-        if (isset($data->sign) && !empty($data->sign)) {
-            $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-            $this->printer->feed();
-            foreach ($data->sign as $sign) {
-                if ($sign->label == 'line') {
-                    $this->printer->text($this->drawLine());
-                } else if ($sign->label == 'text') {
-                    $this->printer->text($sign->value);
-                } else {
-                    $this->printer->text($this->printLine($sign->label . ': ' . $sign->value) . "\n");
-                }
-            }
-            $this->printer->feed();
-            $this->printer->feed();
-            $this->printer->feed(2);
-            $this->printer->feed();
-        }
-
-        if (isset($data->footer) && !empty($data->footer)) {
-            $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-            $this->printer->feed(2);
-            $this->printer->text($data->footer . "\n");
-            $this->printer->feed();
-        }
-
-        $this->printer->feed();
-        $this->printer->feed();
-        $this->printer->cut();
-        $this->printer->close();
-    }
-
-    function print_comanda($data, $store = null)
     {
 
 
@@ -453,16 +311,16 @@ class Escpos
         $servicio = null;
         $subtotal = 0;
         foreach ($items as $item) {
+            // sale_items.tax guarda la tarifa como texto ('13%'): multiplicarlo en PHP 8
+            // emite un aviso que se cuela delante del JSON con los bytes del tiquete.
+            $tasa = tasa_iva_linea($item);
+            $item->tax = $tasa == (int) $tasa ? (string) (int) $tasa : (string) $tasa;
             $subtotal += $item->subtotal;
             if ($item->product_code == "9r091n4") {
                 $servicio = $item;
                 continue;
             }
-            if ($item->tax > 0) {
-                $tt = "(G " . $item->tax . "%)";
-            } else {
-                $tt = "(E)";
-            }
+            $tt = '(' . etiqueta_iva($tasa) . ')';
 
             if ($item->tax_method == '0') {
                 $item->item_tax = (($item->net_unit_price * $item->tax) / 100);
@@ -534,10 +392,10 @@ class Escpos
         }
         if ($totCimpuesto > 0) {
             $this->printer->text($this->drawLine());
-            $this->printer->text($this->printLine(lang("Total con Impuesto") . ":" . $this->tec->formatMoney($totCimpuesto)) . "\n");
+            $this->printer->text($this->printLine(lang('total_con_impuesto') . ":" . $this->tec->formatMoney($totCimpuesto)) . "\n");
         }
         $this->printer->text($this->drawLine());
-        $this->printer->text($this->printLine(lang("Total sin Impuesto") . ":" . $this->tec->formatMoney($totSimpuesto)) . "\n");
+        $this->printer->text($this->printLine(lang('total_sin_impuesto') . ":" . $this->tec->formatMoney($totSimpuesto)) . "\n");
         if ($servicio) {
             $this->printer->text($this->printLine(lang($servicio->product_name) . ":" . $this->tec->formatMoney($servicio->real_unit_price)) . "\n");
         }
@@ -609,7 +467,7 @@ class Escpos
         //dd($sale);
         if ($montoExoneracion != 0 && $montoExoneracion != null) {
             $this->printer->text($this->drawLine());
-            $this->printer->text($this->printLine(lang("Exoneracion") . " %" . $sale->PorcentajeExoneracion . ": -" . $this->tec->formatMoney($montoExoneracion)) . "\n");
+            $this->printer->text($this->printLine(lang('exoneracion') . " %" . $sale->PorcentajeExoneracion . ": -" . $this->tec->formatMoney($montoExoneracion)) . "\n");
         }
 
         if ($this->Settings->rounding) {
@@ -675,7 +533,6 @@ class Escpos
             }
 
             $this->printer->feed();
-            $this->printer->text("Gravado (G), Exento (E)" . "\n");
 
 
             $this->printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -711,17 +568,23 @@ class Escpos
                     $this->printer->text(lang('internal_id') . "\n");
                     $this->printer->feed();
 
-                    $uri = $sale->invice_barcode;
-                    $file_path = realpath(dirname(__FILE__));
-                    $folder_path = dirname(sys_get_temp_dir());
-                    $file = date('Y-m-d-H-i-s-') . uniqid() . '.png';
-                    $filename = $folder_path . "/" . $file;
-                    $imgData = str_replace('data:image/png;base64,', '', $uri);
-                    $imgData = str_replace(' ', '+', $imgData);
-                    $imgData = base64_decode($imgData);
-                    file_put_contents($filename, $imgData);
-                    $img = EscposImage::load($filename, false);
-                    $this->printer->bitImageColumnFormat($img, Printer::IMG_DOUBLE_WIDTH);
+                    // Si el codigo de barras no se puede dibujar, el tiquete sale igual con el consecutivo.
+                    try {
+                        $filename = tempnam(sys_get_temp_dir(), 'nxbc');
+                        $imgData = base64_decode(str_replace(array('data:image/png;base64,', ' '), array('', '+'), (string) $sale->invice_barcode));
+                        if (!$imgData || !file_put_contents($filename, $imgData)) {
+                            throw new \RuntimeException('no se pudo escribir ' . $filename);
+                        }
+                        $img = EscposImage::load($filename, false);
+                        $this->printer->bitImageColumnFormat($img, Printer::IMG_DOUBLE_WIDTH);
+                    } catch (\Throwable $e) {
+                        log_message('error', '[Escpos] codigo de barras del tiquete: ' . $e->getMessage());
+                        $this->printer->text($sale->hacienda->consecutivo . "
+");
+                    }
+                    if (!empty($filename) && is_file($filename)) {
+                        @unlink($filename);
+                    }
                     $this->printer->feed();
                 }
             }
@@ -806,15 +669,15 @@ class Escpos
         $servicio = null;
         // dd($items);
         foreach ($items as $item) {
+            // sale_items.tax guarda la tarifa como texto ('13%'): multiplicarlo en PHP 8
+            // emite un aviso que se cuela delante del JSON con los bytes del tiquete.
+            $tasa = tasa_iva_linea($item);
+            $item->tax = $tasa == (int) $tasa ? (string) (int) $tasa : (string) $tasa;
             if ($item->product_code == "9r091n4") {
                 $servicio = $item;
                 continue;
             }
-            if ($item->tax > 0) {
-                $tt = "(G " . $item->tax . "%)";
-            } else {
-                $tt = "(E)";
-            }
+            $tt = '(' . etiqueta_iva($tasa) . ')';
             // if ($item->tax_method == '0') {
             //     $item->item_tax = (($item->net_unit_price * $item->tax) / 100);
             //     $totImpuesto = $totImpuesto + ($item->item_tax * $item->quantity);
@@ -881,10 +744,10 @@ class Escpos
         }
         if ($totCimpuesto > 0) {
             $this->printer->text($this->drawLine());
-            $this->printer->text($this->printLine(lang("Total con Impuesto") . ":" . $this->tec->formatMoney($totCimpuesto)) . "\n");
+            $this->printer->text($this->printLine(lang('total_con_impuesto') . ":" . $this->tec->formatMoney($totCimpuesto)) . "\n");
         }
         $this->printer->text($this->drawLine());
-        $this->printer->text($this->printLine(lang("Total sin Impuesto") . ":" . $this->tec->formatMoney($totSimpuesto)) . "\n");
+        $this->printer->text($this->printLine(lang('total_sin_impuesto') . ":" . $this->tec->formatMoney($totSimpuesto)) . "\n");
         if ($servicio) {
             $this->printer->text($this->printLine(lang($servicio->product_name) . ":" . $this->tec->formatMoney($servicio->real_unit_price)) . "\n");
         }
@@ -1012,7 +875,6 @@ class Escpos
             }
 
             $this->printer->feed();
-            $this->printer->text("Gravado (G), Exento (E)" . "\n");
 
 
             $this->printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -1048,17 +910,23 @@ class Escpos
                     $this->printer->text(lang('internal_id') . "\n");
                     $this->printer->feed();
 
-                    $uri = $sale->invice_barcode;
-                    $file_path = realpath(dirname(__FILE__));
-                    $folder_path = dirname(sys_get_temp_dir());
-                    $file = date('Y-m-d-H-i-s-') . uniqid() . '.png';
-                    $filename = $folder_path . "/" . $file;
-                    $imgData = str_replace('data:image/png;base64,', '', $uri);
-                    $imgData = str_replace(' ', '+', $imgData);
-                    $imgData = base64_decode($imgData);
-                    file_put_contents($filename, $imgData);
-                    $img = EscposImage::load($filename, false);
-                    $this->printer->bitImageColumnFormat($img, Printer::IMG_DOUBLE_WIDTH);
+                    // Si el codigo de barras no se puede dibujar, el tiquete sale igual con el consecutivo.
+                    try {
+                        $filename = tempnam(sys_get_temp_dir(), 'nxbc');
+                        $imgData = base64_decode(str_replace(array('data:image/png;base64,', ' '), array('', '+'), (string) $sale->invice_barcode));
+                        if (!$imgData || !file_put_contents($filename, $imgData)) {
+                            throw new \RuntimeException('no se pudo escribir ' . $filename);
+                        }
+                        $img = EscposImage::load($filename, false);
+                        $this->printer->bitImageColumnFormat($img, Printer::IMG_DOUBLE_WIDTH);
+                    } catch (\Throwable $e) {
+                        log_message('error', '[Escpos] codigo de barras del tiquete: ' . $e->getMessage());
+                        $this->printer->text($sale->hacienda->consecutivo . "
+");
+                    }
+                    if (!empty($filename) && is_file($filename)) {
+                        @unlink($filename);
+                    }
                     $this->printer->feed();
                 }
             }
@@ -1076,64 +944,6 @@ class Escpos
     function open_drawer()
     {
         $this->printer->pulse();
-        $this->printer->close();
-    }
-
-    function print_order($store, $sale, $items, $created_by)
-    {
-
-        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-        //      $logo = EscposImage::load(FCPATH.'uploads'.DIRECTORY_SEPARATOR.$store->logo, false);
-        //      $this->printer->bitImage($logo);
-        //      $this->printer->feed();
-        $this->printer->setEmphasis(true);
-        $this->printer->setTextSize(2, 2);
-        $this->printer->text($store->name . "\n");
-        $this->printer->setEmphasis(false);
-        $this->printer->feed();
-        $this->printer->setTextSize(1, 1);
-        $this->printer->text($store->name . ' (' . $store->code . ')' . "\n");
-        if (!empty($store->address1)) {
-            $this->printer->text($store->address1 . "\n");
-        }
-        if (!empty($store->address2)) {
-            $this->printer->text($store->address2 . "\n");
-        }
-        if (!empty($store->city)) {
-            $this->printer->text($store->city . "\n");
-        }
-        $this->printer->text(lang('tel') . ': ' . $store->phone . "\n");
-        $this->printer->feed();
-        $this->printer->text($store->receipt_header . "\n");
-        $this->printer->feed();
-
-        $this->printer->setJustification(Printer::JUSTIFY_LEFT);
-        $this->printer->text('C: ' . $sale->customer_name . "\n");
-        $this->printer->text('R: ' . $sale->hold_ref . "\n");
-        $this->printer->text('U: ' . $created_by->first_name . " " . $created_by->last_name . "\n");
-        $this->printer->text('T: ' . $this->tec->hrld($sale->date) . "\n");
-        $this->printer->feed();
-
-        $r = 1;
-        foreach ($items as $item) {
-            $item->quantity = $item->quantity - ($item->ordered ? $item->ordered : 0);
-            $this->printer->text($this->printLine('#' . $r . ' ' . $this->product_name(addslashes($item->product_name)) . ' (' . $item->product_code . ') : [ ' . ($item->quantity > 0 ? $this->tec->formatQuantity($item->quantity) : 'xxxx') . " ]") . "\n");
-            if (!empty($item->comment)) {
-                $comments = explode(PHP_EOL, $item->comment);
-                foreach ($comments as $cmt) {
-                    $this->printer->text(' * ' . $cmt . "\n");
-                }
-            }
-            $this->printer->feed();
-            $r++;
-        }
-
-        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
-        $this->printer->feed(2);
-        $this->printer->text($sale->note . "\n");
-
-        $this->printer->feed();
-        $this->printer->cut();
         $this->printer->close();
     }
 
@@ -1189,16 +999,18 @@ class Escpos
 
     function taxLine($name, $code, $qty, $amt, $tax)
     {
+        // Las columnas se reparten en la misma proporcion que en el papel de 42.
+        $col = function ($de42) { return (int) round($this->char_per_line * $de42 / 42); };
         $new = $this->printLine(
             $this->printLine(
                 $this->printLine(
-                    $this->printLine($name . ':' . $code, '', 18)
+                    $this->printLine($name . ':' . $code, '', $col(18))
                         . ':' . $qty,
                     '',
-                    25
+                    $col(25)
                 ) . ':' . $amt,
                 '',
-                35
+                $col(35)
             ) . ':' . $tax
         );
         return $new;

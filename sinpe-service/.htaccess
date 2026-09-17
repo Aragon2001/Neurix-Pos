@@ -1,0 +1,14 @@
+# Esta carpeta vive dentro del document root del Facturador (www/) solo para
+# que quede versionada junto al resto del proyecto. El servicio real corre como
+# proceso Node aparte (puerto interno, ver README.md) — Apache NUNCA debe servir
+# estos archivos directamente (evita filtrar código fuente o el .env con
+# credenciales si alguien pide la URL /sinpe-service/... por HTTP).
+<IfModule mod_authz_core.c>
+    # Apache 2.4+
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    # Apache 2.2
+    Order allow,deny
+    Deny from all
+</IfModule>

@@ -297,6 +297,13 @@ class XMLSecurityDSig
                     "digest" 	=> "3gQCr0HYSdoxi0ZaRaJ4qs3mHfI=" // Base64_Encode(Hash_File(SHA_1))
                 ];
                 break;
+            case (strpos($xmlns, 'v4.4') !== false):
+                $this->signPolicy = [
+                    "name" 		=> "",
+                    "url" 		=> "https://www.hacienda.go.cr/ATV/ComprobanteElectronico/docs/esquemas/2016/v4.4/ResolucionComprobantesElectronicosDGT-R-48-2016_4.4.pdf",
+                    "digest" 	=> "3gQCr0HYSdoxi0ZaRaJ4qs3mHfI=" // Base64_Encode(Hash_File(SHA_1))
+                ];
+                break;
             default:
                 throw new Exception("Cannot validate version: Unsupported Version");
         }

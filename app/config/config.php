@@ -18,7 +18,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 
-$config['base_url'] = 'http://'.$_SERVER['HTTP_HOST'].'/';
+/*
+| La cabecera Host la elige el cliente. Sin lista blanca, una peticion con un
+| Host ajeno hace que los enlaces que el sistema genera —el de recuperacion de
+| contrasena, entre otros— apunten al servidor del atacante.
+|
+| APP_BASE_URL fija la URL completa; APP_HOSTS es la lista blanca separada por
+| comas. Ademas de lo que digan, se admiten localhost y las direcciones de red
+| privada, porque el POS se usa desde tabletas de la misma red.
+*/
+$nx_hosts = array_filter(array_map('trim', explode(',', (string) (getenv('APP_HOSTS') ?: ''))));
+$nx_hosts = array_merge($nx_hosts, array('localhost', '127.0.0.1', '::1'));
+
+$nx_host = isset($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : 'localhost';
+$nx_solo = preg_replace('/:\d+$/', '', trim($nx_host, '[]'));
+
+$nx_privada = filter_var($nx_solo, FILTER_VALIDATE_IP) !== false
+    && filter_var($nx_solo, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+
+if (!in_array($nx_solo, $nx_hosts, true) && !$nx_privada) {
+    $nx_host = $nx_hosts[0];
+}
+
+$nx_https = (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off')
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+$config['base_url'] = getenv('APP_BASE_URL')
+    ?: (($nx_https ? 'https://' : 'http://') . $nx_host . '/');
 
 /*
 |--------------------------------------------------------------------------
@@ -362,7 +388,7 @@ $config['sess_expiration'] = 7200;
 $config['sess_save_path'] = 'sessions';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
-$config['sess_regenerate_destroy'] = FALSE;
+$config['sess_regenerate_destroy'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------
@@ -379,11 +405,12 @@ $config['sess_regenerate_destroy'] = FALSE;
 |       'cookie_httponly') will also affect sessions.
 |
 */
+$config['cookie_samesite'] = 'Lax';
 $config['cookie_prefix']    = 'spos_';
 $config['cookie_domain']    = '';
 $config['cookie_path']      = '/';
-$config['cookie_secure']    = FALSE;
-$config['cookie_httponly']  = FALSE;
+$config['cookie_secure']    = $nx_https;
+$config['cookie_httponly']  = TRUE;
 
 /*
 |--------------------------------------------------------------------------
@@ -431,7 +458,7 @@ $config['csrf_protection'] = TRUE;
 $config['csrf_token_name'] = 'spos_token';
 $config['csrf_cookie_name'] = 'spos_cookie';
 $config['csrf_expire'] = 7200;
-$config['csrf_regenerate'] = FALSE;
+$config['csrf_regenerate'] = TRUE;
 $config['csrf_exclude_uris'] = array('auth/login', 'auth/forgot_password');
 
 /*

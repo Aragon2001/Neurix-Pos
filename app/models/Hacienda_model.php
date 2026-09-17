@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
@@ -9,10 +13,26 @@ class Hacienda_model extends CI_Model {
         parent::__construct();
     }
 
+    /**
+     * Ultimo numero emitido para un tipo de comprobante: el mayor entre lo que hay
+     * en las tablas locales y el arranque configurado en Ajustes. Sin ese arranque,
+     * una instalacion recien migrada volveria a numerar desde 1 y Hacienda rechaza
+     * el comprobante por consecutivo ya usado.
+     *
+     * @param string $tipo        codigo de Hacienda ('01', '03', '09'...)
+     * @param string|null $enTabla consecutivo de 20 digitos leido de la tabla
+     */
+    public function ultimo_consecutivo($tipo, $enTabla) {
+        $numero   = $enTabla ? (int) substr($enTabla, 10, 10) : 0;
+        $arranque = (int) ($this->Settings->{'consec_inicial_' . $tipo} ?? 0);
+        return max($numero, $arranque);
+    }
+
     public function ccsctv($tipo) {
         $terminal_pos = $this->Settings->terminal_pos;
+        $tabla = $this->db->dbprefix('hacienda_tiketes');
         $query = $this->db->query(
-            "SELECT consecutivo FROM tec_hacienda_tiketes WHERE tipo_doc = ? AND SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
+            "SELECT consecutivo FROM `{$tabla}` WHERE tipo_doc = ? AND SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
             array($tipo, $terminal_pos)
         );
         $r = $query->result();
@@ -28,8 +48,9 @@ class Hacienda_model extends CI_Model {
 
     public function ccsctvfec($tipo) {
         $terminal_pos = $this->Settings->terminal_pos;
+        $tabla = $this->db->dbprefix('hacienda_fec');
         $query = $this->db->query(
-            "SELECT consecutivo FROM tec_hacienda_fec WHERE tipo_doc = ? AND SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
+            "SELECT consecutivo FROM `{$tabla}` WHERE tipo_doc = ? AND SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
             array($tipo, $terminal_pos)
         );
         $r = $query->result();
@@ -46,7 +67,7 @@ class Hacienda_model extends CI_Model {
                 $valid = $this->db->where('consecutivo', $data['consecutivo'])->get($this->db->dbprefix('hacienda_tiketes'))->row_array();
 				if($valid)
 				{
-                    $this->db->update($this->db->dbprefix('hacienda_tiketes'), array('tipo_doc' => substr($valid['consecutivo'], 9, 1)), array('consecutivo' => $data['consecutivo']));
+                    $this->db->update($this->db->dbprefix('hacienda_tiketes'), array('tipo_doc' => substr($valid['consecutivo'], 8, 2)), array('consecutivo' => $data['consecutivo']));
 				}
 				
 			    if ($this->db->update($this->db->dbprefix('hacienda_tiketes'), $data, array('sale_id' => $data['sale_id']))) {
@@ -81,7 +102,7 @@ class Hacienda_model extends CI_Model {
 				$valid = $this->db->where('consecutivo', $data['consecutivo'])->get($this->db->dbprefix('hacienda_fec'))->row_array();
 				if($valid)
 				{
-					$this->db->update($this->db->dbprefix('hacienda_fec'), array('tipo_doc' => substr($valid['consecutivo'], 9, 1)), array('consecutivo' => $data['consecutivo']));
+					$this->db->update($this->db->dbprefix('hacienda_fec'), array('tipo_doc' => substr($valid['consecutivo'], 8, 2)), array('consecutivo' => $data['consecutivo']));
 				}
 				
 			    if ($this->db->update($this->db->dbprefix('hacienda_fec'), $data, array('sale_id' => $data['sale_id']))) {
@@ -114,8 +135,9 @@ class Hacienda_model extends CI_Model {
     }
 
     public function getPendientes() {
-        $this->db->where('estatus_hacienda', 'procesando');
-        $this->db->or_where('estatus_hacienda', 'Sin Estado');
+        // 'pendiente' es el valor por defecto de la columna: un comprobante recien
+        // insertado nace ahi y sin el nunca entraria en la tanda de envio.
+        $this->db->where_in('estatus_hacienda', array('pendiente', 'procesando', 'Sin Estado'));
         $this->db->limit(10);
         $q = $this->db->get($this->db->dbprefix('hacienda_tiketes'));
         if ($q->num_rows() > 0) {
@@ -144,9 +166,9 @@ class Hacienda_model extends CI_Model {
     }
 
     public function getPendientesCN() {
-        $this->db->where('estatus_hacienda', 'error');
-        $this->db->or_where('estatus_hacienda', 'procesando');
-        $this->db->or_where('estatus_hacienda', 'Sin Estado');
+        // 'pendiente' es el valor por defecto de la columna: sin el, una nota de
+        // credito recien insertada nunca entraria en la tanda de envio.
+        $this->db->where_in('estatus_hacienda', array('pendiente', 'error', 'procesando', 'Sin Estado'));
         $this->db->limit(10);
         $q = $this->db->get('hacienda_cn');
         if ($q->num_rows() > 0) {
@@ -160,9 +182,9 @@ class Hacienda_model extends CI_Model {
 
     public function getPendientesFec() 
     {
-        // $this->db->save_queries = TRUE;
-        $this->db->where('estatus_hacienda', 'procesando');
-        $this->db->or_where('estatus_hacienda', 'Sin Estado');
+        // 'pendiente' es el valor por defecto de la columna: sin el, una factura de
+        // compra recien insertada nunca entraria en la tanda de envio.
+        $this->db->where_in('estatus_hacienda', array('pendiente', 'procesando', 'Sin Estado'));
         $this->db->limit(10);
         $q = $this->db->get($this->db->dbprefix('hacienda_fec'));
         if ($q->num_rows() > 0) {
@@ -410,8 +432,10 @@ class Hacienda_model extends CI_Model {
             $limit .=" LIMIT 1000";
         }
         // $this->db->save_queries = TRUE;
-        $q = $this->db->query("SELECT ht.sale_id, ht.xml_sign FROM `tec_sales`  s
-        LEFT JOIN `tec_hacienda_tiketes` ht ON ht.sale_id = s.id
+        $ventas  = $this->db->dbprefix('sales');
+        $tiketes = $this->db->dbprefix('hacienda_tiketes');
+        $q = $this->db->query("SELECT ht.sale_id, ht.xml_sign FROM `{$ventas}`  s
+        LEFT JOIN `{$tiketes}` ht ON ht.sale_id = s.id
         WHERE ht.estatus_hacienda = 'aceptado' ".$where." ORDER BY ht.fecha_emision DESC".$limit);
         //  dd($this->db->last_query());
         // $this->db->where('estatus_hacienda =', 'aceptado');
@@ -450,44 +474,6 @@ class Hacienda_model extends CI_Model {
         return false;
     }
     
-    public function setDocumento($compra, $suppliers, $item_compra) {
-        $this->db->trans_begin();
-        $q = $this->db->where('cf2', $suppliers['cf2'])->get($this->db->dbprefix('suppliers'));
-        if ($q->num_rows() > 0) {
-            $this->db->where('cf2', $suppliers['cf2'])->update($this->db->dbprefix('suppliers'), $suppliers);
-            $id_supplier = $q->row()->id;
-        } else {
-            $this->db->insert($this->db->dbprefix('suppliers'), $suppliers);
-            $id_supplier = $this->db->insert_id();
-        }
-
-        $q = $this->db->where('ClaveDocEmisor', $compra['ClaveDocEmisor'])->get($this->db->dbprefix('documentoshacienda'));
-        if ($q->num_rows() > 0) {
-            $this->db->where('ClaveDocEmisor', $compra['ClaveDocEmisor'])->update($this->db->dbprefix('documentoshacienda'), $compra);
-            $id_compra = $q->row()->id_documento;
-        } else {
-            $this->db->insert($this->db->dbprefix('documentoshacienda'), $compra);
-            $id_compra = $this->db->insert_id();
-        }
-
-        foreach ($item_compra as $itm) {
-            $q = $this->db->where('clave', $compra['ClaveDocEmisor'])->where('code', $itm['code'])->where('consecutivo', $itm['consecutivo'])->get($this->db->dbprefix('documentositems'));
-            if ($q->num_rows() > 0) {
-                $this->db->where('clave', $compra['ClaveDocEmisor'])->where('code', $itm['code'])->where('consecutivo', $itm['consecutivo'])->update($this->db->dbprefix('documentositems'), $itm);
-            } else {
-                $this->db->insert($this->db->dbprefix('documentositems'), $itm);
-            }
-        }
-
-        if ($this->db->trans_status() === FALSE) {
-            $this->db->trans_rollback();
-            return false;
-        } else {
-            $this->db->trans_commit();
-            return true;
-        }
-    } 
-
     public function setRespuesta($data, $datosaceptacion, $id, $firmado) {
 
         if ($this->db->update($this->db->dbprefix('documentoshacienda'), 
@@ -540,42 +526,59 @@ class Hacienda_model extends CI_Model {
         return false;
     }
 	
+    /**
+     * Ventas que todavia no tienen comprobante.
+     *
+     * El LEFT JOIN se filtra por sale_id y no por id_hacienda: esa columna la
+     * llena Hacienda al responder y esta vacia en todas las filas, asi que como
+     * condicion devolveria tambien las ventas que ya tienen comprobante.
+     */
     public function getNoXML(){
-		$q = $this->db->query("SELECT id FROM `tec_sales` LEFT JOIN `tec_hacienda_tiketes` ON `tec_hacienda_tiketes`.sale_id = tec_sales.id
-				WHERE tec_hacienda_tiketes.id_hacienda IS NULL ORDER BY tec_sales.id DESC LIMIT 20");
+        $ventas = $this->db->dbprefix('sales');
+        $tiketes = $this->db->dbprefix('hacienda_tiketes');
+        $q = $this->db->query("SELECT {$ventas}.id FROM `{$ventas}` LEFT JOIN `{$tiketes}` ON `{$tiketes}`.sale_id = {$ventas}.id
+				WHERE {$tiketes}.sale_id IS NULL ORDER BY {$ventas}.id DESC LIMIT 20");
 				 $r = $q->result();
 				 return $r;
     }
     
     public function getNoXMLCN(){
-		$q = $this->db->query("SELECT tec_note_credits.sale_id, tec_note_credits.id FROM `tec_note_credits` LEFT JOIN `tec_hacienda_cn` ON `tec_hacienda_cn`.id_cn = tec_note_credits.id
-				WHERE tec_hacienda_cn.id_hacienda IS NULL ORDER BY tec_note_credits.id DESC LIMIT 1");
+        $notas = $this->db->dbprefix('note_credits');
+        $hacienda = $this->db->dbprefix('hacienda_cn');
+        $q = $this->db->query("SELECT {$notas}.sale_id, {$notas}.id FROM `{$notas}` LEFT JOIN `{$hacienda}` ON `{$hacienda}`.id_cn = {$notas}.id
+				WHERE {$hacienda}.id_cn IS NULL ORDER BY {$notas}.id DESC LIMIT 1");
 				 $r = $q->result();
 				 return $r;
 	}
 		
     public function getNoXMLFec(){
-		$q = $this->db->query("SELECT id FROM `tec_fec` LEFT JOIN `tec_hacienda_fec` ON `tec_hacienda_fec`.sale_id = tec_fec.id
-				WHERE tec_hacienda_fec.id_hacienda IS NULL ORDER BY tec_fec.id DESC LIMIT 20");
+        $fec = $this->db->dbprefix('fec');
+        $hacienda = $this->db->dbprefix('hacienda_fec');
+        $q = $this->db->query("SELECT {$fec}.id FROM `{$fec}` LEFT JOIN `{$hacienda}` ON `{$hacienda}`.sale_id = {$fec}.id
+				WHERE {$hacienda}.sale_id IS NULL ORDER BY {$fec}.id DESC LIMIT 20");
 				 $r = $q->result();
 				 return $r;
     }
     
     public function getsinXML(){
-		$q = $this->db->query("SELECT sale_id as id from tec_hacienda_tiketes where  xml IS NULL OR xml = ''");
+        $tiketes = $this->db->dbprefix('hacienda_tiketes');
+		$q = $this->db->query("SELECT sale_id as id FROM `{$tiketes}` WHERE xml IS NULL OR xml = ''");
 				 $r = $q->result();
 				 return $r;
     }
 
     public function getsinXMLCn(){
-		$q = $this->db->query("SELECT tec_note_credits.sale_id, tec_note_credits.id FROM `tec_note_credits` LEFT JOIN `tec_hacienda_cn` ON `tec_hacienda_cn`.id_cn = tec_note_credits.id 
-                                where  tec_hacienda_cn.xml IS NULL OR tec_hacienda_cn.xml = '' LIMIT 1");
+        $notas = $this->db->dbprefix('note_credits');
+        $hacienda = $this->db->dbprefix('hacienda_cn');
+		$q = $this->db->query("SELECT `{$notas}`.sale_id, `{$notas}`.id FROM `{$notas}` LEFT JOIN `{$hacienda}` ON `{$hacienda}`.id_cn = `{$notas}`.id
+                                WHERE `{$hacienda}`.xml IS NULL OR `{$hacienda}`.xml = '' LIMIT 1");
 				 $r = $q->result();
 				 return $r;
     }
     
     public function getsinXMLFec(){
-		$q = $this->db->query("SELECT sale_id AS id FROM tec_hacienda_fec WHERE xml IS NULL OR xml = ''");
+        $hacienda = $this->db->dbprefix('hacienda_fec');
+		$q = $this->db->query("SELECT sale_id AS id FROM `{$hacienda}` WHERE xml IS NULL OR xml = ''");
                  $r = $q->result();
 				 return $r;
 	}
@@ -592,8 +595,9 @@ class Hacienda_model extends CI_Model {
 
     public function ccsctv_rep() {
         $terminal_pos = $this->Settings->terminal_pos;
+        $tabla = $this->db->dbprefix('hacienda_rep');
         $query = $this->db->query(
-            "SELECT consecutivo FROM tec_hacienda_rep WHERE SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
+            "SELECT consecutivo FROM `{$tabla}` WHERE SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
             array($terminal_pos)
         );
         $r = $query->result();
@@ -674,8 +678,9 @@ class Hacienda_model extends CI_Model {
 
     public function ccsctv_nd() {
         $terminal_pos = $this->Settings->terminal_pos;
+        $tabla = $this->db->dbprefix('hacienda_nd');
         $query = $this->db->query(
-            "SELECT consecutivo FROM tec_hacienda_nd WHERE SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
+            "SELECT consecutivo FROM `{$tabla}` WHERE SUBSTRING(consecutivo,4,5) = ? ORDER BY consecutivo DESC LIMIT 1",
             array($terminal_pos)
         );
         $r = $query->result();
@@ -725,4 +730,41 @@ class Hacienda_model extends CI_Model {
         return $this->db->update($this->db->dbprefix('hacienda_nd'), array('mail' => $status), array('nd_id' => $nd_id));
     }
 
+
+    /**
+     * Salud de la conexion con Hacienda para el aviso del POS.
+     *
+     * Hacienda responde en segundos: un comprobante que sigue en pendiente o
+     * procesando pasados 15 minutos ya no es demora normal, es que el envio no
+     * esta corriendo o que Hacienda no contesta.
+     *
+     * @return array ok (bool), motivo (clave de idioma) y pendientes (int)
+     */
+    public function estadoConexion($ambiente, $usuario, $clave, $certificado)
+    {
+        if (!$usuario || !$clave || !$certificado) {
+            return array('ok' => FALSE, 'motivo' => 'hacienda_sin_credenciales', 'pendientes' => 0);
+        }
+
+        $t = $this->db->dbprefix('hacienda_tiketes');
+        $fila = $this->db->query(
+            "SELECT
+                SUM(CASE WHEN estatus_hacienda IN ('error','rechazado') THEN 1 ELSE 0 END) AS fallidos,
+                SUM(CASE WHEN estatus_hacienda IN ('pendiente','procesando')
+                          AND fecha < DATE_SUB(NOW(), INTERVAL 15 MINUTE) THEN 1 ELSE 0 END) AS estancados
+             FROM `{$t}`
+             WHERE fecha >= DATE_SUB(NOW(), INTERVAL 1 DAY)"
+        )->row();
+
+        $estancados = (int) ($fila->estancados ?? 0);
+        $fallidos   = (int) ($fila->fallidos ?? 0);
+
+        if ($estancados > 0) {
+            return array('ok' => FALSE, 'motivo' => 'hacienda_sin_respuesta', 'pendientes' => $estancados);
+        }
+        if ($fallidos > 0) {
+            return array('ok' => FALSE, 'motivo' => 'hacienda_con_rechazos', 'pendientes' => $fallidos);
+        }
+        return array('ok' => TRUE, 'motivo' => 'hacienda_al_dia', 'pendientes' => 0);
+    }
 }

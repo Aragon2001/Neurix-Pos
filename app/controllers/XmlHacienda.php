@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 /**
  * NEURIX POS - ARASOFT SOLUTIONS
  * Author: Jostin Aragon Barboza
@@ -9,6 +13,13 @@ class Xmlhacienda extends MY_Controller
 {
     public function __construct(){
         parent::__construct();
+        // `return` en el constructor de CI3 no detiene la peticion: el metodo
+        // pedido corre igual. Sin el exit, el XML de cualquier comprobante se
+        // leia con solo saber la URL.
+        if (!$this->loggedIn) {
+            $this->output->set_status_header(403)->_display();
+            exit;
+        }
         $this->load->model('hacienda_model');
     }
 

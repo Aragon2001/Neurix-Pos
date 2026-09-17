@@ -15,7 +15,7 @@ class Swiftmailer extends MY_Controller {
         $mailer = new Swift_Mailer($transport);
 
         $message = (new Swift_Message($subject))
-            ->setFrom([$Settings->default_email => $Settings->site_name])
+            ->setFrom([remitente_correo($Settings) => $Settings->site_name])
             ->setTo($to)
             ->setContentType('text/html; charset=UTF-8')
             ->setSubject($subject)

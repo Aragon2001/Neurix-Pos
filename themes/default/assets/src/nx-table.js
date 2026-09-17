@@ -1,3 +1,9 @@
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+
 /* ═══════════════════════════════════════════════════════════════════════════
    NX-TABLE.JS — Motor reusable de listados Neurix (diseño .nxt-* de nx-tables.css)
    Reemplaza el patrón legacy jQuery + DataTables/Tabulator de las vistas.
@@ -227,10 +233,13 @@ class NxTable {
       if (this.o.chips) this.buildChips()
       if (this.o.onData) this.o.onData(rows)
       this.render()
-      return
+      return Promise.resolve()
     }
     const body = new URLSearchParams()
-    if (this.o.csrf) body.append(this.o.csrf.name, this.o.csrf.hash)
+    // csrf_regenerate rota el token en cada POST: el que se paso al construir
+    // la tabla solo sirve para la primera pagina. main.js mantiene al dia
+    // window.CSRF_HASH con la cabecera X-CSRF-Token de cada respuesta.
+    if (this.o.csrf) body.append(this.o.csrf.name, window.CSRF_HASH || this.o.csrf.hash)
     body.append('draw', '1'); body.append('start', '0'); body.append('length', '-1')
     body.append('search[value]', ''); body.append('search[regex]', 'false')
     body.append('columns[0][data]', this.o.columns[0] && this.o.columns[0].key || 'id')
@@ -238,7 +247,7 @@ class NxTable {
     body.append('columns[0][orderable]', 'false')
     body.append('columns[0][search][value]', ''); body.append('columns[0][search][regex]', 'false')
 
-    fetch(this.o.url, {
+    return fetch(this.o.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
       body: body.toString(),
@@ -257,6 +266,32 @@ class NxTable {
       .catch(err => {
         this.$('.nxt-loading').innerHTML = `<span style="color:var(--nx-err)">Error: ${esc(err.message)}</span>`
       })
+  }
+
+  /**
+   * Vuelve a pedir los datos conservando búsqueda, chip, orden y página.
+   *
+   * Lo usa quien cambia una fila desde fuera de la tabla (el detalle de un
+   * comprobante, aplicar un pago) para no recargar la pantalla entera.
+   */
+  reload () {
+    if (!this.root) return Promise.resolve()
+    const chip = this.chip
+    const pagina = this.page
+    this.$('.nxt-loading').style.display = ''
+
+    // buildChips() repinta los filtros y deja "Todas" activo; el filtro que el
+    // usuario tenía puesto se restituye después de que los datos entraron.
+    return Promise.resolve(this.load()).then(() => {
+      this.chip = chip
+      this.page = pagina
+      const boton = this.root.querySelector(`.nxt-chip[data-v="${CSS.escape(chip)}"]`)
+      if (boton) {
+        this.root.querySelectorAll('.nxt-chip').forEach(c => c.classList.remove('active'))
+        boton.classList.add('active')
+      }
+      this.render()
+    })
   }
 
   buildChips () {

@@ -72,8 +72,7 @@ window._appConfig = {
     module: '<?= $m; ?>',
     view: '<?= $v; ?>'
 };
-<?php unset($Settings->protocol, $Settings->smtp_host, $Settings->smtp_user, $Settings->smtp_pass, $Settings->smtp_port, $Settings->smtp_crypto, $Settings->mailpath, $Settings->timezone, $Settings->setting_id, $Settings->default_email, $Settings->version, $Settings->stripe, $Settings->stripe_secret_key, $Settings->stripe_publishable_key); ?>
-window._appSettings = <?= json_encode($Settings); ?>;
+window._appSettings = <?= json_encode(ajustes_publicos($Settings)); ?>;
 window._appLang = {
     code_error: '<?= lang('code_error'); ?>',
     r_u_sure: '<?= lang('r_u_sure'); ?>',
@@ -99,7 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (m) {
         var mmLi = document.querySelector('.mm_' + m);
         if (mmLi) {
-            var mmLink = mmLi.querySelector('> .nav-link');
+            // querySelector no acepta un combinador suelto: sin :scope tira SyntaxError.
+            var mmLink = mmLi.querySelector(':scope > .nav-link');
             if (mmLink) mmLink.classList.add('active');
             if (mmLi.querySelector('.nav-treeview')) {
                 mmLi.classList.add('menu-open');
@@ -163,19 +163,99 @@ document.addEventListener('click', function(e) {
     }).then(function(r){ if (r.isConfirmed) window.location.href = link.href; });
 });
 
-/* ── Alertas flash ── */
+/* ── Avisos ──
+   Unica funcion de avisos de toda la app. Cualquier pantalla que necesite avisar
+   algo llama a nxAlerta(); no se crean banners propios en las vistas. */
+window.nxAlerta = function (tipo, mensaje, opciones) {
+    if (typeof window.Swal === 'undefined') return;
+    var iconos = { ok:'success', success:'success', error:'error', danger:'error', warn:'warning', warning:'warning', info:'info' };
+    var cfg = Object.assign({
+        icon: iconos[tipo] || 'info',
+        html: String(mensaje == null ? '' : mensaje),
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'top',
+        customClass: { popup: 'swal-nx-flash' }
+    }, opciones || {});
+    return Swal.fire(cfg);
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     if (window._nxAlerts && window._nxAlerts.length) {
         var queue = window._nxAlerts.slice();
         function showNext() {
             if (!queue.length) return;
             var cfg = queue.shift();
-            Swal.fire({ icon:cfg.icon, title:cfg.title, timer:4000, timerProgressBar:true, showConfirmButton:false, position:'top', customClass:{ popup:'swal-nx-flash' } }).then(showNext);
+            // Un error se queda hasta que lo cierren: suele traer que corregir.
+            var esError = cfg.icon === 'error';
+            nxAlerta(cfg.icon, cfg.html || cfg.title, esError
+                ? { timer: undefined, timerProgressBar: false, showConfirmButton: true, confirmButtonText: 'Entendido', confirmButtonColor: '#0369a1' }
+                : {}).then(showNext);
         }
         showNext();
     }
 });
 </script>
+<?php if (!empty($loggedIn)): ?>
+<!-- Aviso de SINPE entrantes. Sondea sinpe/nuevos en todas las pantallas
+     para que el pago se note aunque la caja este en otra vista. -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var CLAVE = 'nx_sinpe_ultimo_id';
+    var URL_NUEVOS = '<?= site_url('sinpe/nuevos'); ?>';
+    var INTERVALO = 15000;
+
+    if (typeof window.Swal === 'undefined') return;
+
+    function ultimoVisto() {
+        var v = parseInt(window.localStorage.getItem(CLAVE) || '0', 10);
+        return isNaN(v) ? 0 : v;
+    }
+
+    function money(n) {
+        n = parseFloat(n) || 0;
+        return '₡' + n.toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function avisar(p) {
+        var detalle = [p.nombre || 'SINPE Movil', p.telefono, p.banco]
+            .filter(function (x) { return !!x; }).join(' · ');
+        window.Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'SINPE recibido: ' + money(p.monto),
+            text: detalle,
+            timer: 9000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+        try { if (navigator.vibrate) navigator.vibrate(180); } catch (e) {}
+    }
+
+    function revisar() {
+        if (document.hidden) return;   // no apilar avisos que nadie ve
+
+        fetch(URL_NUEVOS + '?desde=' + ultimoVisto(), { credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+                if (!d) return;
+                (d.nuevos || []).forEach(avisar);
+                if (d.ultimo_id) window.localStorage.setItem(CLAVE, String(d.ultimo_id));
+            })
+            .catch(function () { /* se reintenta en el proximo ciclo */ });
+    }
+
+    revisar();
+    setInterval(revisar, INTERVALO);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) revisar();
+    });
+});
+</script>
+<?php endif; ?>
+
 <script>
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {

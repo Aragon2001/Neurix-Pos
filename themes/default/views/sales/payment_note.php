@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <style type="text/css">
     @media print {
@@ -50,10 +56,10 @@
                     <div class="clearfix"></div>
                 </div>
                 <div class="col-5">
-                    <h2 class=""><?= $customer->company ? $customer->company : $customer->name; ?></h2>
-                    <?= $customer->company ? "" : "Attn: " . $customer->name ?>
+                    <h2 class=""><?= @$customer->company ? @$customer->company : $customer->name; ?></h2>
+                    <?= @$customer->company ? "" : "Attn: " . $customer->name ?>
                     <?php
-                    echo $customer->address . "<br />" . $customer->city . " " . $customer->postal_code . " " . $customer->state . "<br />" . $customer->country;
+                    echo @$customer->address . "<br />" . @$customer->city . " " . @$customer->postal_code . " " . @$customer->state . "<br />" . @$customer->country;
                     echo "<p>";
                     if ($customer->cf1 != "-" && $customer->cf1 != "") {
                         echo "<br>" . lang("ccf1") . ": " . $customer->cf1;
@@ -61,17 +67,17 @@
                     if ($customer->cf2 != "-" && $customer->cf2 != "") {
                         echo "<br>" . lang("ccf2") . ": " . $customer->cf2;
                     }
-                    if ($customer->cf3 != "-" && $customer->cf3 != "") {
-                        echo "<br>" . lang("ccf3") . ": " . $customer->cf3;
+                    if (@$customer->cf3 != "-" && @$customer->cf3 != "") {
+                        echo "<br>" . lang("ccf3") . ": " . @$customer->cf3;
                     }
-                    if ($customer->cf4 != "-" && $customer->cf4 != "") {
-                        echo "<br>" . lang("ccf4") . ": " . $customer->cf4;
+                    if (@$customer->cf4 != "-" && @$customer->cf4 != "") {
+                        echo "<br>" . lang("ccf4") . ": " . @$customer->cf4;
                     }
-                    if ($customer->cf5 != "-" && $customer->cf5 != "") {
-                        echo "<br>" . lang("ccf5") . ": " . $customer->cf5;
+                    if (@$customer->cf5 != "-" && @$customer->cf5 != "") {
+                        echo "<br>" . lang("ccf5") . ": " . @$customer->cf5;
                     }
-                    if ($customer->cf6 != "-" && $customer->cf6 != "") {
-                        echo "<br>" . lang("ccf6") . ": " . $customer->cf6;
+                    if (@$customer->cf6 != "-" && @$customer->cf6 != "") {
+                        echo "<br>" . lang("ccf6") . ": " . @$customer->cf6;
                     }
                     echo "</p>";
                     echo lang("tel") . ": " . $customer->phone . "<br />" . lang("email") . ": " . $customer->email;
@@ -82,9 +88,9 @@
 
             <div class="row">
                 <div class="col-sm-6">
-                    <p style="font-weight:bold;"><?= lang("date"); ?>: <?= $this->sma->hrsd($payment->date); ?></p>
+                    <p style="font-weight:bold;"><?= lang("date"); ?>: <?= $this->tec->hrsd($payment->date); ?></p>
 
-                    <p style="font-weight:bold;"><?= lang("payment_reference"); ?>: <?= $payment->reference_no; ?></p>
+                    <p style="font-weight:bold;"><?= lang("payment_reference"); ?>: <?= @$payment->reference; ?></p>
                 </div>
             </div>
             <div class="card">
@@ -96,7 +102,7 @@
                             <strong><?= $payment->type == 'returned' ? lang("payment_returned") : lang("payment_received"); ?></strong>
                         </td>
                         <td class="text-right"><strong
-                                class="text-right"><?php echo $this->sma->formatMoney($payment->amount); ?></strong>
+                                class="text-right"><?php echo $this->tec->formatMoney($payment->amount); ?></strong>
                         </td>
                     </tr>
                     <tr>

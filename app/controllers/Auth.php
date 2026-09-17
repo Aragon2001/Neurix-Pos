@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Auth extends MY_Controller {
@@ -10,6 +14,7 @@ class Auth extends MY_Controller {
         $this->load->library('form_validation');
         $this->form_validation->set_error_delimiters($this->config->item('error_start_delimiter', 'ion_auth'), $this->config->item('error_end_delimiter', 'ion_auth'));
         $this->load->model('auth_model');
+        $this->load->model('AuditLog_model', 'audit_log');
         $this->load->library('ion_auth');
     }
 
@@ -140,14 +145,24 @@ class Auth extends MY_Controller {
             $remember = (bool) $this->input->post('remember');
 
             if ($this->ion_auth->login($this->input->post('identity'), $this->input->post('password'), $remember)) {
+                $this->audit_log->log('login_exitoso', 'user', (int) $this->session->userdata('user_id'), (string) $this->input->post('identity'));
                 if (!empty($this->Settings->mmode)) {
                     if (!$this->ion_auth->in_group('admin')) {
                         $this->session->set_flashdata('error', lang('site_is_offline_plz_try_later'));
                         redirect('auth/logout');
                     }
                 }
+                // La contrasena que puso el administrador no puede quedarse:
+                // hasta cambiarla, la unica pantalla disponible es su perfil.
+                $usuario = $this->ion_auth->user()->row();
+                if ($usuario && !empty($usuario->must_change_password)) {
+                    $this->session->set_flashdata('warning', lang('debe_cambiar_password'));
+                    redirect('auth/profile/' . $usuario->id);
+                }
+
                 redirect($this->session->userdata('store_id') ? 'pos' : 'welcome');
             } else {
+                $this->audit_log->log('login_fallido', 'user', 0, (string) $this->input->post('identity'));
                 $this->session->set_flashdata('error', $this->ion_auth->errors());
                 sleep(2);
                 redirect('login');
@@ -209,10 +224,37 @@ class Auth extends MY_Controller {
     }
 
     function logout($m = NULL) {
+        if ($this->_caja_abierta()) {
+            // pos/close_register es un parcial que se carga dentro de un modal:
+            // navegar ahi directo devuelve un fragmento suelto. Se manda al POS
+            // con la marca que abre ese modal al cargar.
+            $this->session->set_flashdata('error', lang('close_register_before_logout'));
+            redirect('pos?cerrar_caja=1');
+        }
+
+        $this->audit_log->log('logout', 'user', (int) $this->session->userdata('user_id'), (string) $this->session->userdata('email'));
         $logout = $this->ion_auth->logout();
         $this->session->set_flashdata('message', $this->ion_auth->messages());
 
         redirect('login?m=' . ($m ? $m : ($this->input->get('m') ? $this->input->get('m') : '')));
+    }
+
+    /**
+     * La caja se consulta contra la base y no contra la sesion: si un admin ya
+     * cerro esa caja, el cajero quedaria encerrado sin poder salir nunca.
+     */
+    private function _caja_abierta() {
+        if (!$this->session->userdata('register_id') || !$this->ion_auth->logged_in()) {
+            return FALSE;
+        }
+        $this->load->model('pos_model');
+        if ($this->pos_model->registerData($this->session->userdata('user_id'))) {
+            return TRUE;
+        }
+        $this->session->unset_userdata('register_id');
+        $this->session->unset_userdata('cash_in_hand');
+        $this->session->unset_userdata('register_open_time');
+        return FALSE;
     }
 
     function change_password() {
@@ -220,7 +262,7 @@ class Auth extends MY_Controller {
             redirect('login');
         }
         $this->form_validation->set_rules('old_password', lang('old_password'), 'required');
-        $this->form_validation->set_rules('new_password', lang('new_password'), 'required|max_length[25]');
+        $this->form_validation->set_rules('new_password', lang('new_password'), 'required|min_length[8]|max_length[25]');
         $this->form_validation->set_rules('new_password_confirm', lang('confirm_password'), 'required|matches[new_password]');
 
         $user = $this->ion_auth->user()->row();
@@ -239,6 +281,11 @@ class Auth extends MY_Controller {
             $change = $this->ion_auth->change_password($identity, $this->input->post('old_password'), $this->input->post('new_password'));
 
             if ($change) {
+                $this->db->update('users', array(
+                    'must_change_password' => 0,
+                    'password_changed_at'  => date('Y-m-d H:i:s'),
+                ), array('id' => $user->id));
+                $this->audit_log->log('password_cambiada', 'user', (int) $user->id);
                 $this->session->set_flashdata('message', $this->ion_auth->messages());
                 $this->logout();
             } else {
@@ -258,21 +305,15 @@ class Auth extends MY_Controller {
         } else {
 
             $identity = $this->ion_auth->where('email', strtolower($this->input->post('forgot_email')))->users()->row();
-            if (empty($identity)) {
-                $this->ion_auth->set_message('forgot_password_email_not_found');
-                $this->session->set_flashdata('error', $this->ion_auth->messages());
-                redirect("login#forgot_password");
+
+            if (!empty($identity)) {
+                $this->ion_auth->forgotten_password($identity->email);
             }
 
-            $forgotten = $this->ion_auth->forgotten_password($identity->email);
-
-            if ($forgotten) {
-                $this->session->set_flashdata('message', $this->ion_auth->messages());
-                redirect("login#forgot_password");
-            } else {
-                $this->session->set_flashdata('error', $this->ion_auth->errors());
-                redirect("login#forgot_password");
-            }
+            // La respuesta es la misma exista o no la cuenta: distinguirlas
+            // convierte esta pantalla en un verificador de correos registrados.
+            $this->session->set_flashdata('message', lang('forgot_password_respuesta'));
+            redirect("login#forgot_password");
         }
     }
 
@@ -407,8 +448,22 @@ class Auth extends MY_Controller {
         }
 
         $this->data['title'] = lang('add_user');
-        $this->form_validation->set_rules('username', lang("username"), 'trim|is_unique[users.username]');
-        $this->form_validation->set_rules('email', lang("email"), 'trim|is_unique[users.email]');
+
+        // `email` es NOT NULL UNIQUE: sin regla `required` el primer usuario se
+        // guardaba con cadena vacia y el segundo chocaba contra el indice.
+        $this->form_validation->set_rules('username', lang("username"), 'required|trim|min_length[3]|max_length[100]|alpha_dash|is_unique[users.username]');
+        $this->form_validation->set_rules('email', lang("email"), 'required|trim|valid_email|is_unique[users.email]');
+        $this->form_validation->set_rules('first_name', lang("first_name"), 'required|min_length[2]|max_length[50]');
+        $this->form_validation->set_rules('last_name', lang("last_name"), 'required|min_length[2]|max_length[50]');
+        $this->form_validation->set_rules('password', lang("password"), 'required|min_length[8]|max_length[25]|matches[confirm_password]');
+        $this->form_validation->set_rules('confirm_password', lang("confirm_password"), 'required');
+        $this->form_validation->set_rules('group', lang("group"), 'required');
+        // La identificacion rotula al cajero en el cierre y en la bitacora, y
+        // dos cuentas con la misma vuelven ese rastro inservible.
+        $this->form_validation->set_rules('cedula', lang("n_identificacion"), 'required|trim|min_length[9]|max_length[20]|is_unique[users.cedula]');
+        $this->form_validation->set_rules('gender', lang("gender"), 'required|in_list[male,female]');
+        $this->form_validation->set_rules('store_id', lang("store"), 'required|integer');
+        $this->form_validation->set_rules('status', lang("status"), 'required|in_list[0,1]');
 
         if ($this->form_validation->run() == true) {
 
@@ -418,16 +473,23 @@ class Auth extends MY_Controller {
             $notify = $this->input->post('notify');
 
             $additional_data = array(
-                'first_name' => $this->input->post('first_name'),
-                'last_name' => $this->input->post('last_name'),
-                'phone' => $this->input->post('phone'),
-                'gender' => $this->input->post('gender'),
-                'hora_inicio' => $this->input->post('hora_inicio'),
-                'hora_fin' => $this->input->post('hora_fin'),
-                'store_id' => $this->input->post('group') == 1 ? NULL : $this->input->post('store_id'),
-                'group_id' => $this->input->post('group') ? $this->input->post('group') : '2',
+                'first_name'  => $this->input->post('first_name'),
+                'last_name'   => $this->input->post('last_name'),
+                'phone'       => $this->input->post('phone'),
+                'gender'      => $this->input->post('gender'),
+                'cedula'      => trim((string) $this->input->post('cedula')),
+                'notes'       => trim((string) $this->input->post('notes')) ?: NULL,
+                'hora_inicio' => $this->input->post('hora_inicio') ?: NULL,
+                'hora_fin'    => $this->input->post('hora_fin') ?: NULL,
+                'auth_open'   => $this->input->post('auth_open') ? 1 : 0,
+                'store_id'    => (int) $this->input->post('store_id'),
+                'group_id'    => (int) $this->input->post('group'),
+                // El administrador elige la contrasena inicial: el duenio de la
+                // cuenta la cambia la primera vez que entra.
+                'must_change_password' => 1,
+                'created_by'  => (int) $this->session->userdata('user_id') ?: NULL,
             );
-            $active = $this->input->post('status');
+            $active = (int) $this->input->post('status');
         }
         if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
 
@@ -451,27 +513,35 @@ class Auth extends MY_Controller {
             redirect($_SERVER["HTTP_REFERER"]);
         }
         
-        $this->data['title'] = lang('add_user');
-        $this->form_validation->set_rules('hora_inicio', "Inicio", 'trim|is_unique[users.username]');
-        $this->form_validation->set_rules('hora_fin', "Fin", 'trim|is_unique[users.email]');
-        
+        $this->data['title'] = lang('horario_usuario');
+
         if ($this->input->post('id')) {
             $id = $this->input->post('id');
         }
-
-
 
         if (DEMO) {
             $this->session->set_flashdata('error', lang('disabled_in_demo'));
             redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome');
         }
+
+        $inicio = trim((string) $this->input->post('hora_inicio'));
+        $fin    = trim((string) $this->input->post('hora_fin'));
+        $formato = '/^([01]\d|2[0-3]):[0-5]\d$/';
+
+        if (($inicio !== '' && !preg_match($formato, $inicio)) || ($fin !== '' && !preg_match($formato, $fin))) {
+            $this->session->set_flashdata('error', lang('horario_formato_invalido'));
+            redirect('auth/profile/' . $id);
+        }
+        if ($inicio !== '' && $fin !== '' && $fin <= $inicio) {
+            $this->session->set_flashdata('error', lang('horario_salida_antes'));
+            redirect('auth/profile/' . $id);
+        }
+
         $data = array(
-            'hora_inicio' => $this->input->post('hora_inicio'),
-            'hora_fin' => $this->input->post('hora_fin'),
+            'hora_inicio' => $inicio ?: NULL,
+            'hora_fin'    => $fin ?: NULL,
         );
-        
-        $this->ion_auth->update($id, $data);
-        
+
         if ($this->ion_auth->update($id, $data)) {
             $this->session->set_flashdata('message', lang('user_updated'));
             redirect("auth/profile/" . $id);
@@ -487,26 +557,19 @@ class Auth extends MY_Controller {
             redirect($_SERVER["HTTP_REFERER"]);
         }
         
-        $this->data['title'] = lang('add_user');
-        $this->form_validation->set_rules('hora_inicio', "Inicio", 'trim|is_unique[users.username]');
-        $this->form_validation->set_rules('hora_fin', "Fin", 'trim|is_unique[users.email]');
-        
+        $this->data['title'] = lang('apertura_caja');
+
         if ($this->input->post('id')) {
             $id = $this->input->post('id');
         }
-
-
 
         if (DEMO) {
             $this->session->set_flashdata('error', lang('disabled_in_demo'));
             redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome');
         }
-        $data = array(
-            'auth_open' => $this->input->post('auth_open')
-        );
-        
-        $this->ion_auth->update($id, $data);
-        
+
+        $data = array('auth_open' => $this->input->post('auth_open') ? 1 : 0);
+
         if ($this->ion_auth->update($id, $data)) {
             $this->session->set_flashdata('message', lang('user_updated'));
             redirect("auth/profile/" . $id);
@@ -535,6 +598,17 @@ class Auth extends MY_Controller {
         if ($user->email != $this->input->post('email')) {
             $this->form_validation->set_rules('email', lang("email"), 'trim|is_unique[users.email]');
         }
+        $regla_cedula = 'required|trim|min_length[9]|max_length[20]';
+        if (trim((string) $user->cedula) !== trim((string) $this->input->post('cedula'))) {
+            $regla_cedula .= '|is_unique[users.cedula]';
+        }
+        $this->form_validation->set_rules('cedula', lang("n_identificacion"), $regla_cedula);
+        $this->form_validation->set_rules('gender', lang("gender"), 'required|in_list[male,female]');
+        if ($this->Admin && $id != $this->session->userdata('user_id')) {
+            $this->form_validation->set_rules('group', lang("group"), 'required|integer');
+            $this->form_validation->set_rules('store_id', lang("store"), 'required|integer');
+            $this->form_validation->set_rules('status', lang("status"), 'required|in_list[0,1]');
+        }
 
         if ($this->form_validation->run() === TRUE) {
             if (DEMO) {
@@ -548,6 +622,8 @@ class Auth extends MY_Controller {
                         'last_name' => $this->input->post('last_name'),
                         'phone' => $this->input->post('phone'),
                         'gender' => $this->input->post('gender'),
+                        'cedula' => trim((string) $this->input->post('cedula')),
+                        'notes' => trim((string) $this->input->post('notes')) ?: NULL,
                     );
                 } else {
                     $data = array(
@@ -557,9 +633,11 @@ class Auth extends MY_Controller {
                         'email' => $this->input->post('email'),
                         'phone' => $this->input->post('phone'),
                         'gender' => $this->input->post('gender'),
-                        'active' => $this->input->post('status'),
-                        'group_id' => $this->input->post('group'),
-                        'store_id' => $this->input->post('group') == 1 ? NULL : $this->input->post('store_id'),
+                        'cedula' => trim((string) $this->input->post('cedula')),
+                        'notes' => trim((string) $this->input->post('notes')) ?: NULL,
+                        'active' => (int) $this->input->post('status'),
+                        'group_id' => (int) $this->input->post('group'),
+                        'store_id' => (int) $this->input->post('store_id'),
                     );
                 }
             } else {
@@ -568,19 +646,34 @@ class Auth extends MY_Controller {
                     'last_name' => $this->input->post('last_name'),
                     'phone' => $this->input->post('phone'),
                     'gender' => $this->input->post('gender'),
+                    'cedula' => trim((string) $this->input->post('cedula')),
                 );
             }
 
-            if ($this->Admin) {
-                if ($this->input->post('password')) {
-                    $this->form_validation->set_rules('password', lang('edit_user_validation_password_label'), 'required|min_length[' . $this->config->item('min_password_length', 'ion_auth') . ']|max_length[' . $this->config->item('max_password_length', 'ion_auth') . ']|matches[password_confirm]');
-                    $this->form_validation->set_rules('password_confirm', lang('edit_user_validation_password_confirm_label'), 'required');
+            $clave_nueva = (string) $this->input->post('password');
+            if ($this->Admin && $clave_nueva !== '') {
+                // Las reglas puestas aqui ya no corren: form_validation->run() paso
+                // antes, asi que la contrasena hay que comprobarla a mano.
+                $minimo = (int) $this->config->item('min_password_length', 'ion_auth');
+                $maximo = (int) $this->config->item('max_password_length', 'ion_auth');
+                $largo  = strlen($clave_nueva);
 
-                    $data['password'] = $this->input->post('password');
+                if ($largo < $minimo || $largo > $maximo) {
+                    $this->session->set_flashdata('error', sprintf(lang('password_largo_invalido'), $minimo, $maximo));
+                    redirect('auth/profile/' . $id);
                 }
-                // Cash-drawer PIN: only settable by the admin who owns it (self-edit),
-                // never assignable by one admin onto another user's account.
-                if ($id == $this->session->userdata('user_id') && $this->input->post('drawer_pin')) {
+                if ($clave_nueva !== (string) $this->input->post('password_confirm')) {
+                    $this->session->set_flashdata('error', lang('password_no_coincide'));
+                    redirect('auth/profile/' . $id);
+                }
+                $data['password'] = $clave_nueva;
+            }
+
+            // El PIN del cajon solo lo pone su dueno, y solo si su rol autoriza
+            // la apertura: es la credencial con la que se abre y se devuelve.
+            if ($id == $this->session->userdata('user_id') && $this->input->post('drawer_pin')) {
+                $grupo = $this->ion_auth->group($user->group_id)->row();
+                if ($grupo && in_array($grupo->name, array('admin', 'supervisor'), true)) {
                     $data['drawer_pin'] = password_hash($this->input->post('drawer_pin'), PASSWORD_DEFAULT);
                 }
             }
@@ -711,79 +804,5 @@ class Auth extends MY_Controller {
             redirect($_SERVER["HTTP_REFERER"]);
         }
     }
-
-    function exec_timeout($cmd, $timeout) {
-        // File descriptors passed to the process.
-        $descriptors = array(
-            0 => array('pipe', 'r'), // stdin
-            1 => array('pipe', 'w'), // stdout
-            2 => array('pipe', 'w')   // stderr
-        );
-
-        // Start the process.
-        $process = proc_open('exec ' . $cmd, $descriptors, $pipes);
-
-        if (!is_resource($process)) {
-            throw new \Exception('Could not execute process');
-        }
-
-        // Set the stdout stream to none-blocking.
-        stream_set_blocking($pipes[1], 0);
-
-        // Turn the timeout into microseconds.
-        $timeout = $timeout * 1000000;
-
-        // Output buffer.
-        $buffer = '';
-
-        // While we have time to wait.
-        while ($timeout > 0) {
-            $start = microtime(true);
-
-            // Wait until we have output or the timer expired.
-            $read = array($pipes[1]);
-            $other = array();
-            stream_select($read, $other, $other, 0, $timeout);
-
-            // Get the status of the process.
-            // Do this before we read from the stream,
-            // this way we can't lose the last bit of output if the process dies between these functions.
-            $status = proc_get_status($process);
-
-            // Read the contents from the buffer.
-            // This function will always return immediately as the stream is none-blocking.
-            $buffer .= stream_get_contents($pipes[1]);
-
-            if (!$status['running']) {
-                // Break from this loop if the process exited before the timeout.
-                break;
-            }
-
-            // Subtract the number of microseconds that we waited.
-            $timeout -= (microtime(true) - $start) * 1000000;
-        }
-
-        // Check if there were any errors.
-        $errors = stream_get_contents($pipes[2]);
-
-        if (!empty($errors)) {
-            throw new \Exception($errors);
-        }
-
-        // Kill the process in case the timeout expired and it's still running.
-        // If the process already exited this won't do anything.
-        proc_terminate($process, 9);
-
-        // Close all streams.
-        fclose($pipes[0]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        proc_close($process);
-
-        return $buffer;
-    }
-
-
 
 }

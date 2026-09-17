@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
@@ -17,6 +21,7 @@ class Sales extends MY_Controller {
         }
         $this->load->library('form_validation');
         $this->load->model('sales_model');
+        $this->load->model('AuditLog_model', 'audit_log');
         $this->load->helper('text');
 
         $this->digital_file_types = 'zip|pdf|doc|docx|xls|xlsx|jpg|png|gif';
@@ -30,27 +35,114 @@ class Sales extends MY_Controller {
         $this->page_construct('sales/index', $this->data, $meta);
     }
 
+    /**
+     * Filas del listado de Ventas.
+     *
+     * Las acciones ya no viajan como HTML: el listado abre el detalle de la
+     * venta (sales/documento) y arma ahi los botones que correspondan segun el
+     * estado ante Hacienda. Lo que se manda son los datos que la fila necesita
+     * para decidir que mostrar sin volver a preguntar.
+     */
     function get_sales() {
 
         $this->load->library('datatables');
-        
-        $this->datatables->select("sales.id as id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, total, total_tax, total_discount, grand_total, paid, ht.estatus_hacienda,ht.consecutivo, status");
+
+        // CI3 traduce `sales.` a `tec_sales.` en los identificadores sueltos, pero
+        // no dentro de parentesis: ahi hay que escribir el nombre real de la tabla.
+        $sa = $this->db->dbprefix('sales');
+        $nc = $this->db->dbprefix('note_credits');
+        $nd = $this->db->dbprefix('note_debits');
+
+        // Solo se califica lo que existe en las dos tablas del join (id, tipo_doc,
+        // consecutivo, clave); el resto va suelto para no pelear con el prefijado.
+        $this->datatables->select(
+            "sales.id as id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name,"
+            . " total, total_tax, total_discount, grand_total, paid, status, payment_status,"
+            . " sales.tipo_doc as tipo_venta, sales.situacion,"
+            . " ht.estatus_hacienda, ht.consecutivo, ht.clave, ht.tipo_doc,"
+            . " (ht.xml_sign IS NOT NULL AND ht.xml_sign <> '') as tiene_xml,"
+            . " (ht.xml_hacienda IS NOT NULL AND ht.xml_hacienda <> '') as tiene_acuse,"
+            . " (SELECT COUNT(*) FROM `{$nc}` WHERE `{$nc}`.sale_id = `{$sa}`.id) as notas_credito,"
+            . " (SELECT COUNT(*) FROM `{$nd}` WHERE `{$nd}`.sale_id = `{$sa}`.id) as notas_debito",
+            FALSE
+        );
         $this->datatables->from('sales');
         $this->datatables->join('hacienda_tiketes ht', 'ht.sale_id = sales.id', 'left');
-        $this->db->order_by("date","desc");
+        $this->db->order_by("sales.date", "desc");
 
         if (!$this->Admin && !$this->session->userdata('view_right')) {
-            $this->datatables->where('created_by', $this->session->userdata('user_id'));
+            $this->datatables->where('sales.created_by', $this->session->userdata('user_id'));
         }
-        $this->datatables->where('store_id', $this->session->userdata('store_id'));
-        $this->datatables->add_column('status_hacienda', "<div class='text-center'><div class='btn-group'>
-            <a target='_blank' href='" . site_url('XmlHacienda/xmlFirmado/$1') . "' title='Ver XML Firmado' class='tip btn btn-info btn-xs' ><i class='fa fa-list'></i></a>
-            <a target='_blank' href='" . site_url('XmlHacienda/xmlMensaje/$1') . "' title='Ver XML de Respuesta' class='tip btn btn-warning btn-xs' ><i class='fa fa-list'></i></a> 
-            </div></div>", "id");
-//        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('pos/view/$1/1') . "' title='".lang("view_invoice")."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-list'></i></a> <a href='".site_url('sales/payments/$1')."' title='" . lang("view_payments") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-money'></i></a> <a href='".site_url('sales/add_payment/$1')."' title='" . lang("add_payment") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-briefcase'></i></a> <a href='" . site_url('pos/?edit=$1') . "' title='".lang("edit_invoice")."' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('sales/delete/$1') . "' onClick=\"return confirm('". lang('alert_x_sale') ."')\" title='".lang("delete_sale")."' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id");
-        
-        $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a  href='" . site_url('sales/abort/$1') . "' title='" . lang("view_abort") . "' class='tip btn btn-primary btn-xs'><i class='fa fa-ban'></i></a><a  href='" . site_url('pos/?redo=$1') . "' title='" . lang("re_create") . "' class='tip btn btn-primary btn-xs'><i class='fa fa-repeat'></i></a><a target='_blank' href='" . site_url('pos/view/$1') . "' title='" . lang("view_invoice") . "' class='tip btn btn-primary btn-xs'><i class='fa fa-list'></i></a> <a href='" . site_url('sales/payments/$1') . "' title='" . lang("view_payments") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-money'></i></a> <a href='" . site_url('sales/add_payment/$1') . "' title='" . lang("add_payment") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-briefcase'></i></a> </div></div>", "id");
-        // $this->datatables->unset_column('id');
+        $this->datatables->where('sales.store_id', $this->session->userdata('store_id'));
+        // Las anuladas viven en su propia pantalla: aca solo lo que sigue vivo.
+        $this->datatables->where($this->_condicionNoAnulada(), null, false);
+
+        echo $this->datatables->generate();
+    }
+
+    /**
+     * Una venta esta anulada si tiene fila en tec_sale_anulaciones.
+     *
+     * No se usa estatus_hacienda para esto: cuando la anulacion es fiscal el
+     * comprobante sigue estando aceptado ante Hacienda, y esa columna guarda la
+     * respuesta real, no lo que el negocio decidio despues.
+     */
+    private function _condicionNoAnulada() {
+        $sa = $this->db->dbprefix('sale_anulaciones');
+        $s  = $this->db->dbprefix('sales');
+        if (!$this->db->table_exists('sale_anulaciones')) {
+            return '1 = 1';
+        }
+        return "NOT EXISTS (SELECT 1 FROM `{$sa}` WHERE `{$sa}`.sale_id = `{$s}`.id)";
+    }
+
+    function anuladas() {
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $this->data['page_title'] = lang('sales_anuladas');
+        $bc = array(
+            array('link' => site_url('sales'), 'page' => lang('sales')),
+            array('link' => '#', 'page' => lang('sales_anuladas')),
+        );
+        $meta = array('page_title' => lang('sales_anuladas'), 'bc' => $bc);
+        $this->page_construct('sales/anuladas', $this->data, $meta);
+    }
+
+    /** Filas del listado de facturas anuladas. */
+    function get_anuladas() {
+
+        $this->load->library('datatables');
+
+        $sa = $this->db->dbprefix('sale_anulaciones');
+        $s  = $this->db->dbprefix('sales');
+        $u  = $this->db->dbprefix('users');
+
+        // Sin alias en la tabla del FROM: CI3 lo confunde con una tabla y lo
+        // prefija ('a.created_by' llegaba como 'tec_a.created_by').
+        $this->datatables->select(
+            "sale_anulaciones.id as id, sale_anulaciones.sale_id,"
+            . " DATE_FORMAT(`{$sa}`.created_at, '%Y-%m-%d %H:%i') as fecha_anulacion,"
+            . " sale_anulaciones.tipo, sale_anulaciones.motivo, sale_anulaciones.devuelve_dinero,"
+            . " sale_anulaciones.monto_devuelto, sale_anulaciones.medio_devolucion,"
+            . " sale_anulaciones.cn_id, sale_anulaciones.cajon_abierto,"
+            . " DATE_FORMAT(`{$s}`.date, '%Y-%m-%d %H:%i') as fecha_venta,"
+            . " sales.customer_name, sales.grand_total,"
+            . " ht.consecutivo, ht.tipo_doc, ht.estatus_hacienda,"
+            . " hcn.consecutivo as consecutivo_nc, hcn.estatus_hacienda as estado_nc,"
+            . " CONCAT(COALESCE(`{$u}`.first_name,''), ' ', COALESCE(`{$u}`.last_name,'')) as anulada_por",
+            FALSE
+        );
+        $this->datatables->from('sale_anulaciones');
+        $this->datatables->join('sales', 'sales.id = sale_anulaciones.sale_id', 'left');
+        $this->datatables->join('hacienda_tiketes ht', 'ht.sale_id = sale_anulaciones.sale_id', 'left');
+        $this->datatables->join('hacienda_cn hcn', 'hcn.id_cn = sale_anulaciones.cn_id', 'left');
+        $this->datatables->join('users', 'users.id = sale_anulaciones.created_by', 'left');
+        $this->db->order_by('sale_anulaciones.created_at', 'desc');
+
+        if (!$this->Admin && !$this->session->userdata('view_right')) {
+            $this->datatables->where('sale_anulaciones.created_by', $this->session->userdata('user_id'));
+        }
+        $this->datatables->where('sale_anulaciones.store_id', $this->session->userdata('store_id'));
+
         echo $this->datatables->generate();
     }
 
@@ -162,7 +254,7 @@ class Sales extends MY_Controller {
         }
         $this->datatables->where('store_id', $this->session->userdata('store_id'));
         $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('pos/?hold=$1') . "' title='" . lang("click_to_add") . "' class='tip btn btn-info btn-xs'><i class='fa fa-th-large'></i></a>
-            <a href='" . site_url('sales/delete_holded/$1') . "' data-confirm=\"" . lang('alert_x_holded') . "\" title='" . lang("delete_sale") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
+            <a href='" . site_url('sales/delete_holded/$1' . '?t=' . $this->token_accion()) . "' data-confirm=\"" . lang('alert_x_holded') . "\" title='" . lang("delete_sale") . "' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id")
                 ->unset_column('id');
 
         echo $this->datatables->generate();
@@ -190,6 +282,9 @@ class Sales extends MY_Controller {
     }
 
     function delete_holded($id = NULL) {
+        // El enlace tiene que venir de una pantalla de esta sesion.
+        $this->exigir_token_accion();
+
 
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
@@ -269,7 +364,7 @@ class Sales extends MY_Controller {
                 'store_id' => $this->session->userdata('store_id'),
             );
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
                 $this->load->library('upload');
                 $config['upload_path'] = 'files/';
                 $config['allowed_types'] = $this->digital_file_types;
@@ -289,20 +384,26 @@ class Sales extends MY_Controller {
             // $this->tec->print_arrays($payment);
         } elseif ($this->input->post('add_payment')) {
             $this->session->set_flashdata('error', validation_errors());
-            $this->tec->dd();
         }
 
 
         if ($this->form_validation->run() == true && $this->sales_model->addPayment($payment)) {
+            $this->audit_log->log('pago_registrado', 'sale', (int) $id, (string) $payment['paid_by'], (float) $payment['amount']);
             $this->session->set_flashdata('message', lang("payment_added"));
-            redirect($_SERVER["HTTP_REFERER"]);
+            redirect('sales/payments/' . $id);
         } else {
 
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $sale = $this->sales_model->getSaleByID($id);
+            if (!$sale) {
+                $this->session->set_flashdata('error', lang('sale_not_found'));
+                redirect('sales');
+            }
             $this->data['inv'] = $sale;
-
-            $this->load->view($this->theme . 'sales/add_payment', $this->data);
+            $this->data['page_title'] = lang('add_payment');
+            $bc = array(array('link' => site_url('sales'), 'page' => lang('sales')), array('link' => '#', 'page' => lang('add_payment')));
+            $meta = array('page_title' => lang('add_payment'), 'bc' => $bc);
+            $this->page_construct('sales/add_payment', $this->data, $meta);
         }
     }
 
@@ -341,7 +442,7 @@ class Sales extends MY_Controller {
                 'store_id' => $this->session->userdata('store_id'),
             );
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
                 $this->load->library('upload');
                 $config['upload_path'] = 'files/';
                 $config['allowed_types'] = $this->digital_file_types;
@@ -361,24 +462,30 @@ class Sales extends MY_Controller {
             // $this->tec->print_arrays($payment);
         } elseif ($this->input->post('add_payment_apartado')) {
             $this->session->set_flashdata('error', validation_errors());
-            $this->tec->dd();
         }
 
         if(isset($payment)){
             $id_payment = $this->sales_model->addPaymentapartado($payment);
         }
                 
-        if ($this->form_validation->run() == true && $id_payment) {
+        if ($this->form_validation->run() == true && !empty($id_payment)) {
             $this->print_receipt($id_payment);
+            $this->audit_log->log('pago_apartado_registrado', 'sale', (int) $id, (string) $payment['paid_by'], (float) $payment['amount']);
             $this->session->set_flashdata('message', lang("payment_added"));
-            redirect($_SERVER["HTTP_REFERER"]);
+            redirect('sales/payments_apartado/' . $id);
         } else {
 
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $sale = $this->sales_model->getSaleByIDapartado($id);
+            if (!$sale) {
+                $this->session->set_flashdata('error', lang('sale_not_found'));
+                redirect('sales/apartado');
+            }
             $this->data['inv'] = $sale;
-
-            $this->load->view($this->theme . 'sales/add_payment_apartado', $this->data);
+            $this->data['page_title'] = lang('add_payment');
+            $bc = array(array('link' => site_url('sales/apartado'), 'page' => lang('sales')), array('link' => '#', 'page' => lang('add_payment')));
+            $meta = array('page_title' => lang('add_payment'), 'bc' => $bc);
+            $this->page_construct('sales/add_payment_apartado', $this->data, $meta);
         }
     }
 
@@ -423,11 +530,7 @@ class Sales extends MY_Controller {
             $totCimpuesto = 0;
             $reg_items = array();
             foreach ($operacionItems as $item) {
-                if ($item->tax > 0) {
-                    $tt = "(G)";
-                } else {
-                    $tt = "(E)";
-                }
+                $tt = ' (' . etiqueta_iva(tasa_iva_linea($item)) . ')';
                 $totImpuesto = $totImpuesto + $item->item_tax;
                 $totSimpuesto = $totSimpuesto + $item->net_unit_price;
                 $totCimpuesto = $totCimpuesto + ($item->net_unit_price + ($item->item_tax / $item->quantity));
@@ -482,10 +585,7 @@ class Sales extends MY_Controller {
         }
 
         // $this->tec->print_arrays($data);
-            $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-            $this->load->library('escpos');
-            $this->escpos->load($printer);
-            $this->escpos->print_data($data);
+            $this->encolar_ticket_qz($data);
     }
 
     function product_name($name) {
@@ -528,7 +628,7 @@ class Sales extends MY_Controller {
                 $payment['date'] = $this->input->post('date');
             }
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
                 $this->load->library('upload');
                 $config['upload_path'] = 'files/';
                 $config['allowed_types'] = $this->digital_file_types;
@@ -604,7 +704,7 @@ class Sales extends MY_Controller {
                 $payment['date'] = $this->input->post('date');
             }
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
                 $this->load->library('upload');
                 $config['upload_path'] = 'files/';
                 $config['allowed_types'] = $this->digital_file_types;
@@ -699,27 +799,62 @@ class Sales extends MY_Controller {
         }
     }
 
-    public function abort($id = NULL){
-        $this->load->model('hacienda_model');
-        $salesItems = $this->sales_model->getAllSaleItems($id);
-        $data = $this->hacienda_model->getInvoice($id);
-        if($data->estatus_hacienda != "anulado"){
-            if($data->estatus_hacienda == "rechazado"){
-                foreach($salesItems as $dat)
-                {
-                    $q = $this->db->get_where('tec_product_store_qty', array('product_id' => $dat->product_id), 1);
-                    $item = $q->row();
-                    $item->quantity+=1;
-                    $this->db->update($this->db->dbprefix('product_store_qty'), $item, array('product_id' => $dat->product_id));
-                }
-            $data->estatus_hacienda = "anulado";
-            $this->db->update($this->db->dbprefix('hacienda_tiketes'), $data, array('sale_id' => $id));
-            }else{
-                $this->session->set_flashdata('error', "El estado de hacienda debe estar en rechazado");
-            }
-        }else{
-            $this->session->set_flashdata('error', "Ya ha sido anulado");
+    /**
+     * Marca como anulado un comprobante que Hacienda rechazo y devuelve su
+     * mercaderia al inventario.
+     *
+     * Solo el rechazado admite esto: el aceptado es inmutable y se corrige con
+     * una nota de credito.
+     */
+    public function abort($id = NULL) {
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('sales');
         }
+
+        $this->load->model('hacienda_model');
+        $id   = (int) $id;
+        $data = $this->hacienda_model->getInvoice($id);
+
+        if (!$data) {
+            $this->session->set_flashdata('error', lang('sale_not_found'));
+            redirect('sales');
+        }
+        if ($data->estatus_hacienda === 'anulado') {
+            $this->session->set_flashdata('error', lang('comprobante_ya_anulado'));
+            redirect('sales');
+        }
+        if ($data->estatus_hacienda !== 'rechazado') {
+            $this->session->set_flashdata('error', lang('solo_anula_rechazado'));
+            redirect('sales');
+        }
+
+        $venta    = $this->sales_model->getSaleByID($id);
+        $store_id = $venta ? (int) $venta->store_id : (int) $this->session->userdata('store_id');
+        $psq      = $this->db->dbprefix('product_store_qty');
+
+        $this->db->trans_begin();
+        foreach ((array) $this->sales_model->getAllSaleItems($id) as $linea) {
+            if (empty($linea->product_id)) { continue; }
+            // Se devuelve lo vendido, no una unidad por linea.
+            $this->db->query(
+                "UPDATE `{$psq}` SET quantity = quantity + ? WHERE product_id = ? AND store_id = ?",
+                array((float) $linea->quantity, (int) $linea->product_id, $store_id)
+            );
+        }
+
+        $this->db->update($this->db->dbprefix('hacienda_tiketes'),
+            array('estatus_hacienda' => 'anulado'), array('sale_id' => $id));
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $this->session->set_flashdata('error', lang('action_failed'));
+            redirect('sales');
+        }
+        $this->db->trans_commit();
+
+        $this->audit_log->log('comprobante_anulado', 'sale', $id, 'rechazado -> anulado');
+        $this->session->set_flashdata('message', lang('comprobante_anulado'));
         redirect('sales');
     }
 

@@ -12,6 +12,12 @@ function copyStaticAssets() {
         resolve('themes/default/assets/src/pos-core.js'),
         resolve('themes/default/assets/dist/js/pos-core.js')
       )
+      // nx-reportes.js tampoco se bundlea: las vistas del Centro de
+      // Inteligencia lo piden como archivo suelto, igual que pos-core.js
+      copyFileSync(
+        resolve('themes/default/assets/src/nx-reportes.js'),
+        resolve('themes/default/assets/dist/js/nx-reportes.js')
+      )
       // nx-sidebar.css se enlaza aparte en header.php (después de www.min.css
       // para poder sobreescribirlo); emptyOutDir lo borra en cada build si no
       // se vuelve a copiar desde src
@@ -19,6 +25,13 @@ function copyStaticAssets() {
       copyFileSync(
         resolve('themes/default/assets/src/nx-sidebar.css'),
         resolve('themes/default/assets/dist/css/nx-sidebar.css')
+      )
+      // La hoja del comprobante imprimible no entra al bundle: la piden
+      // pos/invoice y creditnotes/invoice como archivo suelto
+      mkdirSync('themes/default/assets/dist/css/invoice', { recursive: true })
+      copyFileSync(
+        resolve('themes/default/assets/src/invoice.css'),
+        resolve('themes/default/assets/dist/css/invoice/style.css')
       )
     }
   }

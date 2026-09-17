@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 <section class="content" >
 <div class="btn-group  float-start" role="group" aria-label="...">
     <div class="btn-group" role="group2">
@@ -29,15 +35,15 @@
                                                         <h4 class="h4 m-none text-dark text-bold">
                                                              <?=$hacienda->consecutivo?></h4>
                                                         <i>
-                                                            <? if ($inv->status == 'Unpaid') { ?>
+                                                            <?php if ($inv->status == 'Unpaid') { ?>
                                                             <h3 class="pluma alert float-start alert-danger"><?= lang('no_pagada'); ?></h3>
-                                                            <? }else if ($inv->status == 'Paid') { ?>
+                                                            <?php }else if ($inv->status == 'Paid') { ?>
                                                             <h3 class="pluma alert float-start alert-success"><?= lang('pagada'); ?></h3>
-                                                            <? } else if ($inv->status == 'Partially Paid') { ?>
+                                                            <?php } else if ($inv->status == 'Partially Paid') { ?>
                                                             <h3 class="pluma alert float-start alert-info"><?= lang('parcialmente_pagada'); ?></h3>
-                                                            <? } else { ?>
+                                                            <?php } else { ?>
                                                             <h3 class="pluma alert float-start alert-info"><?= $inv->status ?></h3>
-                                                            <? } ?>
+                                                            <?php } ?>
                                                         </i>
                                                         <br/>
                                                         <br/>
@@ -62,15 +68,15 @@
                                                         <div class="bill-to">
                                                             <p class="h5 mb-xs text-dark text-semibold"><strong><?= lang('facturado_a'); ?>:</strong></p>
                                                             <address>
-                                                                <?= $customer->name ?>
+                                                                <?= html_escape($customer->name); ?>
                                                                 <br>
                                                                 <?= $local['direccion'] ?> <br>
                                                                 <?=$local['nombre_distrito']?> - <?=$local['nombre_canton']?>
                                                                 - <?=$local['nombre_provincia']?>.
                                                                 <br>
-                                                                <strong><?= lang('phone'); ?>:</strong> <?= $customer->phone ?>
+                                                                <strong><?= lang('phone'); ?>:</strong> <?= html_escape($customer->phone); ?>
                                                                 <br>
-                                                                <strong><?= lang('email'); ?>:</strong> <?= $customer->email?>
+                                                                <strong><?= lang('email'); ?>:</strong> <?= html_escape($customer->email); ?>
                                                             </address>
 
                                                         </div>
@@ -82,10 +88,10 @@
                                                                 <span class="value"><?= date('Y-m-d', strtotime($hacienda->fecha_emision)) ?></span>
                                                             </p>
                                                             <h2><?= lang('importe_total'); ?>:                 ¢ <?= number_format($inv->grand_total, 2, '.', '') ?></h2>
-                                                            <? if ($inv->paid != '0.00') { ?>
-                                                            <h2><?= lang(\'total_pagado\'); ?>: ¢ <?= number_format($inv->paid, 2, '.', '') ?> </h2>
-                                                            <h2><?= lang(\'monto_adeudado\'); ?>:¢ <?= number_format($inv->grand_total - $inv->paid, 2, '.', '') ?> </h2>
-                                                            <? } ?>
+                                                            <?php if ($inv->paid != '0.00') { ?>
+                                                            <h2><?= lang('total_pagado'); ?>: ¢ <?= number_format($inv->paid, 2, '.', '') ?> </h2>
+                                                            <h2><?= lang('monto_adeudado'); ?>:¢ <?= number_format($inv->grand_total - $inv->paid, 2, '.', '') ?> </h2>
+                                                            <?php } ?>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -107,10 +113,10 @@
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                    <? foreach ($rows as $item) { ?>
+                                                    <?php foreach ($rows as $item) { ?>
                                                     <tr>
                                                         <td><?= $item->product_code ?></td>
-                                                        <td class="text-semibold text-dark"><?= $item->product_name  ?></td>
+                                                        <td class="text-semibold text-dark"><?= html_escape($item->product_name); ?></td>
 
                                                         <td class="text-right">¢ <?= number_format($item->unit_price, 2, '.', '') ?></td>
                                                         <td class="text-center"><?= $item->quantity ?></td>
@@ -119,7 +125,7 @@
                                                         <td class="text-right">¢ <?= number_format($item->subtotal, 2, '.', '') ?></td>
                                                         <td class="text-right">¢ <?= number_format($item->item_tax, 2, '.', '') ?></td>
                                                     </tr>
-                                                    <? } ?>
+                                                    <?php } ?>
 
                                                     </tbody>
                                                 </table>

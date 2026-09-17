@@ -1,4 +1,10 @@
-﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -164,7 +170,7 @@
     var base_url = '<?=base_url();?>';
     var dateformat = '<?=$Settings->dateformat;?>', timeformat = '<?= $Settings->timeformat ?>';
     <?php unset($Settings->protocol, $Settings->smtp_host, $Settings->smtp_user, $Settings->smtp_pass, $Settings->smtp_port, $Settings->smtp_crypto, $Settings->mailpath, $Settings->timezone, $Settings->setting_id, $Settings->default_email, $Settings->version, $Settings->stripe, $Settings->stripe_secret_key, $Settings->stripe_publishable_key); ?>
-    var Settings = <?= json_encode($Settings); ?>;
+    var Settings = <?= json_encode(ajustes_publicos($Settings)); ?>;
 </script>
 
 <script type="text/javascript">

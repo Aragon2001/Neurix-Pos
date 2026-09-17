@@ -1,13 +1,19 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<section class="content">
+<div class="nxf-page">
     <div class="row">
         <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('update_heading'); ?></h3>
+            <div class="nxf-card">
+                <div class="nxf-card-head">
+                    <div class="nxf-card-title"><?= lang('update_heading'); ?></div>
                 </div>
-                <div class="box-body">
+                <div class="nxf-card-body">
 
                     <div class="row">
                         <div class="col-md-12">
@@ -24,7 +30,7 @@
                                     <?= form_input('envato_username', '', 'class="form-control tip" id="envato_username"  required="required"'); ?>
                                 </div>
                                 <div class="mb-3">
-                                    <?= form_submit('update', lang('update'), 'class="btn btn-primary"'); ?>
+                                    <?= form_submit('update', lang('update'), 'class="nxf-btn"'); ?>
                                 </div>
                                 <?php
                                 echo form_close();
@@ -52,4 +58,4 @@
             </div>
         </div>
     </div>
-</section>
+</div>

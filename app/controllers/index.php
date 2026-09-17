@@ -3,7 +3,13 @@
         <div class="row margin-top-0">
             <div class="col-sm-8 col-sm-offset-2">
                 <div class="logo_top">
-                    <a href="<?php echo base_url()?>">
+                    <a href="<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+echo base_url()?>">
                         <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200">
                     </a>
                 </div>

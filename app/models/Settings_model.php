@@ -1,4 +1,10 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Settings_model extends CI_Model
 {
@@ -74,27 +80,6 @@ class Settings_model extends CI_Model
         return FALSE;
     }
 
-
-    public function addPrinter($data = array()) {
-        if($this->db->insert('printers', $data)) {
-            return $this->db->insert_id();
-        }
-        return false;
-    }
-
-    public function updatePrinter($id, $data = array()) {
-        if($this->db->update('printers', $data, array('id' => $id))) {
-            return true;
-        }
-        return false;
-    }
-
-    public function deletePrinter($id) {
-        if($this->db->delete('printers', array('id' => $id))) {
-            return true;
-        }
-        return FALSE;
-    }
 
     public function updateWaitingTables($data,$id)
     {

@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="nxt-head">
     <div class="nxt-title">
@@ -37,7 +43,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? NxTable.badge('<?= lang('activado'); ?>', 'ok')
                     : NxTable.badge('<?= lang('desactivado'); ?>', 'muted');
             }, exportValue: function (r) { return r.status_l_precio == '1' ? '<?= lang('activado'); ?>' : '<?= lang('desactivado'); ?>'; } },
-            { key: 'Actions', label: '<?= lang('actions'); ?>', actions: true, width: '110px' }
+            { key: 'id_lista_precios', label: '<?= lang('actions'); ?>', width: '110px', render: function (r) {
+                return '<div class="nxt-acciones">'
+                     + '<a class="nxt-ico" href="<?= site_url('products/editprices'); ?>/' + r.id_lista_precios + '" title="<?= lang('edit'); ?>">&#9998;</a>'
+                     + '<button type="button" class="nxt-ico peli" data-borrar="' + r.id_lista_precios + '" title="<?= lang('delete'); ?>">&times;</button>'
+                     + '</div>';
+            } }
         ],
         i18n: {
             searchPlaceholder: '<?= lang('buscar_ph'); ?>',
@@ -46,5 +57,28 @@ document.addEventListener('DOMContentLoaded', function () {
             showing: '<?= lang('mostrando'); ?>', of: '<?= lang('de'); ?>', all: '<?= lang('todas'); ?>'
         }
     });
+
+    // Borrar cambia estado: va por POST y con el testigo CSRF, nunca por enlace.
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-borrar]');
+        if (!b) { return; }
+        if (!confirm('<?= lang('alert_x_lista_precio'); ?>')) { return; }
+
+        var f = document.createElement('form');
+        f.method = 'post';
+        f.action = '<?= site_url('products/deleteprices'); ?>';
+        f.innerHTML = '<input type="hidden" name="id" value="' + b.dataset.borrar + '">'
+                    + '<input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">';
+        document.body.appendChild(f);
+        f.submit();
+    });
 });
 </script>
+
+<style>
+    .nxt-acciones{display:flex;gap:6px;justify-content:center}
+    .nxt-ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;
+        border:1px solid var(--nxf-border,#2a3444);background:transparent;color:inherit;cursor:pointer;text-decoration:none}
+    .nxt-ico:hover{background:rgba(56,189,248,.12)}
+    .nxt-ico.peli:hover{background:rgba(248,113,113,.15);color:#f87171}
+</style>

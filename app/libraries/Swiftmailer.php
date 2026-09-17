@@ -4,6 +4,30 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\OAuthTokenProvider;
+
+/**
+ * Proveedor XOAUTH2 para PHPMailer. Google ya no acepta la contraseña normal de
+ * la cuenta en SMTP: o contraseña de aplicación, o este token.
+ */
+class NeurixGoogleToken implements OAuthTokenProvider
+{
+    private $googlemail;
+    private $usuario;
+    private $refresh;
+
+    public function __construct($googlemail, $usuario, $refresh)
+    {
+        $this->googlemail = $googlemail;
+        $this->usuario    = $usuario;
+        $this->refresh    = $refresh;
+    }
+
+    public function getOauth64()
+    {
+        return $this->googlemail->xoauth2($this->usuario, $this->googlemail->refrescar($this->refresh));
+    }
+}
 
 /**
  * Swiftmailer — wrapper de compatibilidad sobre PHPMailer.
@@ -33,35 +57,21 @@ class Swiftmailer
         $Settings = $this->site->getSettings();
 
         $mail = new PHPMailer(true);
+        $mail->Timeout = 20;
 
         try {
-            // Configuración de transporte
-            if (!empty($Settings->is_gmail) && $Settings->is_gmail == '1') {
-                $mail->isSMTP();
-                $mail->Host       = 'smtp.gmail.com';
-                $mail->SMTPAuth   = true;
-                $mail->Username   = $Settings->mail_client_user ?? $Settings->smtp_user;
-                $mail->Password   = $Settings->mail_client_pass ?? $Settings->smtp_pass;
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port       = 587;
-            } elseif (!empty($Settings->smtp_host)) {
-                $mail->isSMTP();
-                $mail->Host       = $Settings->smtp_host;
-                $mail->SMTPAuth   = true;
-                $mail->Username   = $Settings->smtp_user;
-                $mail->Password   = $Settings->smtp_pass;
-                $mail->SMTPSecure = !empty($Settings->smtp_crypto) ? $Settings->smtp_crypto : PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port       = (int)($Settings->smtp_port ?? 587);
-            } else {
-                $mail->isMail();
-            }
+            $this->configurar_transporte($mail, $Settings);
 
             $mail->CharSet = 'UTF-8';
             $mail->isHTML(true);
 
             // Remitente
-            $senderEmail = $from ?? $Settings->default_email;
+            $senderEmail = $from ?: remitente_correo($Settings);
             $senderName  = $from_name ?? $Settings->site_name;
+            if (!$senderEmail) {
+                log_message('error', '[Correo] no hay remitente configurado: revise Ajustes -> Correo.');
+                return false;
+            }
             $mail->setFrom($senderEmail, $senderName);
             $mail->addReplyTo($senderEmail, $senderName);
 
@@ -98,6 +108,52 @@ class Swiftmailer
             log_message('error', '[Swiftmailer→PHPMailer] ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Deja el transporte listo segun lo configurado en Ajustes.
+     * Se separo del envio para que la pantalla de Ajustes pueda probar la
+     * conexion sin mandar ningun correo.
+     */
+    public function configurar_transporte($mail, $Settings)
+    {
+        $protocolo = $Settings->protocol ?: 'mail';
+
+        if ($protocolo === 'sendmail') {
+            $mail->isSendmail();
+            if (!empty($Settings->mailpath)) {
+                $mail->Sendmail = $Settings->mailpath;
+            }
+            return;
+        }
+
+        if ($protocolo !== 'smtp' || empty($Settings->smtp_host)) {
+            $mail->isMail();
+            return;
+        }
+
+        $mail->isSMTP();
+        $mail->Host       = $Settings->smtp_host;
+        $mail->Port       = (int) ($Settings->smtp_port ?: 587);
+        $mail->SMTPSecure = $Settings->smtp_crypto ?: PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->SMTPAuth   = true;
+
+        if (($Settings->mail_auth ?? 'password') === 'oauth_google') {
+            $CI = get_instance();
+            $CI->load->library('googlemail');
+            $usuario = $Settings->mail_oauth_email ?: $Settings->smtp_user;
+            $mail->Username = $usuario;
+            $mail->AuthType = 'XOAUTH2';
+            $mail->setOAuth(new NeurixGoogleToken(
+                $CI->googlemail,
+                $usuario,
+                decrypt_credential($Settings->mail_oauth_refresh ?? '')
+            ));
+            return;
+        }
+
+        $mail->Username = $Settings->smtp_user;
+        $mail->Password = decrypt_credential($Settings->smtp_pass ?? '');
     }
 
     public function getBody()

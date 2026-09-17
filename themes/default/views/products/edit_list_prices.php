@@ -1,13 +1,19 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<section class="content">
+<div class="nxf-page">
 	<div class="row">
 		<div class="col-12">
-			<div class="box box-primary">
-				<div class="box-header">
-					<h3 class="box-title"><?= lang('enter_info'); ?></h3>
+			<div class="nxf-card">
+				<div class="nxf-card-head">
+					<div class="nxf-card-title"><?= lang('enter_info'); ?></div>
 				</div>
-				<div class="box-body">
+				<div class="nxf-card-body">
 					<?php echo form_open("products/editprices");?>
 
 					<div class="col-md-6">
@@ -19,10 +25,11 @@
 
 						<div class="mb-3">
                             <label class="form-label" for="status"><?= $this->lang->line("status"); ?>(Activado/Desactivado)</label>
-                            <input type="checkbox" class="form-control input-lg" id="status" name="status">
+                            <input type="checkbox" class="form-check-input" id="status" name="status" value="1"
+                                   <?= ($prices->status_l_precio == 1) ? 'checked' : ''; ?>>
 						</div>
 						<div class="mb-3">
-							<?php echo form_submit('add_prices', 'Agregar', 'class="btn btn-primary"');?>
+							<?php echo form_submit('add_prices', 'Agregar', 'class="nxf-btn"');?>
 						</div>
 					</div>
 					<?php echo form_close();?>
@@ -30,17 +37,4 @@
 			</div>
 		</div>
 	</div>
-</section>
-
-<script>
-    $(document).ready(function(){
-        var checked = "<?php echo $prices->status_l_precio ?>";
-        if(checked === '1')
-        {
-            $("#status").attr('checked', true);
-        }else
-        {
-            $("#status").attr('checked', false);
-        }
-    });
-</script>
+</div>

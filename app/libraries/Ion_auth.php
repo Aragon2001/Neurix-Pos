@@ -260,6 +260,14 @@ class Ion_auth
         }
 
         $identity = $this->config->item('identity', 'ion_auth');
+
+        // El testigo de "recordarme" tambien se invalida en la base: borrar solo
+        // la cookie dejaba la sesion recordada viva en cualquier otro equipo.
+        $user_id = $this->session->userdata('user_id');
+        if ($user_id) {
+            $this->db->update('users', array('remember_code' => NULL), array('id' => (int) $user_id));
+        }
+
         $this->session->unset_userdata(array($identity => '', 'id' => '', 'user_id' => ''));
 
         //delete the remember me cookies if they exist

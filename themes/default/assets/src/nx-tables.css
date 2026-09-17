@@ -27,12 +27,18 @@
   box-shadow:0 6px 18px -6px rgba(56,189,248,.55);
 }
 .nxt-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px -6px rgba(56,189,248,.65);color:#06121f}
-[data-theme="light"] .nxt-btn{color:#fff}
-[data-theme="light"] .nxt-btn:hover{color:#fff}
+/* El texto blanco es solo para el boton solido, que va sobre el degradado.
+   Sin excluir al fantasma, este selector (0,2,0) le gana a .nxt-btn-ghost
+   (0,1,0) y deja letras blancas sobre un fondo casi blanco. */
+[data-theme="light"] .nxt-btn:not(.nxt-btn-ghost){color:#fff}
+[data-theme="light"] .nxt-btn:not(.nxt-btn-ghost):hover{color:#fff}
 .nxt-btn-ghost{
   background:var(--nx-card-bg2);color:var(--nx-txt2);border:1px solid var(--nx-border);box-shadow:none;
 }
 .nxt-btn-ghost:hover{border-color:var(--nx-border3);color:var(--nx-txt1);box-shadow:none;transform:translateY(-1px)}
+[data-theme="light"] .nxt-btn-ghost{background:#fff;color:var(--nx-txt2);border-color:var(--nx-border3)}
+[data-theme="light"] .nxt-btn-ghost:hover{background:var(--nx-hover-bg);color:var(--nx-txt1);border-color:var(--nx-a1)}
+.nxt-btn-ghost:disabled,.nxt-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 
 /* ── KPI strip ── */
 .nxt-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}

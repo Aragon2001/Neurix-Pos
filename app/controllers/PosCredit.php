@@ -1,4 +1,9 @@
-﻿<?php
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class PosCredit extends MY_Controller

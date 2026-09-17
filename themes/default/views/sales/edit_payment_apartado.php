@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="modal-dialog">
     <div class="modal-content">
@@ -15,7 +21,7 @@
                     <div class="col-sm-6">
                         <div class="mb-3">
                             <?= lang("date", "date"); ?>
-                            <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : $payment->date), 'class="form-control datetimepicker" id="date" required="required"'); ?>
+                            <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : $payment->date), 'class="form-control" id="date" type="datetime-local" required="required"'); ?>
                         </div>
                     </div>
                 <?php } ?>
@@ -79,13 +85,3 @@
     </div>
     <?php echo form_close(); ?>
 </div>
-
-
-
-<script type="text/javascript">
-    $(function () {
-        $('.datetimepicker').tempusDominus = new TempusDominus({
-            format: 'YYYY-MM-DD HH:mm'
-        });
-    });
-</script>

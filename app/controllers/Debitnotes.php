@@ -1,4 +1,10 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 class Debitnotes extends MY_Controller
 {
@@ -24,19 +30,21 @@ class Debitnotes extends MY_Controller
     public function get_debitnotes()
     {
         $this->load->library('datatables');
-        $this->datatables->select("nd.id, DATE_FORMAT(nd.date, '%Y-%m-%d %H:%i') as date, nd.customer_name, nd.grand_total, nd.hold_ref, hn.estatus_hacienda, hn.consecutivo");
-        $this->datatables->from('note_debits nd');
-        $this->datatables->join('hacienda_nd hn', 'hn.nd_id = nd.id', 'left');
-        $this->db->order_by('nd.date', 'desc');
-        $this->datatables->where('nd.store_id', $this->session->userdata('store_id'));
+        // La tabla base no se alias: Datatables arma el FROM al final, asi que
+        // CI todavia no conoce el alias al proteger el ON y lo prefija (tec_nd).
+        $this->datatables->select("note_debits.id as id, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date, customer_name, grand_total, hold_ref, hn.estatus_hacienda, hn.consecutivo");
+        $this->datatables->from('note_debits');
+        $this->datatables->join('hacienda_nd hn', 'hn.nd_id = note_debits.id', 'left');
+        $this->db->order_by('note_debits.date', 'desc');
+        $this->datatables->where('note_debits.store_id', $this->session->userdata('store_id'));
         $this->datatables->add_column('xmls', "<div class='text-center'><div class='btn-group'>
             <a target='_blank' href='" . site_url('XmlHacienda/xmlFirmadoND/$1') . "' title='Ver XML Firmado' class='tip btn btn-info btn-xs'><i class='fa fa-list'></i></a>
             <a target='_blank' href='" . site_url('XmlHacienda/xmlMensajeND/$1') . "' title='Ver Respuesta Hacienda' class='tip btn btn-warning btn-xs'><i class='fa fa-list'></i></a>
-            </div></div>", "nd.id");
+            </div></div>", "id");
         $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'>
             <a href='" . site_url('debitnotes/viewnd/$1') . "' title='Ver ND' class='tip btn btn-primary btn-xs'><i class='fa fa-list'></i></a>
             <a href='" . site_url('Shacienda/generarND/$1') . "' title='Enviar a Hacienda' class='tip btn btn-success btn-xs' data-confirm=\"¿Generar y enviar esta ND a Hacienda?\"><i class='fa fa-send'></i></a>
-            </div></div>", "nd.id");
+            </div></div>", "id");
         echo $this->datatables->generate();
     }
 
@@ -49,7 +57,7 @@ class Debitnotes extends MY_Controller
         if (!$sale) { show_404(); }
 
         $this->data['sale'] = $sale;
-        $this->data['sale_items'] = $this->pos_model->getSaleItems($sale_id);
+        $this->data['sale_items'] = $this->pos_model->getAllSaleItems($sale_id);
         $this->data['customer'] = $this->pos_model->getCustomerByID($sale->customer_id);
         $this->data['error'] = $this->session->flashdata('error');
         $this->data['page_title'] = 'Nueva Nota de Débito';
@@ -63,6 +71,13 @@ class Debitnotes extends MY_Controller
 
     public function create()
     {
+        // Emite dinero o comprobantes: solo administrador (auditoria §14.5).
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('pos');
+            exit;
+        }
+
         if (!$this->input->post('sale_id')) {
             $this->session->set_flashdata('error', 'Datos inválidos.');
             redirect('debitnotes');

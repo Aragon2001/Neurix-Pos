@@ -1,3 +1,9 @@
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+
 // Importar Bootstrap 5 y AdminLTE 4
 // NOTA: los paquetes npm "bootstrap" y "admin-lte" solo exponen su JS por defecto
 // (ver "main" en su package.json); el CSS hay que importarlo explícitamente o
@@ -21,6 +27,20 @@ import './neurix-adminlte4.css'
 import './pos-redesign.css'
 // Sistema de diseño para listados/tablas de datos (.nxt-*) — reusable en todos los módulos
 import './nx-tables.css'
+// Sistema de diseño para formularios de alta/edición (.nxf-*)
+import './nx-forms.css'
+// Ventana de detalle de un comprobante (.nxd-*) — listado de Ventas
+import './nx-doc.css'
+// Gestion de un documento recibido (.nxc-*) — se apoya en nx-doc.css
+import './nx-compra.css'
+// Centro de Inteligencia y auditoria de informes (.nxr-*)
+import './nx-reportes.css'
+// Correccion de una factura emitida (.nxa-*) — motor de ajuste
+import './nx-ajuste.css'
+// Correcciones de contraste, tipografía y foco del POS — debe ir de último:
+// sus selectores tienen la misma especificidad que los originales, así que
+// solo gana por orden en la cascada
+import './pos-fix.css'
 
 // Importar librerías modernas
 import TomSelect from 'tom-select'
@@ -35,8 +55,38 @@ import { POSEnhanced } from './pos-enhanced'
 // Motor reusable de listados (window.NxTable) — diseño nx-tables
 import './nx-table'
 
+// Ventana de detalle de un comprobante (window.NxDoc) — diseño nx-doc
+import './nx-doc'
+
+// Ventana de detalle de un documento de compra (window.NxCompra) — reusa nx-doc.css
+import './nx-compra'
+
+// Correccion de una factura emitida — pantalla de ajuste
+import './nx-ajuste'
+
 // Sistema de búsqueda global
 import './nx-search'
+
+// ═════════════════ TOKEN CSRF QUE ROTA ═════════════════
+// `csrf_regenerate` esta activo: cada POST invalida el token que la pagina
+// lleva impreso, asi que el envio siguiente se rechaza con "The action you have
+// requested is not allowed". MY_Controller devuelve el token vigente en la
+// cabecera X-CSRF-Token de toda respuesta AJAX; aca se relee y se refrescan los
+// campos ocultos y window.CSRF_HASH, sin recargar la pantalla.
+const refrescarCsrf = (respuesta) => {
+  try {
+    const nuevo = respuesta && respuesta.headers && respuesta.headers.get('X-CSRF-Token')
+    if (!nuevo) return respuesta
+    const nombre = window.CSRF_NAME || 'spos_token'
+    window.CSRF_HASH = nuevo
+    document.querySelectorAll(`input[name="${nombre}"]`).forEach((el) => { el.value = nuevo })
+  } catch (e) { /* sin cabecera no hay nada que refrescar */ }
+  return respuesta
+}
+
+const fetchOriginal = window.fetch.bind(window)
+window.fetch = (...args) => fetchOriginal(...args).then(refrescarCsrf)
+window.nxRefrescarCsrf = refrescarCsrf
 
 // ═════════════════ TEMA OSCURO/CLARO (AdminLTE 4) ═════════════════
 const initTheme = () => {
@@ -94,11 +144,64 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme()
   initTooltips()
   initPopovers()
+  imprimirPendientes()
 
   window.nxToggleTheme = (theme) => switchTheme(theme)
 
   console.log('%c Neurix POS v1.0', 'font-size:14px;color:#38bdf8;font-weight:bold;')
 })
+
+// ═════════════════ IMPRESIÓN PENDIENTE (QZ Tray) ═════════════════
+// La impresora está en la computadora del cajero, no en el servidor: PHP deja
+// el ticket en cola (MY_Controller::encolar_ticket_qz) y la vista pone
+// window._nx_qz_pendiente para que solo se consulte cuando hay algo que sacar.
+const NX_IMPRESORA = 'nx-qz-printer'
+
+// En el POS es pos-core.js quien abre el socket; conectar en paralelo lo hace
+// fallar, así que primero se le da tiempo y solo se conecta si nadie más lo hizo.
+const esperarQz = (intentos = 20) => {
+  if (qz.websocket.isActive()) return Promise.resolve()
+  if (intentos <= 0) return nxQzConectar()
+  return new Promise((listo) => setTimeout(listo, 500)).then(() => esperarQz(intentos - 1))
+}
+
+// Un solo intento de conexión compartido: dos llamadas simultáneas a
+// qz.websocket.connect() fallan las dos, y fuera del POS cualquier pantalla
+// puede necesitar imprimir (window.NxDoc, avisos, cola pendiente).
+let conexionQz = null
+const nxQzConectar = () => {
+  if (qz.websocket.isActive()) return Promise.resolve()
+  if (!conexionQz) {
+    conexionQz = qz.websocket.connect().finally(() => { conexionQz = null })
+  }
+  return conexionQz
+}
+window.nxQzConectar = nxQzConectar
+
+const imprimirPendientes = () => {
+  if (!window._nx_qz_pendiente || !window.base_url) return
+
+  let impresora = ''
+  try { impresora = localStorage.getItem(NX_IMPRESORA) || '' } catch (e) { return }
+  if (!impresora) return
+
+  // La cola se vacía al consultarla, así que no se consulta hasta poder imprimir.
+  esperarQz()
+    .then(() => fetch(`${window.base_url}posprint/cola_bytes`, {
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }))
+    .then((r) => (r.ok ? r.json() : null))
+    .then((res) => {
+      if (!res || res.status !== 1 || !res.bytes || !res.bytes.length) return
+      const cfg = qz.configs.create(impresora)
+      return res.bytes.reduce(
+        (previo, b) => previo.then(() => qz.print(cfg, [{ type: 'raw', format: 'command', flavor: 'base64', data: b }])),
+        Promise.resolve()
+      )
+    })
+    .catch(() => {})
+}
 
 // ═════════════════ TEMA GLOBAL ═════════════════
 window.switchTheme = (theme) => {

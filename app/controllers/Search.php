@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Search extends MY_Controller
 {
@@ -89,7 +95,6 @@ class Search extends MY_Controller
                 ['title' => lang('list_users'), 'icon' => 'user', 'url' => 'users', 'category' => 'Menu'],
                 ['title' => lang('add_user'), 'icon' => 'user', 'url' => 'users/add', 'category' => 'Menu'],
                 ['title' => lang('settings'), 'icon' => 'settings', 'url' => 'settings', 'category' => 'Configuración'],
-                ['title' => lang('printers'), 'icon' => 'settings', 'url' => 'settings/printers', 'category' => 'Configuración'],
                 ['title' => lang('stores'), 'icon' => 'store', 'url' => 'settings/stores', 'category' => 'Configuración'],
                 ['title' => lang('reports'), 'icon' => 'bar-chart', 'url' => 'reports', 'category' => 'Menu'],
                 ['title' => lang('daily_sales'), 'icon' => 'bar-chart', 'url' => 'reports/daily_sales', 'category' => 'Menu'],

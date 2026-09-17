@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
@@ -17,6 +21,24 @@ if (!function_exists('dispatch_queue_worker')) {
         $uri   = ($parts['path'] ?? '/') . (isset($parts['query']) ? '?' . $parts['query'] : '');
 
         $prefix = ($parts['scheme'] === 'https') ? 'ssl://' : '';
+
+        // El destino sale de site_url(), que se arma con la cabecera Host. Aunque
+        // config.php ya la filtra, aca se vuelve a comprobar: esta llamada la hace
+        // el servidor, y apuntarla a otra maquina la convierte en un explorador de
+        // la red interna.
+        $permitidos = array_filter(array_map('trim', explode(',', (string) (getenv('APP_HOSTS') ?: ''))));
+        $permitidos = array_merge($permitidos, array('localhost', '127.0.0.1', '::1'));
+        $es_privada = filter_var($host, FILTER_VALIDATE_IP) !== false
+            && filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+
+        if (!in_array($host, $permitidos, true) && !$es_privada) {
+            log_message('error', '[Cola] destino no permitido: ' . $host);
+            return;
+        }
+        if ($port !== 80 && $port !== 443 && $port < 1024) {
+            log_message('error', '[Cola] puerto no permitido: ' . $port);
+            return;
+        }
 
         $fp = @fsockopen($prefix . $host, $port, $errno, $errstr, 2);
         if ($fp) {

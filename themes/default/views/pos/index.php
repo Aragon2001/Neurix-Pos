@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) or exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) or exit('No direct script access allowed'); ?>
 <!DOCTYPE html>
 <html lang="<?= $this->config->item('language'); ?>">
 <head>
@@ -17,6 +23,8 @@
          ni el caché HTTP sirvan bundles viejos -->
     <link href="<?= $assets ?>dist/css/www.min.css?v=<?= @filemtime(FCPATH.'themes/default/assets/dist/css/www.min.css') ?: '1'; ?>" rel="stylesheet" />
     <link href="<?= $assets ?>dist/css/nx-sidebar.css?v=<?= @filemtime(FCPATH.'themes/default/assets/dist/css/nx-sidebar.css') ?: '1'; ?>" rel="stylesheet" />
+    <!-- Los iconos fa-* no vienen en www.min.css -->
+    <link href="<?= $assets ?>plugins/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <?= $Settings->rtl ? '<link href="' . $assets . 'dist/css/rtl.css" rel="stylesheet" />' : ''; ?>
     <!-- Anti-FOUC: aplicar tema antes de pintar -->
     <script>
@@ -97,6 +105,9 @@
       'phoneall'     => '<path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"/>',
       'bank'         => '<path d="M3 21l18 0"/><path d="M3 10l18 0"/><path d="M5 6l7 -3l7 3"/><path d="M4 10l0 11"/><path d="M20 10l0 11"/><path d="M8 14l0 3"/><path d="M12 14l0 3"/><path d="M16 14l0 3"/>',
       'equal'        => '<path d="M5 9h14"/><path d="M5 15h14"/>',
+      'cashregister' => '<path d="M21 15h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5"/><path d="M19 21v1m0 -8v1"/><path d="M13 21h-7a3 3 0 0 1 -3 -3v-2h10v2a3 3 0 0 0 3 3z"/><path d="M4 16v-8a2 2 0 0 1 2 -2h2"/><path d="M8 3m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z"/><path d="M8 10l0 .01"/><path d="M12 10l0 .01"/><path d="M16 10l0 .01"/><path d="M8 13l0 .01"/><path d="M12 13l0 .01"/>',
+      'printercog'   => '<g transform="translate(-0.6,-1.4) scale(0.8)"><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4"/><path d="M7 13m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z"/></g><path d="M18.5 18.5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M18.5 15v1.5"/><path d="M18.5 20.5v1.5"/><path d="M21.53 16.75l-1.3 .75"/><path d="M16.77 19.5l-1.3 .75"/><path d="M15.47 16.75l1.3 .75"/><path d="M20.23 19.5l1.3 .75"/>',
+      'alerttriangle'=> '<path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/>',
       'wand'         => '<path d="M6 21l15 -15l-3 -3l-15 15l3 3"/><path d="M15 6l3 3"/>',
     ];
     ?>
@@ -119,7 +130,7 @@
             <!-- Profile Card -->
             <div class="nx-sidebar-userblock">
                 <div class="nx-sb-avatar-wrap">
-                    <img src="<?= base_url('uploads/avatars/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')); ?>"
+                    <img src="<?= avatar_usuario($this->session->userdata('avatar'), $this->session->userdata('gender')); ?>"
                          class="nx-sb-avatar" alt="Avatar">
                     <span class="nx-sb-status-dot" title="<?= lang('conectado'); ?>"></span>
                 </div>
@@ -230,9 +241,11 @@
 
             <div class="pos-topbar-sep"></div>
 
-            <!-- Hacienda status chip -->
-            <div class="pos-topbar-chip ok d-flex align-items-center gap-1" title="<?= lang('conexion_hacienda'); ?>">
-                <?= pos_ti($pos_ti['circlecheck'], 14) ?>
+            <!-- Estado de la conexion con Hacienda -->
+            <?php $hac = $hacienda_estado ?? array('ok' => TRUE, 'motivo' => 'hacienda_al_dia', 'pendientes' => 0); ?>
+            <div class="pos-topbar-chip d-flex align-items-center gap-1 <?= $hac['ok'] ? 'hac-ok' : 'hac-err' ?>"
+                 title="<?= html_escape(lang('conexion_hacienda') . ' — ' . lang($hac['motivo']) . ($hac['pendientes'] ? ' (' . $hac['pendientes'] . ')' : '')); ?>">
+                <?= pos_ti($hac['ok'] ? $pos_ti['circlecheck'] : $pos_ti['alerttriangle'], 14) ?>
                 <span><?= lang('hacienda'); ?></span>
             </div>
 
@@ -241,11 +254,11 @@
             <!-- Ventas suspendidas -->
             <?php if ($suspended_sales && count($suspended_sales) > 0): ?>
             <div class="dropdown">
-                <button class="pos-topbar-btn position-relative" data-bs-toggle="dropdown" title="<?= lang('ventas_suspendidas'); ?>">
+                <button class="pos-topbar-btn position-relative" id="holdBillsBtn" data-bs-toggle="dropdown" title="<?= lang('ventas_suspendidas'); ?>">
                     <?= pos_ti($pos_ti['bell'], 17) ?>
                     <span class="pos-topbar-badge"><?= count($suspended_sales) ?></span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end" style="min-width:280px;">
+                <ul class="dropdown-menu dropdown-menu-end pos-sus-menu">
                     <li class="px-2 py-1">
                         <input type="text" class="form-control form-control-sm"
                                placeholder="<?= lang('filter_by_reference') ?>"
@@ -257,10 +270,12 @@
                         <a class="dropdown-item list-sus-sales" href="<?= site_url('pos/?hold=' . $ss->id) ?>">
                             <div class="d-flex align-items-center gap-2">
                                 <span style="color:#f59e0b;flex-shrink:0;"><?= pos_ti($pos_ti['pausecircle'], 14) ?></span>
-                                <div>
-                                    <div class="fw-semibold" style="font-size:.82rem;"><?= $ss->hold_ref ?: lang('no_ref') ?></div>
-                                    <div class="text-muted" style="font-size:.72rem;"><?= $ss->customer_name ?> · <?= $this->tec->hrld($ss->date) ?></div>
+                                <div class="pos-sus-info">
+                                    <div class="pos-sus-ref"><?= html_escape($ss->hold_ref ?: lang('no_ref')) ?></div>
+                                    <div class="pos-sus-cli"><?= html_escape($ss->customer_name) ?></div>
+                                    <div class="pos-sus-fec"><?= $this->tec->hrld($ss->date) ?></div>
                                 </div>
+                                <div class="pos-sus-monto"><?= $this->tec->formatMoney($ss->grand_total ?? 0) ?></div>
                             </div>
                         </a>
                     </li>
@@ -305,14 +320,15 @@
                 <?= pos_ti($pos_ti['printer'], 17) ?>
             </button>
 
-            <!-- Apertura de caja -->
-            <a href="<?= site_url('pos/open_register') ?>" class="pos-topbar-btn" title="<?= lang('apertura_caja'); ?>">
-                <?= pos_ti($pos_ti['calculator'], 17) ?>
-            </a>
+            <!-- Cierre de caja. Estando en el POS la caja ya esta abierta:
+                 el boton que hace falta aca es el de cerrarla. -->
+            <button type="button" class="pos-topbar-btn" id="cerrarCajaBtn" title="<?= lang('cerrar_caja'); ?>">
+                <?= pos_ti($pos_ti['cashregister'], 17) ?>
+            </button>
 
             <!-- Configurar impresora de esta computadora (QZ Tray) -->
             <button class="pos-topbar-btn" id="printerConfigBtn" title="<?= lang('configurar_impresora'); ?>" data-bs-toggle="modal" data-bs-target="#printerConfigModal">
-                <?= pos_ti($pos_ti['settings'], 17) ?>
+                <?= pos_ti($pos_ti['printercog'], 17) ?>
             </button>
 
             <!-- Abrir cajón (requiere PIN de administrador) -->
@@ -348,7 +364,7 @@
             <!-- Usuario -->
             <div class="dropdown">
                 <button class="pos-user-btn" data-bs-toggle="dropdown">
-                    <img src="<?= base_url('uploads/avatars/thumbs/' . ($this->session->userdata('avatar') ?: $this->session->userdata('gender') . '.png')) ?>"
+                    <img src="<?= avatar_usuario($this->session->userdata('avatar'), $this->session->userdata('gender'), true) ?>"
                          class="pos-user-avatar-img" alt="Avatar">
                     <span><?= html_escape($this->session->userdata('first_name')) ?></span>
                     <span style="opacity:.5;display:flex;align-items:center;"><?= pos_ti($pos_ti['chevrondown'], 12) ?></span>
@@ -361,7 +377,9 @@
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="<?= site_url('logout') ?>">
+                        <a class="dropdown-item d-flex align-items-center gap-2 text-danger"
+                           href="<?= $this->session->userdata('register_id') ? site_url('pos') . '?cerrar_caja=1' : site_url('logout') ?>"
+                           <?php if ($this->session->userdata('register_id')): ?>title="<?= htmlspecialchars(lang('close_register_before_logout')) ?>"<?php endif; ?>>
                             <?= pos_ti($pos_ti['logout'], 14) ?><?= lang('sign_out') ?>
                         </a>
                     </li>
@@ -383,9 +401,11 @@
                         <input type="text" id="add_item"
                                placeholder="<?= lang('search__scan') ?>"
                                autocomplete="off">
+                        <?php if (!empty($Settings->focus_add_item)): ?>
                         <div class="pos-search-kbds">
-                            <kbd>F3</kbd>
+                            <kbd><?= html_escape($Settings->focus_add_item); ?></kbd>
                         </div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -452,11 +472,12 @@
                     <!-- Label row -->
                     <div class="pcp-section-label">
                         <?= pos_ti($pos_ti['circleuser'], 14) ?>
-                        <?= lang('customer') ?>
-                        <button type="button" class="pcp-add-cust-btn ms-auto"
+                        <span><?= lang('customer') ?></span>
+                        <button type="button" class="pcp-add-cust-btn"
                                 data-bs-toggle="modal" data-bs-target="#customerModal"
                                 title="<?= lang('add_customer') ?>">
-                            <?= pos_ti($pos_ti['userplus'], 14) ?>
+                            <?= pos_ti($pos_ti['userplus'], 13) ?>
+                            <span><?= lang('nuevo') ?></span>
                         </button>
                     </div>
 
@@ -467,62 +488,29 @@
                     <!-- Barra de búsqueda (visible cuando no hay cliente) -->
                     <div class="pcp-cust-search-wrap" id="pos-cust-search-wrap">
                         <p class="pcp-cust-hint"><?= pos_ti($pos_ti['infocircle'], 12) ?> <?= lang('buscar_cliente_hint'); ?></p>
-                        <?php
-                        $cus = [];
-                        foreach ($customers as $customer) {
-                            if ((int)$customer->id === (int)$Settings->default_customer) continue;
-                            $cus[$customer->id] = $customer->name . ' (' . $customer->cf2 . ')';
-                        }
-                        ?>
-                        <?= form_dropdown('_customer_search', $cus, '',
-                            'id="spos_customer" class="form-select tom-select"'); ?>
+                        <div class="pcp-cust-buscador">
+                            <span class="search-icon"><?= pos_ti($pos_ti['magnifier'], 14) ?></span>
+                            <input type="text" id="pos-cust-search" autocomplete="off"
+                                   placeholder="<?= lang('buscar_cliente_placeholder'); ?>">
+                        </div>
                     </div>
 
                     <!-- Info del cliente: lupa (re-buscar) + avatar + datos + X -->
                     <div class="pcp-cust-card is-default" id="pos-cust-card">
-                        <button type="button" class="pcp-cust-lupa" id="pos-cust-lupa"
-                                title="<?= lang('cambiar_cliente'); ?>" style="display:none">
-                            <?= pos_ti($pos_ti['search'], 13) ?>
-                        </button>
                         <div class="pcp-cust-avatar" id="pos-cust-avatar">C</div>
                         <div class="pcp-cust-info">
                             <div class="pcp-cust-name" id="pos-cust-name"><?= lang('cliente_contado'); ?></div>
                             <div class="pcp-cust-meta" id="pos-cust-doc"></div>
                             <div class="pcp-cust-contact" id="pos-cust-contact"></div>
                         </div>
+                        <button type="button" class="pcp-cust-clear-btn" id="pos-cust-buscar"
+                                title="<?= lang('buscar_cliente_placeholder'); ?>">
+                            <?= pos_ti($pos_ti['magnifier'], 13) ?>
+                        </button>
                         <button type="button" class="pcp-cust-clear-btn" id="pos-cust-clear"
                                 title="<?= lang('quitar_cliente'); ?>" style="display:none">
-                            <?= pos_ti($pos_ti['x'], 13) ?>
+                            <?= pos_ti($pos_ti['x'], 14) ?>
                         </button>
-                    </div>
-                </div>
-
-                <!-- Cart header -->
-                <div class="pcp-cart-bar">
-                    <div class="pcp-cart-title">
-                        <?= pos_ti($pos_ti['cart'], 14) ?>
-                        <?= lang('sale_details') ?>
-                    </div>
-                    <span class="pcp-cart-badge" id="count">0</span>
-
-                    <!-- Extra buttons -->
-                    <div style="display:flex;gap:.3rem;margin-left:.5rem;">
-                        <?php if (!$t_nc): ?>
-                        <button type="button" class="pcp-cart-clear-btn" id="print_order"
-                                title="<?= lang('order') ?>">
-                            <?= pos_ti($pos_ti['printer'], 13) ?>
-                        </button>
-                        <?php endif; ?>
-                        <button type="button" class="pcp-cart-clear-btn"
-                                data-bs-toggle="modal" data-bs-target="#ModalNotes"
-                                title="<?= lang('notes') ?>">
-                            <?= pos_ti($pos_ti['message'], 13) ?>
-                        </button>
-                        <?php if ($Settings->propina_enable == '1'): ?>
-                        <button type="button" class="pcp-cart-clear-btn" id="add_tips">
-                            <?= pos_ti($pos_ti['percent'], 13) ?>
-                        </button>
-                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -530,12 +518,14 @@
                 <div class="pcp-items">
                     <table>
                         <thead>
+                            <!-- Con table-layout:fixed los anchos salen de esta fila:
+                                 las clases pcp-c-* tienen que estar tambien aca. -->
                             <tr>
-                                <th><?= lang('product') ?></th>
-                                <th style="text-align:right;"><?= lang('unit_price_abbr'); ?></th>
-                                <th style="text-align:center;"><?= lang('qty') ?></th>
-                                <th style="text-align:right;"><?= lang('total') ?></th>
-                                <th style="width:24px;"></th>
+                                <th class="pcp-c-prod"><?= lang('product') ?></th>
+                                <th class="pcp-c-price"><?= lang('unit_price_abbr'); ?></th>
+                                <th class="pcp-c-qty" style="text-align:center;"><?= lang('qty') ?></th>
+                                <th class="pcp-c-total"><?= lang('total') ?></th>
+                                <th class="pcp-c-del"></th>
                             </tr>
                         </thead>
                         <tbody id="posTable"></tbody>
@@ -553,9 +543,9 @@
                         <span class="tv" id="total">₡0.00</span>
                     </div>
                     <div class="pcp-total-row">
-                        <a href="#" class="tl text-decoration-none" id="add_discount" style="color:var(--nx-txt4);">
+                        <button type="button" class="tl pcp-ds-btn" id="add_discount">
                             <?= pos_ti($pos_ti['tag'], 12) ?> <?= lang('discount') ?>
-                        </a>
+                        </button>
                         <span class="tv" id="ds_con" style="color:var(--nx-warn);">₡0.00</span>
                     </div>
                     <div class="pcp-total-row">
@@ -574,17 +564,17 @@
                     <div class="pcp-action-row">
                         <?php if (!$t_nc && !$apa): ?>
                         <button type="button" class="pos-btn pos-btn-warn" id="suspend">
-                            <?= pos_ti($pos_ti['pause'], 13) ?> <?= lang('hold') ?>
+                            <?= pos_ti($pos_ti['pause'], 17) ?> <?= lang('hold') ?>
                         </button>
                         <?php endif; ?>
                         <button type="button" class="pos-btn pos-btn-danger" id="reset">
-                            <?= pos_ti($pos_ti['x'], 13) ?> <?= lang('cancel') ?>
+                            <?= pos_ti($pos_ti['x'], 17) ?> <?= lang('cancel') ?>
                         </button>
-                        <?php if (!$t_nc): ?>
-                        <button type="button" class="pos-btn pos-btn-ghost" id="print_bill">
-                            <?= pos_ti($pos_ti['printer'], 14) ?>
+                        <button type="button" class="pos-btn pos-btn-ghost" id="notasBtn"
+                                data-bs-toggle="modal" data-bs-target="#ModalNotes"
+                                title="<?= lang('notes') ?>">
+                            <?= pos_ti($pos_ti['message'], 17) ?> <?= lang('notes') ?>
                         </button>
-                        <?php endif; ?>
                     </div>
 
                     <button type="button"
@@ -592,11 +582,23 @@
                             id="<?= $eid ? 'submit-sale' : 'payment' ?>">
                         <?= pos_ti($pos_ti['circlecheck'], 16) ?>
                         <?= $eid ? lang('submit') : lang('payment') ?>
-                        <span class="kh">F4</span>
+                        <?php if (!empty($Settings->finalize_sale)): ?>
+                        <span class="kh"><?= html_escape($Settings->finalize_sale); ?></span>
+                        <?php endif; ?>
                     </button>
                 </div>
 
                 <!-- Hidden form fields -->
+                <!-- Origen de la venta. Sin estos campos Pos.php no sabe que la
+                     venta viene de una cuenta en espera, de una edicion, de una
+                     proforma o de un apartado: cierra el comprobante nuevo y
+                     deja el original abierto. -->
+                <input type="hidden" name="did"      id="did_val"      value="<?= (int)($sid ?? 0); ?>">
+                <input type="hidden" name="eid"      id="eid_val"      value="<?= (int)($eid ?? 0); ?>">
+                <input type="hidden" name="quo"      id="quo_val"      value="<?= (int)($quo ?? 0); ?>">
+                <input type="hidden" name="apapost"  id="apapost_val"  value="<?= (int)($apa ?? 0); ?>">
+                <input type="hidden" name="token_post" value="<?= md5(uniqid('', TRUE)); ?>">
+
                 <input type="hidden" name="total_tax"     id="total_tax"      value="<?= $total_tax ?>">
                 <input type="hidden" name="order_tax"     id="tax_val"        value="">
                 <input type="hidden" name="order_discount" id="discount_val"  value="">
@@ -604,7 +606,26 @@
                 <input type="hidden" name="amount"         id="amount_val"    value="">
                 <input type="hidden" name="paid_by"        id="paid_by_val"   value="cash">
                 <input type="hidden" name="payment_note"   id="payment_note_val" value="">
-                <input type="hidden" id="submit" style="display:none;">
+                <!-- Referencia del primer pago (la arma #payModal) -->
+                <input type="hidden" name="sinpe_reference" id="sinpe_reference" value="">
+
+                <!-- Pagos 2 a 4. Las referencias van corridas: freferencia1
+                     corresponde al pago 2, freferencia2 al 3, y asi. -->
+                <input type="hidden" name="amount2"       id="amount2_val"     value="">
+                <input type="hidden" name="paid_by2"      id="paid_by2_val"    value="">
+                <input type="hidden" name="freferencia1"  id="freferencia1_val" value="">
+                <input type="hidden" name="amount3"       id="amount3_val"     value="">
+                <input type="hidden" name="paid_by3"      id="paid_by3_val"    value="">
+                <input type="hidden" name="freferencia2"  id="freferencia2_val" value="">
+                <input type="hidden" name="amount4"       id="amount4_val"     value="">
+                <input type="hidden" name="paid_by4"      id="paid_by4_val"    value="">
+                <input type="hidden" name="freferencia3"  id="freferencia3_val" value="">
+                <input type="hidden" name="balance_amount" id="balance_amount_val" value="0">
+
+                <!-- Lo que el cajero eligio en el cobro. Pos.php lo vuelve a
+                     comprobar contra el cliente: si no calza, gana el servidor. -->
+                <input type="hidden" name="tipo_doc"       id="tipo_doc_val"       value="">
+                <input type="hidden" name="situacion"      id="situacion_val"      value="1">
 
                 <?= form_close(); ?>
             </div><!-- /pos-cart-panel -->
@@ -619,7 +640,7 @@
 
 <!-- Customer Modal -->
 <div class="modal fade" id="customerModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title d-flex align-items-center gap-2">
@@ -633,19 +654,19 @@
                 <div id="c-alert" class="alert alert-danger d-none"></div>
                 <div id="hac-alert" class="alert d-none" style="font-size:.82rem;padding:.5rem .75rem;"></div>
 
-                <!-- Tipo + Número de identificación (Hacienda AE lookup) -->
-                <div class="row g-2 mb-3">
-                    <div class="col-5">
+                <!-- ── Identificación: decide si el cliente admite factura ── -->
+                <div class="row g-2 mb-2">
+                    <div class="col-4">
                         <label class="form-label"><?= lang('cf1') ?> <span class="text-danger">*</span></label>
                         <select name="cf1" class="form-select form-select-sm" id="cf1" required>
                             <option value="01">01 — <?= lang('cedula_identidad'); ?></option>
                             <option value="02">02 — <?= lang('cedula_juridica'); ?></option>
                             <option value="03">03 — DIMEX</option>
                             <option value="04">04 — NITE</option>
-                            <option value="05">05 — <?= lang('pasaporte'); ?></option>
+                            <option value="05">05 — <?= lang('extranjero_no_domiciliado'); ?></option>
                         </select>
                     </div>
-                    <div class="col-7">
+                    <div class="col-8">
                         <label class="form-label"><?= lang('cf2') ?> <span class="text-danger">*</span></label>
                         <div class="input-group input-group-sm">
                             <?= form_input('cf2', '', 'class="form-control" id="cf2" required autocomplete="off" placeholder="' . lang('placeholder_cedula') . '"') ?>
@@ -661,20 +682,127 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label"><?= lang('name') ?> <span class="text-danger">*</span></label>
-                    <?= form_input('name', '', 'class="form-control" id="cname" required') ?>
+                <!-- ── Nombre y nombre comercial ── -->
+                <div class="row g-2 mb-2">
+                    <div class="col-md-7">
+                        <label class="form-label"><?= lang('name') ?> <span class="text-danger">*</span></label>
+                        <?= form_input('name', '', 'class="form-control form-control-sm" id="cname" maxlength="100" required') ?>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label"><?= lang('nombre_comercial') ?></label>
+                        <?= form_input('business_name', '', 'class="form-control form-control-sm" id="cbusiness" maxlength="80"') ?>
+                    </div>
                 </div>
-                <div class="row g-3">
-                    <div class="col-md-6 mb-3">
+
+                <!-- ── Contacto. El codigo de pais es <CodigoPais> del comprobante. ── -->
+                <div class="row g-2 mb-2">
+                    <div class="col-md-5">
                         <label class="form-label"><?= lang('email_address') ?></label>
-                        <?= form_input('email', '', 'class="form-control" id="cemail"') ?>
+                        <?= form_input('email', '', 'class="form-control form-control-sm" id="cemail" maxlength="160" type="email"') ?>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-4 col-md-2">
+                        <label class="form-label"><?= lang('cod_telefono') ?></label>
+                        <?= form_input('cod_telefono', '506', 'class="form-control form-control-sm" id="ccodtel" maxlength="3" inputmode="numeric"') ?>
+                    </div>
+                    <div class="col-8 col-md-5">
                         <label class="form-label"><?= lang('phone') ?></label>
-                        <?= form_input('phone', '', 'class="form-control" id="cphone"') ?>
+                        <?= form_input('phone', '', 'class="form-control form-control-sm" id="cphone" maxlength="20" inputmode="tel"') ?>
                     </div>
                 </div>
+
+                <!-- ── Actividad economica: la trae el padron y hoy se perdia ── -->
+                <div class="mb-2 d-none" id="cActividadWrap">
+                    <label class="form-label"><?= lang('cod_act_economica_label') ?></label>
+                    <select name="codigo_actividad" id="cactividad" class="form-select form-select-sm"></select>
+                    <small class="text-muted" style="font-size:.65rem"><?= lang('actividades_registradas'); ?></small>
+                    <div id="cActividadesHidden"></div>
+                </div>
+
+                <!-- ── Ubicación del receptor (opcional, pero completa o ninguna) ── -->
+                <details class="pos-cust-more mb-2" id="cUbicacionBox">
+                    <summary><?= lang('cliente_paso_ubicacion') ?> <span class="text-muted">· <?= lang('opcional') ?></span></summary>
+                    <div class="pt-2">
+                        <div class="row g-2 mb-2" id="cUbicacionCR">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><?= lang('provincia') ?></label>
+                                <select name="codigo_provincia" id="codigo_provincia" class="form-select form-select-sm"
+                                        data-hijo="codigo_canton" data-url="<?= site_url('customers/get_cantones'); ?>">
+                                    <option value="">— <?= lang('Seleccione'); ?> —</option>
+                                    <?php foreach (($provincias ?? []) as $p) { ?>
+                                        <option value="<?= $p->codigo; ?>"><?= $p->nombre; ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><?= lang('canton') ?></label>
+                                <select name="codigo_canton" id="codigo_canton" class="form-select form-select-sm"
+                                        data-hijo="codigo_distrito" data-url="<?= site_url('customers/get_distritos'); ?>">
+                                    <option value="">— <?= lang('Seleccione'); ?> —</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><?= lang('distrito') ?></label>
+                                <select name="codigo_distrito" id="codigo_distrito" class="form-select form-select-sm"
+                                        data-hijo="codigo_barrio" data-url="<?= site_url('customers/get_barrios'); ?>">
+                                    <option value="">— <?= lang('Seleccione'); ?> —</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><?= lang('barrio') ?></label>
+                                <select name="codigo_barrio" id="codigo_barrio" class="form-select form-select-sm">
+                                    <option value="">— <?= lang('Seleccione'); ?> —</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label"><?= lang('otras_senas') ?></label>
+                                <?= form_input('otras_senas', '', 'class="form-control form-control-sm" id="cotrasenas" maxlength="250"') ?>
+                                <small class="text-muted" style="font-size:.65rem"><?= lang('otras_senas_ayuda'); ?></small>
+                            </div>
+                        </div>
+                        <div class="d-none" id="cUbicacionExtranjero">
+                            <label class="form-label"><?= lang('otras_senas_extranjero') ?></label>
+                            <?= form_input('otras_senas_extranjero', '', 'class="form-control form-control-sm" id="cextranjero" maxlength="300"') ?>
+                            <small class="text-muted" style="font-size:.65rem"><?= lang('otras_senas_extranjero_ayuda'); ?></small>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- ── Condiciones comerciales ── -->
+                <details class="pos-cust-more" id="cComercialBox">
+                    <summary><?= lang('cliente_paso_comercial') ?> <span class="text-muted">· <?= lang('opcional') ?></span></summary>
+                    <div class="row g-2 pt-2">
+                        <div class="col-6 col-md-3">
+                            <label class="form-label"><?= lang('codigo_cliente') ?></label>
+                            <?= form_input('codigo_cliente', '', 'class="form-control form-control-sm" id="ccodigo" maxlength="30"') ?>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label"><?= lang('tipo_doc_defecto') ?></label>
+                            <select name="tipo_doc_defecto" id="ctipodoc" class="form-select form-select-sm">
+                                <option value=""><?= lang('segun_el_cliente'); ?></option>
+                                <option value="01"><?= lang('factura'); ?></option>
+                                <option value="04"><?= lang('tiquete'); ?></option>
+                            </select>
+                        </div>
+                        <?php if ($Settings->enable_credit == 1) { ?>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><?= lang('tipo_pago_defecto') ?></label>
+                                <select name="tipo_pago_defecto" id="ctipopago" class="form-select form-select-sm">
+                                    <option value=""><?= lang('sin_definir'); ?></option>
+                                    <option value="contado"><?= lang('contado'); ?></option>
+                                    <option value="credito"><?= lang('credito'); ?></option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><?= lang('dias_credito') ?></label>
+                                <?= form_input('dias_credito', '0', 'class="form-control form-control-sm" id="cdiascred" type="number" min="0" max="365"') ?>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label"><?= lang('limitcredit') ?></label>
+                                <?= form_input('limitcredit', '0', 'class="form-control form-control-sm" id="climite" inputmode="decimal"') ?>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </details>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close') ?></button>
@@ -700,17 +828,16 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label"><?= lang('reference_note') ?></label>
-                    <?= form_input('hold_ref', $reference_note ?? '', 'class="form-control" id="hold_ref"') ?>
+                    <label class="form-label" for="hold_ref"><?= lang('reference_note') ?> <span class="text-danger">*</span></label>
+                    <?= form_input('hold_ref', $reference_note ?? '', 'class="form-control" id="hold_ref" autocomplete="off"') ?>
+                    <div class="invalid-feedback d-block" id="hold_ref_error" style="display:none !important;"></div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label"><?= lang('note') ?></label>
-                    <textarea name="spos_note" id="spos_note" class="form-control" rows="3"></textarea>
-                </div>
+                <!-- Pos.php lee spos_note; la nota libre se retiro del modal. -->
+                <input type="hidden" name="spos_note" id="spos_note" value="">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('close') ?></button>
-                <button type="button" class="btn btn-primary d-flex align-items-center gap-1" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-primary d-flex align-items-center gap-1" id="notasAceptar">
                     <?= pos_ti($pos_ti['check'], 13) ?><?= lang('accept') ?>
                 </button>
             </div>
@@ -720,71 +847,254 @@
 
 <!-- Payment Modal -->
 <div class="modal fade" id="payModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-md">
+    <div class="modal-dialog modal-xl pay-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header pay-head">
                 <h5 class="modal-title d-flex align-items-center gap-2">
-                    <span style="color:var(--nx-ok);"><?= pos_ti($pos_ti['calculator'], 16) ?></span>
+                    <span style="color:var(--nx-ok);"><?= pos_ti($pos_ti['calculator'], 17) ?></span>
                     <?= lang('payment') ?>
                 </h5>
+                <div class="pay-head-total">
+                    <span><?= lang('total_payable') ?></span>
+                    <strong id="payHeadTotal">₡0.00</strong>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <!-- Payment method selector -->
-                <div class="pay-methods-grid">
-                    <button type="button" class="pay-method-btn active" data-method="cash" id="pmCash">
-                        <?= pos_ti($pos_ti['cash'], 16) ?><?= lang('cash'); ?>
-                    </button>
-                    <button type="button" class="pay-method-btn" data-method="card" id="pmCard">
-                        <?= pos_ti($pos_ti['creditcard'], 16) ?><?= lang('tarjeta'); ?>
-                    </button>
-                    <button type="button" class="pay-method-btn" data-method="sinpe" id="pmSinpe">
-                        <?= pos_ti($pos_ti['phoneall'], 16) ?>SINPE
-                    </button>
-                    <button type="button" class="pay-method-btn" data-method="transfer" id="pmTransfer">
-                        <?= pos_ti($pos_ti['bank'], 16) ?><?= lang('transferencia_abr'); ?>
-                    </button>
-                </div>
 
-                <!-- Totals display -->
-                <div class="pay-totals-row">
-                    <div class="pay-total-box">
-                        <div class="ptb-label"><?= lang('total_payable') ?></div>
-                        <div class="ptb-value" id="twt">₡0.00</div>
+            <div class="modal-body pay-body">
+                <div class="pay-grid">
+
+                    <!-- ═══ Columna izquierda: qué se emite y cómo se cobra ═══ -->
+                    <div class="pay-col">
+
+                        <!-- Comprobante. El que el cliente no admite sale
+                             deshabilitado; el motivo va en el tooltip. -->
+                        <div class="pay-block">
+                            <div class="pay-block-rot"><?= lang('comprobante'); ?></div>
+                            <div class="doc-selector-grid">
+                                <button type="button" class="doc-btn active" data-doc="04" id="docTiquete">
+                                    <?= pos_ti($pos_ti['receipt'], 16) ?>
+                                    <strong><?= lang('tiquete_electronico'); ?></strong>
+                                </button>
+                                <button type="button" class="doc-btn" data-doc="01" id="docFactura">
+                                    <?= pos_ti($pos_ti['fileinvoice'], 16) ?>
+                                    <strong><?= lang('factura_electronica'); ?></strong>
+                                </button>
+                            </div>
+                            <div class="doc-motivo" id="docMotivo"></div>
+
+                            <!-- Cambia la posicion 42 de la clave: no es cosmetico. -->
+                            <label class="doc-conting">
+                                <input type="checkbox" id="docContingencia">
+                                <span><?= lang('contingencia'); ?></span>
+                            </label>
+                        </div>
+
+                        <!-- Formas de pago. El credito es una mas: lo que queda
+                             sin cubrir es lo que se fia. -->
+                        <div class="pay-block">
+                            <div class="pay-block-rot"><?= lang('paid_by'); ?></div>
+                            <div class="pay-methods-grid<?= ($Settings->enable_credit == 1) ? ' has-credit' : ''; ?>">
+                                <button type="button" class="pay-method-btn active" data-method="cash" id="pmCash">
+                                    <?= pos_ti($pos_ti['cash'], 17) ?><span><?= lang('cash'); ?></span>
+                                </button>
+                                <button type="button" class="pay-method-btn" data-method="card" id="pmCard">
+                                    <?= pos_ti($pos_ti['creditcard'], 17) ?><span><?= lang('tarjeta'); ?></span>
+                                </button>
+                                <button type="button" class="pay-method-btn" data-method="sinpe" id="pmSinpe">
+                                    <?= pos_ti($pos_ti['phoneall'], 17) ?><span>SINPE</span>
+                                </button>
+                                <button type="button" class="pay-method-btn" data-method="transfer" id="pmTransfer">
+                                    <?= pos_ti($pos_ti['bank'], 17) ?><span><?= lang('transferencia_abr'); ?></span>
+                                </button>
+                                <?php if ($Settings->enable_credit == 1) { ?>
+                                    <button type="button" class="pay-method-btn is-credit" data-method="credito" id="pmCredito">
+                                        <?= pos_ti($pos_ti['pausecircle'], 17) ?><span><?= lang('credito'); ?></span>
+                                    </button>
+                                <?php } ?>
+                            </div>
+                            <div class="pay-credit-info" id="payCreditInfo" hidden></div>
+                        </div>
+
+                        <!-- SINPE entrantes que cubren el total. Solo con método "sinpe". -->
+                        <div id="sinpePendingPanel" class="pay-block" style="display:none;">
+                            <div class="d-flex align-items-center justify-content-between" style="margin-bottom:.3rem;">
+                                <small class="text-muted">
+                                    <i class="fa fa-circle" id="sinpeLiveDot" style="color:#adb5bd;font-size:8px;"></i>
+                                    SINPE entrantes que cubren el total
+                                </small>
+                                <small class="text-muted" id="sinpePendingCount"></small>
+                            </div>
+
+                            <select id="sinpePendingSelect" class="form-select" style="font-size:13px;">
+                                <option value="">Buscando pagos SINPE recientes…</option>
+                            </select>
+
+                            <div id="sinpeSelectedInfo" style="display:none;margin-top:.5rem;padding:.55rem .7rem;border-radius:6px;background:rgba(46,204,113,.12);font-size:12.5px;line-height:1.55;">
+                                <div class="d-flex justify-content-between align-items-start" style="gap:.5rem;">
+                                    <div style="min-width:0;">
+                                        <div><i class="fa fa-user" style="width:14px;"></i> <strong id="sinpeSelNombre">—</strong></div>
+                                        <div><i class="fa fa-phone" style="width:14px;"></i> <span id="sinpeSelTelefono">—</span></div>
+                                        <div><i class="fa fa-university" style="width:14px;"></i> <span id="sinpeSelBanco">—</span> · <span id="sinpeSelFecha">—</span></div>
+                                        <div><i class="fa fa-hashtag" style="width:14px;"></i> Referencia: <strong id="sinpeSelectedComprobante">—</strong></div>
+                                        <div id="sinpeSelDescRow" style="display:none;"><i class="fa fa-file-text-o" style="width:14px;"></i> <span id="sinpeSelDescripcion"></span></div>
+                                    </div>
+                                    <div style="text-align:right;white-space:nowrap;">
+                                        <div style="font-weight:700;font-size:15px;" id="sinpeSelMonto">—</div>
+                                        <button type="button" class="btn btn-link btn-sm p-0" id="sinpeClearSelection">quitar</button>
+                                    </div>
+                                </div>
+                                <div id="sinpeSobrantePago" style="display:none;margin-top:.35rem;font-size:11.5px;" class="text-muted"></div>
+                            </div>
+                        </div>
+
+                        <!-- Obligatorio en tarjeta y transferencia; en SINPE se autocompleta. -->
+                        <div class="pay-amount-group" id="payRefGroup" style="display:none;">
+                            <label id="payRefLabel"><?= lang('payment_ref') ?></label>
+                            <input type="text" id="payRef" placeholder="<?= lang('numero_transaccion') ?>" autocomplete="off">
+                        </div>
+
+                        <!-- Datafono: el cobro devuelve referencia y monto, no se teclean -->
+                        <div id="payDatafonoWrap" style="display:none;">
+                            <button type="button" class="pay-datafono-btn" id="payDatafonoBtn">
+                                <?= pos_ti($pos_ti['creditcard'], 16) ?>
+                                <span><?= lang('enviar_cobro_datafono'); ?></span>
+                            </button>
+                        </div>
+
+                        <!-- Solo hace falta al cobrar con mas de una forma de pago. -->
+                        <button type="button" class="pay-add-btn" id="payAddLine">
+                            <span class="pay-add-ico"><?= pos_ti($pos_ti['plus'], 14) ?></span>
+                            <strong><?= lang('agregar_forma_pago') ?></strong>
+                        </button>
+
+                        <!-- Desglose de formas de pago agregadas -->
+                        <div id="payLinesWrap" style="display:none;">
+                            <div class="pay-block-rot">
+                                <?= lang('formas_de_pago') ?> <span id="payLinesCount"></span>
+                            </div>
+                            <div id="payLines" class="pay-lines"></div>
+                        </div>
                     </div>
-                    <div class="pay-total-box change">
-                        <div class="ptb-label"><?= lang('change') ?></div>
-                        <div class="ptb-value" id="balance">₡0.00</div>
+
+                    <!-- ═══ Columna derecha: teclado y totales ═══ -->
+                    <div class="pay-col pay-col-pad">
+
+                        <div class="pay-display">
+                            <label for="amount"><?= lang('dinero_recibido') ?></label>
+                            <input type="number" id="amount" name="amount"
+                                   placeholder="0.00" inputmode="decimal" min="0" step="any" autocomplete="off">
+                        </div>
+
+                        <div class="pay-quick-row" id="payQuickAmounts">
+                            <button type="button" class="pay-quick-btn exact" id="payExact">
+                                <?= pos_ti($pos_ti['equal'], 13) ?><?= lang('exacto'); ?>
+                            </button>
+                            <button type="button" class="pay-quick-btn" data-amount="5000">5.000</button>
+                            <button type="button" class="pay-quick-btn" data-amount="10000">10.000</button>
+                            <button type="button" class="pay-quick-btn" data-amount="20000">20.000</button>
+                        </div>
+
+                        <!-- Teclado en pantalla: imprescindible en tableta, y en
+                             una caja con teclado fisico no estorba porque el foco
+                             sigue en el campo. -->
+                        <div class="pay-keypad" id="payKeypad">
+                            <button type="button" data-key="7">7</button>
+                            <button type="button" data-key="8">8</button>
+                            <button type="button" data-key="9">9</button>
+                            <button type="button" data-key="back" class="k-act" title="<?= lang('borrar'); ?>">⌫</button>
+                            <button type="button" data-key="4">4</button>
+                            <button type="button" data-key="5">5</button>
+                            <button type="button" data-key="6">6</button>
+                            <button type="button" data-key="clear" class="k-act k-clear" title="C">C</button>
+                            <button type="button" data-key="1">1</button>
+                            <button type="button" data-key="2">2</button>
+                            <button type="button" data-key="3">3</button>
+                            <button type="button" data-key="0">0</button>
+                            <button type="button" data-key=".">.</button>
+                            <button type="button" data-key="00">00</button>
+                        </div>
+
+                        <div class="pay-totals">
+                            <div class="pay-total-line">
+                                <span><?= lang('total_payable') ?></span>
+                                <strong id="twt">₡0.00</strong>
+                            </div>
+                            <div class="pay-total-line">
+                                <span><?= lang('pagado') ?></span>
+                                <strong id="payPagado">₡0.00</strong>
+                            </div>
+                            <div class="pay-total-line change">
+                                <span id="balanceLabel"><?= lang('change') ?></span>
+                                <strong id="balance">₡0.00</strong>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Amount input -->
-                <div class="pay-amount-group">
-                    <label><?= lang('amount') ?></label>
-                    <input type="number" id="amount" name="amount"
-                           placeholder="0.00" inputmode="decimal" min="0" step="any">
-                </div>
-
-                <!-- Quick amounts -->
-                <div class="pay-quick-row" id="payQuickAmounts">
-                    <button type="button" class="pay-quick-btn exact d-flex align-items-center gap-1" id="payExact">
-                        <?= pos_ti($pos_ti['equal'], 13) ?><?= lang('exacto'); ?>
-                    </button>
-                    <button type="button" class="pay-quick-btn" data-amount="5000">₡5,000</button>
-                    <button type="button" class="pay-quick-btn" data-amount="10000">₡10,000</button>
-                    <button type="button" class="pay-quick-btn" data-amount="20000">₡20,000</button>
-                    <button type="button" class="pay-quick-btn" data-amount="50000">₡50,000</button>
                 </div>
             </div>
-            <div class="modal-footer" style="padding:.875rem 1.25rem;">
-                <button type="button" class="btn btn-secondary d-flex align-items-center gap-1" data-bs-dismiss="modal">
-                    <?= pos_ti($pos_ti['x'], 13) ?><?= lang('close') ?>
+
+            <div class="modal-footer pay-footer">
+                <button type="button" class="pay-close-btn" data-bs-dismiss="modal">
+                    <?= pos_ti($pos_ti['x'], 14) ?><?= lang('close') ?>
                 </button>
-                <button type="button" class="pay-submit-btn d-flex align-items-center justify-content-center gap-1" id="submit-sale" style="flex:1;max-width:200px;">
-                    <?= pos_ti($pos_ti['check'], 15) ?>
-                    <?= lang('submit') ?>
+                <button type="button" class="pay-submit-btn" id="submit-sale">
+                    <?= pos_ti($pos_ti['check'], 15) ?><?= lang('submit') ?>
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     MODAL: Editar línea del carrito
+════════════════════════════════════════════════ -->
+<div class="nx-ov" id="editItemModal">
+    <div class="nx-ov-caja" role="dialog" aria-modal="true" aria-labelledby="ei-titulo">
+        <div class="nx-ov-cab">
+            <div class="nx-ov-tit" id="ei-titulo"><?= lang('editar_linea'); ?></div>
+            <button type="button" class="nx-ov-x" id="ei-cerrar" aria-label="<?= lang('close'); ?>">&times;</button>
+        </div>
+        <div class="nx-ov-cuerpo">
+            <input type="hidden" id="ei-item">
+
+            <label class="nx-ov-lbl" for="ei-nombre"><?= lang('product_name'); ?></label>
+            <input type="text" class="nx-ov-input" id="ei-nombre">
+
+            <div class="nx-ov-fila2">
+                <div>
+                    <label class="nx-ov-lbl" for="ei-cantidad"><?= lang('quantity'); ?></label>
+                    <input type="number" class="nx-ov-input" id="ei-cantidad" min="0.01" step="any">
+                </div>
+                <div>
+                    <label class="nx-ov-lbl" for="ei-precio"><?= lang('price'); ?></label>
+                    <input type="number" class="nx-ov-input" id="ei-precio" min="0" step="any">
+                </div>
+            </div>
+
+            <label class="nx-ov-lbl" for="ei-descuento"><?= lang('descuento_linea'); ?></label>
+            <div class="nx-ov-desc">
+                <input type="number" class="nx-ov-input" id="ei-descuento" min="0" step="any"
+                       placeholder="0" autocomplete="off">
+                <div class="nx-ov-desc-tipo" id="ei-desc-tipo">
+                    <button type="button" data-tipo="monto" class="activo"><?= $Settings->symbol ? html_escape($Settings->symbol) : '&#8353;' ?></button>
+                    <button type="button" data-tipo="pct">%</button>
+                </div>
+            </div>
+            <div class="nx-ov-ayuda" id="ei-desc-ayuda"></div>
+
+            <label class="nx-ov-lbl" for="ei-comentario"><?= lang('comment'); ?></label>
+            <input type="text" class="nx-ov-input" id="ei-comentario">
+
+            <div class="nx-ov-stock" id="ei-stock"></div>
+            <div class="nx-ov-error" id="ei-error"></div>
+        </div>
+        <div class="nx-ov-pie">
+            <button type="button" class="nx-ov-btn danger" id="ei-quitar">
+                <i class="fa fa-trash-o"></i> <?= lang('remove'); ?>
+            </button>
+            <span style="flex:1;"></span>
+            <button type="button" class="nx-ov-btn" id="ei-cancelar"><?= lang('close'); ?></button>
+            <button type="button" class="nx-ov-btn primary" id="ei-guardar"><?= lang('save'); ?></button>
         </div>
     </div>
 </div>
@@ -803,24 +1113,28 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <!-- Articulos guardados: un clic llena nombre, CABYS e IVA -->
+                <div class="mb-3" id="ah-rapidos-wrap" hidden>
+                    <label class="form-label fw-semibold d-block"><?= lang('articulos_rapidos'); ?></label>
+                    <div id="ah-rapidos" class="ah-rapidos"></div>
+                </div>
+
                 <!-- Nombre -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold"><?= lang('name'); ?> <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="ah-name" placeholder="<?= lang('desc_prod_servicio'); ?>" autocomplete="off" required>
                 </div>
 
-                <!-- CABYS -->
+                <!-- CABYS: se elige siempre desde el modal de búsqueda, nunca a mano -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold"><?= lang('codigo_cabys'); ?> <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        <input type="text" class="form-control font-monospace" id="ah-cabys" placeholder="0000000000000" maxlength="13" autocomplete="off" style="max-width:170px;">
+                        <input type="text" class="form-control font-monospace" id="ah-cabys" placeholder="—" readonly style="max-width:170px;">
                         <input type="text" class="form-control" id="ah-cabys-desc" placeholder="<?= lang('desc_cabys'); ?>" readonly>
-                        <button type="button" class="btn btn-outline-info d-flex align-items-center gap-1" id="ah-cabys-search-btn">
-                            <span id="ah-cabys-icon"><?= pos_ti($pos_ti['search'], 13) ?></span> <?= lang('buscar'); ?>
+                        <button type="button" class="btn btn-info d-flex align-items-center gap-1" id="ah-cabys-search-btn">
+                            <span id="ah-cabys-icon"><?= pos_ti($pos_ti['search'], 13) ?></span> <?= lang('buscar_cabys'); ?>
                         </button>
                     </div>
-                    <!-- Panel resultados CABYS -->
-                    <div id="ah-cabys-results" class="mt-2" style="display:none;max-height:220px;overflow-y:auto;border:1px solid var(--bs-border-color);border-radius:.375rem;"></div>
                 </div>
 
                 <!-- Cantidad + Costo + Precio -->
@@ -864,6 +1178,15 @@
                     </div>
                 </div>
 
+                <div class="form-text mb-3" id="ah-iva-ayuda"><?= lang('iva_sale_del_cabys'); ?></div>
+
+                <?php if ($Admin) { ?>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="ah-guardar">
+                    <label class="form-check-label" for="ah-guardar"><?= lang('guardar_articulo_rapido'); ?></label>
+                </div>
+                <?php } ?>
+
                 <!-- Totales en tiempo real -->
                 <div class="p-3 rounded" style="background:var(--bs-tertiary-bg);font-size:.9rem;">
                     <div class="row text-center g-2">
@@ -901,13 +1224,50 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="cabys-q" placeholder="<?= lang('buscar_cabys_placeholder'); ?>">
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="cabys-q" placeholder="<?= lang('buscar_cabys_placeholder'); ?>" autocomplete="off">
                     <button type="button" class="btn btn-primary" id="cabys-go-btn">
                         <?= pos_ti($pos_ti['search'], 15) ?>
                     </button>
                 </div>
-                <div id="cabys-results-list" style="max-height:380px;overflow-y:auto;"></div>
+                <div class="text-muted small mb-3"><?= lang('cabys_help_text'); ?></div>
+                <div id="cabys-results-list" class="cabys-results-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     MODAL: Descuento sobre el total de la factura
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="descuentoModal" tabindex="-1">
+    <div class="modal-dialog nx-ds-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center gap-2" style="white-space:nowrap;">
+                    <span style="color:var(--nx-warn);"><?= pos_ti($pos_ti['tag'], 16) ?></span>
+                    <?= lang('descuento_total'); ?>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-semibold" for="ds-valor"><?= lang('monto_o_porcentaje'); ?></label>
+                <div class="nx-ov-desc">
+                    <input type="number" class="form-control" id="ds-valor" min="0" step="any" placeholder="0" autocomplete="off">
+                    <div class="nx-ov-desc-tipo" id="ds-tipo">
+                        <button type="button" data-tipo="monto" class="activo"><?= $Settings->symbol ? html_escape($Settings->symbol) : '&#8353;' ?></button>
+                        <button type="button" data-tipo="pct">%</button>
+                    </div>
+                </div>
+                <div class="nx-ov-ayuda" id="ds-ayuda"></div>
+                <div class="nx-ov-error" id="ds-error"></div>
+                <div class="pcp-ds-resumen" id="ds-resumen"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="ds-quitar"><?= lang('quitar_descuento'); ?></button>
+                <button type="button" class="btn btn-primary d-flex align-items-center gap-1" id="ds-aplicar">
+                    <?= pos_ti($pos_ti['check'], 13) ?><?= lang('apply'); ?>
+                </button>
             </div>
         </div>
     </div>
@@ -1011,8 +1371,19 @@
     var base_url = '<?= base_url(); ?>',
         assets   = '<?= $assets ?>';
 
-    var Settings = <?= json_encode($Settings); ?>;
+    // Tickets que PHP dejo en cola para que esta computadora los imprima por QZ Tray.
+    window._nx_qz_pendiente = <?= count((array) $this->session->userdata('qz_cola')); ?>;
+
+    var Settings = <?= json_encode(ajustes_publicos($Settings)); ?>;
     var username = '<?= addslashes($this->session->userdata('username')); ?>';
+
+    // Textos de los avisos del modal de pago (los usa pos-core.js)
+    window.LANG_VUELTO          = '<?= addslashes(lang('change')); ?>';
+    window.LANG_FALTA           = '<?= addslashes(lang('falta_por_cubrir')); ?>';
+    window.LANG_PAGO_INCOMPLETO = '<?= addslashes(lang('pago_incompleto')); ?>';
+    window.LANG_MAX_PAGOS       = '<?= addslashes(lang('max_formas_pago')); ?>';
+    window.LANG_REF_REQ         = '<?= addslashes(lang('ref_requerida')); ?>';
+    window.LANG_MONTO_REQ       = '<?= addslashes(lang('monto_requerido')); ?>';
 
     window.CSRF_NAME = '<?= $this->security->get_csrf_token_name(); ?>';
     window.CSRF_HASH = '<?= $this->security->get_csrf_hash(); ?>';
@@ -1020,15 +1391,67 @@
     window._pos_cat_id  = <?= (int)$Settings->default_category; ?>;
     window._pos_tcp     = <?= (int)$tcp; ?>;
     window._pos_sid     = <?= (int)$sid; ?>;
+
+    // Venta retomada (en espera, reedicion, proforma, apartado): el carrito lo
+    // manda el servidor, no el localStorage de esta computadora.
+    <?php
+    $precargada = null;
+    if (!empty($items)) {
+        $origen = $suspend_sale ?? $sale ?? $quotes_sale ?? $apa_sale ?? null;
+        $precargada = array(
+            'items'   => json_decode($items, TRUE),
+            'cliente' => $origen && isset($origen->customer_id) ? (string) $origen->customer_id : '',
+            'nota'    => $origen && isset($origen->note) ? $origen->note : '',
+        );
+    }
+    ?>
+    window._pos_precargada = <?= $precargada ? json_encode($precargada) : 'null'; ?>;
+
+    <?php
+    // El POS no dibuja la barra de mensajes del tema, asi que lo que el
+    // servidor deje en flashdata se muestra aca como aviso flotante.
+    $aviso_pos = $this->session->flashdata('error') ?: $this->session->flashdata('message');
+    ?>
+    window._pos_aviso = <?= $aviso_pos
+        ? json_encode(array('texto' => strip_tags((string) $aviso_pos),
+                            'error' => (bool) $this->session->flashdata('error')))
+        : 'null'; ?>;
+
+    <?php $venta_ok = $this->session->flashdata('venta_ok'); ?>
+    // Marca que deja Pos.php al cobrar: el POS se encarga del aviso, de limpiar
+    // el carrito y de la impresion automatica, para no abrir el comprobante.
+    window._pos_venta_ok = <?= $venta_ok ? json_encode(array(
+        'id'        => (int) $venta_ok['id'],
+        'efectivo'  => (bool) $venta_ok['efectivo'],
+        'autoprint' => (bool) $Settings->auto_print,
+        'url_bytes' => site_url('posprint/receipt_bytes'),
+        'url_cajon' => site_url('posprint/drawer_bytes'),
+    )) : 'null'; ?>;
     window._impuestos   = <?= json_encode($impuestos_list ?: []); ?>;
+    // Validacion previa al cobro: lo que Hacienda rechazaria se detiene en la caja.
+    window._posVR = <?= json_encode(array(
+        'fe'      => !empty($Settings->fe),
+        'admin'   => (bool) $Admin,
+        'lista'   => site_url('ventarapida/lista'),
+        'guardar' => site_url('ventarapida/guardar'),
+        'borrar'  => site_url('ventarapida/borrar'),
+        'verificar' => site_url('ventarapida/verificar_cabys'),
+        'asignar' => site_url('ventarapida/asignar_cabys'),
+        'buscar'  => site_url('hacienda_proxy/cabys'),
+    )); ?>;
+    window._urlEstadoCliente = '<?= site_url('pos/estado_cliente'); ?>';
     window._customers   = <?php
         $cmap = [];
         if ($customers) foreach ($customers as $c)
-            $cmap[$c->id] = ['name'=>$c->name,'cf1'=>$c->cf1,'cf2'=>$c->cf2,'email'=>$c->email,'phone'=>$c->phone,'company'=>isset($c->company)?$c->company:''];
+            $cmap[$c->id] = ['name'=>$c->name,'cf1'=>$c->cf1,'cf2'=>$c->cf2,'email'=>$c->email,'phone'=>$c->phone,'company'=>isset($c->business_name)?$c->business_name:'','credito'=>isset($c->limitcredit)?(float)$c->limitcredit:0];
         echo json_encode($cmap);
     ?>;
 
     var lang = {
+        vr_falta_cabys: <?= json_encode(lang('vr_falta_cabys')); ?>,
+        vr_cabys_inexistente: <?= json_encode(lang('vr_cabys_inexistente')); ?>,
+        vr_cabys_ayuda: <?= json_encode(lang('vr_cabys_ayuda')); ?>,
+        vr_no_agregar: <?= json_encode(lang('vr_no_agregar')); ?>,
         no_match_found:      '<?= addslashes(lang('no_match_found')); ?>',
         please_add_product:  '<?= addslashes(lang('please_add_product')); ?>',
         r_u_sure:            '<?= addslashes(lang('r_u_sure')); ?>',
@@ -1055,6 +1478,14 @@
         impresion_auto_off_title: '<?= addslashes(lang('impresion_auto_off_title')); ?>',
         impresion_auto_desactivada: '<?= addslashes(lang('impresion_auto_desactivada')); ?>',
         impresion_auto_activada:  '<?= addslashes(lang('impresion_auto_activada')); ?>',
+        sin_inventario:           '<?= addslashes(lang('sin_inventario')); ?>',
+        business_name:            '<?= addslashes(lang('business_name')); ?>',
+        credit_limit:             '<?= addslashes(lang('credit_limit')); ?>',
+        email:                    '<?= addslashes(lang('email')); ?>',
+        phone:                    '<?= addslashes(lang('phone')); ?>',
+        cliente_contado:          '<?= addslashes(lang('cliente_contado')); ?>',
+        quantity_low:             '<?= addslashes(lang('quantity_low')); ?>',
+        available:                '<?= addslashes(lang('available')); ?>',
         atajos_teclado:           '<?= addslashes(lang('atajos_teclado')); ?>',
         modal_producto_rapido:    '<?= addslashes(lang('modal_producto_rapido')); ?>',
         buscar:                   '<?= addslashes(lang('buscar')); ?>',
@@ -1070,7 +1501,25 @@
         catalogo_productos:       '<?= addslashes(lang('catalogo_productos')); ?>',
         producto_agregado:        '<?= addslashes(lang('producto_agregado')); ?>',
         no_products_found:        '<?= addslashes(lang('no_products_found')); ?>',
-        atajos_hint:              '<?= addslashes(lang('atajos_hint')); ?>'
+        atajos_hint:              '<?= addslashes(lang('atajos_hint')); ?>',
+        no_se_pudo_cargar:        '<?= addslashes(lang('no_se_pudo_cargar')); ?>',
+        credito_excede_limite:    '<?= addslashes(lang('credito_excede_limite')); ?>',
+        credito_faltante:         '<?= addslashes(lang('credito_faltante')); ?>',
+        atajo_agregar_item:       '<?= addslashes(lang('atajo_agregar_item')); ?>',
+        atajo_editar_ultimo:      '<?= addslashes(lang('atajo_editar_ultimo')); ?>',
+        atajo_agregar_cliente:    '<?= addslashes(lang('atajo_agregar_cliente')); ?>',
+        atajo_alternar_cats:      '<?= addslashes(lang('atajo_alternar_cats')); ?>',
+        atajo_cancelar_venta:     '<?= addslashes(lang('atajo_cancelar_venta')); ?>',
+        atajo_suspender_venta:    '<?= addslashes(lang('atajo_suspender_venta')); ?>',
+        atajo_finalizar_venta:    '<?= addslashes(lang('atajo_finalizar_venta')); ?>',
+        atajo_ventas_hoy:         '<?= addslashes(lang('atajo_ventas_hoy')); ?>',
+        atajo_retomar:            '<?= addslashes(lang('atajo_retomar')); ?>',
+        atajo_cerrar_caja:        '<?= addslashes(lang('atajo_cerrar_caja')); ?>',
+        cliente_sin_coincidencias: '<?= addslashes(lang('cliente_sin_coincidencias')); ?>',
+        producto_sin_coincidencias:'<?= addslashes(lang('producto_sin_coincidencias')); ?>',
+        indique_referencia:       '<?= addslashes(lang('indique_referencia')); ?>',
+        ubicacion:                '<?= addslashes(lang('ubicacion')); ?>',
+        referencia_requerida:     '<?= addslashes(lang('referencia_requerida')); ?>'
     };
 </script>
 <script src="<?= $assets ?>dist/js/pos-core.js?v=<?= @filemtime(FCPATH.'themes/default/assets/dist/js/pos-core.js') ?: '1'; ?>"></script>

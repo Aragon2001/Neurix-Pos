@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Products extends MY_Controller {
@@ -14,6 +18,7 @@ class Products extends MY_Controller {
 
         $this->load->library('form_validation');
         $this->load->model('products_model');
+        $this->load->model('AuditLog_model', 'audit_log');
     }
 
     function index() {
@@ -55,11 +60,10 @@ class Products extends MY_Controller {
 
         $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'>"
                 . "<a href='" . site_url('products/view/$1') . "' title='" . lang("view") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-file-text-o'></i></a>"
-                . "<a href='" . site_url('products/single_barcode/$1') . "' title='" . lang('print_barcodes') . "' class='tip btn btn-default btn-xs' data-toggle='ajax-modal'><i class='fa fa-print'></i></a> "
-                . "<a href='" . site_url('products/single_label/$1') . "' title='" . lang('print_labels') . "' class='tip btn btn-default btn-xs' data-toggle='ajax-modal'><i class='fa fa-print'></i></a> "
+                . "<a href='" . site_url('products/etiquetas') . "?id=$1' title='" . lang('etiquetas_codigos') . "' class='tip btn btn-default btn-xs'><i class='fa fa-print'></i></a> "
             
                 . "<a href='" . site_url('products/edit/$1') . "' title='" . lang("edit_product") . "' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> "
-                . "<a href='" . site_url('products/delete/$1') . "' data-confirm=\"" . lang('alert_x_product') . "\" title='" . lang("delete_product") . "' class='tip btn btn-danger btn-xs'>"
+                . "<a href='" . site_url('products/delete/$1' . '?t=' . $this->token_accion()) . "' data-confirm=\"" . lang('alert_x_product') . "\" title='" . lang("delete_product") . "' class='tip btn btn-danger btn-xs'>"
                 . "<i class='fa fa-trash-o'></i></a></div></div>", "pid, image, code, pname, barcode_symbology");
 
         // pid se conserva en la respuesta: la vista rediseñada construye las acciones
@@ -102,101 +106,155 @@ class Products extends MY_Controller {
         return $this->tec->barcode($product_code, $bcs, $height, $text);
     }
 
-    function print_barcodes() {
-        $limit = 10;
-        $this->load->helper('pagination');
-        $page = $this->input->get('page');
-        $total = $this->products_model->products_count();
-        $info = ['page' => $page, 'total' => ceil($total / $limit)];
-        $pagination = pagination('products/print_barcodes', $total, $limit, true);
-        $products = $this->products_model->fetch_products($limit, (!empty($page) ? (($page - 1) * $limit) : 0));
-        $r = 1;
-        $html = "";
-        $html .= '<table class="table table-bordered table-centered mb0">
-        <tbody><tr>';
-        foreach ($products as $pr) {
-            if ($r != 1) {
-                $rw = (bool) ($r & 1);
-                $html .= $rw ? '</tr><tr>' : '';
+    /**
+     * Etiquetas y codigos de barras: una sola pantalla.
+     *
+     * Antes eran dos —`print_barcodes` y `print_labels`— que hacian lo mismo
+     * con otro preajuste. Lo que las diferenciaba (tamano del rotulo y que
+     * lleva impreso) hoy son controles de la misma pantalla.
+     */
+    function etiquetas() {
+        $this->data['categorias'] = $this->site->getAllCategories();
+        $this->data['precargado'] = NULL;
+
+        // El rótulo lleva el nombre de la tienda, no el del sistema: son dos
+        // cosas distintas y el negocio puede tener varias tiendas con nombre propio.
+        $store_id = (int) ($this->session->userdata('store_id') ?: 0);
+        $store = $store_id ? $this->site->getStoreByID($store_id) : FALSE;
+        $this->data['nombre_negocio'] = $store ? $store->name : $this->Settings->site_name;
+
+        $id = (int) $this->input->get('id');
+        if ($id) {
+            $p = $this->site->getProductByID($id);
+            if ($p) {
+                $this->data['precargado'] = $this->_producto_etiqueta($p);
             }
-            $html .= '<td><h4>' . $this->Settings->site_name . '</h4><strong>' . $pr->name . '</strong><br>' . $this->product_barcode($pr->code, $pr->barcode_symbology, 60) . '<br><span class="price" style="font-size: 100%">' . lang('price') . ': ' . $this->Settings->currency_prefix . ' ' . $this->tec->formatMoney($pr->price) . '</span></td>';
-            $r++;
         }
-        $html .= '</tr></tbody>
-        </table>';
-        $this->data['links'] = $pagination;
-        $this->data['html'] = $html;
-        $this->data['page_title'] = lang("print_barcodes");
-        $this->load->view($this->theme . 'products/print_barcodes', $this->data);
+
+        $titulo = lang('etiquetas_codigos');
+        $bc = array(array('link' => site_url('products'), 'page' => lang('products')),
+                    array('link' => '#', 'page' => $titulo));
+        $this->data['page_title'] = $titulo;
+        $this->page_construct('products/etiquetas', $this->data, array('page_title' => $titulo, 'bc' => $bc));
+    }
+
+    /* ── Rutas viejas: las dos pantallas ya son una ── */
+
+    function print_barcodes() {
+        redirect('products/etiquetas');
     }
 
     function print_labels() {
-        $limit = 10;
-        $this->load->helper('pagination');
-        $page = $this->input->get('page');
-        $total = $this->products_model->products_count();
-        $info = ['page' => $page, 'total' => ceil($total / $limit)];
-        $pagination = pagination('products/print_labels', $total, $limit, true);
-        $products = $this->products_model->fetch_products($limit, (!empty($page) ? (($page - 1) * $limit) : 0));
-        $html = "";
-        foreach ($products as $pr) {
-            $html .= '<div class="text-center labels break-after"><strong>' . $pr->name . '</strong><br>' . $this->product_barcode($pr->code, $pr->barcode_symbology, 25) . '<br><span class="price" style="font-size: 150%">' . lang('price') . ': ' . $this->Settings->currency_prefix . ' ' . $this->tec->formatMoney($pr->price) . '</span></div>';
-        }
-        $this->data['links'] = $pagination;
-        $this->data['html'] = $html;
-        $this->data['page_title'] = lang("print_labels");
-        $this->load->view($this->theme . 'products/print_labels', $this->data);
+        redirect('products/etiquetas');
     }
 
     function single_barcode($product_id = NULL) {
-
-        $product = $this->site->getProductByID($product_id);
-
-        $html = "";
-        $html .= '<table class="table table-bordered table-centered mb0">
-        <tbody><tr>';
-        if ($product->quantity > 0) {
-            for ($r = 1; $r <= $product->quantity; $r++) {
-                if ($r != 1) {
-                    $rw = (bool) ($r & 1);
-                    $html .= $rw ? '</tr><tr>' : '';
-                }
-                $html .= '<td><h4>' . $this->Settings->site_name . '</h4><strong>' . $product->name . '</strong><br>' . $this->product_barcode($product->code, $product->barcode_symbology, 60) . ' <br><span class="price">' . lang('price') . ': ' . $this->Settings->currency_prefix . ' ' . $this->tec->formatMoney($product->price) . '</span></td>';
-            }
-        } else {
-            for ($r = 1; $r <= 10; $r++) {
-                if ($r != 1) {
-                    $rw = (bool) ($r & 1);
-                    $html .= $rw ? '</tr><tr>' : '';
-                }
-                $html .= '<td><h4>' . $this->Settings->site_name . '</h4><strong>' . $product->name . '</strong><br>' . $this->product_barcode($product->code, $product->barcode_symbology, 60) . ' <br><span class="price">' . lang('price') . ': ' . $this->Settings->currency_prefix . ' ' . $this->tec->formatMoney($product->price) . '</span></td>';
-            }
-        }
-        $html .= '</tr></tbody>
-        </table>';
-
-        $this->data['html'] = $html;
-        $this->data['page_title'] = lang("print_barcodes") . ' (' . $product->name . ')';
-        $this->load->view($this->theme . 'products/single_barcode', $this->data);
+        redirect('products/etiquetas?id=' . (int) $product_id);
     }
 
     function single_label($product_id = NULL, $warehouse_id = NULL) {
+        redirect('products/etiquetas?id=' . (int) $product_id);
+    }
 
-        $product = $this->site->getProductByID($product_id);
-        $html = "";
-        if ($product->quantity > 0) {
-            for ($r = 1; $r <= $product->quantity; $r++) {
-                $html .= '<div class="text-center labels"><strong>' . $product->name . '</strong><br>' . $this->product_barcode($product->code, $product->barcode_symbology, 25) . ' <br><span class="price">' . lang('price') . ': ' . $this->Settings->currency_prefix . ' ' . $this->tec->formatMoney($product->price) . '</span></div>';
-            }
+    /**
+     * Un producto tal como lo consume la hoja de etiquetas.
+     *
+     * El precio neto y el precio con impuesto viajan por separado: la etiqueta
+     * de gondola lleva el precio final, el rotulo de bodega no siempre.
+     */
+    private function _producto_etiqueta($fila) {
+        if (isset($fila->psq_price)) {
+            $precio     = (float) $fila->psq_price;
+            $existencia = (float) $fila->psq_qty;
         } else {
-            for ($r = 1; $r <= 10; $r++) {
-                $html .= '<div class="text-center labels"><strong>' . $product->name . '</strong><br>' . $this->product_barcode($product->code, $product->barcode_symbology, 25) . ' <br><span class="price">' . lang('price') . ': ' . $this->Settings->currency_prefix . ' ' . $this->tec->formatMoney($product->price) . '</span></div>';
+            $sq         = $this->products_model->getStoreQuantity($fila->id);
+            $precio     = ($sq && $sq->price !== NULL) ? (float) $sq->price : (float) $fila->price;
+            $existencia = $sq ? (float) $sq->quantity : 0;
+        }
+
+        $tasa    = isset($fila->tax) ? (float) $fila->tax : 0;
+        $con_iva = $precio * (1 + ($tasa / 100));
+
+        return array(
+            'id'             => (int) $fila->id,
+            'code'           => (string) $fila->code,
+            'name'           => (string) $fila->name,
+            'simbologia'     => $fila->barcode_symbology ? $fila->barcode_symbology : 'code128',
+            'existencia'     => $existencia,
+            'alerta'         => isset($fila->alert_quantity) ? (float) $fila->alert_quantity : 0,
+            'precio'         => round($precio, 4),
+            'precio_fmt'     => $this->tec->formatMoney($precio),
+            'precio_iva'     => round($con_iva, 4),
+            'precio_iva_fmt' => $this->tec->formatMoney($con_iva),
+            'impuesto'       => $tasa,
+        );
+    }
+
+    /**
+     * El codigo de barras como imagen suelta, en SVG.
+     *
+     * Sale como imagen y no como HTML porque una hoja de etiquetas repite el
+     * mismo codigo decenas de veces: asi el navegador lo pide una sola vez. El
+     * texto no viaja dentro del SVG —lo maqueta la etiqueta en HTML— para que
+     * use la misma tipografia que el resto del rotulo.
+     */
+    function barcode_img() {
+        $code   = trim((string) $this->input->get('code'));
+        $sim    = (string) $this->input->get('sym');
+        $alto   = (int) $this->input->get('h');
+        $ajuste = $this->input->get('fit') === 'meet' ? 'meet' : 'none';
+
+        if ($code === '') { show_404(); }
+        if (!in_array($sim, array('code128', 'code39', 'upca', 'upce', 'ean8', 'ean13'), TRUE)) {
+            $sim = 'code128';
+        }
+        $alto = max(20, min(400, $alto ?: 100));
+
+        // Laminas rechaza el texto que la simbologia no admite: antes de tumbar
+        // la hoja entera se cae a code128, que acepta cualquier codigo.
+        try {
+            $svg = $this->tec->barcode_svg($code, $sim, $alto, $ajuste);
+        } catch (Throwable $e) {
+            try {
+                $svg = $this->tec->barcode_svg($code, 'code128', $alto, $ajuste);
+            } catch (Throwable $e2) {
+                log_message('error', 'barcode_img: ' . $e2->getMessage());
+                $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>';
             }
         }
-        $this->data['html'] = $html;
-        $this->data['page_title'] = lang("print_labels") . ' (' . $product->name . ')';
-        $this->load->view($this->theme . 'products/single_label', $this->data);
+
+        $this->output
+            ->set_content_type('image/svg+xml', 'utf-8')
+            ->set_header('Cache-Control: public, max-age=86400')
+            ->set_output($svg);
     }
+
+    /** Productos para la pantalla de etiquetas: busqueda por codigo o nombre. */
+    function buscar_etiquetas() {
+        $term = trim((string) $this->input->get('term', TRUE));
+        if ($term === '') {
+            $this->_json_inventario(array('productos' => array()));
+            return;
+        }
+
+        list($filas, $exacto) = $this->_buscar_productos($term);
+        $productos = array();
+        foreach ($filas as $f) {
+            $productos[] = $this->_producto_etiqueta($f);
+        }
+        $this->_json_inventario(array('productos' => $productos, 'exacto' => $exacto));
+    }
+
+    /** Toda una categoria de una vez, para rotular una gondola entera. */
+    function productos_categoria($categoria_id = NULL) {
+        $filas = $this->products_model->getProductsByCategory((int) $categoria_id);
+        $productos = array();
+        foreach ($filas as $f) {
+            $productos[] = $this->_producto_etiqueta($f);
+        }
+        $this->_json_inventario(array('productos' => $productos));
+    }
+
 
     function add() {
         if (!$this->Admin) {
@@ -212,7 +270,11 @@ class Products extends MY_Controller {
             $this->form_validation->set_rules('cost', lang("product_cost"), 'required|is_numeric');
         }
         $this->form_validation->set_rules('product_tax', lang("product_tax"), 'required|is_numeric');
-        $this->form_validation->set_rules('alert_quantity', lang("alert_quantity"), 'is_numeric');
+        $this->form_validation->set_rules('alert_quantity', lang("alert_quantity"), 'required|is_numeric');
+        // Sin CABYS de 13 digitos ni unidad de medida, Hacienda rechaza toda
+        // venta que incluya el producto: se exigen al darlo de alta.
+        $this->form_validation->set_rules('cabys', lang("codigo_cabys"), 'trim|required|exact_length[13]|numeric');
+        $this->form_validation->set_rules('unit_of_measurement', lang("unit_of_measurement"), 'trim|required');
 
         if ($this->form_validation->run() == true) {
             $r = 0;
@@ -245,6 +307,7 @@ class Products extends MY_Controller {
                 'margen' => $this->input->post('margen'),
                 'id_tax' => $id_tax,
                 'cabys' => $this->input->post('cabys') ? $this->input->post('cabys') : null,
+                'supplier_id' => (int) $this->input->post('supplier_id') ?: null,
             );
 
             if ($this->Settings->multi_store) {
@@ -280,7 +343,7 @@ class Products extends MY_Controller {
                 $items = array();
             }
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
 
                 $this->load->library('upload');
 
@@ -361,6 +424,7 @@ class Products extends MY_Controller {
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $this->data['stores'] = $this->site->getAllStores();
             $this->data['categories'] = $this->site->getAllCategories();
+            $this->data['proveedores'] = $this->db->select('id, name, company')->where('deleted', 0)->order_by('name', 'ASC')->get('suppliers')->result();
             $this->data['impuestos'] = $this->site->getAllImpuestos();
             $this->data['prices'] = $this->site->getAllListPrices();
             $this->data['page_title'] = lang('add_product');
@@ -390,7 +454,11 @@ class Products extends MY_Controller {
         $this->form_validation->set_rules('price', lang("product_price"), 'required|is_numeric');
         $this->form_validation->set_rules('cost', lang("product_cost"), 'required|is_numeric');
         $this->form_validation->set_rules('product_tax', lang("product_tax"), 'required|is_numeric');
-        $this->form_validation->set_rules('alert_quantity', lang("alert_quantity"), 'is_numeric');
+        $this->form_validation->set_rules('alert_quantity', lang("alert_quantity"), 'required|is_numeric');
+        // Sin CABYS de 13 digitos ni unidad de medida, Hacienda rechaza toda
+        // venta que incluya el producto: se exigen al darlo de alta.
+        $this->form_validation->set_rules('cabys', lang("codigo_cabys"), 'trim|required|exact_length[13]|numeric');
+        $this->form_validation->set_rules('unit_of_measurement', lang("unit_of_measurement"), 'trim|required');
 
         if ($this->form_validation->run() == true) {
             $id_impuesto=$this->input->post('product_tax');
@@ -423,6 +491,7 @@ class Products extends MY_Controller {
                 'margen' => $this->input->post('margen'),
                 'id_tax' => $id_tax,
                 'cabys' => $this->input->post('cabys') ? $this->input->post('cabys') : null,
+                'supplier_id' => (int) $this->input->post('supplier_id') ?: null,
                 );
             if ($this->Settings->multi_store) {
                 $stores = $this->site->getAllStores();
@@ -456,7 +525,7 @@ class Products extends MY_Controller {
                 $items = array();
             }
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
 
                 $this->load->library('upload');
 
@@ -561,6 +630,7 @@ class Products extends MY_Controller {
             $this->data['stores'] = $this->site->getAllStores();
             $this->data['stores_quantities'] = $this->Settings->multi_store ? $this->products_model->getStoresQuantity($id) : $this->products_model->getStoreQuantity($id);
             $this->data['categories'] = $this->site->getAllCategories();
+            $this->data['proveedores'] = $this->db->select('id, name, company')->where('deleted', 0)->order_by('name', 'ASC')->get('suppliers')->result();
             $this->data['impuestos'] = $this->site->getAllImpuestos();
             $this->data['prices'] = $this->site->getAllListPrices();
             $this->data['product_prices'] = $this->site->getProductPriceById($id);
@@ -572,6 +642,7 @@ class Products extends MY_Controller {
     }
 
     function postFastedit($id = NULL, $m = null) {
+        $this->_solo_admin();
 
         if (isset($_POST['ajuste'])) {
             /*
@@ -678,104 +749,323 @@ class Products extends MY_Controller {
         }
     }
 
+    /**
+     * Importacion de productos en dos pasos: revisar y confirmar.
+     *
+     * El CABYS es obligatorio linea por linea desde la v4.4; un catalogo
+     * importado sin el deja rechazada la primera factura que lo incluya.
+     */
     function import() {
-        if (!$this->Admin) {
-            $this->session->set_flashdata('error', lang('access_denied'));
-            redirect('pos');
-        }
-        $this->load->helper('security');
-        $this->form_validation->set_rules('userfile', lang("upload_file"), 'xss_clean');
+        $this->_solo_admin();
 
-        if ($this->form_validation->run() == true) {
-            if (DEMO) {
-                $this->session->set_flashdata('warning', lang("disabled_in_demo"));
-                redirect('pos');
+        $this->data['error']      = $this->session->flashdata('error');
+        $this->data['message']    = $this->session->flashdata('message');
+        $this->data['categories'] = $this->site->getAllCategories();
+        $this->data['impuestos']  = $this->site->getAllImpuestos();
+        // En userdata y no en flashdata: recargar la pantalla no puede perder
+        // la revision, que es lo unico que el paso de confirmacion acepta.
+        $this->data['revision']   = $this->session->userdata('revision_import');
+
+        $this->data['page_title'] = lang('import_products');
+        $bc = array(array('link' => site_url('products'), 'page' => lang('products')), array('link' => '#', 'page' => lang('import_products')));
+        $meta = array('page_title' => lang('import_products'), 'bc' => $bc);
+        $this->page_construct('products/import', $this->data, $meta);
+    }
+
+    /** Columnas admitidas del CSV, buscadas por nombre y no por posicion. */
+    private function _columnas_import() {
+        return array('code', 'name', 'cabys', 'category', 'cost', 'price',
+                     'tax_code', 'unit', 'quantity', 'alert_quantity', 'supplier_code');
+    }
+
+    /**
+     * Paso 1: lee el archivo, valida fila por fila y no escribe nada.
+     */
+    function revisar_import() {
+        $this->_solo_admin();
+
+        if (DEMO) {
+            $this->session->set_flashdata('error', lang('disabled_in_demo'));
+            redirect('products/import');
+        }
+
+        $modo = $this->input->post('modo');
+        if (!in_array($modo, array('crear', 'actualizar', 'ambos'), true)) {
+            $modo = 'crear';
+        }
+
+        if (empty($_FILES['userfile']['size'])) {
+            $this->session->set_flashdata('error', lang('import_falta_archivo'));
+            redirect('products/import');
+        }
+
+        $this->load->library('upload');
+        $this->upload->initialize(array(
+            'upload_path'   => 'uploads/',
+            'allowed_types' => 'csv',
+            'max_size'      => 4096,
+            'overwrite'     => FALSE,
+            'encrypt_name'  => TRUE,
+        ));
+
+        if (!$this->upload->do_upload()) {
+            $this->session->set_flashdata('error', $this->upload->display_errors());
+            redirect('products/import');
+        }
+
+        $ruta = 'uploads/' . $this->upload->file_name;
+        $revision = $this->_revisar_csv($ruta, $modo);
+        $revision['modo']    = $modo;
+        $revision['archivo'] = $this->upload->file_name;
+
+        $this->session->set_userdata('revision_import', $revision);
+        redirect('products/import');
+    }
+
+    /**
+     * Lee el CSV y clasifica cada fila en crear, actualizar o rechazada.
+     *
+     * @return array{cabecera: array, crear: array, actualizar: array, errores: array, total: int}
+     */
+    private function _revisar_csv($ruta, $modo) {
+        $contenido = file_get_contents($ruta);
+
+        // Excel guarda con BOM y a veces en Latin-1: sin normalizar, las tildes
+        // entran corruptas al catalogo y el primer encabezado no coincide.
+        $contenido = preg_replace('/^\xEF\xBB\xBF/', '', $contenido);
+        if (!mb_check_encoding($contenido, 'UTF-8')) {
+            $contenido = mb_convert_encoding($contenido, 'UTF-8', 'ISO-8859-1');
+        }
+
+        $lineas = preg_split('/\r\n|\r|\n/', $contenido);
+        $filas  = array();
+        foreach ($lineas as $n => $linea) {
+            if (trim($linea) === '') { continue; }
+            $filas[$n + 1] = str_getcsv($linea, $this->_separador_csv($linea));
+        }
+
+        if (!$filas) {
+            return array('cabecera' => array(), 'crear' => array(), 'actualizar' => array(),
+                         'errores' => array(array('linea' => 0, 'error' => lang('import_archivo_vacio'))), 'total' => 0);
+        }
+
+        // array_shift() reindexaria las claves y con ellas el numero de linea
+        // que se le muestra al usuario para que encuentre la fila en su archivo.
+        $primer_n = array_key_first($filas);
+        $primera  = $filas[$primer_n];
+        unset($filas[$primer_n]);
+
+        $cabecera = array_map(function ($c) {
+            return strtolower(trim(preg_replace('/[^A-Za-z_]/', '', $c)));
+        }, $primera);
+
+        $admitidas = $this->_columnas_import();
+        $faltan = array_diff(array('code', 'name', 'cabys'), $cabecera);
+        if ($faltan) {
+            return array('cabecera' => $cabecera, 'crear' => array(), 'actualizar' => array(),
+                         'errores' => array(array('linea' => 1, 'error' => sprintf(lang('import_faltan_columnas'), implode(', ', $faltan)))),
+                         'total' => 0);
+        }
+
+        if (count($filas) > 1000) {
+            return array('cabecera' => $cabecera, 'crear' => array(), 'actualizar' => array(),
+                         'errores' => array(array('linea' => 0, 'error' => lang('more_than_allowed'))), 'total' => count($filas));
+        }
+
+        $tarifas = array();
+        foreach ($this->site->getAllImpuestos() as $t) {
+            $tarifas[$t->codigo_tarifa] = $t;
+        }
+
+        $crear = array();
+        $actualizar = array();
+        $errores = array();
+        $vistos = array();
+
+        foreach ($filas as $n => $columnas) {
+            $fila = array();
+            foreach ($cabecera as $i => $nombre) {
+                if (in_array($nombre, $admitidas, true)) {
+                    $fila[$nombre] = isset($columnas[$i]) ? trim($columnas[$i]) : '';
+                }
             }
 
-            if (isset($_FILES["userfile"])) {
+            $error = $this->_validar_fila_import($fila, $tarifas, $vistos);
+            if ($error) {
+                $errores[] = array('linea' => $n, 'code' => isset($fila['code']) ? $fila['code'] : '', 'error' => $error);
+                continue;
+            }
 
-                $this->load->library('upload');
+            $vistos[$fila['code']] = true;
+            $existente = $this->products_model->getProductByCode($fila['code']);
 
-                $config['upload_path'] = 'uploads/';
-                $config['allowed_types'] = 'csv';
-                $config['max_size'] = '500';
-                $config['overwrite'] = TRUE;
+            if ($existente && $modo === 'crear') {
+                $errores[] = array('linea' => $n, 'code' => $fila['code'], 'error' => lang('code_already_exist'));
+                continue;
+            }
+            if (!$existente && $modo === 'actualizar') {
+                $errores[] = array('linea' => $n, 'code' => $fila['code'], 'error' => lang('import_no_existe'));
+                continue;
+            }
 
-                $this->upload->initialize($config);
-
-                if (!$this->upload->do_upload()) {
-                    $error = $this->upload->display_errors();
-                    $this->session->set_flashdata('error', $error);
-                    redirect("products/import");
-                }
-
-
-                $csv = $this->upload->file_name;
-
-                $arrResult = array();
-                $handle = fopen("uploads/" . $csv, "r");
-                if ($handle) {
-                    while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                        $arrResult[] = $row;
-                    }
-                    fclose($handle);
-                }
-                array_shift($arrResult);
-
-                $keys = array('code', 'name', 'cost', 'tax', 'price', 'category');
-
-                $final = array();
-                foreach ($arrResult as $key => $value) {
-                    $final[] = array_combine($keys, $value);
-                }
-
-                if (sizeof($final) > 1001) {
-                    $this->session->set_flashdata('error', lang("more_than_allowed"));
-                    redirect("products/import");
-                }
-
-                foreach ($final as $csv_pr) {
-                    if ($this->products_model->getProductByCode($csv_pr['code'])) {
-                        $this->session->set_flashdata('error', lang("check_product_code") . " (" . $csv_pr['code'] . "). " . lang("code_already_exist"));
-                        redirect("products/import");
-                    }
-                    if (!is_numeric($csv_pr['tax'])) {
-                        $this->session->set_flashdata('error', lang("check_product_tax") . " (" . $csv_pr['tax'] . "). " . lang("tax_not_numeric"));
-                        redirect("products/import");
-                    }
-                    if (!($category = $this->site->getCategoryByCode($csv_pr['category']))) {
-                        $this->session->set_flashdata('error', lang("check_category") . " (" . $csv_pr['category'] . "). " . lang("category_x_exist"));
-                        redirect("products/import");
-                    }
-                    $data[] = array(
-                        'type' => 'standard',
-                        'code' => $csv_pr['code'],
-                        'name' => $csv_pr['name'],
-                        'cost' => $csv_pr['cost'],
-                        'tax' => $csv_pr['tax'],
-                        'price' => $csv_pr['price'],
-                        'category_id' => $category->id
-                    );
-                }
-                //print_r($data); die();
+            $fila['linea'] = $n;
+            if ($existente) {
+                $fila['id'] = $existente->id;
+                $actualizar[] = $fila;
+            } else {
+                $crear[] = $fila;
             }
         }
 
-        if ($this->form_validation->run() == true && $this->products_model->add_products($data)) {
+        return array('cabecera' => $cabecera, 'crear' => $crear, 'actualizar' => $actualizar,
+                     'errores' => $errores, 'total' => count($filas));
+    }
 
-            $this->session->set_flashdata('message', lang("products_added"));
-            redirect('products');
-        } else {
+    /** Coma o punto y coma: Excel en espanol exporta con punto y coma. */
+    private function _separador_csv($linea) {
+        return (substr_count($linea, ';') > substr_count($linea, ',')) ? ';' : ',';
+    }
 
-            $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-            $this->data['categories'] = $this->site->getAllCategories();
-            $bc = array(array('link' => '#', 'page' => "Edicion Rapida"));
-            $meta = array('page_title' => "Edicion Rapida", 'bc' => $bc);
-            $this->page_construct('products/import', $this->data, $meta);
+    /**
+     * @return string cadena vacia si la fila esta bien, o el motivo del rechazo
+     */
+    private function _validar_fila_import(array $fila, array $tarifas, array $vistos) {
+        if (empty($fila['code']))  { return lang('import_falta_codigo'); }
+        if (empty($fila['name']))  { return lang('import_falta_nombre'); }
+        if (isset($vistos[$fila['code']])) { return lang('import_codigo_repetido'); }
+        if (!preg_match('/^[A-Za-z0-9]{2,50}$/', $fila['code'])) { return lang('import_codigo_invalido'); }
+
+        // Sin CABYS de 13 digitos Hacienda rechaza la factura que lo incluya.
+        if (empty($fila['cabys']) || !preg_match('/^\d{13}$/', $fila['cabys'])) {
+            return lang('import_cabys_invalido');
         }
+        if (!empty($fila['tax_code']) && !isset($tarifas[$fila['tax_code']])) {
+            return lang('import_tarifa_desconocida');
+        }
+        if (!empty($fila['category']) && !$this->site->getCategoryByCode($fila['category'])) {
+            return lang('category_x_exist');
+        }
+        foreach (array('cost', 'price', 'quantity', 'alert_quantity') as $campo) {
+            if (isset($fila[$campo]) && $fila[$campo] !== '' && !is_numeric(str_replace(',', '.', $fila[$campo]))) {
+                return sprintf(lang('import_no_numerico'), $campo);
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Paso 2: aplica lo que el paso 1 dejo aprobado, todo o nada.
+     */
+    function confirmar_import() {
+        $this->_solo_admin();
+
+        if (DEMO) {
+            $this->session->set_flashdata('error', lang('disabled_in_demo'));
+            redirect('products/import');
+        }
+
+        $revision = json_decode((string) $this->input->post('revision'), true);
+        if (!is_array($revision) || (empty($revision['crear']) && empty($revision['actualizar']))) {
+            $this->session->set_flashdata('error', lang('import_nada_que_aplicar'));
+            redirect('products/import');
+        }
+
+        $tarifas = array();
+        foreach ($this->site->getAllImpuestos() as $t) {
+            $tarifas[$t->codigo_tarifa] = $t;
+        }
+        $store_id = (int) ($this->session->userdata('store_id') ?: 1);
+
+        $this->db->trans_begin();
+        $creados = 0;
+        $editados = 0;
+
+        foreach ((array) $revision['crear'] as $fila) {
+            $datos = $this->_fila_a_producto($fila, $tarifas);
+            $existencias = array(array(
+                'store_id'  => $store_id,
+                'quantity'  => isset($fila['quantity']) && $fila['quantity'] !== '' ? (float) str_replace(',', '.', $fila['quantity']) : 0,
+                'qty_fracc' => 0,
+                'price'     => $datos['price'],
+            ));
+            if ($this->products_model->addProduct($datos, $existencias, array())) {
+                $creados++;
+            }
+        }
+
+        foreach ((array) $revision['actualizar'] as $fila) {
+            $datos = $this->_fila_a_producto($fila, $tarifas);
+            if ($this->db->update('products', $datos, array('id' => (int) $fila['id']))) {
+                $editados++;
+            }
+        }
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $this->session->set_flashdata('error', lang('import_fallo_transaccion'));
+            redirect('products/import');
+        }
+        $this->db->trans_commit();
+        $this->session->unset_userdata('revision_import');
+
+        $this->audit_log->log('productos_importados', 'product', 0, $creados . ' creados / ' . $editados . ' actualizados');
+        $this->session->set_flashdata('message', sprintf(lang('import_resultado'), $creados, $editados));
+        redirect('products');
+    }
+
+    /** Traduce una fila del CSV a la fila de `products`. */
+    private function _fila_a_producto(array $fila, array $tarifas) {
+        $categoria = !empty($fila['category']) ? $this->site->getCategoryByCode($fila['category']) : NULL;
+        $tarifa    = (!empty($fila['tax_code']) && isset($tarifas[$fila['tax_code']])) ? $tarifas[$fila['tax_code']] : NULL;
+
+        $numero = function ($v) {
+            return ($v === null || $v === '') ? 0 : (float) str_replace(',', '.', $v);
+        };
+
+        $datos = array(
+            'type'                => 'standard',
+            'code'                => $fila['code'],
+            'name'                => $fila['name'],
+            'cabys'               => $fila['cabys'],
+            'cost'                => $numero(isset($fila['cost']) ? $fila['cost'] : 0),
+            'price'               => $numero(isset($fila['price']) ? $fila['price'] : 0),
+            'alert_quantity'      => $numero(isset($fila['alert_quantity']) ? $fila['alert_quantity'] : 0),
+            'unit_of_measurement' => !empty($fila['unit']) ? $fila['unit'] : 'Unid',
+            'tax_method'          => 1,
+        );
+        if ($categoria) { $datos['category_id'] = $categoria->id; }
+        if ($tarifa) {
+            $datos['tax']    = $tarifa->tasa_impuesto;
+            $datos['id_tax'] = $tarifa->id_impuesto;
+        }
+        return $datos;
+    }
+
+    /** Las filas rechazadas, en CSV, con el numero de linea del archivo. */
+    function descargar_rechazos_import() {
+        $this->_solo_admin();
+
+        $errores = json_decode((string) $this->input->post('errores'), true);
+        if (!is_array($errores)) { $errores = array(); }
+
+        $salida = "linea,codigo,error\n";
+        foreach ($errores as $e) {
+            $salida .= sprintf("%d,\"%s\",\"%s\"\n",
+                isset($e['linea']) ? (int) $e['linea'] : 0,
+                str_replace('"', '""', isset($e['code']) ? $e['code'] : ''),
+                str_replace('"', '""', isset($e['error']) ? $e['error'] : ''));
+        }
+
+        $this->output
+            ->set_content_type('text/csv', 'utf-8')
+            ->set_header('Content-Disposition: attachment; filename="filas-rechazadas.csv"')
+            ->set_output("\xEF\xBB\xBF" . $salida);
     }
 
     function delete($id = NULL) {
+        // El enlace tiene que venir de una pantalla de esta sesion.
+        $this->exigir_token_accion();
+
         if (DEMO) {
             $this->session->set_flashdata('error', lang('disabled_in_demo'));
             redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome');
@@ -842,18 +1132,168 @@ class Products extends MY_Controller {
         }
     }
 
+    /**
+     * Sesion de inventario: contar, entrar, sacar y reprecificar en una sola
+     * pantalla. El precio y el costo se editan en cualquier modo, asi que la
+     * antigua edicion rapida es esta misma pantalla sin tocar cantidades.
+     */
+    function inventario() {
+        $this->_solo_admin();
+
+        $modo = (string) $this->input->get('modo');
+        $this->data['modo_inicial'] = in_array($modo, array('conteo', 'entrada', 'salida'), TRUE) ? $modo : 'conteo';
+
+        $bc = array(array('link' => site_url('products'), 'page' => lang('products')),
+                    array('link' => '#', 'page' => lang('ajuste_inventario')));
+        $meta = array('page_title' => lang('ajuste_inventario'), 'bc' => $bc);
+        $this->page_construct('products/inventario', $this->data, $meta);
+    }
+
+    /** Las dos mitades viejas de la sesion de inventario, ya unificadas. */
     function fastedit($id = 1) {
-        $bc = array(array('link' => '#', 'page' => "Edicion Rapida"));
-        $meta = array('page_title' => "Edicion Rapida", 'bc' => $bc);
-        $this->data['mmm'] = false;
-        $this->page_construct('products/fasteditproduct', $this->data, $meta);
+        redirect('products/inventario');
     }
 
     function ajuste($id = 1) {
-        $bc = array(array('link' => '#', 'page' => "Ajuste de Inventario"));
-        $meta = array('page_title' => "Ajuste de Inventario", 'bc' => $bc);
-        $this->data['mmm'] = true;
-        $this->page_construct('products/fasteditproduct', $this->data, $meta);
+        redirect('products/inventario');
+    }
+
+    /** Ajustar existencias y precios cambia dinero: es de administrador. */
+    private function _solo_admin() {
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('pos');
+            exit;   // en CI3 redirect() no corta la peticion desde un metodo llamado
+        }
+    }
+
+    private function _json_inventario($datos, $codigo = 200) {
+        $this->output
+            ->set_status_header($codigo)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($datos));
+    }
+
+    /**
+     * Busqueda compartida por las pantallas de inventario y de etiquetas.
+     *
+     * El codigo exacto va primero: al leer un codigo de barras el escaner manda
+     * el codigo completo y el producto tiene que entrar sin ambiguedad.
+     *
+     * @return array{0: array, 1: bool} filas encontradas y si fue codigo exacto
+     */
+    private function _buscar_productos($term, $limite = 12) {
+        $exacto = $this->products_model->getProductByCode($term);
+        $filas  = $exacto ? array($exacto) : ($this->products_model->getProductNames($term, $limite) ?: array());
+        return array($filas, (bool) $exacto);
+    }
+
+    /** Productos para la sesion de inventario, con la existencia de la tienda. */
+    function buscar_inventario() {
+        $this->_solo_admin();
+
+        $term = trim((string) $this->input->get('term', TRUE));
+        $store_id = (int) ($this->session->userdata('store_id') ?: 1);
+        if ($term === '') {
+            $this->_json_inventario(array('productos' => array()));
+            return;
+        }
+
+        list($filas, $exacto) = $this->_buscar_productos($term);
+
+        $productos = array();
+        foreach ($filas as $fila) {
+            $sq = $this->products_model->getStoreQuantity($fila->id, $store_id);
+            $precio = $sq && $sq->price !== NULL ? (float) $sq->price : (float) $fila->price;
+            $productos[] = array(
+                'id'        => (int) $fila->id,
+                'code'      => $fila->code,
+                'name'      => $fila->name,
+                'unidad'    => isset($fila->unit_of_measurement) ? $fila->unit_of_measurement : '',
+                'existencia'=> $sq ? (float) $sq->quantity : 0,
+                'fracciones'=> $sq ? (float) $sq->qty_fracc : 0,
+                'alerta'    => isset($fila->alert_quantity) ? (float) $fila->alert_quantity : 0,
+                'precio'    => round($precio, 4),
+                'precio_fmt'=> $this->tec->formatMoney($precio),
+                'costo'     => round((float) $fila->cost, 4),
+            );
+        }
+
+        $this->_json_inventario(array('productos' => $productos, 'exacto' => (bool) $exacto));
+    }
+
+    /**
+     * Confirma una sesion de inventario completa.
+     *
+     * Un solo envio y una sola transaccion: si una linea no se puede aplicar
+     * —una salida que dejaria la existencia negativa— no entra ninguna.
+     */
+    function guardar_sesion_inventario() {
+        $this->_solo_admin();
+
+        $modo = $this->input->post('modo');
+        if (!in_array($modo, array('conteo', 'entrada', 'salida', 'precio'), true)) {
+            $this->_json_inventario(array('ok' => false, 'msg' => lang('inv_modo_invalido')), 400);
+            return;
+        }
+
+        $lineas_post = json_decode((string) $this->input->post('lineas'), true);
+        if (!is_array($lineas_post) || !$lineas_post) {
+            $this->_json_inventario(array('ok' => false, 'msg' => lang('inv_sin_lineas')), 400);
+            return;
+        }
+
+        $motivo = trim((string) $this->input->post('descripcion_mov'));
+        if ($modo === 'salida' && $motivo === '') {
+            $this->_json_inventario(array('ok' => false, 'msg' => lang('inv_motivo_requerido')), 400);
+            return;
+        }
+        if ($motivo === '') {
+            $motivo = lang('inv_motivo_por_defecto') . ' ' . $this->session->userdata('first_name') . ' ' . $this->session->userdata('last_name');
+        }
+
+        $store_id = (int) ($this->session->userdata('store_id') ?: 1);
+        $lineas = array();
+        foreach ($lineas_post as $l) {
+            if (empty($l['product_id'])) { continue; }
+
+            $cantidad = isset($l['quantity'])  && $l['quantity']  !== '' ? $l['quantity']  : null;
+            $fracc    = isset($l['qty_fracc']) && $l['qty_fracc'] !== '' ? $l['qty_fracc'] : null;
+            $precio   = isset($l['price'])     && $l['price']     !== '' ? $l['price']     : null;
+            $costo    = isset($l['cost'])      && $l['cost']      !== '' ? $l['cost']      : null;
+
+            // Una linea sin nada que aplicar solo ensuciaria mov_inventario.
+            if ($cantidad === null && $fracc === null && $precio === null && $costo === null) { continue; }
+
+            // La linea que no toca existencias es un cambio de precio, y asi
+            // tiene que quedar registrada aunque la sesion sea de conteo.
+            $modo_linea = ($cantidad === null && $fracc === null) ? 'precio' : $modo;
+
+            $lineas[] = array(
+                'modo'            => $modo_linea,
+                'product_id'      => (int) $l['product_id'],
+                'store_id'        => $store_id,
+                'quantity'        => $cantidad,
+                'qty_fracc'       => $fracc,
+                'price'           => $precio,
+                'cost'            => $costo,
+                'descripcion_mov' => $motivo,
+            );
+        }
+
+        if (!$lineas) {
+            $this->_json_inventario(array('ok' => false, 'msg' => lang('inv_sin_lineas')), 400);
+            return;
+        }
+
+        $r = $this->products_model->aplicarSesion($lineas);
+        if (!$r['ok']) {
+            $this->_json_inventario(array('ok' => false, 'msg' => lang('inv_sesion_rechazada'), 'errores' => $r['errores']), 409);
+            return;
+        }
+
+        $this->audit_log->log('inventario_ajustado', 'product', 0, $modo . ' / ' . $r['id_sesion'] . ' / ' . count($lineas) . ' lineas');
+        $this->_json_inventario(array('ok' => true, 'aplicadas' => $r['aplicadas'], 'id_sesion' => $r['id_sesion'], 'msg' => lang('inv_sesion_guardada')));
     }
 
     function listprices() {
@@ -870,7 +1310,7 @@ class Products extends MY_Controller {
         $this->datatables->select("lista_precios.id_lista_precios, lista_precios.nombre_l_precio, lista_precios.status_l_precio,users.username as entry_by", FALSE);
         $this->datatables->from('lista_precios')->group_by('lista_precios.id_lista_precios')
         ->join('users', 'users.id = lista_precios.entry_by', 'left')
-        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('products/editprices/$1') . "' class='tip btn btn-warning btn-xs' title='Editar precio'><i class='fa fa-edit'></i></a> <a href='" . site_url('products/deleteprices/$1') . "' data-confirm=\"¿Seguro de eliminar precio?\" class='tip btn btn-danger btn-xs' title='Precio eliminado exitosamente'><i class='fa fa-trash-o'></i></a></div></div>", "id_lista_precios");
+        ;   // Las acciones las dibuja la vista: el borrado va por POST.
         echo $this->datatables->generate();
     }
 
@@ -907,13 +1347,22 @@ class Products extends MY_Controller {
     }
 
     function deleteprices($id = NULL) {
-        if ($this->input->get('id')) {
-            $id = $this->input->get('id');
-        }
-        if ($this->products_model->deletePrices($id)) {
-            $this->session->set_flashdata('message', "Precio eliminado exitosamente");
+        $this->_solo_admin();
+
+        // Borrar por GET deja que un enlace ajeno lo dispare: solo por POST.
+        if ($this->input->method(TRUE) !== 'POST') {
+            $this->session->set_flashdata('error', lang('accion_requiere_post'));
             redirect('products/listprices');
         }
+        if ($this->input->post('id')) {
+            $id = $this->input->post('id');
+        }
+
+        if ($this->products_model->deletePrices($id)) {
+            $this->audit_log->log('lista_precio_borrada', 'product', (int) $id);
+            $this->session->set_flashdata('message', lang('precio_eliminado'));
+        }
+        redirect('products/listprices');
     }
 
     function editprices($id = NULL)

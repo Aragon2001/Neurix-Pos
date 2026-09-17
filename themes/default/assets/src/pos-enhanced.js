@@ -1,4 +1,10 @@
 /**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+
+/**
  * POS Enhanced - Mejoras de UX/UI y funcionalidad
  * Moderno, responsive y con máxima accesibilidad
  */
@@ -273,8 +279,9 @@ class POSEnhanced {
     const searchInput = document.getElementById('add_item');
     if (searchInput) {
       searchInput.focus();
-      // Show hint
-      this.showToast((window.lang || {}).atajos_hint || 'Alt+S para buscar, Alt+P para pagar, Alt+C para cancelar', 'info', 4000);
+      // El recordatorio de atajos salia en cada carga del POS; queda disponible
+      // bajo demanda en el boton de teclado de la barra superior.
+
     }
   }
 

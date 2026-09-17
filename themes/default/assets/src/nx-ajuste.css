@@ -1,0 +1,186 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NX-AJUSTE.CSS — Correccion de una factura emitida
+   Namespace: .nxa-*  ·  Variables de neurix-theme-vars.css
+
+   La pantalla es un carrito editable con un panel que dice, en vivo, que
+   documento va a salir. El panel es lo que el cajero mira: por eso queda fijo
+   a la derecha y las lineas hacen su propio scroll.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.nxa-cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media(max-width:1080px){.nxa-cols{grid-template-columns:1fr}}
+
+/* ── Banda del documento original ── */
+.nxa-orig{
+  display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+  padding:14px 18px;margin-bottom:16px;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius);
+  background:var(--nx-card-bg2);
+}
+.nxa-orig-b{min-width:0}
+.nxa-orig-r{
+  font:700 10.5px inherit;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--nx-txt4);margin-bottom:3px;
+}
+.nxa-orig-v{font-size:13.5px;font-weight:600;color:var(--nx-txt1);word-break:break-all}
+.nxa-orig-v.mono{font:600 12px 'Cascadia Code','SF Mono',Consolas,monospace}
+.nxa-orig-fin{margin-left:auto;display:flex;gap:10px;align-items:center}
+
+/* ── Bloque de lineas ── */
+.nxa-bloque{
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius);
+  background:var(--nx-card-bg);overflow:hidden;
+}
+.nxa-bloque-cab{
+  display:flex;align-items:center;gap:8px;padding:11px 16px;
+  border-bottom:1px solid var(--nx-border);background:var(--nx-card-bg2);
+  font:700 10.5px inherit;text-transform:uppercase;letter-spacing:.09em;color:var(--nx-txt4);
+}
+.nxa-bloque-cab svg{color:var(--nx-a1)}
+
+.nxa-tabla{width:100%;border-collapse:collapse;font-size:13px}
+.nxa-tabla th{
+  padding:9px 12px;text-align:left;white-space:nowrap;
+  font:700 10.5px inherit;text-transform:uppercase;letter-spacing:.07em;color:var(--nx-txt4);
+  border-bottom:1px solid var(--nx-border);
+}
+.nxa-tabla td{padding:9px 12px;border-bottom:1px solid var(--nx-border2);vertical-align:middle}
+.nxa-tabla tr:last-child td{border-bottom:0}
+.nxa-tabla .num{text-align:right}
+.nxa-nom{font-weight:600;color:var(--nx-txt1);line-height:1.3}
+.nxa-meta{font-size:11px;color:var(--nx-txt4);margin-top:2px}
+
+/* Una linea que ya no cuadra con el original se marca sola. */
+.nxa-tabla tr.cambiada td{background:color-mix(in srgb,var(--nx-amber) 9%,transparent)}
+.nxa-tabla tr.fuera td{background:color-mix(in srgb,var(--nx-err) 9%,transparent);opacity:.6}
+.nxa-tabla tr.fuera .nxa-nom{text-decoration:line-through}
+.nxa-tabla tr.nueva td{background:color-mix(in srgb,var(--nx-emerald) 9%,transparent)}
+
+.nxa-in{
+  width:100%;max-width:110px;padding:6px 9px;text-align:right;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius-sm);
+  background:var(--nx-card-bg2);color:var(--nx-txt1);font:600 12.5px inherit;
+}
+.nxa-in:focus{outline:0;border-color:var(--nx-a1);box-shadow:0 0 0 3px var(--nx-active-bg)}
+.nxa-in:disabled{opacity:.45;cursor:not-allowed}
+
+.nxa-mini{
+  width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius-sm);
+  background:transparent;color:var(--nx-txt3);cursor:pointer;transition:var(--nx-transition);
+}
+.nxa-mini:hover{color:var(--nx-err);border-color:color-mix(in srgb,var(--nx-err) 45%,transparent)}
+.nxa-mini.volver:hover{color:var(--nx-emerald);border-color:color-mix(in srgb,var(--nx-emerald) 45%,transparent)}
+
+/* ── Buscador para agregar una linea ──
+   Va fuera de .nxa-bloque a proposito: ese contenedor recorta con
+   overflow:hidden y el desplegable quedaria invisible bajo el borde. */
+.nxa-buscar{position:relative;margin-bottom:12px}
+.nxa-buscar input{
+  width:100%;padding:11px 14px;border:1px solid var(--nx-border);
+  border-radius:var(--nx-radius);background:var(--nx-card-bg);
+  color:var(--nx-txt1);font:500 13.5px inherit;
+}
+.nxa-buscar input:focus{outline:0;border-color:var(--nx-a1);box-shadow:0 0 0 3px var(--nx-active-bg)}
+.nxa-sug{
+  position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;
+  max-height:300px;overflow-y:auto;
+  border:1px solid var(--nx-border3);border-radius:var(--nx-radius-sm);
+  background:var(--nx-card-bg);box-shadow:var(--nx-shadow-lg);
+}
+.nxa-sug:empty{display:none}
+.nxa-sug button{
+  display:flex;width:100%;gap:10px;align-items:center;padding:9px 12px;
+  border:0;border-bottom:1px solid var(--nx-border2);background:none;
+  color:var(--nx-txt1);font:500 13px inherit;text-align:left;cursor:pointer;
+}
+.nxa-sug button:last-child{border-bottom:0}
+.nxa-sug button:hover,.nxa-sug button.sel{background:var(--nx-active-bg)}
+.nxa-sug .p{margin-left:auto;font-weight:700;white-space:nowrap}
+
+/* ── Panel del veredicto ── */
+.nxa-panel{
+  position:sticky;top:16px;
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius);
+  background:var(--nx-card-bg);overflow:hidden;
+}
+.nxa-panel-cab{
+  padding:13px 16px;border-bottom:1px solid var(--nx-border);
+  background:linear-gradient(135deg,var(--nx-a1),var(--nx-indigo));color:#06121f;
+  font:700 13px inherit;display:flex;align-items:center;gap:8px;
+}
+[data-theme="light"] .nxa-panel-cab{color:#fff}
+.nxa-panel-cuerpo{padding:14px 16px}
+
+.nxa-kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13px}
+.nxa-kv dt{color:var(--nx-txt4)}
+.nxa-kv dd{margin:0;font-weight:600;color:var(--nx-txt1);font-variant-numeric:tabular-nums}
+.nxa-kv.fuerte{
+  margin-top:8px;padding-top:10px;border-top:1px solid var(--nx-border);font-size:15px;
+}
+.nxa-kv.fuerte dd{font-weight:800}
+.nxa-kv.baja dd{color:var(--nx-err)}
+.nxa-kv.sube dd{color:var(--nx-emerald)}
+
+.nxa-veredicto{
+  margin:12px 0;padding:12px 14px;border-radius:var(--nx-radius-sm);
+  border:1px solid color-mix(in srgb,var(--ver-c,var(--nx-slate)) 38%,transparent);
+  background:color-mix(in srgb,var(--ver-c,var(--nx-slate)) 12%,transparent);
+}
+.nxa-veredicto-r{
+  font:700 10px inherit;text-transform:uppercase;letter-spacing:.1em;color:var(--nx-txt4);
+}
+.nxa-veredicto-t{
+  margin-top:3px;font-size:16px;font-weight:800;color:var(--ver-c,var(--nx-txt1));line-height:1.25;
+}
+.nxa-veredicto-s{margin-top:5px;font-size:12px;color:var(--nx-txt2);line-height:1.5}
+
+.nxa-aviso{
+  display:flex;gap:9px;align-items:flex-start;margin-top:10px;padding:10px 12px;
+  border-radius:var(--nx-radius-sm);font-size:12px;line-height:1.5;
+  border:1px solid color-mix(in srgb,var(--av-c,var(--nx-amber)) 35%,transparent);
+  background:color-mix(in srgb,var(--av-c,var(--nx-amber)) 10%,transparent);
+  color:var(--nx-txt2);
+}
+.nxa-aviso svg{color:var(--av-c,var(--nx-amber));flex-shrink:0;margin-top:1px}
+
+.nxa-campo{margin-top:12px}
+.nxa-campo label{
+  display:block;margin-bottom:5px;
+  font:700 10.5px inherit;text-transform:uppercase;letter-spacing:.08em;color:var(--nx-txt4);
+}
+.nxa-campo textarea,.nxa-campo select{
+  width:100%;padding:8px 11px;border:1px solid var(--nx-border);
+  border-radius:var(--nx-radius-sm);background:var(--nx-card-bg2);
+  color:var(--nx-txt1);font:500 13px inherit;resize:vertical;
+}
+.nxa-campo textarea:focus,.nxa-campo select:focus{
+  outline:0;border-color:var(--nx-a1);box-shadow:0 0 0 3px var(--nx-active-bg);
+}
+.nxa-ayuda{margin-top:5px;font-size:11px;color:var(--nx-txt4);line-height:1.45}
+
+.nxa-btn{
+  display:flex;width:100%;gap:8px;align-items:center;justify-content:center;
+  margin-top:14px;padding:11px 14px;border:0;border-radius:var(--nx-radius-sm);
+  background:linear-gradient(135deg,var(--nx-a1),var(--nx-indigo));color:#06121f;
+  font:700 13.5px inherit;cursor:pointer;transition:var(--nx-transition);
+}
+[data-theme="light"] .nxa-btn{color:#fff}
+.nxa-btn:hover:not(:disabled){filter:brightness(1.08)}
+.nxa-btn:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.6)}
+.nxa-btn.peli{background:linear-gradient(135deg,var(--nx-err),var(--nx-rose));color:#fff}
+
+.nxa-cambios{margin-top:12px;border-top:1px solid var(--nx-border);padding-top:10px}
+.nxa-cambio{
+  display:flex;gap:8px;justify-content:space-between;
+  padding:4px 0;font-size:12px;color:var(--nx-txt2);
+}
+.nxa-cambio b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.nxa-cambio b.baja{color:var(--nx-err)}
+.nxa-cambio b.sube{color:var(--nx-emerald)}
+
+.nxa-vacio{padding:34px 18px;text-align:center;color:var(--nx-txt4);font-size:13px}
+.nxa-cargando{display:flex;gap:9px;align-items:center;justify-content:center;padding:26px;color:var(--nx-txt3)}
+.nxa-cargando svg{animation:nxa-gira 1s linear infinite}
+@keyframes nxa-gira{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.nxa-cargando svg{animation:none}}

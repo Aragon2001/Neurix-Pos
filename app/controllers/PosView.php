@@ -1,4 +1,9 @@
-﻿<?php
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class PosView extends MY_Controller
@@ -19,6 +24,9 @@ class PosView extends MY_Controller
         }
         $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
         $this->data['message'] = $this->session->flashdata('message');
+        // Solo se viene de cobrar si Pos.php dejo la marca. Consultar una venta
+        // vieja desde el listado no debe limpiar el carrito ni avisar nada.
+        $this->data['recien_cobrada'] = (bool) $this->session->flashdata('venta_ok');
         $inv = $this->pos_model->getSaleByID($sale_id);
         if (!$this->session->userdata('store_id')) {
             $this->session->set_flashdata('warning', lang("please_select_store"));
@@ -42,6 +50,10 @@ class PosView extends MY_Controller
         $this->data['page_title'] = lang("invoice");
         $this->data['hacienda'] = $this->hacienda_model->getInvoice($sale_id);
         $this->data['invoicebarcode'] = isset($this->data['hacienda']->consecutivo) ? $this->invice_barcode($this->data['hacienda']->consecutivo, 'code128', 60) : null;
+        // Identificacion interna en QR (reemplaza al codigo de barras lineal)
+        $this->data['invoiceqr'] = isset($this->data['hacienda']->consecutivo)
+            ? $this->tec->qrcode($this->data['hacienda']->consecutivo, 4)
+            : '';
         $this->load->view($this->theme . 'pos/' . ($this->Settings->print_img ? 'eview' : 'view'), $this->data);
     }
 
@@ -158,4 +170,82 @@ class PosView extends MY_Controller
         }
         return $this->tec->barcode64($id_invoice, $bcs, $height);
     }
+
+    /**
+     * Genera el comprobante en PDF reutilizando la misma vista que ve el usuario.
+     *
+     * @param int    $sale_id     ID de la venta
+     * @param string $disposition 'D' descarga (por defecto), 'I' abre en el navegador
+     */
+    function pdf($sale_id = NULL, $disposition = 'D') {
+        if ($this->input->get('id')) {
+            $sale_id = $this->input->get('id');
+        }
+        if (!$sale_id) {
+            show_404();
+        }
+
+        $inv = $this->pos_model->getSaleByID($sale_id);
+        if (!$inv) {
+            show_404();
+        }
+        if (!$this->session->userdata('store_id')) {
+            $this->session->set_flashdata('warning', lang("please_select_store"));
+            redirect('stores');
+        } elseif ($this->session->userdata('store_id') != $inv->store_id) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('welcome');
+        }
+        $this->tec->view_rights($inv->created_by);
+        $this->load->helper('text');
+
+        $this->data['error']     = NULL;
+        $this->data['message']   = NULL;
+        $this->data['rows']      = $this->pos_model->getAllSaleItems($sale_id);
+        $this->data['customer']  = $this->pos_model->getCustomerByID($inv->customer_id);
+        $this->data['store']     = $this->site->getStoreByID($inv->store_id);
+        $this->data['inv']       = $inv;
+        $this->data['sid']       = $sale_id;
+        $this->data['noprint']   = NULL;
+        $this->data['modal']     = false;
+        $this->data['payments']  = $this->pos_model->getAllSalePayments($sale_id);
+        $this->data['created_by'] = $this->site->getUser($inv->created_by);
+        $this->data['page_title'] = lang("invoice");
+        $this->data['hacienda']  = $this->hacienda_model->getInvoice($sale_id);
+        $this->data['invoicebarcode'] = isset($this->data['hacienda']->consecutivo)
+            ? $this->invice_barcode($this->data['hacienda']->consecutivo, 'code128', 60)
+            : null;
+
+        $html = $this->load->view($this->theme . 'pos/view', $this->data, TRUE);
+        // Identificacion interna en QR (reemplaza al codigo de barras lineal)
+        $this->data['invoiceqr'] = isset($this->data['hacienda']->consecutivo)
+            ? $this->tec->qrcode($this->data['hacienda']->consecutivo, 4)
+            : '';
+        $html = $this->tec->pdf_html($html);
+
+        $clave = isset($this->data['hacienda']->clave) && $this->data['hacienda']->clave
+            ? $this->data['hacienda']->clave
+            : (string) $sale_id;
+        $filename = 'Comprobante_' . $clave . '.pdf';
+
+        try {
+            $mpdf = new \Mpdf\Mpdf(array(
+                'tempDir'      => sys_get_temp_dir(),
+                'CSSselectMedia' => 'screen',
+                'format'       => 'A4',
+                'margin_left'  => 12,
+                'margin_right' => 12,
+                'margin_top'   => 12,
+                'margin_bottom' => 12,
+            ));
+            $mpdf->SetTitle($this->data['page_title'] . ' ' . $sale_id);
+            $mpdf->WriteHTML($html);
+            $mpdf->Output($filename, $disposition === 'I' ? 'I' : 'D');
+        } catch (\Exception $e) {
+            log_message('error', 'Error generando PDF de la venta ' . $sale_id . ': ' . $e->getMessage());
+            $this->session->set_flashdata('error', lang('pdf_generation_failed'));
+            redirect('pos/view/' . $sale_id);
+        }
+    }
+
 }

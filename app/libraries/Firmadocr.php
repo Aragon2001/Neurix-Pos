@@ -114,9 +114,9 @@ class Firmadocr {
             $xmnls_signedprops='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronicaCompra" ';
             $xmnls_signeg='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronicaCompra" ';
         } elseif ($this->tipoDoc == '09'){
-            $xmlns_keyinfo='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/reciboPago" ';
-            $xmnls_signedprops='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/reciboPago" ';
-            $xmnls_signeg='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/reciboPago" ';
+            $xmlns_keyinfo='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/reciboElectronicoPago" ';
+            $xmnls_signedprops='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/reciboElectronicoPago" ';
+            $xmnls_signeg='xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/reciboElectronicoPago" ';
         }
         $xmlns= 'xmlns:ds="http://www.w3.org/2000/09/xmldsig#" '.
             'xmlns:fe="http://www.dian.gov.co/contratos/facturaelectronica/v1" ' .
@@ -264,8 +264,8 @@ class Firmadocr {
             $buscar = '</FacturaElectronicaCompra>';
             $remplazar = $sig."</FacturaElectronicaCompra>";
         } elseif ($this->tipoDoc == '09'){
-            $buscar = '</ReciboPago>';
-            $remplazar = $sig."</ReciboPago>";
+            $buscar = '</ReciboElectronicoPago>';
+            $remplazar = $sig."</ReciboElectronicoPago>";
         }
         $pos = strrpos($xml, $buscar);
         if($pos !== false){

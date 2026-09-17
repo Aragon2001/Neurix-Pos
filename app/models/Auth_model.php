@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Auth_model extends CI_Model {
 
@@ -94,23 +100,32 @@ class Auth_model extends CI_Model {
         $this->trigger_events('model_constructor');
     }
 
+    /**
+     * Hash de una contrasena.
+     *
+     * Se usa `password_hash()` de PHP, que elige el algoritmo y el costo del
+     * momento. El esquema anterior era SHA-1 con sal de una pasada: una tarjeta
+     * grafica recorre ese espacio en horas.
+     *
+     * `$use_sha1_override` se mantiene porque `hash_code()` lo usa para derivar
+     * codigos de activacion, que no son contrasenas.
+     */
     public function hash_password($password, $salt = false, $use_sha1_override = FALSE) {
         if (empty($password)) {
             return FALSE;
         }
 
-        //bcrypt
-        if ($use_sha1_override === FALSE && $this->hash_method == 'bcrypt') {
-            return $this->bcrypt->hash($password);
-        }
-
-
-        if ($this->store_salt && $salt) {
-            return sha1($password . $salt);
-        } else {
-            $salt = $this->salt();
+        if ($use_sha1_override === TRUE) {
+            $salt = $salt ?: $this->salt();
             return $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
         }
+
+        return password_hash($password, PASSWORD_DEFAULT);
+    }
+
+    /** ¿Este hash es del esquema nuevo? */
+    protected function _hash_moderno($hash) {
+        return is_string($hash) && (strpos($hash, '$2y$') === 0 || strpos($hash, '$argon2') === 0);
     }
 
     public function hash_password_db($id, $password, $use_sha1_override = FALSE) {
@@ -131,29 +146,43 @@ class Auth_model extends CI_Model {
             return FALSE;
         }
 
-        // bcrypt
-        if ($use_sha1_override === FALSE && $this->hash_method == 'bcrypt') {
-            if ($this->bcrypt->verify($password, $hash_password_db->password)) {
-                return TRUE;
+        $guardado = $hash_password_db->password;
+
+        if ($this->_hash_moderno($guardado)) {
+            if (!password_verify($password, $guardado)) {
+                return FALSE;
             }
-
-            return FALSE;
-        }
-
-        // sha1
-        if ($this->store_salt) {
-            $db_password = sha1($password . $hash_password_db->salt);
-        } else {
-            $salt = substr($hash_password_db->password, 0, $this->salt_length);
-
-            $db_password = $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
-        }
-
-        if ($db_password == $hash_password_db->password) {
+            // El costo recomendado sube con los anios: se rehashea si hace falta.
+            if (password_needs_rehash($guardado, PASSWORD_DEFAULT)) {
+                $this->db->update($this->tables['users'],
+                    array('password' => password_hash($password, PASSWORD_DEFAULT)),
+                    array('id' => $id));
+            }
             return TRUE;
+        }
+
+        // Esquema anterior: bcrypt vendorizado o SHA-1 con sal.
+        $coincide = FALSE;
+        if ($this->hash_method == 'bcrypt' && strpos((string) $guardado, '$2a$') === 0) {
+            $coincide = $this->bcrypt->verify($password, $guardado);
+        } elseif ($this->store_salt) {
+            $coincide = hash_equals((string) $guardado, sha1($password . $hash_password_db->salt));
         } else {
+            $salt = substr((string) $guardado, 0, $this->salt_length);
+            $coincide = hash_equals((string) $guardado, $salt . substr(sha1($salt . $password), 0, -$this->salt_length));
+        }
+
+        if (!$coincide) {
             return FALSE;
         }
+
+        // Acierto con el esquema viejo: es la unica ocasion en que se tiene la
+        // contrasena en claro, asi que se regraba con el nuevo sin molestar a nadie.
+        $this->db->update($this->tables['users'],
+            array('password' => password_hash($password, PASSWORD_DEFAULT), 'salt' => NULL),
+            array('id' => $id));
+
+        return TRUE;
     }
 
     public function hash_code($password) {
@@ -556,15 +585,16 @@ class Auth_model extends CI_Model {
                 ->limit(1)
                 ->get($this->tables['users']);
 
-        // if ($this->is_time_locked_out($identity)) {
-        //     //Hash something anyway, just to take up time
-        //     $this->hash_password($password);
+        if ($this->is_time_locked_out($identity)) {
+            // Se cifra igual para que el tiempo de respuesta no delate si la
+            // cuenta existe.
+            $this->hash_password($password);
 
-        //     $this->trigger_events('post_login_unsuccessful');
-        //     $this->set_error('login_timeout');
+            $this->trigger_events('post_login_unsuccessful');
+            $this->set_error('login_timeout');
 
-        //     return FALSE;
-        // }
+            return FALSE;
+        }
         if ($query->num_rows() === 1) {
             $user = $query->row();
 
@@ -620,14 +650,26 @@ class Auth_model extends CI_Model {
         return FALSE;
     }
 
+    /**
+     * Intentos fallidos recientes de esta cuenta desde este equipo.
+     *
+     * Se filtra por las dos cosas a la vez: contar solo por IP dejaba fuera de
+     * servicio a todas las cajas de la tienda, que salen por la misma.
+     */
     function get_attempts_num($identity) {
         if ($this->config->item('track_login_attempts', 'ion_auth')) {
             $ip_address = $this->_prepare_ip($this->input->ip_address());
+            $ventana = (int) $this->config->item('lockout_time', 'ion_auth') ?: 600;
+
             $this->db->select('1', FALSE);
-            if ($this->config->item('track_login_ip_address', 'ion_auth'))
+            if ($this->config->item('track_login_ip_address', 'ion_auth')) {
                 $this->db->where('ip_address', $ip_address);
-            else if (strlen($identity) > 0)
-                $this->db->or_where('login', $identity);
+            }
+            if (strlen($identity) > 0) {
+                $this->db->where('login', $identity);
+            }
+            $this->db->where('time >', time() - $ventana);
+
             $qres = $this->db->get($this->tables['login_attempts']);
             return $qres->num_rows();
         }
@@ -644,10 +686,12 @@ class Auth_model extends CI_Model {
             $ip_address = $this->_prepare_ip($this->input->ip_address());
 
             $this->db->select_max('time');
-            if ($this->config->item('track_login_ip_address', 'ion_auth'))
+            if ($this->config->item('track_login_ip_address', 'ion_auth')) {
                 $this->db->where('ip_address', $ip_address);
-            else if (strlen($identity) > 0)
-                $this->db->or_where('login', $identity);
+            }
+            if (strlen($identity) > 0) {
+                $this->db->where('login', $identity);
+            }
             $qres = $this->db->get($this->tables['login_attempts'], 1);
 
             if ($qres->num_rows() > 0) {
@@ -670,9 +714,11 @@ class Auth_model extends CI_Model {
         if ($this->config->item('track_login_attempts', 'ion_auth')) {
             $ip_address = $this->_prepare_ip($this->input->ip_address());
 
-            $this->db->where(array('ip_address' => $ip_address, 'login' => $identity));
-            // Purge obsolete login attempts
-            $this->db->or_where('time <', time() - $expire_period, FALSE);
+            // Los de esta cuenta y equipo, mas cualquiera ya vencido.
+            $this->db->group_start()
+                     ->where(array('ip_address' => $ip_address, 'login' => $identity))
+                     ->group_end()
+                     ->or_where('time <', time() - $expire_period);
 
             return $this->db->delete($this->tables['login_attempts']);
         }
@@ -1139,6 +1185,9 @@ class Auth_model extends CI_Model {
             'has_store_id' => $user->store_id,
         );
 
+        // Identificador nuevo al iniciar sesion: sin esto, un identificador
+        // plantado antes del ingreso sigue siendo valido despues (fijacion).
+        $this->session->sess_regenerate(TRUE);
         $this->session->set_userdata($session_data);
 
         $this->trigger_events('post_set_session');
@@ -1155,9 +1204,12 @@ class Auth_model extends CI_Model {
 
         $user = $this->user($id)->row();
 
-        $salt = sha1($user->password);
+        // Valor aleatorio por dispositivo. El anterior era sha1 del hash de la
+        // contrasena: el mismo en todos los equipos, y derivable de la base.
+        $testigo = bin2hex(random_bytes(32));
+        $guardado = hash('sha256', $testigo);
 
-        $this->db->update($this->tables['users'], array('remember_code' => $salt), array('id' => $id));
+        $this->db->update($this->tables['users'], array('remember_code' => $guardado), array('id' => $id));
 
         if ($this->db->affected_rows() > -1) {
             // if the user_expire is set to zero we'll set the expiration two years from now.
@@ -1175,9 +1227,10 @@ class Auth_model extends CI_Model {
                 'expire' => $expire
             ));
 
+            // En la cookie viaja el testigo; en la base solo su huella.
             set_cookie(array(
                 'name' => 'remember_code',
-                'value' => $salt,
+                'value' => $testigo,
                 'expire' => $expire
             ));
 
@@ -1202,7 +1255,7 @@ class Auth_model extends CI_Model {
         $this->trigger_events('extra_where');
         $query = $this->db->select($this->identity_column . ', id, username, email, last_login, last_ip_address, avatar, first_name, last_name, created_on, gender, group_id, store_id')
                 ->where($this->identity_column, get_cookie('identity'))
-                ->where('remember_code', get_cookie('remember_code'))
+                ->where('remember_code', hash('sha256', (string) get_cookie('remember_code')))
                 ->limit(1)
                 ->get($this->tables['users']);
 

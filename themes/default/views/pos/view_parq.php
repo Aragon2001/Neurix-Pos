@@ -1,4 +1,10 @@
-﻿<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <?php
 if ($modal) {
@@ -24,71 +30,7 @@ if ($modal) {
                 <meta http-equiv="pragma" content="no-cache"/>
                 <link rel="shortcut icon" href="<?= $assets ?>images/icon.png"/>
                 <link href="<?= $assets ?>dist/css/www.min.css" rel="stylesheet" type="text/css"/>
-                <style type="text/css" media="all">
-                    body {
-                        color: var(--nx-txt1, #1e293b);
-                        font-size: 16px;
-                    }
-
-                    #wrapper {
-                        max-width: 520px;
-                        margin: 0 auto;
-                        padding-top: 20px;
-                    }
-
-                    .btn {
-                        margin-bottom: 5px;
-                    }
-
-                    .table {
-                        border-radius: 3px;
-                    }
-
-                    .table th {
-                        background: var(--table-head-bg, #f5f5f5);
-                    }
-
-                    .table th, .table td {
-                        vertical-align: middle !important;
-                    }
-
-                    h3 {
-                        margin: 5px 0;
-                    }
-
-                    @media print {
-                        .no-print {
-                            display: none;
-                        }
-
-                        #wrapper {
-                            max-width: 480px;
-                            width: 100%;
-                            min-width: 250px;
-                            margin: 0 auto;
-                        }
-                    }
-
-                    <?php if($Settings->rtl) { ?>
-                    .text-right {
-                        text-align: left;
-                    }
-
-                    .text-left {
-                        text-align: right;
-                    }
-
-                    tfoot tr th:first-child {
-                        text-align: left;
-                    }
-
-                    <?php } else { ?>
-                    tfoot tr th:first-child {
-                        text-align: right;
-                    }
-
-                    <?php } ?>
-                </style>
+                <?php include FCPATH . 'themes/default/views/pos/_ticket_css.php'; ?>
             </head>
             <body>
             <?php
@@ -116,7 +58,7 @@ if ($modal) {
                                     echo $store->address1 . '<br>' . $store->address2;
                                     echo $store->city . '<br>' . $store->phone;
                                     echo '</p>';
-                                    echo '<p>' . nl2br($store->receipt_header) . '</p>';
+                                    echo '<p>' . nl2br($store->receipt_header ?? '') . '</p>';
                                 }
                                 ?>
                             </div>
@@ -182,10 +124,10 @@ if ($modal) {
                         <?php } else { ?>
                             <span class="float-end col-12">
                                 <?php
-                                if ($printer->type == "windows") {
+                                if (isset($printer) && $printer->type == "windows") {
                                     echo '<a href="' . site_url('pos/print_receipt/' . $inv->id . '/1') . '" id="print" class="btn btn-block btn-primary">' . lang("print") . '</a>';
                                     echo '<a target="_blank" href="' . site_url('pos/open_drawer/') . '" class="btn btn-block btn-default">' . lang("open_cash_drawer") . '</a>';
-                                } elseif ($printer->type == "web") {
+                                } elseif (isset($printer) && $printer->type == "web") {
                                     echo '<button onclick="window.print();" class="btn btn-block btn-primary">' . lang("print") . '</button>';
                                 } else {
                                     echo '<button onclick="return printReceipt()" class="btn btn-block btn-primary">' . lang("print") . '</button>';
@@ -213,11 +155,10 @@ if ($modal) {
                     var site_url = '<?=site_url();?>';
                     var dateformat = '<?=$Settings->dateformat;?>', timeformat = '<?= $Settings->timeformat ?>';
                     <?php unset($Settings->protocol, $Settings->smtp_host, $Settings->smtp_user, $Settings->smtp_pass, $Settings->smtp_port, $Settings->smtp_crypto, $Settings->mailpath, $Settings->timezone, $Settings->setting_id, $Settings->default_email, $Settings->version, $Settings->stripe, $Settings->stripe_secret_key, $Settings->stripe_publishable_key); ?>
-                    var Settings = <?= json_encode($Settings); ?>;
+                    var Settings = <?= json_encode(ajustes_publicos($Settings)); ?>;
                 </script>
                 <script src="<?= $assets ?>plugins/jQuery/jquery-3.7.1.min.js"></script>
-                <script src="<?= $assets ?>dist/js/libraries.min.js" type="text/javascript"></script>
-                <script src="<?= $assets ?>dist/js/scripts.min.js" type="text/javascript"></script>
+                <script src="<?= $assets ?>dist/js/main.min.js?v=<?= @filemtime(FCPATH . 'themes/default/assets/dist/js/main.min.js') ?: '1'; ?>"></script>
                 <?php
             }
             ?>
@@ -233,7 +174,7 @@ if ($modal) {
                         bootbox.prompt({
                             title: "<?= lang("email_address"); ?>",
                             inputType: 'email',
-                            value: "<?= $customer->email; ?>",
+                            value: <?= json_encode($customer->email); ?>,
                             callback: function (email) {
                                 if (email != null) {
                                     $.ajax({

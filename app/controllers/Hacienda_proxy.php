@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Proxy para la API pública de Hacienda Costa Rica.
@@ -13,6 +19,7 @@ class Hacienda_proxy extends MY_Controller
     const TTL_CABYS_CODIGO = 604800;  // 7 días — código exacto
     const TTL_CABYS_Q      = 3600;    // 1 h   — búsqueda por texto
     const CURL_TIMEOUT     = 10;
+    const GC_PROBABILIDAD  = 50;      // 1 de cada N escrituras barre lo vencido
 
     function __construct()
     {
@@ -143,23 +150,6 @@ class Hacienda_proxy extends MY_Controller
         return ['code' => $code, 'body' => $body];
     }
 
-    // POST hacienda_proxy/limpiar_cache_cabys
-    public function limpiar_cache_cabys()
-    {
-        if (!$this->Admin) {
-            $this->_json(['error' => 'No autorizado'], 403);
-        }
-        $this->db->like('tipo', 'cabys', 'after');
-        $this->db->delete('tec_hacienda_cache');
-        $eliminados = $this->db->affected_rows();
-        log_message('info', '[HaciendaProxy] Caché CABYS limpiado — ' . $eliminados . ' registros eliminados');
-        $this->_json(['ok' => true, 'eliminados' => $eliminados]);
-    }
-
-    // -----------------------------------------------------------------------
-    // Privados
-    // -----------------------------------------------------------------------
-
     private function _cache_get($tipo, $clave)
     {
         $row = $this->db
@@ -177,8 +167,19 @@ class Hacienda_proxy extends MY_Controller
         return json_decode($row->respuesta, true);
     }
 
+    // _cache_get solo borra la clave que consulta, asi que sin este barrido las busquedas
+    // que nadie repite quedarian en la tabla para siempre. Pasado el TTL mas largo del
+    // proxy ninguna fila puede seguir vigente, sea del tipo que sea.
+    private function _cache_gc()
+    {
+        if (mt_rand(1, self::GC_PROBABILIDAD) !== 1) return;
+        $this->db->where('fecha <', date('Y-m-d H:i:s', time() - self::TTL_CABYS_CODIGO));
+        $this->db->delete('tec_hacienda_cache');
+    }
+
     private function _cache_set($tipo, $clave, $data, $ttl)
     {
+        $this->_cache_gc();
         $existe = $this->db
             ->get_where('tec_hacienda_cache', ['tipo' => $tipo, 'clave' => $clave], 1)
             ->num_rows();

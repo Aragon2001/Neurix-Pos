@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
@@ -48,7 +52,7 @@ class FacturasCompras extends MY_Controller {
             </div></div>", "id");
         // $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('pos/view/$1/1') . "' title='".lang("view_invoice")."' class='tip btn btn-primary btn-xs' data-toggle='ajax-modal'><i class='fa fa-list'></i></a> <a href='".site_url('sales/payments/$1')."' title='" . lang("view_payments") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-money'></i></a> <a href='".site_url('sales/add_payment/$1')."' title='" . lang("add_payment") . "' class='tip btn btn-primary btn-xs' data-toggle='ajax'><i class='fa fa-briefcase'></i></a> <a href='" . site_url('pos/?edit=$1') . "' title='".lang("edit_invoice")."' class='tip btn btn-warning btn-xs'><i class='fa fa-edit'></i></a> <a href='" . site_url('sales/delete/$1') . "' onClick=\"return confirm('". lang('alert_x_sale') ."')\" title='".lang("delete_sale")."' class='tip btn btn-danger btn-xs'><i class='fa fa-trash-o'></i></a></div></div>", "id");
         
-         $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a  href='" . site_url('facturascompras/view_fec/$1') . "' title='" . lang("Ver") . "' class='tip btn btn-primary btn-xs'><i class='fa fa-search'></i></div></div>", "id");
+         $this->datatables->add_column("Actions", "<div class='text-center'><div class='btn-group'><a  href='" . site_url('facturascompras/view_fec/$1') . "' title='" . lang('view') . "' class='tip btn btn-primary btn-xs'><i class='fa fa-search'></i></div></div>", "id");
         // $this->datatables->unset_column('id');
         echo $this->datatables->generate();
     }
@@ -119,6 +123,13 @@ class FacturasCompras extends MY_Controller {
     }
 
     function create_fec(){
+        // Emite dinero o comprobantes: solo administrador (auditoria §14.5).
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('pos');
+            exit;
+        }
+
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $this->data['page_title'] = lang('fec');
         $this->data['suppliers'] = $this->get_suppliers();
@@ -129,24 +140,45 @@ class FacturasCompras extends MY_Controller {
         $this->page_construct('facturascompras/add', $this->data, $meta);  
     }
 
+    /**
+     * Camino antiguo: el navegador mandaba los montos ya calculados.
+     *
+     * Se conserva porque el enlace viejo puede seguir en uso, pero la pantalla
+     * nueva envia por POST a guardar_fec() y los montos los calcula el servidor.
+     */
     function save_fec(){
-        $MontoLinea = $_GET["linea"];
-        $MontoLinea= utf8_encode($MontoLinea); 
-        $objLinea = json_decode($MontoLinea,true); 
-        $totales = $_GET["totales"];
-        $objTot = json_decode($totales,true);
-        $obj = $_GET["myData"];
-        $obj = utf8_encode($obj); 
-        $results = json_decode($obj,true);
+        // Emite dinero o comprobantes: solo administrador (auditoria §14.5).
+        if (!$this->Admin) {
+            $this->session->set_flashdata('error', lang('access_denied'));
+            redirect('pos');
+            exit;
+        }
+
+        $objLinea = json_decode(utf8_encode((string) $this->input->get('linea')), true) ?: array();
+        $objTot   = json_decode((string) $this->input->get('totales'), true) ?: array();
+        $results  = json_decode(utf8_encode((string) $this->input->get('myData')), true) ?: array();
+
+        $this->_emitir_fec($objLinea, $objTot, $results);
+    }
+
+    /**
+     * Emite la factura electronica de compra a partir de sus tres bloques.
+     *
+     * @param array $objLinea montos por linea del comprobante
+     * @param array $objTot   totales y datos de pago
+     * @param array $results  articulos, cada uno con `row` y `tax_rate`
+     */
+    private function _emitir_fec($objLinea, $objTot, $results){
         $articulos = array();
         $impuestos = array();
         $exoneraciones= array();
         if(!empty($objTot["id_proveedor"])){
             $provedor = $this->db->get_where('tec_suppliers', array('id' => $objTot["id_proveedor"]), 1);
-            if($provedor->row()->codigo_provincia ==''){
-                echo json_encode(array('error', "Debe completar la información del proveedor <a href='".base_url()."/suppliers/edit/".$provedor->row()->id."'>".$provedor->row()->name."</a><br/>"));
-                exit();
-            }else if($provedor->row()->email == ''){
+            // El "No Contribuyente" y el "Extranjero No Domiciliado" no estan
+            // inscritos ante Hacienda: ubicacion y correo son opcionales para
+            // ellos en la FEC (Anexos v4.4, nota 4).
+            $inscrito = !in_array($provedor->row()->cf1, array('05', '06'), true);
+            if($inscrito && ($provedor->row()->codigo_provincia == '' || $provedor->row()->email == '')){
                 echo json_encode(array('error', "Debe completar la información del proveedor <a href='".base_url()."/suppliers/edit/".$provedor->row()->id."'>".$provedor->row()->name."</a><br/>"));
                 exit();
             }
@@ -353,6 +385,120 @@ class FacturasCompras extends MY_Controller {
             echo json_encode(array('error', lang("action_failed")));
             // $this->session->set_flashdata('error', lang("action_failed"));
         }
+    }
+
+    /**
+     * Emision de la FEC desde la pantalla nueva.
+     *
+     * El navegador manda producto, cantidad, precio y tarifa; los montos del
+     * comprobante los calcula el servidor, que es lo unico que Hacienda mira.
+     */
+    function guardar_fec(){
+        if (!$this->Admin) {
+            $this->_json_fec(array('error', lang('access_denied')));
+            return;
+        }
+
+        $lineas = json_decode((string) $this->input->post('lineas'), true);
+        if (!is_array($lineas) || !$lineas) {
+            $this->_json_fec(array('error', lang('fec_sin_lineas')));
+            return;
+        }
+
+        $proveedor_id = (int) $this->input->post('proveedor');
+        if (!$proveedor_id) {
+            $this->_json_fec(array('error', lang('fec_sin_proveedor')));
+            return;
+        }
+
+        $tarifas = array();
+        foreach ($this->db->get('impuestos')->result_array() as $t) {
+            $tarifas[$t['id_impuesto']] = $t;
+        }
+
+        $objLinea = array();
+        $results  = array();
+        $totalVenta = 0;
+        $totalDescuentos = 0;
+        $totalImpuesto = 0;
+
+        foreach ($lineas as $l) {
+            $cantidad = (float) (isset($l['quantity']) ? $l['quantity'] : 0);
+            $precio   = (float) (isset($l['unit_price']) ? $l['unit_price'] : 0);   // con impuesto incluido
+            $desc     = (float) (isset($l['discount']) ? $l['discount'] : 0);
+            $id_tax   = (int) (isset($l['id_tax']) ? $l['id_tax'] : 0);
+            $tarifa   = isset($tarifas[$id_tax]) ? $tarifas[$id_tax] : null;
+            $tasa     = $tarifa ? (float) $tarifa['tasa_impuesto'] : 0;
+
+            if ($cantidad <= 0 || $precio < 0) {
+                $this->_json_fec(array('error', lang('fec_linea_invalida')));
+                return;
+            }
+
+            // El precio se digita con impuesto incluido, como en la factura del
+            // proveedor: el neto se despeja, no se suma encima.
+            $impuesto_unitario = $tasa > 0 ? ($precio * $tasa) / (100 + $tasa) : 0;
+            $neto              = $precio - $impuesto_unitario;
+            $monto_total       = $neto * $cantidad;
+            $subtotal          = $monto_total - $desc;
+            $impuesto_linea    = $tasa > 0 ? ($subtotal * $tasa / 100) : 0;
+
+            $objLinea[] = array(
+                'PrecioUnitario'  => $this->tec->formatDecimal($neto, 5),
+                'MontoTotal'      => $this->tec->formatDecimal($monto_total, 5),
+                'MontoDescuento'  => $this->tec->formatDecimal($desc, 5),
+                'SubTotal'        => $this->tec->formatDecimal($subtotal, 5),
+                'ImpuestoMonto'   => $this->tec->formatDecimal($impuesto_linea, 5),
+                'MontoTotalLinea' => $this->tec->formatDecimal($subtotal + $impuesto_linea, 5),
+            );
+
+            $results[] = array(
+                'tax_rate' => $tarifa,
+                'row' => array(
+                    'id'              => isset($l['product_id']) ? (int) $l['product_id'] : 0,
+                    'code'            => isset($l['code']) ? $l['code'] : '',
+                    'name'            => isset($l['name']) ? $l['name'] : '',
+                    'type'            => isset($l['type']) ? $l['type'] : 'standard',
+                    'unit'            => isset($l['unit']) ? $l['unit'] : 'Unid',
+                    'quantity'        => $cantidad,
+                    'unit_price'      => $precio,
+                    'real_unit_price' => $neto,
+                ),
+            );
+
+            $totalVenta      += $monto_total;
+            $totalDescuentos += $desc;
+            $totalImpuesto   += $impuesto_linea;
+        }
+
+        $estado = in_array($this->input->post('payment_status'), array('paid', 'partial', 'due'), true)
+            ? $this->input->post('payment_status') : 'paid';
+
+        $objTot = array(
+            'id_proveedor'        => $proveedor_id,
+            'payment_status'      => $estado,
+            'paymentmethod'       => (int) $this->input->post('plazo'),
+            'paid_by_1'           => $this->input->post('paid_by') ?: 'cash',
+            'token_post'          => $this->input->post('token_post'),
+            'TotalVenta'          => $this->tec->formatDecimal($totalVenta, 5),
+            'TotalDescuentos'     => $this->tec->formatDecimal($totalDescuentos, 5),
+            'TotalImpuesto'       => $this->tec->formatDecimal($totalImpuesto, 5),
+            'TotalComprobante'    => $this->tec->formatDecimal($totalVenta - $totalDescuentos + $totalImpuesto, 5),
+            'TotalMercExonerada'  => $this->tec->formatDecimal((float) $this->input->post('exo_monto'), 5),
+            'exoneracion' => array(
+                'ExoTipoDocumento'         => (string) $this->input->post('exo_tipo'),
+                'ExoNombreInstitucion'     => (string) $this->input->post('exo_institucion'),
+                'ExoNumeroDocumento'       => (string) $this->input->post('exo_documento'),
+                'ExoFechaEmision'          => (string) $this->input->post('exo_fecha'),
+                'ExoPorcentajeExoneracion' => (string) $this->input->post('exo_porcentaje'),
+            ),
+        );
+
+        $this->_emitir_fec($objLinea, $objTot, $results);
+    }
+
+    private function _json_fec($datos){
+        $this->output->set_content_type('application/json', 'utf-8')->set_output(json_encode($datos));
     }
 
     function view_fec($sale_id = NULL, $noprint = NULL){

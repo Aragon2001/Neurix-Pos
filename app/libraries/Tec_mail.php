@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 /*
 *  ==============================================================================
 *  Author   : Jostin Aragon Barboza
@@ -48,8 +54,13 @@ class Tec_mail
                 $mail->setFrom($from, $Settings->site_name);
                 $mail->addReplyTo($from, $Settings->site_name);
             } else {
-                $mail->setFrom($Settings->default_email, $Settings->site_name);
-                $mail->addReplyTo($Settings->default_email, $Settings->site_name);
+                $remitente = remitente_correo($Settings);
+                if (!$remitente) {
+                    log_message('error', '[Correo] no hay remitente configurado: revise Ajustes -> Correo.');
+                    return false;
+                }
+                $mail->setFrom($remitente, $Settings->site_name);
+                $mail->addReplyTo($remitente, $Settings->site_name);
             }
 
             $mail->addAddress($to);

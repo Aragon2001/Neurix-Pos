@@ -1,4 +1,9 @@
-﻿<?php
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class PosRegister extends MY_Controller
@@ -9,7 +14,82 @@ class PosRegister extends MY_Controller
         $this->load->model('pos_model');
         $this->load->model('hacienda_model');
         $this->load->model('AuditLog_model', 'audit_log');
+        $this->load->library('form_validation');
         $this->load->library('datatables');
+    }
+
+    /**
+     * Numeros del turno para el reporte de cierre.
+     *
+     * Es la fuente unica de la pantalla y del correo. No incluye el arqueo:
+     * eso lo escribe el cajero y lo recalcula close_register() al guardar.
+     *
+     * @param int    $user_id cajero dueno de la caja
+     * @param string $desde   fecha de apertura de la caja
+     */
+    /** Cajero cuyo cierre se esta validando, para la regla de la observacion. */
+    private $_cajero_del_cierre = 0;
+
+    private function _resumen_turno($user_id, $desde)
+    {
+        $monto = function ($fila, $campo = 'total') {
+            return $fila && isset($fila->$campo) ? (float) $fila->$campo : 0.0;
+        };
+
+        $fondo     = (float) $this->session->userdata('cash_in_hand');
+        $registro  = $this->pos_model->registerData($user_id);
+        if ($registro) {
+            $fondo = (float) $registro->cash_in_hand;
+        }
+
+        $metodos   = cobros_por_familia($this->pos_model->getRegisterPagosPorMetodo($desde, $user_id));
+        $gastos    = $monto($this->pos_model->getRegisterExpenses($desde, $user_id));
+        $depositos = $monto($this->pos_model->getDepositos($desde, $user_id));
+        $notas     = $monto($this->pos_model->getRegisterNCSales($desde, $user_id));
+        $credito   = $monto($this->pos_model->getRegisterSalesCredit($desde, $user_id));
+        $apartados = $monto($this->pos_model->getRegisterCashSalesApart($desde, $user_id));
+        $anulado   = $this->pos_model->getRegisterAnulaciones($desde, $user_id);
+
+        $cobrado = 0.0;
+        foreach ($metodos as $familia) {
+            $cobrado += $familia['total'];
+        }
+
+        return array(
+            'desde'             => $desde,
+            'cajero'            => $this->site->getUser($user_id),
+            'fondo'             => $fondo,
+            'metodos'           => $metodos,
+            'cobrado'           => $cobrado,
+            'gastos'            => $gastos,
+            'depositos'         => $depositos,
+            'apartados'         => $apartados,
+            'notas_credito'     => $notas,
+            'anulaciones'       => (float) $anulado->total,
+            'anulaciones_n'     => (int) $anulado->cantidad,
+            'anulaciones_detalle' => $this->pos_model->getRegisterAnulacionesDetalle($desde, $user_id),
+            'ventas_credito'    => $credito,
+            'impuestos'         => $this->pos_model->getRegisterVentasPorImpuesto($desde, $user_id),
+            'sinpe'             => $this->pos_model->getRegisterSinpeEntrantes($desde),
+            'efectivo_esperado' => $this->_efectivo_esperado($fondo, $metodos['efectivo']['total'], $apartados, $depositos, $gastos, (float) $anulado->total),
+        );
+    }
+
+    /**
+     * Efectivo que deberia estar en la gaveta.
+     *
+     * Solo entra dinero que pasa por el cajon: el fondo, lo cobrado en
+     * efectivo (ventas y apartados) y los depositos, menos los gastos pagados
+     * de caja. Lo cobrado por tarjeta, SINPE o transferencia nunca llega a la
+     * gaveta, y las notas de credito no guardan con que medio se devolvieron.
+     *
+     * Lo devuelto en efectivo al anular una factura si salio de la gaveta, y por
+     * eso se resta: es la unica devolucion de la que si consta el medio.
+     */
+    private function _efectivo_esperado($fondo, $efectivo, $apartados, $depositos, $gastos, $anulaciones = 0)
+    {
+        return (float) $fondo + (float) $efectivo + (float) $apartados + (float) $depositos
+             - (float) $gastos - (float) $anulaciones;
     }
 
     function register_details() {
@@ -54,8 +134,10 @@ class PosRegister extends MY_Controller
         if (!$this->Admin) {
             $user_id = $this->session->userdata('user_id');
         }
-        $this->form_validation->set_rules('total_cash', lang("total_cash"), 'trim|required|numeric');
-        $this->form_validation->set_rules('total_cheques', lang("total_cheques"), 'trim|required|numeric');
+        // Lo unico que el cajero cuenta a mano es el efectivo del cajon.
+        $this->form_validation->set_rules('total_cash_submitted', lang('cierre_efectivo_contado'), 'trim|required|numeric');
+        $this->_cajero_del_cierre = $user_id;
+        $this->form_validation->set_rules('note', lang('cierre_nota'), 'trim|callback_nota_si_falta');
         if ($this->form_validation->run() == true) {
             if ($this->Admin) {
                 $user_register = $user_id ? $this->pos_model->registerData($user_id) : NULL;
@@ -136,7 +218,8 @@ class PosRegister extends MY_Controller
             }
             $data = array(
                 'date' => $register_open_time,
-                'total_cash' => $total_cash - $ncredits,
+                // Mismo criterio que la pantalla: solo lo que pasa por el cajon.
+                'total_cash' => $total_cash,
                 'total_cash_submitted' => $this->input->post('total_cash_submitted'),
                 'total_cc' => $Totalccsales,
                 'total_cc_submitted' => $this->input->post('total_cc_submitted'),
@@ -178,7 +261,7 @@ class PosRegister extends MY_Controller
                 'total_impuesto12' => $gravadas12->total - $gravadas12->total / 1.12,
                 'total_impuesto13' => $gravadas13->total - $gravadas13->total / 1.13,
                 'total_exentas' => $exentas->total,
-                'tot_exentas_gravadas' => $_POST["tot_exentas_gravadas"],
+                'tot_exentas_gravadas' => (float) $this->input->post('tot_exentas_gravadas'),
                 'total_notecredits' => @$notecredits->total ? @$notecredits->total : "0.00",
                 'total_expenses' => $expenses->total ? $expenses->total : "0.00",
                 'status' => 'close',
@@ -195,7 +278,7 @@ class PosRegister extends MY_Controller
         }
 
         if ($this->form_validation->run() == true && $this->pos_model->closeRegister($rid, $user_id, $data)) {
-            $this->audit_log->log('cierre_caja', 'register', (int)$rid, 'Apertura: ' . ($register_open_time ?? ''));
+            $this->audit_log->log('cierre_caja', 'register', (int) $rid, 'Apertura: ' . ($register_open_time ?? ''), (float) $this->input->post('total_cash_submitted'));
             $this->print_register(null, $data);
             $this->session->unset_userdata('register_id');
             $this->session->unset_userdata('cash_in_hand');
@@ -247,180 +330,173 @@ class PosRegister extends MY_Controller
             $this->data['creditos'] = $this->pos_model->getRegisterSalesCredit($register_open_time);
             $this->data['user_id'] = $user_id;
             $this->data['Totaldepositos'] = $this->pos_model->getDepositos($register_open_time, $user_id);
+            $this->data['resumen'] = $this->_resumen_turno($user_id, $register_open_time);
             $this->load->view($this->theme . 'pos/close_register', $this->data);
         }
     }
 
 
+    /**
+     * Un faltante hay que explicarlo: si lo contado no llega a lo que dice el
+     * sistema, la observacion deja de ser opcional.
+     */
+    public function nota_si_falta($nota)
+    {
+        $user_id  = $this->_cajero_del_cierre ?: (int) $this->session->userdata('user_id');
+        $registro = $this->pos_model->registerData($user_id);
+        $desde    = $registro ? $registro->date : $this->session->userdata('register_open_time');
+        $resumen  = $this->_resumen_turno($user_id, $desde);
+
+        $contado = (float) str_replace(',', '.', (string) $this->input->post('total_cash_submitted'));
+
+        if ($contado + 0.005 < (float) $resumen['efectivo_esperado'] && trim((string) $nota) === '') {
+            $this->form_validation->set_message('nota_si_falta', lang('cierre_nota_obligatoria'));
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * PDF del cierre, con el mismo contenido que la pantalla.
+     *
+     * Sirve para las dos acciones: imprimir lo abre en una pestaña y el correo
+     * lo manda adjunto. Devuelve la ruta del archivo temporal.
+     */
+    private function _pdf_cierre(array $resumen)
+    {
+        $html = $this->load->view(
+            $this->theme . 'email/cierre_caja',
+            array('r' => $resumen, 'para_pdf' => TRUE, 'Settings' => $this->Settings),
+            TRUE
+        );
+
+        $ruta = sys_get_temp_dir() . DIRECTORY_SEPARATOR
+              . 'cierre_' . date('Ymd_His', strtotime($resumen['desde'] ?: 'now')) . '.pdf';
+
+        $mpdf = new \Mpdf\Mpdf(array(
+            'tempDir'        => sys_get_temp_dir(),
+            'CSSselectMedia' => 'screen',
+            'format'         => 'A4',
+            'margin_left'    => 10,
+            'margin_right'   => 10,
+            'margin_top'     => 10,
+            'margin_bottom'  => 12,
+        ));
+        $mpdf->WriteHTML($html);
+        $mpdf->Output($ruta, 'F');
+
+        return $ruta;
+    }
+
+    /**
+     * GET pos/cierre_pdf — el cierre en PDF, para ver e imprimir.
+     *
+     * En el sistema solo el tiquete de venta sale solo a la impresora: todo lo
+     * demas se imprime desde el visor del navegador.
+     */
+    public function cierre_pdf()
+    {
+        $user_id = $this->Admin && $this->input->get('user_id')
+            ? (int) $this->input->get('user_id')
+            : (int) $this->session->userdata('user_id');
+
+        $registro = $this->pos_model->registerData($user_id);
+        $desde    = $registro ? $registro->date : $this->session->userdata('register_open_time');
+
+        $ruta = $this->_pdf_cierre($this->_resumen_turno($user_id, $desde));
+
+        $this->output
+            ->set_content_type('application/pdf')
+            ->set_header('Content-Disposition: inline; filename="' . basename($ruta) . '"')
+            ->set_output(file_get_contents($ruta));
+
+        @unlink($ruta);
+    }
+
+    /**
+     * POST pos/enviar_cierre — manda el reporte del turno por correo, en PDF.
+     *
+     * No cierra la caja: es el mismo reporte de la pantalla, para archivarlo.
+     * Sale por la cola, igual que los comprobantes.
+     */
+    public function enviar_cierre()
+    {
+        $para = trim((string) $this->input->post('correo'));
+        if ($para === '') {
+            $para = $this->Settings->email_emisor ?: $this->Settings->default_email;
+        }
+
+        if (!$para || !filter_var($para, FILTER_VALIDATE_EMAIL)) {
+            $this->_json_cierre(array('ok' => false, 'msg' => lang('cierre_correo_falta')), 422);
+            return;
+        }
+
+        $user_id = $this->Admin && $this->input->post('user_id')
+            ? (int) $this->input->post('user_id')
+            : (int) $this->session->userdata('user_id');
+
+        $registro = $this->pos_model->registerData($user_id);
+        $desde    = $registro ? $registro->date : $this->session->userdata('register_open_time');
+        $resumen  = $this->_resumen_turno($user_id, $desde);
+
+        try {
+            $pdf = $this->_pdf_cierre($resumen);
+        } catch (\Throwable $e) {
+            log_message('error', '[Cierre] no se pudo armar el PDF: ' . $e->getMessage());
+            $this->_json_cierre(array('ok' => false, 'msg' => lang('cierre_correo_error')), 500);
+            return;
+        }
+
+        $this->load->model('queue_model');
+        $this->queue_model->push(Queue_model::TYPE_EMAIL, array(
+            'to'       => $para,
+            'subject'  => lang('cierre_asunto') . ' - ' . $this->Settings->site_name,
+            'message'  => $this->load->view($this->theme . 'email/cierre_caja', array('r' => $resumen, 'Settings' => $this->Settings), TRUE),
+            'attach'   => array('ruta' => $pdf),
+            'pdf_path' => $pdf,
+        ));
+        dispatch_queue_worker(Queue_model::TYPE_EMAIL);
+
+        $this->audit_log->log('cierre_enviado', 'register', $registro ? (int) $registro->id : 0, $para);
+        $this->_json_cierre(array('ok' => true, 'msg' => lang('cierre_correo_ok')));
+    }
+
+    private function _json_cierre($data, $status = 200)
+    {
+        $this->output
+            ->set_status_header($status)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($data, JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Artículos vendidos durante el turno, en una página lista para imprimir.
+     *
+     * Se arma con una consulta directa: la librería Datatables exige el payload
+     * POST de DataTables y esto se abre con un enlace, así que devolvía vacío.
+     */
     function products_sales_in_register() {
+        $desde   = $this->session->userdata('register_open_time');
+        $user_id = $this->session->userdata('user_id');
 
-        $start_date = $this->session->userdata('register_open_time');
-        $end_date = date('Y-m-d h:i:s');
-        $user = $this->session->userdata('user_id');
+        $items = $this->db->dbprefix('sale_items');
+        $this->db
+            ->select("{$items}.product_code AS codigo,
+                      {$items}.product_name AS nombre,
+                      SUM(COALESCE({$items}.quantity, 0)) AS unidades,
+                      SUM(COALESCE({$items}.subtotal, 0)) AS total", FALSE)
+            ->join('sales', 'sales.id=' . $items . '.sale_id', 'left')
+            ->where('sales.date >', $desde)
+            ->where('sales.created_by', $user_id)
+            ->group_by(array($items . '.product_code', $items . '.product_name'))
+            ->order_by('total', 'DESC');
 
+        $this->data['articulos'] = $this->db->get('sale_items')->result();
+        $this->data['desde']     = $desde;
+        $this->data['cajero']    = $this->site->getUser($user_id);
 
-        $this->load->library('datatables');
-        $this->datatables
-                ->select(
-                        $this->db->dbprefix('products') . ".id as id, " .
-                        $this->db->dbprefix('products') . ".name, " .
-                        $this->db->dbprefix('products') . ".code," .
-                        $this->db->dbprefix('product_store_qty') . ".quantity as qty_rest," .
-                        $this->db->dbprefix('product_store_qty') . ".qty_fracc as qty_fracc_rest,"
-                        . " COALESCE(sum(if (" . $this->db->dbprefix('sale_items') . ".esta_fraccionado < 1, " . $this->db->dbprefix('sale_items') . ".quantity, 0) ), 0) as sold,"
-                        . " COALESCE(sum(if (" . $this->db->dbprefix('sale_items') . ".esta_fraccionado > 0, " . $this->db->dbprefix('sale_items') . ".quantity, 0) ), 0) as sold_fracc,"
-                        . " ROUND(COALESCE(((sum(" . $this->db->dbprefix('sale_items') . ".subtotal)*" .
-                        $this->db->dbprefix('products') . ".tax)/100), 0), 2) as tax, "
-                        . "COALESCE(sum(" . $this->db->dbprefix('sale_items') . ".quantity)*" .
-                        $this->db->dbprefix('sale_items') . ".cost, 0) as cost, "
-                        . "COALESCE(sum(" . $this->db->dbprefix('sale_items') . ".subtotal), 0) as income,"
-                        . " ROUND((COALESCE(sum(" . $this->db->dbprefix('sale_items') . ".subtotal), 0)) - COALESCE(sum(" . $this->db->dbprefix('sale_items') . ".quantity)*" . $this->db->dbprefix('sale_items') . ".cost, 0) -COALESCE(((sum(" . $this->db->dbprefix('sale_items') . ".subtotal)*" . $this->db->dbprefix('products') . ".tax)/100), 0), 2)
-            as profit", FALSE)
-                ->from('sale_items')
-                ->join('products', 'sale_items.product_id=products.id', 'left')
-                ->join('sales', 'sale_items.sale_id=sales.id', 'left')
-                ->join('product_store_qty', 'product_store_qty.product_id=products.id', 'left');
-        if ($this->session->userdata('store_id')) {
-            $this->datatables->where('sales.store_id', $this->session->userdata('store_id'));
-        }
-        $this->datatables->group_by('products.id');
-
-        if ($user) {
-            $this->datatables->where('created_by', $user);
-        }
-        if ($start_date) {
-            $this->datatables->where('date >=', $start_date);
-        }
-        if ($end_date) {
-            $this->datatables->where('date <=', $end_date);
-        }
-
-        $result = json_decode($this->datatables->generate());
-        if (isset($result->data)) {
-            $resultado = $result->data;
-        } else {
-            $resultado = FALSE;
-        }
-
-        echo "<div class='myDivToPrint'>
-                
-
-
-                <div style='width:90%; margin:0 auto; '>
-                    <h4> Productos vendidos por cajero: " . $this->session->userdata('first_name') . " "
-        . "" . $this->session->userdata('last_name') . " </h4>
-                    <h4>Apertura de caja: " . $start_date . "</h4>        
-                    <h4>Fecha de Impresion: " . $end_date . "</h4>        
-                </div>
-
-
-
-                <table style='width:90%; margin:0 auto; '>
-                <thead>
-                    <tr>
-                    <td style='text-align:center;'>Codigo</td>
-                    <td style='text-align:center;'>Descripcion</td>
-                    <td style='text-align:center;'>Unidades Vendidas</td>";
-
-        if ($this->Settings->enable_fractions == "1") {
-            echo "<td style='text-align:center;'>Fraccciones Vendidas</td>";
-        }
-
-        echo "<td style='text-align:center;'>Unidades restantes</td>";
-
-        if ($this->Settings->enable_fractions == "1") {
-            echo "<td style='text-align:center;'>Fraccciones restantes</td>";
-        }
-
-        echo "</tr>
-                </thead>
-                <tbody>
-        ";
-
-        foreach ($resultado as $item) {
-            echo "<tr>";
-            echo "<td>" . $item->code . "</td>";
-            echo "<td>" . $item->name . "</td>";
-            echo "<td style='text-align:right;'>" . $item->sold . "</td>";
-
-            if ($this->Settings->enable_fractions == "1") {
-                echo "<td style='text-align:right;'>" . $item->sold_fracc . "</td>";
-            }
-
-            echo "<td style='text-align:right;'>" . $item->qty_rest . "</td>";
-
-            if ($this->Settings->enable_fractions == "1") {
-                echo "<td style='text-align:right;'>" . $item->qty_fracc_rest . "</td>";
-            }
-            echo "</tr>";
-        }
-
-        echo "
-                </tbody>
-                <tfooter></tfooter>
-                </table>
-
-             </div>
-        
-            <style>
-            
-              thead,
-            tfoot {
-                background-color: #3f87a6 !important;
-                color: #fff;
-            }
-
-            tbody {
-                background-color: #e4f0f5 !important;
-            }
-
-            caption {
-                padding: 10px;
-                caption-side: bottom;
-            }
-
-            table {
-                border-collapse: collapse;
-                border: 2px solid rgb(200, 200, 200);
-                letter-spacing: 1px;
-                font-family: sans-serif;
-                font-size: .8rem;
-            }
-
-            td,
-            th {
-                border: 1px solid rgb(190, 190, 190);
-                padding: 5px 10px;
-            }
-
-            td {
-                text-align: center;
-            }
-            
-            @media print {
-                .myDivToPrint {
-                    background-color: white;
-                    height: 100%;
-                    width: 100%;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    margin: 0;
-                    padding: 15px;
-                    font-size: 14px;
-                    line-height: 18px;
-                }
-            } 
-          
-            </style>
-             
-        <script>
-            window.onload = function () {
-                window.print();
-            }
-        </script>     
-        
-        ";
+        $this->load->view($this->theme . 'pos/articulos_turno', $this->data);
     }
 
     function invoices_in_register() {

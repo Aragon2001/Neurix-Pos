@@ -1,0 +1,411 @@
+/* ═══════════════════════════════════════════════════════════════════
+   POS-FIX.CSS — Correcciones de contraste, tipografía y foco del POS
+
+   Cargar DESPUÉS de pos-redesign.css. Solo sobreescribe: no hay
+   selectores nuevos que dependan de HTML que todavía no exista.
+
+   Los ratios de los comentarios son WCAG 2.2 (luminancia relativa)
+   calculados contra el fondo real indicado en cada bloque.
+   ═══════════════════════════════════════════════════════════════════ */
+
+
+/* ─── 1. TOKENS DE ESTADO ─────────────────────────────────────────
+   Los estados se pintan con colores sólidos, no con velos de alfa:
+   un rgba al 6 % usado como fondo de reemplazo deja ver el fondo de
+   la página y el estado desaparece (1.07:1 contra --nx-bg).
+   ───────────────────────────────────────────────────────────────── */
+
+:root, [data-theme="dark"] {
+  /* Estados — medidos contra --nx-bg2 #0d1528 */
+  --nx-hover-bg:    #24365c;   /* 1.52:1 */
+  --nx-active-bg:   #27406a;   /* 1.76:1 */
+  --nx-sel-bg:      #2d4a7a;   /* 2.05:1 — fila o celda elegida */
+  --nx-input-bg:    #131c33;
+  --nx-input-focus: #17233f;
+
+  /* Bordes — WCAG 1.4.11 exige 3:1 para delimitar un componente */
+  --nx-border:      #33456b;   /* 1.91:1 — separadores decorativos */
+  --nx-border-int:  #4a6a9e;   /* 3.33:1 — componente interactivo   */
+  --nx-border2:     #263450;   /* separación entre líneas del carrito */
+  --nx-border3:     #5578b0;   /* 4.07:1 — hover y foco             */
+  --nx-focus:       #38bdf8;   /* 8.49:1 — anillo de foco           */
+
+  /* Texto */
+  --nx-txt4:        #9fb0c8;   /* 8.24:1 — etiquetas informativas   */
+  --nx-txt5:        #64748b;   /* solo adornos sin información      */
+
+  /* Superficie de una tarjeta de producto y color del texto cuando la
+     tarjeta está en hover, foco o seleccionada. */
+  --nx-surface-item: #141d31;
+  --nx-on-state:     #ffffff;  /* 10.4:1 sobre --nx-active-bg */
+}
+
+[data-theme="light"] {
+  /* Medidos contra --nx-bg #f1f5f9 */
+  --nx-hover-bg:    #c8dcee;   /* 1.28:1 */
+  --nx-active-bg:   #aecbe4;   /* 1.54:1 */
+  --nx-sel-bg:      #9dc0de;   /* 1.75:1 */
+  --nx-input-bg:    #ffffff;
+  --nx-input-focus: #f2f8fd;
+
+  --nx-border:      #c3ced9;   /* 1.42:1 */
+  --nx-border-int:  #74899e;   /* 3.30:1 */
+  --nx-border2:     #dde4ea;
+  --nx-border3:     #0284c7;   /* 3.74:1 */
+  --nx-focus:       #0369a1;   /* 5.66:1 */
+
+  --nx-txt4:        #4e5b67;   /* 6.36:1 */
+  --nx-txt5:        #7e8b98;
+
+  --nx-surface-item: #ffffff;
+  --nx-on-state:     #0f172a;  /* 10.6:1 sobre --nx-active-bg */
+}
+
+/* Chrome oscuro: el POS conserva la barra superior oscura también en
+   tema claro, así que su texto necesita tokens propios que no se
+   inviertan. Sin esto el nombre de la tienda queda a 1.00:1. */
+:root, [data-theme="dark"], [data-theme="light"] {
+  --nx-onchrome-1: #f1f5f9;    /* 16.3:1 sobre #0f172a */
+  --nx-onchrome-2: #cbd5e1;    /* 12.0:1 */
+  --nx-onchrome-3: #a9b6c6;    /*  8.7:1 */
+
+  /* Estados dentro del chrome oscuro (topbar y barra lateral). */
+  --nx-chrome-hover:  rgba(255,255,255,.12);
+  --nx-chrome-active: rgba(120,170,255,.24);
+}
+
+
+/* ─── 2. BARRA SUPERIOR ───────────────────────────────────────────── */
+
+.pos-topbar-store .store-name { color: var(--nx-onchrome-1); font-size: 15px; }
+.pos-topbar-store .store-sub  { color: var(--nx-onchrome-3); font-size: 12px; }
+.pos-topbar-clock             { color: var(--nx-onchrome-2); font-size: 14px; }
+.pos-topbar-sep               { background: rgba(203,213,225,.22); }
+
+.pos-topbar-chip {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(203,213,225,.22);
+  color: var(--nx-onchrome-2);
+  font-size: 13px;
+  padding: .3rem .7rem;
+}
+
+/* 44 px es el área táctil mínima recomendada para una pantalla de
+   mostrador (WCAG 2.5.5). */
+.pos-topbar-btn {
+  width: 40px; height: 40px;
+  border-color: rgba(203,213,225,.20);
+  color: var(--nx-onchrome-2);
+}
+.pos-topbar-btn:hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(203,213,225,.45);
+  color: #fff;
+}
+.pos-topbar-btn svg { width: 20px; height: 20px; }
+
+/* La impresión automática es un interruptor: necesita estado visible,
+   no solo un title distinto. Agregar la clase is-on desde el JS. */
+#printToggleBtn.is-on {
+  background: rgba(34,197,94,.18);
+  border-color: var(--nx-ok);
+  color: var(--nx-ok);
+}
+#printToggleBtn.is-on::after {
+  content: ""; position: absolute; bottom: 3px; right: 3px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--nx-ok);
+}
+
+.pos-user-btn {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(203,213,225,.22);
+  color: var(--nx-onchrome-1);
+  font-size: 14px;
+  padding: .35rem .7rem;
+}
+.pos-user-btn:hover { background: rgba(255,255,255,.14); }
+
+.pos-topbar-badge, .pos-topbar-btn .badge {
+  min-width: 18px; height: 18px; font-size: 11px;
+  background: var(--nx-err); color: #fff;
+}
+
+
+/* ─── 3. BÚSQUEDA ─────────────────────────────────────────────────
+   Es el control más usado de la pantalla: el lector de código de
+   barras escribe siempre acá. */
+
+.pos-search-wrapper #add_item {
+  padding: .85rem .875rem .85rem 2.8rem;
+  font-size: 16px;
+  border-color: var(--nx-border-int);
+  background: var(--nx-input-bg);
+}
+.pos-search-wrapper #add_item:focus {
+  border-color: var(--nx-focus);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.35);
+}
+.pos-search-wrapper #add_item::placeholder { color: var(--nx-txt4); }
+.pos-search-wrapper .search-icon { color: var(--nx-txt4); }
+.pos-search-kbds kbd { color: var(--nx-txt4); font-size: 11px; border-color: var(--nx-border); }
+
+
+/* ─── 4. CATEGORÍAS ──────────────────────────────────────────────── */
+
+.pos-cat-btn {
+  font-size: 14px;
+  padding: .45rem 1rem;
+  min-height: 38px;
+  color: var(--nx-txt2);
+  border-color: transparent;
+}
+.pos-cat-btn:hover {
+  background: var(--nx-hover-bg);
+  border-color: var(--nx-border-int);
+  color: var(--nx-on-state);
+}
+.pos-cat-btn.active {
+  background: var(--nx-active-bg);
+  border-color: var(--nx-border3);
+  color: var(--nx-on-state);
+  font-weight: 600;
+}
+
+.pos-controls-bar select,
+.pos-controls-bar input[type="text"] {
+  font-size: 14px;
+  padding: .4rem .7rem;
+  min-height: 38px;
+  border-color: var(--nx-border-int);
+  background: var(--nx-input-bg);
+}
+/* El placeholder "Escriba para filtrar categoría" no cabe en 160 px. */
+.pos-controls-bar input { max-width: 260px; }
+.pos-controls-bar input::placeholder { color: var(--nx-txt4); }
+
+.pos-pg-btn {
+  width: 40px; height: 40px;
+  border-color: var(--nx-border-int);
+  color: var(--nx-txt2);
+}
+.pos-pg-btn:hover:not(:disabled) {
+  background: var(--nx-hover-bg);
+  border-color: var(--nx-border3);
+  color: var(--nx-on-state);
+}
+.pos-pg-btn:disabled { opacity: .45; }
+.pos-pg-info { font-size: 13px; color: var(--nx-txt4); }
+
+
+/* ─── 5. REJILLA DE PRODUCTOS ─────────────────────────────────────
+   El estado se construye con tres señales simultáneas —relleno,
+   borde y color de texto— porque sobre un fondo casi negro un
+   relleno solo no alcanza 3:1 sin verse quemado. */
+
+.pos-product-grid { gap: .75rem; }
+
+.pos-product-grid .product {
+  background: var(--nx-surface-item);
+  border: 1.5px solid var(--nx-border);
+  font-size: 15px;
+  min-height: 88px;
+  padding: .85rem .6rem;
+}
+.pos-product-grid .product:hover,
+.pos-product-grid .product:focus-visible {
+  background: var(--nx-active-bg);
+  border-color: var(--nx-border3);
+  color: var(--nx-on-state);
+  transform: none;                       /* el color ya comunica el estado */
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.pos-product-grid .product:focus-visible {
+  outline: 3px solid var(--nx-focus);
+  outline-offset: 2px;
+}
+/* Producto marcado por teclado o lector: agregar la clase desde el JS. */
+.pos-product-grid .product.is-selected {
+  background: var(--nx-sel-bg);
+  border-color: var(--nx-focus);
+  color: var(--nx-on-state);
+}
+.pos-product-grid .product::after {
+  width: 22px; height: 22px; line-height: 22px; font-size: 14px;
+}
+
+.pos-grid-empty { color: var(--nx-txt4); }
+.pos-grid-empty p { font-size: 15px; }
+.pos-grid-empty i { opacity: .5; }
+
+
+/* ─── 6. PANEL DE VENTA ──────────────────────────────────────────── */
+
+.pcp-section-label,
+.pcp-cart-title { font-size: 12px; color: var(--nx-txt4); letter-spacing: .08em; }
+
+.pcp-cart-badge { font-size: 12px; min-width: 24px; padding: .18rem .5rem; }
+
+.pcp-items table { font-size: 15px; color: var(--nx-txt1); }
+.pcp-items thead th {
+  font-size: 12px; color: var(--nx-txt4);
+  border-bottom-color: var(--nx-border-int);
+}
+.pcp-items tbody td { border-bottom-color: var(--nx-border2); }
+.pcp-items tbody tr:hover { background: var(--nx-hover-bg); }
+.pcp-items tbody tr.is-selected { background: var(--nx-sel-bg); }
+
+.pcp-items .item-name-btn { font-size: 15px; }
+.pcp-items .item-name-btn:hover { color: var(--nx-focus); text-decoration: underline; }
+
+.pcp-items .rquantity {
+  width: 62px; min-height: 40px;
+  font-size: 16px; font-weight: 600;
+  border-color: var(--nx-border-int);
+  background: var(--nx-input-bg);
+}
+.pcp-items .rquantity:focus {
+  border-color: var(--nx-focus);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.35);
+}
+
+/* El basurero a opacity .5 es invisible hasta que se lo busca. */
+.pcp-items .posdel {
+  opacity: 1;
+  color: var(--nx-err);
+  font-size: 17px;
+  min-width: 40px; min-height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.pcp-items .posdel:hover { background: rgba(239,68,68,.22); }
+
+.price-toggle-btn {
+  width: 28px; height: 28px;
+  opacity: .85; font-size: 14px; color: var(--nx-txt4);
+}
+.price-toggle-btn:hover { opacity: 1; }
+
+.pcp-cart-clear-btn { font-size: 13px; color: var(--nx-txt4); min-height: 36px; }
+
+
+/* ─── 7. TOTALES ─────────────────────────────────────────────────
+   Es la información fiscal de la venta: no puede ir a 10 px en el
+   color de menor contraste del sistema. */
+
+.pcp-total-row { font-size: 15px; padding: .3rem 0; }
+.pcp-total-row .tl { color: var(--nx-txt4); font-size: 14px; font-weight: 500; }
+.pcp-total-row .tv { color: var(--nx-txt1); font-size: 15px; font-weight: 600; }
+.pcp-total-divider { background: var(--nx-border-int); }
+
+.pcp-grand-total { padding: .6rem 0 .2rem; }
+.pcp-grand-total .gl { font-size: 15px; color: var(--nx-txt1); }
+.pcp-grand-total .gv { font-size: 2.1rem; color: var(--nx-txt1); }
+
+.pcp-cust-hint,
+.pcp-cust-contact-item { font-size: 13px; color: var(--nx-txt4); }
+.pcp-cust-badge { font-size: 12px; }
+
+
+/* ─── 8. BOTONES DE ACCIÓN ───────────────────────────────────────── */
+
+.pos-btn { font-size: 15px; padding: .75rem 1rem; min-height: 46px; }
+.pos-btn-ghost  { border-color: var(--nx-border-int); color: var(--nx-txt2); }
+.pos-btn-ghost:hover  { background: var(--nx-hover-bg); border-color: var(--nx-border3); color: var(--nx-on-state); }
+.pos-btn-danger { border-color: var(--nx-border-int); }
+.pos-btn-danger:hover { background: rgba(239,68,68,.22); }
+.pos-btn-warn   { border-color: var(--nx-border-int); }
+.pos-btn-warn:hover   { background: rgba(234,179,8,.22); }
+
+.pos-btn-pay { font-size: 1.15rem; padding: 1rem; min-height: 58px; }
+.pos-btn-pay .kh { font-size: 13px; opacity: .85; }
+
+/* El barrido de brillo compite con el color y no aporta información. */
+.pos-btn::before { display: none; }
+.pos-btn:hover { transform: none; }
+
+
+/* ─── 9. AUTOCOMPLETADO Y DESPLEGABLES ───────────────────────────── */
+
+#pos-autocomplete { border-color: var(--nx-border-int); }
+#pos-autocomplete button { font-size: 15px; padding: .75rem 1rem; color: var(--nx-txt1); }
+#pos-autocomplete button:hover,
+#pos-autocomplete button:focus {
+  background: var(--nx-active-bg);
+  color: var(--nx-on-state);
+  outline: none;
+}
+#pos-autocomplete button:focus-visible {
+  outline: 3px solid var(--nx-focus);
+  outline-offset: -3px;
+}
+
+
+/* ─── 10. FOCO ───────────────────────────────────────────────────
+   El POS se opera con lector de código de barras y teclado, y no
+   había ninguna regla de :focus-visible en toda la hoja. */
+
+.pos-topbar-btn:focus-visible,
+.pos-nav-link:focus-visible,
+.pos-cat-btn:focus-visible,
+.pos-pg-btn:focus-visible,
+.pos-btn:focus-visible,
+.pcp-items .item-name-btn:focus-visible,
+.pcp-items .posdel:focus-visible,
+.pcp-cart-clear-btn:focus-visible,
+.price-toggle-btn:focus-visible,
+.pos-user-btn:focus-visible,
+.pos-controls-bar select:focus-visible,
+.pos-controls-bar input:focus-visible {
+  outline: 3px solid var(--nx-focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+
+/* ─── 11. NAVEGACIÓN LATERAL ─────────────────────────────────────── */
+
+/* La barra lateral se mantiene oscura también en tema claro, así que
+   sus estados usan los tokens de chrome, no los de superficie. */
+.pos-nav-link { font-size: 15px; min-height: 44px; color: var(--nx-onchrome-2); }
+.pos-nav-link:hover  { background: var(--nx-chrome-hover);  color: #fff; }
+.pos-nav-link.active { background: var(--nx-chrome-active); color: #fff; }
+
+/* Los ocho degradados de color no codifican nada; el icono activo es
+   lo único que necesita destacarse. */
+.pos-nav-link .nav-icon.ico-blue,
+.pos-nav-link .nav-icon.ico-violet,
+.pos-nav-link .nav-icon.ico-green,
+.pos-nav-link .nav-icon.ico-orange,
+.pos-nav-link .nav-icon.ico-amber,
+.pos-nav-link .nav-icon.ico-violet2,
+.pos-nav-link .nav-icon.ico-rose,
+.pos-nav-link .nav-icon.ico-slate {
+  background: rgba(148,178,255,.12);
+  box-shadow: none;
+  color: var(--nx-txt2);
+}
+.pos-nav-link.active .nav-icon {
+  background: linear-gradient(135deg, var(--nx-a1), var(--nx-a2));
+  color: #0f172a;
+}
+.pos-nav-link:hover .nav-icon { transform: none; }
+
+
+/* ─── 12. MOVIMIENTO ─────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .pos-product-grid .product.adding { animation: none; background: var(--nx-active-bg); }
+}
+
+
+/* ─── 13. TABLET DE MOSTRADOR ────────────────────────────────────
+   A 1024 px el layout fijo (240 + 360) deja 424 px para productos. */
+
+@media (max-width: 1180px) {
+  .pos-nav { width: 66px; }
+  .pos-nav .nav-label, .pos-nav-brand .brand-name, .pos-nav-brand .brand-sub { display: none; }
+}

@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Cash extends MY_Controller
 {
@@ -154,16 +160,11 @@ class Cash extends MY_Controller
 
         }
         $data = (object)array(
-            'heading' => lang('Recibo de ' . $tmov),
+            'heading' => lang('recibo_de') . ' ' . $tmov,
             'info' => $info
         );
         $store = $this->site->getStoreByID($this->session->userdata('store_id'));
-        $printer = $this->site->getPrinterByID($this->session->userdata('printer_default'));
-        if ($printer && $printer->type != "web") {
-            $this->load->library('escpos');
-            $this->escpos->load($printer);
-            $this->escpos->print_data($data, $store);
-        }
+        $this->encolar_ticket_qz($data, $store);
     }
 
 }

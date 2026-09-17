@@ -34,6 +34,13 @@ if (function_exists('mysqli_report')) {
 
 define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
 
+// CI 3.1.9 fija los parametros de la cookie de sesion con la forma posicional de
+// session_set_cookie_params(), que no admite SameSite: se deja en el ini, que si
+// respeta. Sin esto la cookie viaja en peticiones nacidas en otro sitio.
+if (PHP_VERSION_ID >= 70300) {
+	ini_set('session.cookie_samesite', 'Lax');
+}
+
 switch (ENVIRONMENT)
 {
 	case 'development':

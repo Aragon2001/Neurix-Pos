@@ -1,0 +1,18 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# uploads/ — lo que sube el usuario se sirve, pero nunca se ejecuta.
+#
+# Se niega por extension en vez de apagar el motor con `php_flag engine off`:
+# esa directiva solo existe con PHP como modulo de Apache y hace fallar el
+# arranque cuando PHP corre por FastCGI, que es lo normal en Laragon.
+# ─────────────────────────────────────────────────────────────────────────────
+
+<FilesMatch "(?i)\.(php|phtml|php[0-9]|phps|phar|pl|py|cgi|asp|aspx|jsp|sh|htaccess)$">
+    Require all denied
+</FilesMatch>
+
+# Un archivo subido no manda el tipo: lo dice su extension, no su contenido.
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>
+
+Options -Indexes -ExecCGI

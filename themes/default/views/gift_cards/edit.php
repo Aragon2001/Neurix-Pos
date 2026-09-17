@@ -1,13 +1,19 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<section class="content">
+<div class="nxf-page">
     <div class="row">
         <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('update_info'); ?></h3>
+            <div class="nxf-card">
+                <div class="nxf-card-head">
+                    <div class="nxf-card-title"><?= lang('update_info'); ?></div>
                 </div>
-                <div class="box-body">
+                <div class="nxf-card-body">
                     <div class="col-lg-12">
                         <?php $attrib = array('class' => 'validation', 'role' => 'form');
                         echo form_open("gift_cards/edit/".$gift_card->id, $attrib); ?>
@@ -28,10 +34,10 @@
                                 </div>
                                 <div class="mb-3">
                                     <?= lang("expiry_date", "expiry"); ?>
-                                    <?php echo form_input('expiry', $gift_card->expiry, 'class="form-control date" id="expiry"'); ?>
+                                    <?php echo form_input('expiry', $gift_card->expiry, 'class="form-control" id="expiry" type="date"'); ?>
                                 </div>
                                 <div class="mb-3">
-                                    <?= form_submit('edit_gift_card', lang('edit_gift_card'), 'class="btn btn-primary"'); ?>
+                                    <?= form_submit('edit_gift_card', lang('edit_gift_card'), 'class="nxf-btn"'); ?>
                                 </div>
                             </div>
                         </div>
@@ -43,17 +49,32 @@
             </div>
         </div>
     </div>
-</section>
-<script src="<?= $assets ?>plugins/input-mask/jquery.inputmask.js" type="text/javascript"></script>
-<script src="<?= $assets ?>plugins/input-mask/jquery.inputmask.date.extensions.js" type="text/javascript"></script>
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('#card_no').inputmask("9999 9999 9999 9999");
-        $('#genNo').click(function () {
-            var no = generateCardNo();
-            $(this).parent().parent('.input-group').children('input').val(no);
-            return false;
+</div>
+<script>
+(function () {
+    'use strict';
+
+    var $ = function (id) { return document.getElementById(id); };
+    var numero = $('card_no');
+
+    // El numero se agrupa de cuatro en cuatro mientras se escribe.
+    if (numero) {
+        numero.setAttribute('inputmode', 'numeric');
+        numero.setAttribute('maxlength', '19');
+        numero.addEventListener('input', function () {
+            var v = numero.value.replace(/[^0-9]/g, '').slice(0, 16);
+            numero.value = v.replace(/(.{4})(?=.)/g, '$1 ').trim();
         });
-        $("#expiry").inputmask("yyyy-mm-dd", {"placeholder": "yyyy-mm-dd"});
-    });
+    }
+
+    var boton = $('genNo');
+    if (boton && numero) {
+        boton.addEventListener('click', function (e) {
+            e.preventDefault();
+            var n = '';
+            for (var i = 0; i < 16; i++) { n += Math.floor(Math.random() * 10); }
+            numero.value = n.replace(/(.{4})(?=.)/g, '$1 ');
+        });
+    }
+})();
 </script>

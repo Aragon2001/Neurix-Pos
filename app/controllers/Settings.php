@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
@@ -39,9 +43,13 @@ class Settings extends MY_Controller
         $this->form_validation->set_rules('pro_limit', lang('pro_limit'), 'required');
         $this->form_validation->set_rules('display_kb', lang('display_kb'), 'required');
         $this->form_validation->set_rules('default_customer', lang('default_customer'), 'required');
-        $this->form_validation->set_rules('default_actividad', lang('default_actividad'), 'required');
-        $this->form_validation->set_rules('dateformat', lang('date_format'), 'required');
-        $this->form_validation->set_rules('timeformat', lang('time_format'), 'required');
+        // Hacienda exige que CodigoActividadEmisor sean 6 caracteres exactos
+        // (XSD v4.4); un codigo mas corto sale en el XML y el comprobante se rechaza.
+        $this->form_validation->set_rules('default_actividad', lang('default_actividad'), 'required|exact_length[6]');
+        // El desplegable ofrece un catalogo cerrado; in_list evita que un POST manual
+        // meta cualquier cadena en un formato que despues se pasa a date().
+        $this->form_validation->set_rules('dateformat', lang('date_format'), 'required|in_list[' . implode(',', array_keys(formatos_fecha($this->Settings->dateformat))) . ']');
+        $this->form_validation->set_rules('timeformat', lang('time_format'), 'required|in_list[' . implode(',', array_keys(formatos_hora($this->Settings->timeformat))) . ']');
         $this->form_validation->set_rules('item_addition', lang('item_addition'), 'required');
         if ($this->input->post('protocol') == 'smtp') {
             $this->form_validation->set_rules('smtp_host', lang('smtp_host'), 'required');
@@ -64,6 +72,7 @@ class Settings extends MY_Controller
                 'currency_prefix' => DEMO ? 'USD' : strtoupper($this->input->post('currency_prefix')),
                 'default_tax_rate' => $this->input->post('tax_rate'),
                 'default_discount' => $this->input->post('default_discount'),
+                'tope_descuento' => min(100, max(0, (float) $this->input->post('tope_descuento'))),
                 'rows_per_page' => $this->input->post('rows_per_page'),
                 'bsty' => $this->input->post('display_product'),
                 'pro_limit' => $this->input->post('pro_limit'),
@@ -71,7 +80,6 @@ class Settings extends MY_Controller
                 'default_category' => $this->input->post('default_category'),
                 'default_customer' => $this->input->post('default_customer'),
                 'default_actividad' => $this->input->post('default_actividad'),
-                'barcode_symbology' => $this->input->post('barcode_symbology'),
                 'dateformat' => DEMO ? 'jS F Y' : $this->input->post('dateformat'),
                 'timeformat' => DEMO ? 'h:i A' : $this->input->post('timeformat'),
                 'header' => $this->input->post('bill_header'),
@@ -89,13 +97,10 @@ class Settings extends MY_Controller
                 'toggle_category_slider' => $this->input->post('toggle_category_slider'),
                 'cancel_sale' => $this->input->post('cancel_sale'),
                 'suspend_sale' => $this->input->post('suspend_sale'),
-                'print_order' => $this->input->post('print_order'),
-                'print_bill' => $this->input->post('print_bill'),
                 'finalize_sale' => $this->input->post('finalize_sale'),
                 'today_sale' => $this->input->post('today_sale'),
                 'open_hold_bills' => $this->input->post('open_hold_bills'),
                 'close_register' => $this->input->post('close_register'),
-                // 'pos_printers' => $this->input->post('pos_printers'),
                 // 'java_applet' => DEMO ? '0' : $this->input->post('enable_java_applet'),
                 'rounding' => $this->input->post('rounding'),
                 'item_addition' => $this->input->post('item_addition'),
@@ -115,13 +120,11 @@ class Settings extends MY_Controller
                 'qty_decimals' => $this->input->post('qty_decimals'),
                 'display_symbol' => $this->input->post('display_symbol'),
                 'symbol' => $this->input->post('symbol'),
-                'order_printers' => json_encode($this->input->post('order_printers')),
                 'auto_print' => $this->input->post('auto_print'),
                 'rtl' => $this->input->post('rtl'),
                 'print_img' => $this->input->post('print_img'),
                 'sensibility_search' => $this->input->post('sensibility_search'),
                 'enable_credit' => $this->input->post('enable_credit'),
-                'prt_invo_after' => $this->input->post('prt_invo_after'),
                 'enable_layaway' => $this->input->post('enable_layaway'),
                 'enable_quote' => $this->input->post('enable_quote'),
                 'enable_auth_open' => $this->input->post('enable_auth_open'),
@@ -134,9 +137,12 @@ class Settings extends MY_Controller
                 'password_token_test' => encrypt_credential($this->input->post('password_token_test')),
                 'user_token_prod' => $this->input->post('user_token_prod'),
                 'password_token_prod' => encrypt_credential($this->input->post('password_token_prod')),
-                'certificado_ced' => $this->input->post('certificado_ced'),
-                'certificado_pin' => encrypt_credential($this->input->post('certificado_pin')),
+                'certificado_ced_test' => $this->input->post('certificado_ced_test'),
+                'certificado_pin_test' => encrypt_credential($this->input->post('certificado_pin_test')),
+                'certificado_ced_prod' => $this->input->post('certificado_ced_prod'),
+                'certificado_pin_prod' => encrypt_credential($this->input->post('certificado_pin_prod')),
                 'cedula_emisor' => $this->input->post('cedula_emisor'),
+                'cedula_proveedor_sistemas' => preg_replace('/\D/', '', (string) $this->input->post('cedula_proveedor_sistemas')),
                 'tipo_doc_emisor' => $this->input->post('tipo_doc_emisor'),
                 'nombre_emisor' => $this->input->post('nombre_emisor'),
                 'nombre_comercial' => $this->input->post('nombre_comercial'),
@@ -150,26 +156,49 @@ class Settings extends MY_Controller
                 'block_hacienda' => $this->input->post('block_hacienda'),
                 'enable_fractions' => $this->input->post('enable_fractions'),
                 'quantity_suggest' => $this->input->post('quantity_suggest'),
-                'ambiente' => in_array($this->input->post('ambiente'), ['test', 'prod'])
+                // Con la configuracion de Hacienda bloqueada el selector no se envia:
+                // sin este respaldo un guardado devolveria una instalacion en produccion a pruebas.
+                'ambiente' => in_array($this->input->post('ambiente'), ['test', 'prod'], TRUE)
                     ? $this->input->post('ambiente')
-                    : 'test',
+                    : (($this->Settings->ambiente === 'prod') ? 'prod' : 'test'),
                 'mailpath' => $this->input->post('mailpath'),
                 'otras_senas' => $this->input->post('otras_senas'),
                 'cod_telefono_emisor' => $this->input->post('cod_telefono_emisor'),
                 'footer_hacienda_fe' => $this->input->post('footer_hacienda_fe'),
                 'footer_hacienda_nc' => $this->input->post('footer_hacienda_nc'),
+                'clave_ultima' => preg_replace('/\D/', '', (string) $this->input->post('clave_ultima')),
                 'propina_enable' => $this->input->post('propina_enable'),
                 'propina_rate' => $this->input->post('propina_rate'),
             );
+
+            // Casa matriz y terminal completan el consecutivo de 20 posiciones.
+            // Solo se tocan si el formulario los trajo: guardarlos vacios dejaria
+            // el consecutivo corto y todos los comprobantes serian rechazados.
+            foreach (array('casa_matriz' => 3, 'terminal_pos' => 5) as $campo => $largo) {
+                if ($this->input->post($campo) !== NULL) {
+                    $digitos = preg_replace('/\D/', '', (string) $this->input->post($campo));
+                    if ($digitos !== '') {
+                        $data[$campo] = str_pad($digitos, $largo, '0', STR_PAD_LEFT);
+                    }
+                }
+            }
+
+            // Arranque de la numeracion, un campo por tipo de comprobante.
+            foreach (array_keys(tipos_comprobante()) as $tipo) {
+                $data['consec_inicial_' . $tipo] = (int) $this->input->post('consec_inicial_' . $tipo);
+            }
 
             if ($this->Settings->block_hacienda == "1") {
                 unset($data['user_token_test']);
                 unset($data['password_token_test']);
                 unset($data['user_token_prod']);
                 unset($data['password_token_prod']);
-                unset($data['certificado_ced']);
-                unset($data['certificado_pin']);
+                unset($data['certificado_ced_test']);
+                unset($data['certificado_pin_test']);
+                unset($data['certificado_ced_prod']);
+                unset($data['certificado_pin_prod']);
                 unset($data['cedula_emisor']);
+                unset($data['cedula_proveedor_sistemas']);
                 unset($data['tipo_doc_emisor']);
                 unset($data['nombre_emisor']);
                 unset($data['nombre_comercial']);
@@ -186,17 +215,44 @@ class Settings extends MY_Controller
                 unset($data['usuario_lic']);
                 unset($data['footer_hacienda_fe']);
                 unset($data['footer_hacienda_nc']);
+                unset($data['clave_ultima']);
+                foreach (array_keys(tipos_comprobante()) as $tipo) {
+                    unset($data['consec_inicial_' . $tipo]);
+                }
                 unset($data['block_hacienda']);
             }
 
+            // El par sin sufijo es la copia del ambiente elegido, para el codigo que
+            // lee el certificado directo de la tabla sin pasar por MY_Controller.
+            if (isset($data['certificado_ced_' . $data['ambiente']])) {
+                $data['certificado_ced'] = $data['certificado_ced_' . $data['ambiente']];
+                $data['certificado_pin'] = $data['certificado_pin_' . $data['ambiente']];
+            }
+
             if ($this->input->post('smtp_pass')) {
-                $data['smtp_pass'] = $this->input->post('smtp_pass');
+                $data['smtp_pass'] = encrypt_credential($this->input->post('smtp_pass'));
+            }
+
+            // Casilla que recibe las facturas de compra. El cliente OAuth es del
+            // proveedor (app/config/googlemail.php) y no se edita aca; los tokens
+            // los escribe Mailauth al autorizar.
+            $data['mail_auth']            = $this->input->post('mail_auth') === 'oauth_google' ? 'oauth_google' : 'password';
+            $data['mail_client_auth']     = $this->input->post('mail_client_auth') === 'oauth_google' ? 'oauth_google' : 'password';
+            $data['mail_client_enabled']  = (int) $this->input->post('mail_client_enabled');
+            $data['mail_client_host']     = $this->input->post('mail_client_host');
+            $data['mail_client_port']     = $this->input->post('mail_client_port');
+            $data['mail_client_user']     = $this->input->post('mail_client_user');
+            $data['mail_client_crypto']   = in_array($this->input->post('mail_client_crypto'), array('ssl', 'tls', ''), TRUE)
+                ? $this->input->post('mail_client_crypto') : 'ssl';
+            $data['mail_client_carpeta']  = $this->input->post('mail_client_carpeta') ?: 'INBOX';
+            if ($this->input->post('mail_client_pass')) {
+                $data['mail_client_pass'] = encrypt_credential($this->input->post('mail_client_pass'));
             }
 
             if (DEMO) {
                 $data['site_name'] = 'NEURIX POS';
             } else {
-                if ($_FILES['userfile']['size'] > 0) {
+                if (!empty($_FILES['userfile']['size'])) {
 
                     $this->load->library('upload');
                     $config['upload_path'] = 'uploads/';
@@ -230,27 +286,27 @@ class Settings extends MY_Controller
             redirect('settings');
         } else {
 
-            // DIAGNÓSTICO TEMPORAL — remover cuando funcione
-            $diag = '';
-            if ($this->input->post()) {
-                if ($this->form_validation->run() !== true) {
-                    $diag = '<b>Validación falló:</b> ' . validation_errors();
-                } elseif (isset($data)) {
-                    $this->db->db_debug = FALSE;
-                    $this->db->update('settings', $data, array('setting_id' => 1));
-                    $diag = '<b>SQL error:</b> ' . $this->db->error()['message'] . '<br><b>Query:</b> <small>' . htmlspecialchars($this->db->last_query()) . '</small>';
-                }
-                if ($diag) {
-                    $this->session->set_flashdata('error', $diag);
+            // Con db_debug apagado un UPDATE fallido no avisa: el motivo solo está en $this->db->error().
+            if ($this->input->post() && $this->form_validation->run() === true) {
+                $dbError = $this->db->error();
+                if (!empty($dbError['message'])) {
+                    $this->session->set_flashdata('error', lang('setting_update_failed') . ' ' . $dbError['message']);
+                    log_message('error', 'settings: ' . $dbError['message'] . ' | ' . $this->db->last_query());
                 }
             }
 
             $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+            // getSettings() trae la fila cruda: las credenciales estan cifradas en la
+            // tabla y hay que descifrarlas para poder editarlas en el formulario.
             $this->data['settings'] = $this->site->getSettings();
+            foreach (array('password_token_test', 'password_token_prod', 'certificado_pin', 'certificado_pin_test',
+                           'certificado_pin_prod', 'smtp_pass', 'mail_client_pass') as $campo) {
+                $this->data['settings']->$campo = decrypt_credential($this->data['settings']->$campo ?? '');
+            }
             $this->data['customers'] = $this->site->getAllCustomers();
             $this->data['actividadeconomica'] = $this->site->getAllActividades();
             $this->data['categories'] = $this->site->getAllCategories();
-            $this->data['printers'] = $this->site->getAllPrinters();
+            $this->data['puestos'] = $this->db->order_by('ultimo_uso', 'DESC')->get('pos_workstations')->result();
 
             $this->data['provincias'] = $this->db->select('codigo_provincia as codigo, nombre_provincia as nombre')
                 ->order_by('nombre_provincia', 'ASC')->get('tec_provincia_cr')->result();
@@ -323,38 +379,50 @@ class Settings extends MY_Controller
 
         if (!isset($_FILES['certificado_p12']) || $_FILES['certificado_p12']['size'] === 0) {
             $this->session->set_flashdata('error', 'No se seleccionó ningún archivo.');
-            redirect('settings');
+            redirect('settings#tab-emisor');
         }
 
         $file     = $_FILES['certificado_p12'];
         $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $ambiente = $this->Settings->ambiente ?: 'test';
-        $cedula   = trim(str_replace('-', '', $this->Settings->certificado_ced));
+        // Cada bloque de la vista manda su propio ambiente: se sube el certificado del
+        // ambiente elegido, no el del que este activo al momento de subirlo.
+        $ambiente = $this->input->post('ambiente_cert') === 'prod' ? 'prod' : 'test';
+        $etiqueta = $ambiente === 'prod' ? lang('produccion') : lang('pruebas_sandbox');
+        // El propio archivo define el nombre: es lo unico que el usuario conoce.
+        $nombre   = nombre_certificado_seguro(pathinfo($file['name'], PATHINFO_FILENAME));
 
         if ($ext !== 'p12') {
-            $this->session->set_flashdata('error', 'El archivo debe tener extensión .p12');
-            redirect('settings');
+            $this->session->set_flashdata('error', lang('cert_error_extension'));
+            redirect('settings#tab-emisor');
         }
 
-        if (empty($cedula)) {
-            $this->session->set_flashdata('error', 'Guarde primero el Nombre del Certificado en Ajustes antes de subir el archivo.');
-            redirect('settings');
+        if ($nombre === '') {
+            $this->session->set_flashdata('error', lang('cert_error_nombre'));
+            redirect('settings#tab-emisor');
         }
 
-        $destDir  = FCPATH . 'files/certificados/' . $ambiente . '/';
+        $destDir = FCPATH . 'files/certificados/' . $ambiente . '/';
         if (!is_dir($destDir)) {
             mkdir($destDir, 0755, true);
         }
 
-        $destFile = $destDir . $cedula . '.p12';
-
-        if (!move_uploaded_file($file['tmp_name'], $destFile)) {
-            $this->session->set_flashdata('error', 'No se pudo guardar el certificado. Verifique permisos en files/certificados/' . $ambiente . '/');
-            redirect('settings');
+        if (!move_uploaded_file($file['tmp_name'], $destDir . $nombre . '.p12')) {
+            $this->session->set_flashdata('error', lang('cert_error_permisos') . ' files/certificados/' . $ambiente . '/');
+            redirect('settings#tab-emisor');
         }
 
-        $this->session->set_flashdata('message', 'Certificado subido correctamente a files/certificados/' . $ambiente . '/' . $cedula . '.p12');
-        redirect('settings');
+        // Queda seleccionado de una vez: subirlo y tener que escribir su nombre aparte
+        // era justo el paso que nadie podia adivinar.
+        $cambios = array('certificado_ced_' . $ambiente => $nombre);
+        if (($this->Settings->ambiente ?? 'test') === $ambiente) {
+            $cambios['certificado_ced'] = $nombre;
+        }
+        $this->db->update('settings', $cambios, array('setting_id' => 1));
+        $this->load->driver('cache', array('adapter' => 'file'));
+        $this->cache->file->delete('app_settings');
+
+        $this->session->set_flashdata('message', sprintf(lang('cert_subido_ok'), $etiqueta, $nombre . '.p12'));
+        redirect('settings#tab-emisor');
     }
 
     function desbloquear_hacienda()
@@ -407,15 +475,38 @@ class Settings extends MY_Controller
             $this->session->set_flashdata('error', lang('disabled_in_demo'));
             redirect(isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : 'welcome');
         }
-        $this->data['files'] = glob('./files/backups/*.zip', GLOB_BRACE);
-        $this->data['dbs'] = glob('./files/backups/*.txt', GLOB_BRACE);
-        $this->data['xmls'] = glob('./files/backups-xml/*.zip', GLOB_BRACE);
-        krsort($this->data['files']);
-        krsort($this->data['dbs']);
-        krsort($this->data['xmls']);
+        $this->data['copias'] = $this->_copias_de_base();
         $bc = array(array('link' => site_url('settings'), 'page' => lang('settings')), array('link' => '#', 'page' => lang('backups')));
         $meta = array('page_title' => lang('backups'), 'bc' => $bc);
         $this->page_construct('settings/backups', $this->data, $meta);
+    }
+
+    /**
+     * Copias de la base ordenadas de la mas reciente a la mas vieja, con el
+     * peso y la fecha ya resueltos: la vista no debe tocar el disco.
+     *
+     * El nombre lo arma backup_database() como db-backup-on-Y-m-d-H-i-s.txt; si
+     * no cuadra con ese molde se cae a la fecha del archivo.
+     */
+    private function _copias_de_base()
+    {
+        $copias = array();
+        foreach ((array) glob('./files/backups/*.txt') as $ruta) {
+            $nombre = basename($ruta, '.txt');
+            $fecha  = NULL;
+            if (preg_match('/^db-backup-on-(\d{4}-\d{2}-\d{2})-(\d{2})-(\d{2})-(\d{2})$/', $nombre, $m)) {
+                $fecha = $m[1] . ' ' . $m[2] . ':' . $m[3] . ':' . $m[4];
+            }
+            $copias[] = array(
+                'nombre' => $nombre,
+                'fecha'  => $fecha ? $fecha : date('Y-m-d H:i:s', filemtime($ruta)),
+                'bytes'  => (int) filesize($ruta),
+            );
+        }
+        usort($copias, function ($a, $b) {
+            return strcmp($b['fecha'], $a['fecha']);
+        });
+        return $copias;
     }
 
     function backup_database()
@@ -440,7 +531,7 @@ class Settings extends MY_Controller
         $save = './files/backups/' . $db_name;
         $this->load->helper('file');
         write_file($save, $backup);
-        $this->session->set_flashdata('messgae', lang('db_saved'));
+        $this->session->set_flashdata('message', lang('db_saved'));
         redirect("settings/backups");
     }
 
@@ -458,7 +549,7 @@ class Settings extends MY_Controller
         $name = 'file-backup-' . date("Y-m-d-H-i-s");
         set_time_limit(300);
         $this->tec->zip("./", './files/backups/', $name);
-        $this->session->set_flashdata('messgae', lang('backup_saved'));
+        $this->session->set_flashdata('message', lang('backup_saved'));
         redirect("settings/backups");
         exit();
     }
@@ -474,7 +565,13 @@ class Settings extends MY_Controller
             $this->session->set_flashdata('error', lang('access_denied'));
             redirect("welcome");
         }
-        $file = file_get_contents('./files/backups/' . $dbfile . '.txt');
+        $this->exigir_token_accion();
+        $ruta = './files/backups/' . basename($dbfile) . '.txt';
+        if (!is_file($ruta)) {
+            $this->session->set_flashdata('error', lang('copia_no_existe'));
+            redirect("settings/backups");
+        }
+        $file = file_get_contents($ruta);
         $this->db->conn_id->multi_query($file);
         $this->db->conn_id->close();
         redirect('logout/db');
@@ -490,8 +587,13 @@ class Settings extends MY_Controller
             $this->session->set_flashdata('error', lang('access_denied'));
             redirect("welcome");
         }
+        $ruta = './files/backups/' . basename($dbfile) . '.txt';
+        if (!is_file($ruta)) {
+            $this->session->set_flashdata('error', lang('copia_no_existe'));
+            redirect("settings/backups");
+        }
         $this->load->library('zip');
-        $this->zip->read_file('./files/backups/' . $dbfile . '.txt');
+        $this->zip->read_file($ruta);
         $name = 'db_backup_' . date('Y_m_d_H_i_s') . '.zip';
         $this->zip->download($name);
         exit();
@@ -542,8 +644,14 @@ class Settings extends MY_Controller
             $this->session->set_flashdata('error', lang('access_denied'));
             redirect("welcome");
         }
-        unlink('./files/backups/' . $dbfile . '.txt');
-        $this->session->set_flashdata('messgae', lang('db_deleted'));
+        $this->exigir_token_accion();
+        $ruta = './files/backups/' . basename($dbfile) . '.txt';
+        if (!is_file($ruta)) {
+            $this->session->set_flashdata('error', lang('copia_no_existe'));
+            redirect("settings/backups");
+        }
+        unlink($ruta);
+        $this->session->set_flashdata('message', lang('db_deleted'));
         redirect("settings/backups");
     }
 
@@ -559,7 +667,7 @@ class Settings extends MY_Controller
             redirect("welcome");
         }
         unlink('./files/backups/' . $zipfile . '.zip');
-        $this->session->set_flashdata('messgae', lang('backup_deleted'));
+        $this->session->set_flashdata('message', lang('backup_deleted'));
         redirect("settings/backups");
     }
 
@@ -578,12 +686,38 @@ class Settings extends MY_Controller
 
         $this->load->library('datatables');
         $this->datatables
-            ->select("id, name, code, phone, email, address1, city")
+            ->select("id, name, code, phone, email, address1, city, logo")
             ->from("stores")
             ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_store/$1') . "' class='tip' title='" . $this->lang->line("edit_store") . "'><i class='fa fa-edit'></i></a></div>", "id")
             ->unset_column('id');
         // <a href='" . site_url('settings/delete_store/$1') . "' onClick=\"return confirm('". $this->lang->line('alert_x_store') ."')\" class='tip btn btn-danger btn-xs' title='".$this->lang->line("delete_store")."'><i class='fa fa-trash-o'></i></a>
         echo $this->datatables->generate();
+    }
+
+    /**
+     * Responde si un codigo de tienda esta libre, para que el formulario avise
+     * antes de enviar: `stores`.`code` es unico y el rechazo del servidor
+     * devuelve la pantalla vacia.
+     */
+    function codigo_tienda_libre()
+    {
+        $codigo = trim((string) $this->input->get('code', TRUE));
+        $id     = (int) $this->input->get('id', TRUE);
+
+        if ($codigo === '') {
+            $this->output->set_content_type('application/json')
+                         ->set_output(json_encode(array('libre' => FALSE)));
+            return;
+        }
+
+        $this->db->where('code', $codigo);
+        if ($id) {
+            $this->db->where('id !=', $id);
+        }
+        $libre = ($this->db->count_all_results('stores') === 0);
+
+        $this->output->set_content_type('application/json')
+                     ->set_output(json_encode(array('libre' => $libre)));
     }
 
     function add_store()
@@ -611,7 +745,7 @@ class Settings extends MY_Controller
                 'receipt_footer' => $this->input->post('receipt_footer'),
             );
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
 
                 $this->load->library('upload');
 
@@ -689,7 +823,7 @@ class Settings extends MY_Controller
                 'receipt_footer' => $this->input->post('receipt_footer'),
             );
 
-            if ($_FILES['userfile']['size'] > 0) {
+            if (!empty($_FILES['userfile']['size'])) {
 
                 $this->load->library('upload');
 
@@ -705,7 +839,7 @@ class Settings extends MY_Controller
                 if (!$this->upload->do_upload()) {
                     $error = $this->upload->display_errors();
                     $this->session->set_flashdata('error', $error);
-                    redirect("settings/add_store");
+                    redirect("settings/edit_store/" . $id);
                 }
 
                 $photo = $this->upload->file_name;
@@ -761,7 +895,7 @@ class Settings extends MY_Controller
         $this->datatables
             ->select("id_shipping_method, name")
             ->from("shipping_method")
-            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_shipping/$1') . "' class='tip' title='Modificar'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_shipping/$1') . "' data-confirm=\"" . $this->lang->line('alert_x_shipping') . "\" class='tip' title='Eliminar'><i class='fa fa-trash-o'></i></a></div>", "id_shipping_method");
+            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_shipping/$1') . "' class='tip' title='Modificar'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_shipping/$1' . '?t=' . $this->token_accion()) . "' data-confirm=\"" . $this->lang->line('alert_x_shipping') . "\" class='tip' title='Eliminar'><i class='fa fa-trash-o'></i></a></div>", "id_shipping_method");
         echo $this->datatables->generate();
     }
 
@@ -843,138 +977,6 @@ class Settings extends MY_Controller
         }
     }
 
-    function printers()
-    {
-        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-        $this->data['page_title'] = lang('printers');
-        $bc = array(array('link' => '#', 'page' => lang('printers')));
-        $meta = array('page_title' => lang('printers'), 'bc' => $bc);
-        $this->page_construct('settings/printers', $this->data, $meta);
-    }
-
-    function get_printers()
-    {
-
-        $this->load->library('datatables');
-        $this->datatables
-            ->select("id, title, type, profile, path, ip_address, port")
-            ->from("printers")
-            ->add_column("Actions", "<div class='text-center'><a href='" . site_url('settings/edit_printer/$1') . "' class='tip btn btn-warning btn-xs' title='" . $this->lang->line("edit_printer") . "'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_printer/$1') . "' data-confirm=\"" . $this->lang->line('alert_x_printer') . "\" class='tip btn btn-danger btn-xs' title='" . $this->lang->line("delete_printer") . "'><i class='fa fa-trash-o'></i></a></div>", "id")
-            ->unset_column('id');
-        echo $this->datatables->generate();
-    }
-
-    function add_printer()
-    {
-
-        $this->form_validation->set_rules('title', $this->lang->line("title"), 'required');
-        $this->form_validation->set_rules('type', $this->lang->line("type"), 'required');
-        $this->form_validation->set_rules('profile', $this->lang->line("profile"), 'required');
-        $this->form_validation->set_rules('char_per_line', $this->lang->line("char_per_line"), 'required');
-        if ($this->input->post('type') == 'windows') {
-            $this->form_validation->set_rules('path', $this->lang->line("path"), 'required|is_unique[printers.path]');
-        }
-
-        if ($this->form_validation->run() == true) {
-
-            $data = array(
-                'title' => $this->input->post('title'),
-                'type' => $this->input->post('type'),
-                'profile' => $this->input->post('profile'),
-                'char_per_line' => $this->input->post('char_per_line'),
-                'path' => $this->input->post('path'),
-                'ip_address' => $this->input->post('ip_address'),
-                'port' => ($this->input->post('type') == 'network') ? $this->input->post('port') : NULL,
-            );
-        }
-
-        if ($this->form_validation->run() == true && $cid = $this->settings_model->addPrinter($data)) {
-
-            $this->session->set_flashdata('message', $this->lang->line("printer_added"));
-            redirect("settings/printers");
-        } else {
-            if ($this->input->is_ajax_request()) {
-                echo json_encode(array('status' => 'failed', 'msg' => validation_errors()));
-                die();
-            }
-
-            $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-            $this->data['page_title'] = lang('add_printer');
-            $bc = array(array('link' => site_url('settings'), 'page' => lang('settings')), array('link' => site_url('settings/printers'), 'page' => lang('printers')), array('link' => '#', 'page' => lang('add_printer')));
-            $meta = array('page_title' => lang('add_printer'), 'bc' => $bc);
-            $this->page_construct('settings/add_printer', $this->data, $meta);
-        }
-    }
-
-    function edit_printer($id = NULL)
-    {
-
-        if ($this->input->get('id')) {
-            $id = $this->input->get('id', TRUE);
-        }
-
-        $printer = $this->site->getPrinterByID($id);
-        $this->form_validation->set_rules('title', $this->lang->line("title"), 'required');
-        $this->form_validation->set_rules('type', $this->lang->line("type"), 'required');
-        $this->form_validation->set_rules('profile', $this->lang->line("profile"), 'required');
-        $this->form_validation->set_rules('char_per_line', $this->lang->line("char_per_line"), 'required');
-        if ($this->input->post('type') == 'network') {
-            $this->form_validation->set_rules('ip_address', $this->lang->line("ip_address"), 'required');
-            if ($this->input->post('ip_address') != $printer->ip_address) {
-                $this->form_validation->set_rules('ip_address', $this->lang->line("ip_address"), 'is_unique[printers.ip_address]');
-            }
-            $this->form_validation->set_rules('port', $this->lang->line("port"), 'required');
-        } else {
-            $this->form_validation->set_rules('path', $this->lang->line("path"), 'required');
-            if ($this->input->post('path') != $printer->path) {
-                $this->form_validation->set_rules('path', $this->lang->line("path"), 'is_unique[printers.path]');
-            }
-        }
-
-        if ($this->form_validation->run() == true) {
-            $data = array(
-                'title' => $this->input->post('title'),
-                'type' => $this->input->post('type'),
-                'profile' => $this->input->post('profile'),
-                'char_per_line' => $this->input->post('char_per_line'),
-                'path' => $this->input->post('path'),
-                'ip_address' => $this->input->post('ip_address'),
-                'port' => ($this->input->post('type') == 'network') ? $this->input->post('port') : NULL,
-            );
-        }
-
-        if ($this->form_validation->run() == true && $this->settings_model->updatePrinter($id, $data)) {
-
-            $this->session->set_flashdata('message', $this->lang->line("printer_updated"));
-            redirect("settings/printers");
-        } else {
-
-            $this->data['printer'] = $printer;
-            $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-            $this->data['page_title'] = lang('edit_printer');
-            $bc = array(array('link' => site_url('settings'), 'page' => lang('settings')), array('link' => site_url('settings/printers'), 'page' => lang('printers')), array('link' => '#', 'page' => lang('edit_printer')));
-            $meta = array('page_title' => lang('edit_printer'), 'bc' => $bc);
-            $this->page_construct('settings/edit_printer', $this->data, $meta);
-        }
-    }
-
-    function delete_printer($id = NULL)
-    {
-        if (DEMO) {
-            $this->session->set_flashdata('error', $this->lang->line("disabled_in_demo"));
-            redirect('pos');
-        }
-
-        if ($this->input->get('id')) {
-            $id = $this->input->get('id', TRUE);
-        }
-
-        if ($this->settings_model->deletePrinter($id)) {
-            $this->session->set_flashdata('message', lang("printer_deleted"));
-            redirect("settings/printers");
-        }
-    }
-
     function compruebausers()
     {
 
@@ -988,14 +990,13 @@ class Settings extends MY_Controller
         }
 
 
+        // El IDP de Hacienda responde invalid_scope si 'scope' viaja en blanco:
+        // el parametro se omite, no se manda vacio.
         $body = [
-            'response_type' => 'code',
             'client_id' => $clientId,
+            'grant_type' => 'password',
             'username' => trim($this->input->post('user')),
             'password' => trim($this->input->post('password')),
-            'scope' => '',
-            'grant_type' => 'password',
-            'authorization_grants' => 'password'
         ];
 
         $this->httpclient->setOptions(
@@ -1006,90 +1007,144 @@ class Settings extends MY_Controller
         );
 
         try {
-            if ($this->httpclient->post()) {
-                $result = json_decode($this->httpclient->getResults());
-            } else {
-                echo $this->httpclient->getErrorMsg();
+            if (!$this->httpclient->post()) {
+                echo "Error de conexion con Hacienda: " . $this->httpclient->getErrorMsg();
+                return;
             }
+            $result = json_decode($this->httpclient->getResults());
 
-            if (isset($result->error_description)) {
-                echo "Error: Usuario y/o Contraseña invalida compruebe.";
-            } else if ($result->access_token) {
+            if (!empty($result->access_token)) {
                 echo "!!! Usuario y/o Contraseña Validos !!!";
+            } else if (isset($result->error_description)) {
+                echo "Hacienda rechazo la peticion: " . $result->error_description . " (" . $result->error . ")";
+            } else {
+                echo "Error: respuesta inesperada de Hacienda.";
             }
         } catch (\Exception $e) {
-            echo "Error: Usuario y/o Contraseña invalida compruebe.";
-            exit();
+            echo "Error al consultar a Hacienda: " . $e->getMessage();
         }
+    }
+
+    /**
+     * Tablas de las que sale el respaldo de XML.
+     *
+     * La marca del nombre de archivo es el `tipo_doc` de Hacienda (v4.4): 1
+     * factura y tiquete, 2 nota de debito, 3 nota de credito, 8 factura de
+     * compra, 9 recibo de pago. Cambiarla renombra los archivos del zip.
+     */
+    private function _fuentes_xml()
+    {
+        $fuentes = array(
+            array('tabla' => 'hacienda_tiketes', 'id' => 'id',    'marca' => '1', 'rotulo' => lang('xml_facturas')),
+            array('tabla' => 'hacienda_nd',      'id' => 'id_nd', 'marca' => '2', 'rotulo' => lang('xml_notas_debito')),
+            array('tabla' => 'hacienda_cn',      'id' => 'id_cn', 'marca' => '3', 'rotulo' => lang('xml_notas_credito')),
+            array('tabla' => 'hacienda_fec',     'id' => 'id',    'marca' => '8', 'rotulo' => lang('xml_compras')),
+            array('tabla' => 'hacienda_rep',     'id' => 'id',    'marca' => '9', 'rotulo' => lang('xml_recibos')),
+        );
+
+        // Una instalacion vieja puede no tener todas las tablas: la migracion
+        // las va agregando y el respaldo no debe caerse por eso.
+        return array_values(array_filter($fuentes, function ($f) {
+            return $this->db->table_exists($f['tabla']);
+        }));
+    }
+
+    /**
+     * Cuántos comprobantes firmados y cuántas respuestas de Hacienda hay por
+     * tipo. Alimenta la pantalla del respaldo; no toca ningún archivo.
+     */
+    private function _inventario_xml()
+    {
+        $inventario = array();
+        foreach ($this->_fuentes_xml() as $f) {
+            $tabla = $this->db->dbprefix($f['tabla']);
+            $fila  = $this->db->query(
+                "SELECT COUNT(NULLIF(TRIM(COALESCE(xml_sign, '')), '')) AS firmados,
+                        COUNT(NULLIF(TRIM(COALESCE(xml_hacienda, '')), '')) AS respuestas
+                 FROM `{$tabla}`"
+            )->row();
+
+            $inventario[] = array(
+                'rotulo'     => $f['rotulo'],
+                'firmados'   => (int) $fila->firmados,
+                'respuestas' => (int) $fila->respuestas,
+            );
+        }
+        return $inventario;
+    }
+
+    function backups_xml()
+    {
+        // Sin la extension zip el respaldo no se puede armar; la pantalla lo
+        // dice en vez de dejar que la descarga muera con un error fatal.
+        $this->data['hay_zip'] = class_exists('ZipArchive');
+        $this->data['inventario'] = $this->_inventario_xml();
+        $bc = array(
+            array('link' => site_url('settings'), 'page' => lang('settings')),
+            array('link' => site_url('settings/backups'), 'page' => lang('backups')),
+            array('link' => '#', 'page' => lang('backup_xmls')),
+        );
+        $meta = array('page_title' => lang('backup_xmls'), 'bc' => $bc);
+        $this->page_construct('settings/backups_xml', $this->data, $meta);
     }
 
     function getDownloadxml()
     {
-        $this->load->library('datatables');
-        $pre1 = $this->db->dbprefix('sales');
-        $pre2 = $this->db->dbprefix('hacienda_tiketes');
-        $sql = " SELECT ht.id_hacienda as id ,ht.xml_sign, ht.xml_hacienda, ht.clave FROM " . $pre1 . " s LEFT JOIN " . $pre2 . " ht ON ht.sale_id = s.id";
-        $xmls = $this->db->query($sql);
-        $files = array();
-        if ($xmls) {
-            foreach ($xmls->result() as $items) {
-                $hacienda = simplexml_load_string($items->xml_hacienda);
-                $firmado = simplexml_load_string($items->xml_sign);
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
 
-                try {
-                    $hacienda->asXml(sys_get_temp_dir() . '/' . $items->id . '_M1_' . $items->clave . '.xml');
-                    $firmado->asXml(sys_get_temp_dir() . '/' . $items->id . '_T1_' . $items->clave . '.xml');
-                    array_push($files, sys_get_temp_dir() . '/' . $items->id . '_M1_' . $items->clave . '.xml', sys_get_temp_dir() . '/' . $items->id . '_T1_' . $items->clave . '.xml');
-                } catch (\Throwable $e) { } catch (Exception $ex) { }
-            }
+        if (!class_exists('ZipArchive')) {
+            $this->session->set_flashdata('error', lang('xml_sin_zip'));
+            redirect('settings/backups_xml');
         }
-        $pre1 = $this->db->dbprefix('note_credits');
-        $pre2 = $this->db->dbprefix('hacienda_cn');
-        $sql = " SELECT hcn.id_cn as id_cn ,hcn.xml_sign, hcn.xml_hacienda, hcn.clave FROM " . $pre1 . " cn LEFT JOIN " . $pre2 . " hcn ON hcn.id_cn = cn.id";
-        $xmls = $this->db->query($sql);
-        if ($xmls) {
-            foreach ($xmls->result() as $items) {
-                $hacienda = simplexml_load_string($items->xml_hacienda);
-                $firmado = simplexml_load_string($items->xml_sign);
 
-                try {
-                    $hacienda->asXml(sys_get_temp_dir() . '/' . $items->id_cn . '_M3_' . $items->clave . '.xml');
-                    $firmado->asXml(sys_get_temp_dir() . '/' . $items->id_cn . '_T3_' . $items->clave . '.xml');
-                    array_push($files, sys_get_temp_dir() . '/' . $items->id_cn . '_M3_' . $items->clave . '.xml', sys_get_temp_dir() . '/' . $items->id_cn . '_T3_' . $items->clave . '.xml');
-                } catch (\Throwable $e) { } catch (Exception $ex) { }
-            }
-        }
-        $pre1 = $this->db->dbprefix('fec');
-        $pre2 = $this->db->dbprefix('hacienda_fec');
-        $sql = " SELECT hfec.sale_id as id ,hfec.xml_sign, hfec.xml_hacienda, hfec.clave FROM " . $pre1 . " fec LEFT JOIN " . $pre2 . " hfec ON hfec.sale_id = fec.id";
-        $xmls = $this->db->query($sql);
-        if ($xmls) {
-            foreach ($xmls->result() as $items) {
-                $hacienda = simplexml_load_string($items->xml_hacienda);
-                $firmado = simplexml_load_string($items->xml_sign);
+        // El archivo se arma en el directorio temporal, no en la raiz web, y se
+        // borra despues de enviarlo: contiene todos los comprobantes firmados.
+        $nombre = 'Backup-' . $this->db->database . '-' . date('Ymdhis') . '-XMLs.zip';
+        $ruta   = rtrim(sys_get_temp_dir(), "/\\") . DIRECTORY_SEPARATOR . $nombre;
 
-                try {
-                    $hacienda->asXml(sys_get_temp_dir() . '/' . $items->id . '_M8_' . $items->clave . '.xml');
-                    $firmado->asXml(sys_get_temp_dir() . '/' . $items->id . '_T8_' . $items->clave . '.xml');
-                    array_push($files, sys_get_temp_dir() . '/' . $items->id . '_M8_' . $items->clave . '.xml', sys_get_temp_dir() . '/' . $items->id . '_T8_' . $items->clave . '.xml');
-                } catch (\Throwable $e) { } catch (Exception $ex) { }
-            }
-        }
-        $zipname = 'Backup-' . $this->db->database . '-' . date('Ymdhis') . '-XMLs.rar';
         $zip = new \ZipArchive();
-        $zip->open($zipname, \ZipArchive::CREATE);
-        foreach ($files as $file) {
-            $zip->addFromString($file, file_get_contents($file));
-            unlink($file);
+        if ($zip->open($ruta, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== TRUE) {
+            log_message('error', '[Respaldo XML] no se pudo crear ' . $ruta);
+            show_error(lang('action_failed'));
+            return;
+        }
+
+        $total = 0;
+        foreach ($this->_fuentes_xml() as $f) {
+            $tabla = $this->db->dbprefix($f['tabla']);
+            $filas = $this->db->query(
+                "SELECT `{$f['id']}` AS id, clave, xml_sign, xml_hacienda FROM `{$tabla}`"
+            );
+
+            foreach ($filas->result() as $r) {
+                $base = $r->id . '_%s' . $f['marca'] . '_' . $r->clave . '.xml';
+                // Cada XML entra por separado: un comprobante sin respuesta de
+                // Hacienda no debe arrastrar consigo al firmado.
+                foreach (array('T' => $r->xml_sign, 'M' => $r->xml_hacienda) as $letra => $xml) {
+                    if (trim((string) $xml) === '') {
+                        continue;
+                    }
+                    $zip->addFromString(sprintf($base, $letra), $xml);
+                    $total++;
+                }
+            }
         }
         $zip->close();
-        ob_clean();
-        ob_end_flush();
+
+        if (!$total) {
+            @unlink($ruta);
+            $this->session->set_flashdata('error', lang('xml_sin_comprobantes'));
+            redirect('settings/backups_xml');
+        }
+
+        while (ob_get_level()) { ob_end_clean(); }
         header('Content-Type: application/zip');
-        header('Content-disposition: attachment; filename=' . pathinfo($zipname, PATHINFO_BASENAME));
-        header("Content-Transfer-Encoding: binary");
-        header('Content-Length: ' . filesize($zipname));
-        readfile($zipname);
+        header('Content-disposition: attachment; filename=' . $nombre);
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: ' . filesize($ruta));
+        readfile($ruta);
+        @unlink($ruta);
     }
 
     function waiting_tables()
@@ -1107,7 +1162,7 @@ class Settings extends MY_Controller
         $this->datatables->select("waiting_tables.id_waiting_tables, waiting_tables.name, waiting_tables.status, users.username as entry_by", FALSE);
         $this->datatables->from('waiting_tables')->group_by('waiting_tables.id_waiting_tables')
         ->join('users', 'users.id = waiting_tables.entry_by', 'left')
-        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('settings/edit_table/$1') . "' class='tip btn btn-warning btn-xs' title='Editar mesa'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_table/$1') . "' data-confirm=\"¿Seguro de eliminar mesa?\" class='tip btn btn-danger btn-xs' title='Mesa eliminada exitosamente'><i class='fa fa-trash-o'></i></a></div></div>", "id_waiting_tables");
+        ->add_column("Actions", "<div class='text-center'><div class='btn-group'><a href='" . site_url('settings/edit_table/$1') . "' class='tip btn btn-warning btn-xs' title='Editar mesa'><i class='fa fa-edit'></i></a> <a href='" . site_url('settings/delete_table/$1' . '?t=' . $this->token_accion()) . "' data-confirm=\"¿Seguro de eliminar mesa?\" class='tip btn btn-danger btn-xs' title='Mesa eliminada exitosamente'><i class='fa fa-trash-o'></i></a></div></div>", "id_waiting_tables");
         echo $this->datatables->generate();
     }
 

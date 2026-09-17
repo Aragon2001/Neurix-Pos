@@ -1,4 +1,10 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 
 class CreditNotes extends MY_Controller

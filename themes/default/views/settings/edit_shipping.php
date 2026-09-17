@@ -1,13 +1,19 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
-<section class="content">
+<div class="nxf-page">
     <div class="row">
         <div class="col-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title"><?= lang('update_info'); ?></h3>
+            <div class="nxf-card">
+                <div class="nxf-card-head">
+                    <div class="nxf-card-title"><?= lang('update_info'); ?></div>
                 </div>
-                <div class="box-body">
+                <div class="nxf-card-body">
                     <?php echo form_open_multipart("settings/edit_shipping/".$shipping->id_shipping_method);?>
                     <div class="col-md-6">
 
@@ -17,7 +23,7 @@
                             <?= form_input('name', set_value('name', $shipping->name), 'class="form-control input-sm" id="name"'); ?>
                         </div>
                         <div class="mb-3">
-                            <?php echo form_submit('edit_shipping', $this->lang->line("edit_shipping"), 'class="btn btn-primary"');?>
+                            <?php echo form_submit('edit_shipping', $this->lang->line("edit_shipping"), 'class="nxf-btn"');?>
                         </div>
 
                     </div>
@@ -26,4 +32,4 @@
             </div>
         </div>
     </div>
-</section>
+</div>

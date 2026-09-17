@@ -549,6 +549,19 @@ body.sidebar-collapse .nx-panel-btn .nx-panel-open  { display: flex; }
 .nx-hdr-sep { color: rgba(255,255,255,.25); font-size: 11px; }
 .nx-hdr-page { color: rgba(255,255,255,.72); font-weight: 500; }
 
+/* El reloj no tenia color propio: heredaba de <body>, y en modo claro eso es
+   --nx-txt1 (#0f172a, casi negro) sobre un header que siempre se queda oscuro
+   (.nx-header fuerza fondo oscuro con !important sin importar el tema) — el
+   texto quedaba practicamente invisible. Color fijo, igual al resto del chrome
+   del header, que no se invierte con el tema. */
+.nx-hdr-clock {
+  color: rgba(255,255,255,.72);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
 /* Center: search */
 .nx-hdr-search {
   flex: 1;
@@ -769,11 +782,78 @@ body.sidebar-collapse .nx-panel-btn .nx-panel-open  { display: flex; }
 }
 .pos-nav.collapsed .pos-nav-brand { gap: 0 !important; justify-content: center !important; padding: 18px 10px !important; }
 .pos-nav.collapsed .pos-nav-brand .nx-sb-collapse { margin-left: 0 !important; }
-.pos-nav.collapsed .nx-sidebar-userblock { justify-content: center !important; gap: 0 !important; padding: 14px 10px !important; }
-.pos-nav.collapsed .nx-sb-info { display: none !important; }
+/* Colapsado: el riel queda solo con logo + iconos de navegación. La tarjeta
+   de perfil (avatar) y el pie de modo oscuro necesitan texto para tener
+   sentido, así que se ocultan enteras en vez de dejar un ícono suelto sin
+   contexto flotando en la columna. */
+.pos-nav.collapsed .nx-sidebar-userblock { display: none !important; }
+.pos-nav.collapsed .pos-nav-footer { display: none !important; }
 .pos-nav.collapsed .pos-nav-group-label { height: 0 !important; padding: 0 !important; opacity: 0 !important; overflow: hidden !important; }
 .pos-nav.collapsed .nav-label { opacity: 0 !important; width: 0 !important; overflow: hidden !important; pointer-events: none !important; }
 .pos-nav.collapsed .pos-nav-link { padding: 10px 6px !important; margin: 2px 4px !important; justify-content: center !important; gap: 0 !important; }
-.pos-nav.collapsed .pos-nav-footer .nx-dm-text,
-.pos-nav.collapsed .pos-nav-footer .nx-dm-switch { display: none !important; }
-.pos-nav.collapsed .pos-nav-footer .nx-sidebar-darkmode { justify-content: center !important; padding: 10px !important; }
+
+/* ════════════════════════════════════════════════════════════
+   AJUSTES DE ICONOS — botones de acción + buscador de cliente
+   Cargado al final: gana por orden de carga sobre pos-redesign.css
+   ════════════════════════════════════════════════════════════ */
+
+/* En Espera / Cancelar / Imprimir: los iconos venían fijos en 13-14px
+   desde el PHP (pos_ti(...)) mientras el botón creció a 46px de alto
+   y 15px de texto — quedaban perdidos. Ya se agrandó el tamaño base
+   en la vista; acá solo se engrosa el trazo para que se noten más. */
+.pos-btn svg { flex-shrink: 0 !important; }
+.pos-btn-warn svg,
+.pos-btn-danger svg,
+.pos-btn-ghost svg { stroke-width: 2.4 !important; }
+
+/* ── Buscador de cliente: un solo rectángulo, lupa visible ──
+   Antes: el input (con su propio fondo y borde redondeado) vivía
+   dentro de .pcp-customer, que tenía OTRO fondo distinto — dos cajas
+   una dentro de otra. La lupa medía 14px al 60% de opacidad y se
+   perdía contra el fondo del campo. */
+.pcp-customer { background: transparent !important; }
+
+.pcp-cust-search-wrap .ts-control {
+  min-height: 42px !important;
+  padding-left: 38px !important;
+  border-radius: 10px !important;
+  border-width: 1.5px !important;
+}
+.pcp-cust-search-wrap .ts-wrapper::before {
+  left: 13px !important;
+  width: 18px !important; height: 18px !important;
+  opacity: .95 !important;
+  background: var(--nx-txt2, #cbd5e1) !important;
+  -webkit-mask: var(--nx-ico-lupa) center / 18px 18px no-repeat !important;
+          mask: var(--nx-ico-lupa) center / 18px 18px no-repeat !important;
+}
+.pcp-cust-search-wrap .ts-wrapper.focus::before {
+  background: var(--nx-a1, #38bdf8) !important;
+}
+[data-theme="light"] .pcp-cust-search-wrap .ts-wrapper::before {
+  background: #334155 !important;
+}
+[data-theme="light"] .pcp-cust-search-wrap .ts-wrapper.focus::before {
+  background: #0284c7 !important;
+}
+
+/* ── La caja real: TomSelect copia las clases del <select> original
+   ("form-select tom-select") al div .ts-wrapper que genera. Bootstrap
+   ve esa clase "form-select" y le mete SU propio fondo, borde, padding
+   y la flechita nativa — un campo de Bootstrap completo envolviendo al
+   campo ya estilizado (.ts-control) de adentro. Se resetea todo lo que
+   .form-select le impone al wrapper. */
+.pcp-cust-search-wrap .ts-wrapper.form-select,
+.pcp-cust-search-wrap .ts-wrapper {
+  background: none !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  min-height: 0 !important;
+  font-size: inherit !important;
+  color: inherit !important;
+}

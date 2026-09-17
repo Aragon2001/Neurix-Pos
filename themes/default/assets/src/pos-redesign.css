@@ -1,3 +1,7 @@
+:root{
+  --nx-ico-lupa: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    POS V2 — NEURIX Modern Point of Sale
    Glassmorphism · Dark-first · Animated
@@ -484,7 +488,7 @@ body.pos-v2 {
 
 /* ═══ CART PANEL ═════════════════════════════════════════════════ */
 .pos-cart-panel {
-  width: 360px; flex-shrink: 0;
+  width: 520px; flex-shrink: 0;
   display: flex; flex-direction: column;
   background: var(--nx-bg2);
   border-left: 1px solid var(--nx-border);
@@ -525,12 +529,14 @@ body.pos-v2 {
 .pcp-section-label > i { color: var(--nx-a1); font-size: .65rem; }
 
 .pcp-add-cust-btn {
-  width: 22px; height: 22px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .25rem .55rem;
   background: transparent;
-  border: 1px solid var(--nx-border);
-  border-radius: 5px;
-  color: var(--nx-ok); cursor: pointer; font-size: .65rem;
+  border: 1px solid var(--nx-ok);
+  border-radius: 999px;
+  color: var(--nx-ok); cursor: pointer;
+  font-size: .62rem; font-weight: 700; letter-spacing: .6px;
   transition: all .15s;
 }
 .pcp-add-cust-btn:hover { background: var(--nx-ok); border-color: var(--nx-ok); color: #fff; }
@@ -542,10 +548,12 @@ body.pos-v2 {
 .pcp-cust-search-wrap .ts-wrapper { position: relative; }
 /* Lupa decorativa dentro del campo */
 .pcp-cust-search-wrap .ts-wrapper::before {
-  content: '\f002';
-  font-family: 'Font Awesome 5 Free'; font-weight: 900;
-  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  color: var(--nx-txt4); font-size: .7rem; pointer-events: none; z-index: 2;
+  content: '';
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; z-index: 2; pointer-events: none;
+  opacity: .6; background: var(--nx-txt3, #94a3b8);
+  -webkit-mask: var(--nx-ico-lupa) center / 14px 14px no-repeat;
+          mask: var(--nx-ico-lupa) center / 14px 14px no-repeat;
 }
 /* Control: campo plano limpio */
 .pcp-cust-search-wrap .ts-control {
@@ -1029,79 +1037,13 @@ body.pos-v2 {
   padding: .875rem 1.25rem;
 }
 #payModal .modal-title { color: var(--nx-txt1); font-size: .9rem; }
-#payModal .modal-body { padding: 1.25rem; }
+/* En 700 px de alto, con el panel de SINPE abierto y dos líneas de pago, el
+   botón de confirmar quedaba fuera de vista: el cuerpo se desplaza y el pie no. */
+#payModal .modal-dialog { max-height: 100vh; }
+#payModal .modal-content { max-height: calc(100vh - 3.5rem); display: flex; flex-direction: column; }
+#payModal .modal-body { padding: 1.25rem; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+#payModal .modal-footer { flex: 0 0 auto; position: sticky; bottom: 0; }
 #payModal .modal-footer { border-top: 1px solid var(--nx-border); background: var(--nx-card-bg); padding: .875rem 1.25rem; }
-
-.pay-methods-grid {
-  display: grid; grid-template-columns: repeat(4,1fr);
-  gap: .5rem; margin-bottom: 1rem;
-}
-.pay-method-btn {
-  display: flex; flex-direction: column;
-  align-items: center; gap: .3rem;
-  padding: .75rem .25rem;
-  background: var(--nx-card-bg);
-  border: 1.5px solid var(--nx-border);
-  border-radius: 10px;
-  color: var(--nx-txt3);
-  cursor: pointer; transition: all .18s;
-  font-size: .72rem; font-weight: 600;
-}
-.pay-method-btn i { font-size: 1.3rem; display: block; }
-.pay-method-btn:hover { background: var(--nx-hover-bg); border-color: var(--nx-border3); color: var(--nx-txt1); }
-.pay-method-btn.active { border-color: var(--nx-ok); background: rgba(34,197,94,.08); color: var(--nx-ok); }
-
-.pay-totals-row {
-  display: flex; gap: .75rem; margin-bottom: 1rem;
-}
-.pay-total-box {
-  flex: 1; padding: .875rem 1rem;
-  background: var(--nx-card-bg);
-  border: 1px solid var(--nx-border);
-  border-radius: 10px; text-align: center;
-}
-.pay-total-box .ptb-label { font-size: .68rem; color: var(--nx-txt4); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .4rem; }
-.pay-total-box .ptb-value { font-size: 1.6rem; font-weight: 800; color: var(--nx-a1); font-variant-numeric: tabular-nums; line-height: 1; }
-.pay-total-box.change .ptb-value { color: var(--nx-ok); }
-.pay-total-box.change .ptb-value.neg { color: var(--nx-err); }
-
-.pay-amount-group { margin-bottom: .75rem; }
-.pay-amount-group label { font-size: .75rem; font-weight: 600; color: var(--nx-txt3); margin-bottom: .4rem; display: block; }
-.pay-amount-group input {
-  width: 100%; padding: .75rem 1rem;
-  background: var(--nx-input-bg);
-  border: 1.5px solid var(--nx-border);
-  border-radius: 10px;
-  color: var(--nx-txt1); font-size: 1.1rem; font-weight: 700;
-  outline: none; transition: all .2s; box-sizing: border-box;
-  font-variant-numeric: tabular-nums;
-}
-.pay-amount-group input:focus { border-color: var(--nx-a1); box-shadow: 0 0 0 3px rgba(56,189,248,.12); background: var(--nx-input-focus); }
-.pay-amount-group input::placeholder { color: var(--nx-txt4); font-weight: 400; }
-
-.pay-quick-row {
-  display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .75rem;
-}
-.pay-quick-btn {
-  padding: .35rem .7rem;
-  background: var(--nx-bg3); border: 1px solid var(--nx-border);
-  border-radius: 20px; color: var(--nx-txt2);
-  font-size: .72rem; font-weight: 600;
-  cursor: pointer; transition: all .18s; white-space: nowrap;
-}
-.pay-quick-btn:hover { background: var(--nx-hover-bg); border-color: var(--nx-border3); color: var(--nx-txt1); }
-.pay-quick-btn.exact { background: rgba(56,189,248,.1); border-color: var(--nx-a1); color: var(--nx-a1); }
-
-.pay-submit-btn {
-  width: 100%; padding: .875rem;
-  background: linear-gradient(135deg, var(--nx-ok), var(--nx-emerald));
-  border: none; border-radius: 10px;
-  color: white; font-size: 1rem; font-weight: 800;
-  cursor: pointer; transition: all .18s;
-  box-shadow: 0 4px 14px rgba(34,197,94,.3);
-  display: flex; align-items: center; justify-content: center; gap: .5rem;
-}
-.pay-submit-btn:hover { box-shadow: 0 6px 20px rgba(34,197,94,.45); transform: translateY(-1px); }
 
 /* ─── TomSelect dark overrides ───────────────────────────────── */
 .ts-wrapper.single .ts-control,
@@ -1133,20 +1075,63 @@ body.pos-v2 {
 }
 .modal label { color: var(--nx-txt2); }
 
+/* ─── Buscador CABYS del producto rápido (#cabysSearchModal) ──────────
+   Resultado clicable con código, nombre y una franja de color por la
+   tarifa: hace visible de un vistazo qué IVA trae el CABYS antes de
+   aplicarlo, que es la información que de verdad importa aquí. ────── */
+#cabysSearchModal .modal-content {
+  background: color-mix(in srgb, var(--nx-modal-bg) 82%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(120,150,255,.28);
+  box-shadow: 0 0 0 1px rgba(120,150,255,.08), 0 20px 60px rgba(0,0,0,.45);
+}
+.cabys-results-list { display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; }
+.cabys-result-empty { padding: 30px 10px; text-align: center; font-size: 13px; color: var(--nx-txt4); }
+.cabys-result-row {
+  display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+  border: 1px solid var(--nx-border); border-radius: 10px; background: var(--nx-card-bg2);
+  cursor: pointer; transition: var(--nx-transition);
+}
+.cabys-result-row:hover { border-color: var(--nx-border3); background: var(--nx-hover-bg); transform: translateY(-1px); }
+.cabys-result-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.cabys-result-desc { display: block; font-size: 13.5px; font-weight: 600; color: var(--nx-txt1); line-height: 1.35; }
+.cabys-result-code {
+  display: inline-block; width: fit-content; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--nx-txt3);
+  background: var(--nx-bg5); border: 1px solid var(--nx-border); border-radius: 6px; padding: 2px 7px;
+}
+.cabys-result-tax {
+  flex: 0 0 auto; font: 700 12px inherit; padding: 5px 11px; border-radius: 999px; white-space: nowrap;
+  color: var(--nx-a1); background: color-mix(in srgb, var(--nx-a1) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nx-a1) 35%, transparent);
+}
+
+/* CABYS ya elegido, en el modal de producto rápido: código + descripción coloreados */
+#ah-cabys.form-control[readonly] { color: var(--nx-a1); font-weight: 700; background: var(--nx-input-bg); cursor: default; }
+#ah-cabys-desc.form-control[readonly] { color: var(--nx-txt2); cursor: default; }
+
 /* ─── Bootstrap btn overrides for POS ───────────────────────── */
 .btn-close { filter: invert(1); }
 [data-theme="light"] .btn-close { filter: none; }
 
-/* ─── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 1280px) {
-  .pos-cart-panel { width: 330px; }
-  .pos-product-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+/* ─── Responsive ─────────────────────────────────────────────────────
+   Tres cortes, de mayor a menor. Antes eran seis, desordenados y con dos
+   escalas mezcladas: cuál ganaba dependía de dónde estuviera escrito.
+
+     ≥ 1280   caja de escritorio   menú + productos + carrito
+     768–1279 portátil o tablet    menú en iconos, carrito más angosto
+     < 768    tablet vertical      una columna, carrito abajo
+   ─────────────────────────────────────────────────────────────────── */
+@media (max-width: 1279px) {
+  .pos-nav { width: 66px; }
+  .pos-nav .nav-label, .pos-nav-brand .brand-name, .pos-nav-brand .brand-sub { display: none; }
+  .pos-cart-panel { width: 430px; }
+  .pos-product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-@media (max-width: 1024px) {
+
+@media (max-width: 767px) {
   .pos-nav { display: none; }
-  .pos-cart-panel { width: 310px; }
-}
-@media (max-width: 768px) {
   .pos-body { flex-direction: column; }
   .pos-center { height: 52vh; min-height: 0; }
   .pos-cart-panel {
@@ -1154,14 +1139,16 @@ body.pos-v2 {
     border-left: none; border-top: 1px solid var(--nx-border);
     overflow-y: auto;
   }
-  .pos-product-grid { grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: .4rem; padding: .5rem; }
+  /* Tarjetas más grandes: en una tablet se toca con el dedo, no se apunta. */
+  .pos-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; padding: .5rem; }
+  .pos-product-grid .pos-prod-card { min-height: 150px; }
+  .pos-prod-card .pp-img { height: 62px; }
   .pcp-pay-grid { grid-template-columns: repeat(4,1fr); }
-}
-@media (max-width: 480px) {
-  .pos-center { height: 55vh; }
-  .pos-cart-panel { height: 45vh; }
-  .pos-product-grid { grid-template-columns: repeat(auto-fill, minmax(80px,1fr)); }
   .pos-topbar-chip { display: none; }
+}
+
+@media (max-width: 480px) {
+  .pos-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ─── Light theme fine-tuning ───────────────────────────────────────
@@ -1205,3 +1192,960 @@ body.pos-v2 {
 
 /* Hover glow del producto → azul más suave en modo claro */
 [data-theme="light"] .pos-product-grid .product:hover { box-shadow: 0 4px 16px rgba(2,132,199,.12); }
+
+/* ============================================================
+   Tarjeta de producto
+   El controlador emite .pos-prod-card como hija directa de
+   .pos-product-grid; antes iban dentro de un <div> que anulaba
+   la rejilla y las dejaba en una columna.
+   ============================================================ */
+/* Seis por fila, tres filas por pagina: el limite de productos por pagina
+   (pro_limit) es 18, asi la rejilla nunca queda a medias. */
+.pos-product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.pos-product-grid .pos-prod-card {
+  justify-content: flex-start;
+  gap: .4rem;
+  padding: .6rem .55rem .5rem;
+  min-height: 168px;
+  text-align: left;
+  align-items: stretch;
+}
+
+.pos-prod-card .pp-img {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 76px;
+  border-radius: 9px;
+  background: var(--nx-bg2);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.pos-prod-card .pp-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.pos-prod-card .pp-ini {
+  font-size: 1.5rem; font-weight: 700;
+  color: var(--nx-a1);
+  letter-spacing: .5px;
+}
+
+.pos-prod-card .pp-name {
+  font-size: .8rem; font-weight: 600;
+  color: var(--nx-txt1);
+  line-height: 1.25;
+  /* Dos lineas como maximo: mas alto desalinea la rejilla */
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.1em;
+}
+.pos-prod-card .pp-code {
+  font-size: .66rem;
+  color: var(--nx-txt3, #94a3b8);
+  font-family: "Courier New", monospace;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.pos-prod-card .pp-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .35rem;
+  margin-top: auto;
+  padding-top: .35rem;
+  border-top: 1px solid var(--nx-border);
+}
+.pos-prod-card .pp-price {
+  font-size: .84rem; font-weight: 700;
+  color: var(--nx-txt1);
+  white-space: nowrap;
+}
+.pos-prod-card .pp-stock {
+  font-size: .66rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+  white-space: nowrap;
+}
+.pos-prod-card .pp-stock.ok  { background: #dcfce7; color: #15803d; }
+.pos-prod-card .pp-stock.low { background: #fef3c7; color: #b45309; }
+.pos-prod-card .pp-stock.out { background: #fee2e2; color: #b91c1c; }
+.pos-prod-card .pp-stock.na  { background: var(--nx-bg2); color: var(--nx-txt3, #94a3b8); }
+
+/* Agotado: se atenua pero se deja pulsable (puede haber venta bajo pedido) */
+.pos-prod-card:has(.pp-stock.out) .pp-img,
+.pos-prod-card:has(.pp-stock.out) .pp-name { opacity: .55; }
+
+/* ============================================================
+   Ventana propia (nx-ov)
+   No usa el modal de Bootstrap: su backdrop se quedaba encima
+   sin mostrar el diálogo y dejaba la pantalla bloqueada.
+   ============================================================ */
+.nx-ov {
+  position: fixed; inset: 0; z-index: 1080;
+  background: rgba(2, 6, 23, .68);
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 24px 16px;
+}
+.nx-ov.abierto { display: flex; }
+
+.nx-ov-caja {
+  width: 100%; max-width: 440px;
+  background: var(--nx-card-bg, #fff);
+  border: 1px solid var(--nx-border);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+  overflow: hidden;
+}
+.nx-ov-cab {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--nx-border);
+}
+.nx-ov-tit { font-size: .95rem; font-weight: 700; color: var(--nx-txt1); }
+.nx-ov-x {
+  background: none; border: 0; cursor: pointer;
+  font-size: 1.5rem; line-height: 1; color: var(--nx-txt3, #94a3b8);
+}
+.nx-ov-x:hover { color: var(--nx-txt1); }
+
+.nx-ov-cuerpo { padding: 18px; }
+.nx-ov-lbl {
+  display: block; margin: 0 0 5px;
+  font-size: .7rem; font-weight: 700; letter-spacing: .6px;
+  text-transform: uppercase; color: var(--nx-txt2, #64748b);
+}
+/* www.min.css trae una regla `input{}` generica (appearance:none, width:1em)
+   que deja los campos ilegibles; por eso va todo explicito. */
+.nx-ov-input {
+  display: block; width: 100%; height: auto;
+  box-sizing: border-box; margin: 0 0 14px;
+  padding: 9px 11px;
+  font-family: inherit; font-size: .88rem; line-height: 1.4;
+  -webkit-appearance: none; appearance: none;
+  background: var(--nx-bg3, #fff) !important;
+  background-image: none !important;
+  color: var(--nx-txt1) !important;
+  -webkit-text-fill-color: var(--nx-txt1);
+  border: 1px solid var(--nx-border) !important;
+  border-radius: 8px; outline: none;
+}
+.nx-ov-input:focus {
+  border-color: var(--nx-a1) !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, .18);
+}
+.nx-ov-fila2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.nx-ov-stock { font-size: .75rem; color: var(--nx-txt3, #94a3b8); margin-top: -6px; }
+.nx-ov-error {
+  display: none; margin-top: 10px;
+  padding: 8px 11px; border-radius: 7px;
+  background: #fee2e2; color: #b91c1c; font-size: .8rem;
+}
+.nx-ov-error.visible { display: block; }
+
+.nx-ov-pie {
+  display: flex; align-items: center; gap: 8px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--nx-border);
+  background: var(--nx-bg2);
+}
+.nx-ov-btn {
+  padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  font-size: .82rem; font-weight: 600;
+  border: 1px solid var(--nx-border);
+  background: var(--nx-card-bg, #fff); color: var(--nx-txt1);
+  transition: all .15s;
+}
+.nx-ov-btn:hover { background: var(--nx-bg3); }
+.nx-ov-btn.primary { background: var(--nx-a1); border-color: var(--nx-a1); color: #fff; }
+.nx-ov-btn.primary:hover { filter: brightness(1.08); }
+.nx-ov-btn.danger { background: transparent; border-color: #fca5a5; color: #dc2626; }
+.nx-ov-btn.danger:hover { background: rgba(220, 38, 38, .12); }
+
+/* ============================================================
+   Carrito: filas de producto
+   ============================================================ */
+.pcp-items table { width: 100%; border-collapse: collapse; }
+.pcp-items table { table-layout: fixed; }
+.pcp-items thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--nx-bg2);
+  padding: .5rem .35rem;
+  font-size: .62rem; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase;
+  color: var(--nx-txt3, #94a3b8);
+  border-bottom: 1px solid var(--nx-border);
+}
+.pcp-items tbody td {
+  padding: .5rem .35rem;
+  border-bottom: 1px solid var(--nx-border);
+  vertical-align: middle;
+}
+.pcp-items tbody tr:hover td { background: var(--nx-active-bg); }
+
+/* Nombre: es el disparador de la edición, pero no debe parecer un botón */
+.pcp-item-btn {
+  display: block; width: 100%; text-align: left;
+  background: transparent; border: 0; padding: 0; cursor: pointer;
+  border-radius: 6px;
+}
+.pcp-item-btn:hover .pcp-item-name { color: var(--nx-a1); text-decoration: underline; }
+.pcp-item-name {
+  display: block;
+  font-size: .8rem; font-weight: 600; color: var(--nx-txt1);
+  line-height: 1.25;
+}
+.pcp-item-code {
+  display: block; margin-top: 1px;
+  font-size: .64rem; color: var(--nx-txt3, #94a3b8);
+  font-family: "Courier New", monospace;
+}
+
+/* Anchos fijos: con table-layout auto la columna Total se salia del panel. */
+.pcp-c-prod  { width: auto; }
+.pcp-c-price { width: 78px;  text-align: right; white-space: nowrap; }
+.pcp-c-qty   { width: 88px; }
+.pcp-c-total { width: 92px;  text-align: right; white-space: nowrap; }
+.pcp-c-del   { width: 48px;  text-align: center; }
+/* El boton de borrar mide 40px: sin el padding de celda no le alcanzaba. */
+.pcp-items th.pcp-c-del,
+.pcp-items td.pcp-c-del { padding-left: 0; padding-right: 0; }
+.pcp-c-price .sprice { font-size: .76rem; color: var(--nx-txt2, #64748b); font-variant-numeric: tabular-nums; }
+.pcp-c-total .ssubtotal { font-size: .82rem; font-weight: 700; color: var(--nx-txt1); font-variant-numeric: tabular-nums; }
+.pcp-desc-badge { display: block; margin: 2px 0 0; }
+
+/* Contador − n + */
+.pcp-stepper {
+  display: flex; align-items: stretch;
+  border: 1px solid var(--nx-border); border-radius: 8px;
+  overflow: hidden; background: var(--nx-bg3);
+}
+.pcp-step {
+  flex: 0 0 22px; border: 0; cursor: pointer;
+  background: var(--nx-bg2); color: var(--nx-txt1);
+  font-size: .95rem; line-height: 1; padding: 0;
+}
+.pcp-step:hover { background: var(--nx-a1); color: #fff; }
+/* La regla `input{}` genérica del bundle deja el campo en 1em y sin fondo */
+.pcp-stepper .rquantity {
+  flex: 1 1 auto; width: 100%; min-width: 0; height: auto;
+  -webkit-appearance: none; appearance: none;
+  border: 0; outline: none; margin: 0;
+  padding: .32rem .15rem;
+  text-align: center;
+  font-family: inherit; font-size: .8rem; font-weight: 600;
+  background: var(--nx-bg3) !important;
+  color: var(--nx-txt1) !important;
+  -webkit-text-fill-color: var(--nx-txt1);
+}
+.pcp-stepper .rquantity::-webkit-outer-spin-button,
+.pcp-stepper .rquantity::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Eliminar: iba como <i class="fa fa-trash-o"> y salía vacío */
+.pcp-del {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; padding: 0;
+  border: 1px solid transparent; border-radius: 7px;
+  background: transparent; color: var(--nx-txt3, #94a3b8);
+  cursor: pointer; transition: all .15s;
+}
+.pcp-del:hover { background: rgba(220, 38, 38, .14); border-color: #fca5a5; color: #dc2626; }
+
+.price-toggle-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; margin-left: .3rem; padding: 0;
+  border: 1px solid var(--nx-border); border-radius: 6px;
+  background: transparent; color: var(--nx-txt3, #94a3b8); cursor: pointer;
+}
+.price-toggle-btn.active { background: var(--nx-amber); border-color: var(--nx-amber); color: #fff; }
+
+/* Barra de acciones del carrito */
+.pcp-cart-acciones { display: flex; gap: .35rem; margin-left: auto; }
+.pcp-cart-accion {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .3rem .6rem; border-radius: 7px;
+  border: 1px solid var(--nx-border);
+  background: var(--nx-card-bg); color: var(--nx-txt2, #64748b);
+  font-size: .7rem; font-weight: 600; cursor: pointer;
+  transition: all .15s;
+}
+.pcp-cart-accion:hover { color: var(--nx-a1); border-color: var(--nx-a1); }
+
+/* ── Panel de cliente ───────────────────────────── */
+.pcp-customer { padding: .8rem .85rem; }
+.pcp-section-label { margin-bottom: .6rem; }
+.pcp-section-label > span:first-of-type { flex: 1; }
+
+/* Botón Nuevo: verde sobre fondo oscuro se leía mal en un borde fino */
+.pcp-add-cust-btn {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: .32rem;
+  padding: .3rem .7rem;
+  border: 0; border-radius: 999px;
+  background: var(--nx-ok); color: #062616;
+  font-size: .66rem; font-weight: 800;
+  letter-spacing: .5px; text-transform: uppercase;
+  cursor: pointer; transition: filter .15s;
+}
+.pcp-add-cust-btn:hover { filter: brightness(1.12); background: var(--nx-ok); color: #062616; }
+
+.pcp-cust-hint {
+  display: flex; align-items: center; gap: .32rem;
+  margin: 0 0 .45rem;
+  font-size: .68rem; line-height: 1.3;
+  color: var(--nx-txt4, #94a3b8);
+}
+.pcp-cust-search-wrap { margin-bottom: 0; }
+
+/* ── Estado sin cliente ──────────────────────────
+   Antes era una tarjeta con borde dentro del panel: un rectángulo
+   dentro de otro. Ahora es solo una línea informativa. */
+.pcp-cust-card.is-default {
+  border: 0; background: transparent; border-radius: 0;
+  padding: .55rem .1rem 0;
+  margin-top: .5rem;
+  border-top: 1px dashed var(--nx-border);
+  gap: .5rem;
+}
+.pcp-cust-card.is-default .pcp-cust-avatar {
+  width: 24px; height: 24px; line-height: 24px;
+  font-size: .62rem;
+  background: transparent;
+  border: 1px dashed var(--nx-border);
+  color: var(--nx-txt4, #94a3b8);
+}
+.pcp-cust-card.is-default .pcp-cust-name {
+  font-size: .74rem; font-weight: 500; font-style: normal;
+  color: var(--nx-txt3, #94a3b8);
+}
+
+/* ── Ficha del cliente seleccionado ────────────── */
+.pcp-cust-card {
+  display: flex; align-items: flex-start; gap: .6rem;
+  padding: .65rem .7rem;
+  border: 1px solid var(--nx-a1); border-radius: 11px;
+  background: var(--nx-active-bg);
+}
+.pcp-cust-avatar {
+  flex: 0 0 auto;
+  width: 36px; height: 36px; line-height: 36px;
+  border-radius: 10px; text-align: center;
+  font-size: .8rem; font-weight: 800;
+  background: var(--nx-a1); color: #fff;
+}
+.pcp-cust-info { flex: 1; min-width: 0; }
+
+/* El nombre es el dato principal: en negrita y en dos líneas si hace falta */
+.pcp-cust-name {
+  font-size: .82rem; font-weight: 700; line-height: 1.25;
+  color: var(--nx-txt1);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; white-space: normal;
+  margin-bottom: .3rem;
+}
+
+/* Datos en pares etiqueta / valor, alineados */
+.pcp-cust-dato {
+  display: flex; align-items: baseline; gap: .4rem;
+  font-size: .68rem; line-height: 1.5;
+}
+.pcp-cust-dato .k {
+  flex: 0 0 auto; min-width: 74px;
+  color: var(--nx-txt4, #94a3b8);
+  text-transform: uppercase; letter-spacing: .4px; font-size: .6rem;
+}
+.pcp-cust-dato .v {
+  flex: 1; min-width: 0;
+  color: var(--nx-txt1); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pcp-cust-dato .v.mono { font-family: "Courier New", monospace; letter-spacing: .3px; }
+
+/* Quitar cliente: acción destructiva, en rojo */
+.pcp-cust-clear-btn {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0;
+  border: 1px solid rgba(220, 38, 38, .45); border-radius: 8px;
+  background: rgba(220, 38, 38, .12); color: #ef4444;
+  cursor: pointer; transition: all .15s;
+}
+.pcp-cust-clear-btn:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
+
+/* ═══════════════════════════════════════════════════════
+   AUTOCOMPLETADO DE PRODUCTOS Y CLIENTES
+   Una fila = una linea: nombre y codigo a la izquierda,
+   precio y existencias a la derecha.
+═══════════════════════════════════════════════════════ */
+.pos-ac {
+  position: absolute; left: 0; right: 0; top: calc(100% + 5px);
+  z-index: 9999; display: none;
+  /* Con muchas sugerencias la lista tapaba la rejilla entera; se limita a
+     media pantalla y el resto se recorre con la rueda o las flechas. */
+  max-height: min(340px, 46vh);
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: .2rem;
+  background: var(--nx-card-bg);
+  border: 1px solid var(--nx-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .26);
+}
+.pos-ac.abierto { display: block; }
+.pos-ac::-webkit-scrollbar { width: 8px; }
+.pos-ac::-webkit-scrollbar-track { background: transparent; }
+.pos-ac::-webkit-scrollbar-thumb {
+  background: var(--nx-border3, var(--nx-border));
+  border-radius: 8px;
+  border: 2px solid var(--nx-card-bg);
+}
+.pos-ac::-webkit-scrollbar-thumb:hover { background: var(--nx-a1); }
+
+/* El contenido de un <button> vive en una caja anonima que se ajusta al
+   contenido: la rejilla va dentro, en un <span> que si ocupa el ancho. */
+.pos-ac-item {
+  display: block; width: 100%;
+  padding: .45rem .75rem;
+  background: none; border: 0; border-radius: 6px;
+  text-align: left; color: var(--nx-txt1); cursor: pointer;
+  line-height: 1.3;
+}
+.pos-ac-fila {
+  display: grid; width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, max-content) 108px 56px;
+  align-items: center; column-gap: 1.5rem;
+}
+.pos-ac-item + .pos-ac-item { border-top: 1px solid color-mix(in srgb, var(--nx-border) 55%, transparent); }
+.pos-ac-item:hover,
+.pos-ac-item:focus { background: var(--nx-hover-bg); outline: none; }
+.pos-ac-item:focus { box-shadow: inset 0 0 0 1px var(--nx-a1); }
+
+.pos-ac-name {
+  min-width: 0;
+  font-size: .82rem; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pos-ac-code {
+  justify-self: start; text-align: left;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: .66rem; color: var(--nx-txt3);
+  padding: .02rem .28rem;
+  background: var(--nx-hover-bg);
+  border-radius: 4px;
+}
+/* La unidad viaja en el tooltip: una columna mas apretaria las demas. */
+.pos-ac-unit { display: none; }
+.pos-ac-price {
+  text-align: right;
+  font-size: .82rem; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pos-ac-stock {
+  justify-self: end; min-width: 44px; text-align: center;
+  font-size: .66rem; font-weight: 700;
+  padding: .05rem .35rem; border-radius: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.pos-ac-stock.ok   { color: var(--nx-ok);   background: color-mix(in srgb, var(--nx-ok) 14%, transparent); }
+.pos-ac-stock.bajo { color: var(--nx-warn); background: color-mix(in srgb, var(--nx-warn) 16%, transparent); }
+.pos-ac-stock.sin  { color: var(--nx-err);  background: color-mix(in srgb, var(--nx-err) 14%, transparent); }
+
+.pos-ac-vacio { padding: .5rem .6rem; font-size: .76rem; color: var(--nx-txt3); text-align: center; }
+
+/* Clientes: mismo motor, con inicial en vez de precio */
+.pos-ac-cust .pos-ac-fila { grid-template-columns: auto minmax(0, 1fr); column-gap: .6rem; }
+.pos-ac-av {
+  flex: 0 0 auto;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .6rem; font-weight: 700;
+  color: var(--nx-a1);
+  background: color-mix(in srgb, var(--nx-a1) 16%, transparent);
+}
+.pos-ac-cust .pos-ac-main { min-width: 0; }
+.pos-ac-cust .pos-ac-name { font-size: .8rem; }
+.pos-ac-meta {
+  display: flex; align-items: center; gap: .3rem;
+  font-size: .66rem; color: var(--nx-txt3);
+  overflow: hidden; white-space: nowrap;
+}
+.pos-ac-meta i { font-style: normal; opacity: .45; }
+
+.pcp-cust-buscador { position: relative; }
+.pcp-cust-buscador .search-icon {
+  position: absolute; left: .55rem; top: 50%; transform: translateY(-50%);
+  color: var(--nx-txt4); pointer-events: none; display: flex;
+}
+.pcp-cust-buscador input {
+  width: 100%; padding: .4rem .6rem .4rem 1.9rem;
+  font-size: .82rem;
+  color: var(--nx-txt1);
+  background: var(--nx-input-bg, var(--nx-card-bg));
+  border: 1px solid var(--nx-border);
+  border-radius: 8px;
+}
+.pcp-cust-buscador input:focus { outline: none; border-color: var(--nx-a1); }
+
+/* Ayuda bajo un campo del panel de editar linea */
+.nx-ov-ayuda { font-size: .7rem; color: var(--nx-txt4); margin: .2rem 0 .55rem; }
+
+/* Teclas de la ayuda de atajos. Bootstrap sanea el popover y borra <kbd>,
+   asi que la ayuda usa <span> con esta clase. */
+.pos-kbd {
+  display: inline-block; min-width: 1.5rem;
+  padding: .05rem .35rem; margin: 0 .1rem;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: .72rem; font-weight: 600; text-align: center;
+  color: var(--nx-txt1);
+  background: var(--nx-hover-bg);
+  border: 1px solid var(--nx-border3);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+}
+
+/* Estado de la conexion con Hacienda: azul cuando responde, rojo cuando no. */
+.pos-topbar-chip.hac-ok  { border-color: color-mix(in srgb, var(--nx-a1) 45%, transparent); color: var(--nx-a1); }
+.pos-topbar-chip.hac-ok svg { color: var(--nx-a1); }
+.pos-topbar-chip.hac-err { border-color: color-mix(in srgb, var(--nx-err) 50%, transparent); color: var(--nx-err); }
+.pos-topbar-chip.hac-err svg { color: var(--nx-err); }
+.pos-kbd-lista { display: flex; flex-direction: column; gap: .3rem; font-size: .78rem; }
+.pos-kbd-fila  { display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
+.pos-kbd-fila > span:last-child { margin-left: .35rem; color: var(--nx-txt2); }
+.pos-kbd-mas   { font-style: normal; opacity: .5; font-size: .7rem; }
+
+/* ═══════════════════════════════════════════════════════
+   CLIENTE: barra compacta
+   Con el cliente por defecto no hace falta ni el buscador
+   ni la ficha; basta una linea que diga a quien se factura.
+═══════════════════════════════════════════════════════ */
+.pcp-cust-hint { display: none; }
+
+.pcp-cust-card {
+  box-sizing: border-box; max-width: 100%;
+  padding: .4rem .55rem; min-height: 0; gap: .45rem;
+}
+.pcp-cust-card.is-default { min-height: 0; padding: .15rem 0; }
+.pcp-cust-info { min-width: 0; overflow: hidden; }
+.pcp-cust-name, .pcp-cust-meta, .pcp-cust-contact {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pcp-cust-card.is-default .pcp-cust-meta,
+.pcp-cust-card.is-default .pcp-cust-contact { display: none; }
+.pcp-cust-card.is-default .pcp-cust-avatar { width: 20px; height: 20px; font-size: .58rem; }
+.pcp-cust-card.is-default .pcp-cust-name { font-size: .72rem; }
+
+.pcp-section-label { font-size: .58rem; }
+.pcp-add-cust-btn { padding: .15rem .45rem; font-size: .58rem; }
+
+/* ═══════════════════════════════════════════════════════
+   VENTAS EN ESPERA: referencia, cliente, fecha y monto
+═══════════════════════════════════════════════════════ */
+.pos-sus-menu { min-width: 340px; }
+.pos-sus-menu .dropdown-item { padding: .4rem .7rem; }
+.pos-sus-menu .dropdown-item > .d-flex { gap: .5rem; align-items: center; }
+.pos-sus-info { flex: 1 1 auto; min-width: 0; }
+.pos-sus-ref  { font-size: .8rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pos-sus-cli  { font-size: .7rem; color: var(--nx-txt3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pos-sus-fec  { font-size: .66rem; color: var(--nx-txt4); }
+.pos-sus-monto {
+  flex: 0 0 auto; margin-left: auto;
+  font-size: .82rem; font-weight: 700; color: var(--nx-ok);
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DESCUENTO EN LA LINEA DEL CARRITO
+═══════════════════════════════════════════════════════ */
+.pcp-desc-badge {
+  display: inline-block; margin-left: .25rem;
+  padding: 0 .28rem; border-radius: 4px;
+  font-size: .6rem; font-weight: 700;
+  color: var(--nx-warn);
+  background: color-mix(in srgb, var(--nx-warn) 18%, transparent);
+}
+.ssubtotal.con-desc { color: #fbbf24; font-weight: 700; }
+
+/* Selector monto / porcentaje del panel de editar linea */
+.nx-ov-desc { display: flex; gap: .4rem; align-items: stretch; }
+.nx-ov-desc .nx-ov-input { flex: 1 1 auto; }
+.nx-ov-desc-tipo {
+  flex: 0 0 auto; display: flex;
+  border: 1px solid var(--nx-border); border-radius: 8px; overflow: hidden;
+}
+.nx-ov-desc-tipo button {
+  min-width: 40px; padding: 0 .5rem;
+  background: none; border: 0;
+  color: var(--nx-txt3); font-weight: 700; font-size: .85rem;
+  cursor: pointer;
+}
+.nx-ov-desc-tipo button + button { border-left: 1px solid var(--nx-border); }
+.nx-ov-desc-tipo button.activo { background: var(--nx-a1); color: #04121f; }
+
+/* El datafono devuelve referencia y monto: el boton reemplaza al teclado. */
+.pay-datafono-btn {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  width: 100%; padding: .6rem .7rem; border: 0; border-radius: var(--nx-radius-sm);
+  background: linear-gradient(135deg, var(--nx-a1), var(--nx-info));
+  color: #04121f; font-weight: 700; font-size: .8rem; cursor: pointer;
+}
+.pay-datafono-btn:hover { filter: brightness(1.08); }
+
+/* Monto y referencia que fija el cobro externo */
+.pay-amount-group input.fijo {
+  background: var(--nx-hover-bg);
+  color: var(--nx-txt2);
+  cursor: not-allowed;
+}
+
+/* Cerrar y Enviar, del mismo alto */
+.pay-footer { display: flex; gap: .6rem; padding: .875rem 1.25rem; }
+.pay-close-btn, .pay-footer .pay-submit-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  height: 42px; padding: 0 1rem;
+  border-radius: 10px; font-weight: 700; font-size: .85rem;
+  cursor: pointer; border: 1px solid transparent;
+}
+.pay-close-btn {
+  flex: 0 0 auto; min-width: 120px;
+  background: transparent; border-color: var(--nx-border); color: var(--nx-txt2);
+}
+.pay-close-btn:hover { background: var(--nx-hover-bg); color: var(--nx-txt1); }
+.pay-footer .pay-submit-btn { flex: 1 1 auto; }
+
+/* Etiqueta de descuento del total: es un boton, no un rotulo muerto */
+.pcp-ds-btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .1rem .35rem; margin: -.1rem -.35rem;
+  background: none; border: 0; border-radius: 6px;
+  color: var(--nx-warn); font: inherit; cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.pcp-ds-btn:hover { background: color-mix(in srgb, var(--nx-warn) 14%, transparent); }
+.pcp-ds-resumen {
+  margin-top: .6rem; padding: .45rem .6rem;
+  font-size: .78rem; color: var(--nx-txt2);
+  background: var(--nx-hover-bg); border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* El descuento y los totales largos no deben cortarse en el carrito */
+.pcp-c-price, .pcp-c-total { white-space: nowrap; }
+.pcp-c-total .ssubtotal { font-variant-numeric: tabular-nums; }
+.pcp-totals .tv, .pcp-grand-total .gv {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* El modal de descuento en modal-sm partia el titulo y apretaba el resumen */
+.nx-ds-dialog { max-width: 420px; }
+#descuentoModal .nx-ov-desc { align-items: stretch; }
+#descuentoModal .nx-ov-desc .form-control { flex: 1 1 auto; }
+#descuentoModal .pcp-ds-resumen { text-align: center; font-size: .84rem; }
+
+/* ═══════════════════════════════════════════════════════
+   LINEA RECIEN AGREGADA
+   El carrito se redibuja entero en cada cambio; el color
+   dice cual fue la ultima que se toco.
+═══════════════════════════════════════════════════════ */
+.pcp-items tbody tr.linea-nueva > td {
+  background: color-mix(in srgb, var(--nx-a1) 16%, transparent) !important;
+  box-shadow: inset 3px 0 0 var(--nx-a1);
+  transition: background .5s ease, box-shadow .5s ease;
+}
+.pcp-items tbody tr.linea-nueva > td:first-child { border-radius: 6px 0 0 6px; }
+
+/* ═══════════════════════════════════════════════════════
+   FICHA DEL CLIENTE
+   nx-sidebar.css le da borde y esquinas redondeadas; el
+   separador superior de otra regla pisaba ese borde y la
+   dejaba con la parte de arriba cortada.
+═══════════════════════════════════════════════════════ */
+.pcp-cust-card:not(.is-default) {
+  border-top: 1px solid var(--nx-a1);
+  margin-top: 0;
+  padding: .5rem .6rem;
+  overflow: hidden;
+}
+.pcp-customer { overflow: visible; }
+
+/* ─── P5.2: el cliente en una sola fila ──────────────────────────────
+   El bloque gastaba tres alturas —etiqueta, ayuda y tarjeta— para una
+   función. La ayuda vive ahora en el placeholder del buscador.
+   ─────────────────────────────────────────────────────────────────── */
+.pcp-cust-hint { display: none; }
+
+.pcp-customer .pcp-section-label { margin-bottom: .25rem; }
+
+.pcp-cust-card {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .4rem .5rem;
+}
+.pcp-cust-card .pcp-cust-avatar { width: 26px; height: 26px; font-size: .72rem; flex: 0 0 26px; }
+.pcp-cust-card .pcp-cust-name { font-size: .82rem; line-height: 1.2; }
+
+/* El documento y el contacto solo hacen falta cuando hay sitio de sobra. */
+.pcp-cust-card .pcp-cust-meta,
+.pcp-cust-card .pcp-cust-contact { font-size: .68rem; line-height: 1.25; }
+
+@media (max-height: 820px) {
+  .pcp-cust-card .pcp-cust-contact { display: none; }
+}
+
+/* ─── P5.4: teclado en pantalla solo donde no hay teclado físico ─────
+   `pointer: coarse` y `hover: none` describen exactamente una tablet.
+   En una caja con teclado, medio panel de botones es espacio perdido.
+   ─────────────────────────────────────────────────────────────────── */
+.pos-teclado { display: none; }
+
+@media (hover: none) and (pointer: coarse) {
+  .pos-teclado { display: grid; }
+}
+
+/* ── Alta rapida de cliente: secciones plegables del modal ──────────────
+   <details> nativo: sin JavaScript y el navegador ya maneja el estado. */
+.pos-cust-more{
+  border:1px solid var(--nx-border);border-radius:var(--nx-radius-sm);
+  background:var(--nx-card-bg2);padding:.5rem .7rem;
+}
+.pos-cust-more > summary{
+  cursor:pointer;list-style:none;user-select:none;
+  font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--nx-txt2);display:flex;align-items:center;gap:6px;
+}
+.pos-cust-more > summary::-webkit-details-marker{display:none}
+.pos-cust-more > summary::before{
+  content:"";width:0;height:0;flex:0 0 auto;
+  border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;
+  transition:transform var(--nx-transition);
+}
+.pos-cust-more[open] > summary::before{transform:rotate(90deg)}
+.pos-cust-more > summary:hover{color:var(--nx-a1)}
+.pos-cust-more .form-label{font-size:11px;margin-bottom:.15rem;color:var(--nx-txt3)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL DE COBRO — dos columnas: qué se emite y cómo se cobra a la izquierda,
+   teclado y totales a la derecha. Sin textos de ayuda: los rótulos bastan y el
+   motivo de un control deshabilitado va en su tooltip.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pay-dialog { max-width: 1020px; }
+.pay-dialog .modal-content { border-radius: var(--nx-radius-lg); overflow: hidden; }
+
+/* ── Cabecera con el total siempre a la vista ── */
+.pay-head { align-items: center; gap: 1rem; padding: .85rem 1.1rem; }
+.pay-head .modal-title { font-size: 1rem; font-weight: 700; }
+.pay-head-total { margin-left: auto; text-align: right; line-height: 1.15; }
+.pay-head-total span {
+  display: block; font-size: .62rem; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--nx-txt4);
+}
+.pay-head-total strong {
+  font-size: 1.35rem; font-weight: 800; color: var(--nx-a1);
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+
+.pay-body { padding: 1rem 1.1rem; }
+.pay-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.1rem; align-items: start; }
+.pay-col { min-width: 0; display: flex; flex-direction: column; gap: .8rem; }
+
+/* ── Bloque con rótulo ── */
+.pay-block-rot {
+  font-size: .63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--nx-txt4); margin-bottom: .4rem;
+}
+
+/* ── Comprobante ── */
+.doc-selector-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+.doc-btn {
+  display: flex; align-items: center; justify-content: center; gap: .45rem;
+  padding: .7rem .5rem; border-radius: var(--nx-radius-sm);
+  border: 1.5px solid var(--nx-border); background: var(--nx-card-bg2);
+  color: var(--nx-txt2); cursor: pointer; transition: var(--nx-transition);
+}
+.doc-btn strong { font-size: .8rem; font-weight: 600; }
+.doc-btn svg { flex: 0 0 auto; opacity: .8; }
+.doc-btn:hover:not(:disabled) { border-color: var(--nx-border3); color: var(--nx-txt1); }
+.doc-btn.active {
+  border-color: var(--nx-a1); background: var(--nx-active-bg); color: var(--nx-a1);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.10);
+}
+.doc-btn.active svg { opacity: 1; }
+.doc-btn:disabled { opacity: .38; cursor: not-allowed; }
+.doc-motivo { font-size: .68rem; margin-top: .35rem; color: var(--nx-warn); }
+.doc-motivo:empty { display: none; }
+
+.doc-conting {
+  display: flex; align-items: center; gap: .45rem; margin-top: .55rem; cursor: pointer;
+  font-size: .72rem; color: var(--nx-txt3); user-select: none;
+}
+.doc-conting input { accent-color: var(--nx-warn); width: 15px; height: 15px; }
+.doc-conting:hover { color: var(--nx-txt1); }
+
+/* ── Formas de pago ── */
+.pay-methods-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem; }
+.pay-methods-grid.has-credit { grid-template-columns: repeat(5, 1fr); }
+.pay-method-btn {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem;
+  padding: .6rem .25rem; border-radius: var(--nx-radius-sm);
+  border: 1.5px solid var(--nx-border); background: var(--nx-card-bg2);
+  color: var(--nx-txt3); cursor: pointer; transition: var(--nx-transition);
+  font-size: .68rem; font-weight: 600; line-height: 1;
+}
+.pay-method-btn span { white-space: nowrap; }
+.pay-method-btn svg { opacity: .75; }
+.pay-method-btn:hover:not(:disabled) { border-color: var(--nx-border3); color: var(--nx-txt1); }
+.pay-method-btn.active {
+  border-color: var(--nx-ok); background: rgba(34,197,94,.09); color: var(--nx-ok);
+  box-shadow: 0 0 0 3px rgba(34,197,94,.10);
+}
+.pay-method-btn.active svg { opacity: 1; }
+.pay-method-btn:disabled { opacity: .35; cursor: not-allowed; }
+/* El crédito no es dinero que entra: se distingue del resto. */
+.pay-method-btn.is-credit.active {
+  border-color: var(--nx-amber); background: rgba(251,191,36,.10); color: var(--nx-amber);
+  box-shadow: 0 0 0 3px rgba(251,191,36,.10);
+}
+.pay-credit-info {
+  margin-top: .45rem; font-size: .7rem; color: var(--nx-amber);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Referencia y datáfono ── */
+.pay-amount-group label {
+  display: block; font-size: .63rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--nx-txt4); margin-bottom: .35rem;
+}
+.pay-amount-group input {
+  width: 100%; padding: .55rem .7rem; border-radius: var(--nx-radius-sm);
+  border: 1px solid var(--nx-border); background: var(--nx-input-bg);
+  color: var(--nx-txt1); font-size: .9rem; outline: 0; transition: var(--nx-transition);
+}
+.pay-amount-group input:focus {
+  border-color: var(--nx-border3); background: var(--nx-input-focus);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.13);
+}
+
+/* ── Agregar forma de pago ── */
+.pay-add-btn {
+  display: flex; align-items: center; gap: .5rem; width: 100%;
+  padding: .5rem .7rem; border-radius: var(--nx-radius-sm);
+  border: 1px dashed var(--nx-border3); background: none; color: var(--nx-txt3);
+  cursor: pointer; transition: var(--nx-transition); font-size: .75rem;
+}
+.pay-add-btn:hover { color: var(--nx-a1); border-color: var(--nx-a1); background: var(--nx-hover-bg); }
+.pay-add-ico { display: flex; }
+.pay-lines { border: 1px solid var(--nx-border); border-radius: var(--nx-radius-sm); overflow: hidden; }
+
+/* ── Columna del teclado ── */
+.pay-col-pad {
+  background: var(--nx-card-bg2); border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius); padding: .8rem; gap: .6rem;
+}
+.pay-display label {
+  display: block; font-size: .63rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--nx-txt4); margin-bottom: .3rem;
+}
+.pay-display input {
+  width: 100%; padding: .6rem .75rem; border-radius: var(--nx-radius-sm);
+  border: 1.5px solid var(--nx-border3); background: var(--nx-input-focus);
+  color: var(--nx-txt1); font-size: 1.55rem; font-weight: 800; text-align: right;
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em; outline: 0;
+  transition: var(--nx-transition);
+}
+.pay-display input:focus { box-shadow: 0 0 0 3px rgba(56,189,248,.16); }
+.pay-display input::placeholder { color: var(--nx-txt4); font-weight: 600; }
+.pay-display input:read-only { opacity: .6; cursor: not-allowed; }
+/* Las flechas del input numérico estorban con un teclado al lado. */
+.pay-display input::-webkit-outer-spin-button,
+.pay-display input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pay-display input[type=number] { -moz-appearance: textfield; }
+
+.pay-quick-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; }
+.pay-quick-btn {
+  padding: .4rem .2rem; border-radius: 7px; border: 1px solid var(--nx-border);
+  background: var(--nx-card-bg); color: var(--nx-txt3); cursor: pointer;
+  font-size: .68rem; font-weight: 600; transition: var(--nx-transition);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.pay-quick-btn:hover { border-color: var(--nx-border3); color: var(--nx-txt1); }
+.pay-quick-btn.exact {
+  display: flex; align-items: center; justify-content: center; gap: .25rem;
+  background: var(--nx-active-bg); border-color: var(--nx-a1); color: var(--nx-a1);
+}
+
+.pay-keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; }
+.pay-keypad button {
+  padding: .7rem 0; border-radius: 8px; border: 1px solid var(--nx-border);
+  background: var(--nx-card-bg); color: var(--nx-txt1);
+  font-size: 1.05rem; font-weight: 700; cursor: pointer;
+  transition: background .12s, border-color .12s, transform .08s;
+  font-variant-numeric: tabular-nums;
+}
+.pay-keypad button:hover { background: var(--nx-hover-bg); border-color: var(--nx-border3); }
+.pay-keypad button:active { transform: scale(.96); }
+.pay-keypad .k-act { color: var(--nx-orange); border-color: rgba(249,115,22,.35); }
+.pay-keypad .k-clear { grid-row: span 2; background: rgba(249,115,22,.10); }
+.pay-keypad button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Totales ── */
+.pay-totals {
+  margin-top: auto; border-top: 1px solid var(--nx-border); padding-top: .6rem;
+  display: flex; flex-direction: column; gap: .3rem;
+}
+.pay-total-line { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.pay-total-line span { font-size: .7rem; color: var(--nx-txt4); }
+.pay-total-line strong {
+  font-size: .95rem; font-weight: 700; color: var(--nx-txt1);
+  font-variant-numeric: tabular-nums;
+}
+.pay-total-line.change { border-top: 1px dashed var(--nx-border); padding-top: .4rem; margin-top: .1rem; }
+.pay-total-line.change span { color: var(--nx-txt3); font-weight: 600; }
+.pay-total-line.change strong { font-size: 1.3rem; font-weight: 800; color: var(--nx-ok); }
+.pay-total-line.change strong.neg { color: var(--nx-err); }
+
+/* ── Pie fijo ── */
+.pay-footer { padding: .75rem 1.1rem; gap: .6rem; }
+.pay-close-btn {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .55rem 1rem;
+  border-radius: var(--nx-radius-sm); border: 1px solid var(--nx-border);
+  background: var(--nx-card-bg2); color: var(--nx-txt2); cursor: pointer;
+  font-size: .8rem; font-weight: 600; transition: var(--nx-transition);
+}
+.pay-close-btn:hover { color: var(--nx-txt1); border-color: var(--nx-border3); }
+.pay-submit-btn {
+  display: inline-flex; align-items: center; gap: .45rem; margin-left: auto;
+  padding: .65rem 1.6rem; border-radius: var(--nx-radius-sm); border: 0;
+  background: linear-gradient(135deg, var(--nx-ok), #16a34a); color: #fff;
+  font-size: .88rem; font-weight: 700; cursor: pointer; transition: var(--nx-transition);
+  box-shadow: 0 6px 18px -6px rgba(34,197,94,.6);
+}
+.pay-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -6px rgba(34,197,94,.7); }
+
+/* ── Pantallas angostas: el teclado pasa debajo ── */
+@media (max-width: 900px) {
+  .pay-grid { grid-template-columns: 1fr; }
+  .pay-col-pad { order: -1; }
+  .pay-methods-grid, .pay-methods-grid.has-credit { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Articulos rapidos guardados en el modal del producto ad hoc */
+.ah-rapidos { display: flex; flex-wrap: wrap; gap: 6px; }
+.ah-rapido { display: inline-flex; align-items: center; }
+
+/* Configuracion de impresora: campos a la izquierda, tiquete a la derecha.
+   El papel es claro en los dos temas y mide en caracteres, como la termica. */
+.tk-config { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.tk-campos { flex: 1 1 260px; min-width: 0; }
+.tk-vista { flex: 0 0 auto; margin: 0; max-width: 100%; }
+.tk-vista figcaption { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--nx-txt3); margin-bottom: 6px; }
+.tk-papel {
+  --tk-cpl: 42;
+  width: calc(var(--tk-cpl) * 1ch + 24px); max-width: 100%; max-height: 420px; overflow: auto;
+  background: #fff; color: #111; border: 1px solid var(--nx-border); border-radius: 6px;
+  padding: 12px; font: 400 12px/1.35 ui-monospace, Consolas, "Courier New", monospace;
+  box-shadow: var(--nx-shadow-sm);
+}
+.tk-linea { white-space: pre-wrap; word-break: break-all; }
+.tk-b { font-weight: 700; }
+.tk-w { font-size: 1.6em; line-height: 1.2; white-space: pre-wrap; }
+.tk-corte { border-top: 1px dashed #9ca3af; margin: 8px -12px; }
+.tk-img { color: #6b7280; }
+.tk-vacio { color: #6b7280; text-align: center; padding: 30px 0; white-space: normal; }

@@ -1,3 +1,40 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Neurix POS — reglas de Apache
+#
+# El ideal es publicar solo index.php, themes/ y uploads/, con app/, system/,
+# vendor/, files/ y sinpe-service/ fuera de la raiz web. Mientras esa mudanza no
+# ocurra, estas reglas niegan por HTTP lo que no debe salir del servidor.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Lo que nunca se sirve ────────────────────────────────────────────────────
+RedirectMatch 404 /\.git
+RedirectMatch 404 /\.idea
+RedirectMatch 404 /\.claude
+RedirectMatch 404 /node_modules
+
+<FilesMatch "(?i)\.(sql|sqlite|db|env|lock|neon|log|rar|zip|bak|ini|p12|pem|key|md)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "(?i)^(composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml|phpstan\.neon|conf\.env|manifest\.json)$">
+    Require all denied
+</FilesMatch>
+
+# Los volcados de la base y las pruebas no son parte de la aplicacion publicada.
+RedirectMatch 404 ^/(tests|migraciones)/
+# Los certificados de firma y los XML emitidos salen por el controlador, que
+# comprueba la sesion; nunca como archivo suelto.
+RedirectMatch 404 ^/files/
+
+# uploads/ guarda lo que sube el usuario y no debe ejecutarse. La regla vive en
+# uploads/.htaccess: <Directory> solo es valido en httpd.conf y dentro de un
+# .htaccess Apache responde 500 a *toda* la aplicacion.
+
+<IfModule mod_headers.c>
+    # Refuerzo de lo que ya manda MY_Controller, para los archivos estaticos.
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>
+
 <IfModule mod_rewrite.c>
 
 RewriteEngine On

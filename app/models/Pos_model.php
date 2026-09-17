@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
@@ -8,42 +12,77 @@ class Pos_model extends CI_Model {
     public function __construct() {
         parent::__construct();
     }
+    /**
+     * Autocompletado de productos del POS.
+     *
+     * @param string $term        Texto tecleado o codigo leido por el lector
+     * @param int    $sensibility Ajuste sensibility_search: 0 contiene, 1 empieza,
+     *                            2 termina, 3 exacto. Por omision, el de Ajustes.
+     */
     public function getProductNames($term, $limit = 10, $sensibility = null) {
-        $store_id = $this->session->userdata('store_id');
-        $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(psq.qty_fracc, 0) as qty_fracc, 0 as esta_fraccionado, COALESCE(imp.id_impuesto, 0) as id_impuesto, COALESCE(imp.codigo_impuesto, 0) as codigo_impuesto, COALESCE(imp.codigo_tarifa, 0) as codigo_tarifa")
+        $term = trim((string) $term);
+        if ($term === '') {
+            return FALSE;
+        }
+        if ($sensibility === null) {
+            $sensibility = (int) $this->Settings->sensibility_search;
+        }
+
+        // El lector de barras manda el codigo completo: resolverlo por igualdad
+        // usa el indice, mientras que un LIKE con comodin adelante obliga a
+        // recorrer toda la tabla en cada tecla.
+        if ($filas = $this->_buscarProductos($term, $sensibility, $limit, TRUE)) {
+            return $filas;
+        }
+        return $this->_buscarProductos($term, $sensibility, $limit, FALSE);
+    }
+
+    private function _buscarProductos($term, $sensibility, $limit, $solo_codigo) {
+        $store_id = (int) $this->session->userdata('store_id');
+        $p        = $this->db->dbprefix('products');
+
+        $this->db->select("{$p}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(psq.qty_fracc, 0) as qty_fracc, 0 as esta_fraccionado, COALESCE(imp.id_impuesto, 0) as id_impuesto, COALESCE(imp.codigo_impuesto, 0) as codigo_impuesto, COALESCE(imp.codigo_tarifa, 0) as codigo_tarifa")
                 ->join("( SELECT product_id, MAX(quantity) as quantity, MAX(price) as price, MAX(qty_fracc) as qty_fracc from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left')
                 ->join("{$this->db->dbprefix('impuestos')} imp", 'products.id_tax=imp.id_impuesto', 'left');
-        if ($this->db->dbdriver == 'sqlite3') {
-            $this->db->where("(name LIKE '%{$term}%' OR code LIKE '%{$term}%' OR  (name || ' (' || code || ')') LIKE '%{$term}%')");
-        } else {
-            if ($this->Settings->sensibility_search == 0) {
-                $this->db->where("(name LIKE '%{$term}%' OR code LIKE '%{$term}%' OR  concat(name, ' (', code, ')') LIKE '%{$term}%')");
-            } elseif ($this->Settings->sensibility_search == 1) {
-                $this->db->where("(name LIKE '{$term}%' OR code LIKE '{$term}%' OR  concat(name, ' (', code, ')') LIKE '{$term}%')");
-            } elseif ($this->Settings->sensibility_search == 2) {
-                $this->db->where("(name LIKE '%{$term}' OR code LIKE '%{$term}' OR  concat(name, ' (', code, ')') LIKE '%{$term}')");
-            } elseif ($this->Settings->sensibility_search == 3) {
-                $this->db->where("(name LIKE '{$term}' OR code LIKE '{$term}' OR  concat(name, ' (', code, ')') LIKE '{$term}')");
-            }
-        }
-        $this->db->group_by('products.id')->limit($limit);
-        $q = $this->db->get('products');
-              
-        
-        if ($q->num_rows() > 0) {
 
-            foreach (($q->result()) as $row) {
-                $row->store_price = $row->price;
-                if ($row->tax_method == '0') {
-                    $row->tax_method  = '1';
-                    $row->store_price = invert_tax_price($row->store_price, $row->tax);
-                    $row->price       = $row->store_price;
+        if ($solo_codigo) {
+            $this->db->where('code', $term);
+        } elseif ($sensibility === 3) {
+            $this->db->group_start()->where('name', $term)->or_where('code', $term)->group_end();
+        } else {
+            $lados = array(0 => 'both', 1 => 'after', 2 => 'before');
+            $lado  = isset($lados[$sensibility]) ? $lados[$sensibility] : 'both';
+            // Cada palabra tiene que aparecer, para que "arroz pelon" encuentre
+            // "Arroz 1kg Tio Pelon". like() escapa el valor y los comodines.
+            foreach (preg_split('/\s+/', $term) as $palabra) {
+                if ($palabra === '') {
+                    continue;
                 }
-                $data[] = $row;
+                $this->db->group_start()
+                        ->like('name', $palabra, $lado)
+                        ->or_like('code', $palabra, $lado)
+                        ->group_end();
             }
-            return $data;
+            $esc = $this->db->escape($term);
+            $this->db->order_by("CASE WHEN {$p}.code = {$esc} THEN 0 WHEN {$p}.name LIKE CONCAT({$esc}, '%') THEN 1 ELSE 2 END, {$p}.name", '', FALSE);
         }
-        return FALSE;
+
+        $q = $this->db->group_by("{$p}.id")->limit((int) $limit)->get('products');
+        if ($q->num_rows() === 0) {
+            return FALSE;
+        }
+
+        $data = array();
+        foreach ($q->result() as $row) {
+            $row->store_price = $row->price;
+            if ($row->tax_method == '0') {
+                $row->tax_method  = '1';
+                $row->store_price = invert_tax_price($row->store_price, $row->tax);
+                $row->price       = $row->store_price;
+            }
+            $data[] = $row;
+        }
+        return $data;
     }
 
     public function getProductPrice($term, $limit = 1) {
@@ -51,10 +90,13 @@ class Pos_model extends CI_Model {
         $this->db->select("{$this->db->dbprefix('products')}.*, COALESCE(psq.quantity, 0) as quantity, COALESCE(psq.price, 0) as store_price, COALESCE(imp.id_impuesto, 0) as id_impuesto, COALESCE(imp.codigo_impuesto, 0) as codigo_impuesto, COALESCE(imp.codigo_tarifa, 0) as codigo_tarifa")
                 ->join("( SELECT product_id, MAX(quantity) as quantity, MAX(price) as price from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$store_id} GROUP BY product_id) psq", 'products.id=psq.product_id', 'left')
                 ->join("{$this->db->dbprefix('impuestos')} imp", 'products.id_tax=imp.id_impuesto', 'left');
+        // El termino viene del lector de codigo de barras y del navegador: se
+        // escapa antes de entrar en la sentencia.
         if ($this->db->dbdriver == 'sqlite3') {
-            $this->db->where("(name LIKE '%{$term}%' OR code LIKE '%{$term}%' OR  (name || ' (' || code || ')') LIKE '%{$term}%')");
+            $t = $this->db->escape_like_str($term);
+            $this->db->where("(name LIKE '%{$t}%' ESCAPE '!' OR code LIKE '%{$t}%' ESCAPE '!' OR (name || ' (' || code || ')') LIKE '%{$t}%' ESCAPE '!')", NULL, FALSE);
         } else {
-            $this->db->where("code LIKE '{$term}'");
+            $this->db->like('code', $term, 'none');
         }
         $this->db->group_by('products.id')->limit($limit);
         $q = $this->db->get('products');
@@ -672,6 +714,59 @@ class Pos_model extends CI_Model {
         return false;
     }
 
+    /**
+     * Devoluciones de efectivo por facturas anuladas durante el turno.
+     *
+     * Es dinero que salio de la gaveta: se resta del efectivo esperado y se
+     * detalla en el cierre para que se sepa que paso con el.
+     *
+     * @return object total, cantidad
+     */
+    public function getRegisterAnulaciones($date = NULL, $user_id = NULL) {
+        if (!$this->db->table_exists('sale_anulaciones')) {
+            return (object) array('total' => 0, 'cantidad' => 0);
+        }
+        // Sin caja abierta no hay turno que resumir: una fecha vacia arma
+        // 'created_at > ' sin valor y revienta la consulta.
+        $date = $date ?: $this->session->userdata('register_open_time');
+        if (!$date) {
+            return (object) array('total' => 0, 'cantidad' => 0);
+        }
+        if (!$user_id) {
+            $user_id = $this->session->userdata('user_id');
+        }
+
+        $this->db->select('COALESCE(SUM(monto_devuelto),0) AS total, COUNT(*) AS cantidad', FALSE)
+            ->where('created_at >', $date)
+            ->where('created_by', $user_id)
+            ->where('devuelve_dinero', 1)
+            ->where('medio_devolucion', 'efectivo');
+        $q = $this->db->get($this->db->dbprefix('sale_anulaciones'));
+
+        return $q->num_rows() ? $q->row() : (object) array('total' => 0, 'cantidad' => 0);
+    }
+
+    /** Detalle de las anulaciones del turno, con o sin devolucion de dinero. */
+    public function getRegisterAnulacionesDetalle($date = NULL, $user_id = NULL) {
+        if (!$this->db->table_exists('sale_anulaciones')) {
+            return array();
+        }
+        $date = $date ?: $this->session->userdata('register_open_time');
+        if (!$date) {
+            return array();
+        }
+        if (!$user_id) {
+            $user_id = $this->session->userdata('user_id');
+        }
+
+        $this->db->select('sale_id, motivo, tipo, monto_devuelto, medio_devolucion, cajon_abierto, created_at')
+            ->where('created_at >', $date)
+            ->where('created_by', $user_id)
+            ->order_by('created_at', 'DESC');
+
+        return $this->db->get($this->db->dbprefix('sale_anulaciones'))->result();
+    }
+
     public function getRetiros($date = NULL, $user_id = NULL) {
         if (!$date) {
             $date = $this->session->userdata('register_open_time');
@@ -806,6 +901,127 @@ class Pos_model extends CI_Model {
         return false;
     }
 
+    /**
+     * Cobros del turno agrupados por forma de pago.
+     *
+     * Las consultas de cierre estaban escritas una por metodo contra un valor
+     * fijo de paid_by, asi que SINPE y transferencia no aparecian en ningun
+     * lado y la tarjeta buscaba 'CC', que no es lo que graba el POS. Esta
+     * devuelve lo que haya y la vista agrupa por familia.
+     *
+     * @return array paid_by => monto cobrado
+     */
+    public function getRegisterPagosPorMetodo($date = NULL, $user_id = NULL) {
+        if (!$date) {
+            $date = $this->session->userdata('register_open_time');
+        }
+        if (!$user_id) {
+            $user_id = $this->session->userdata('user_id');
+        }
+
+        // Mismo criterio que el resto del cierre: lo cobrado es el pago menos
+        // el vuelto, salvo cuando el saldo quedo en contra.
+        $this->db
+            ->select("{$this->db->dbprefix('payments')}.paid_by,
+                COUNT({$this->db->dbprefix('payments')}.id) AS pagos,
+                COALESCE(SUM(COALESCE(
+                CASE WHEN (pos_balance < 0)
+                    THEN COALESCE(amount,0)
+                    ELSE COALESCE((amount - pos_balance),0)
+                END,0)),0) AS total", FALSE)
+            ->join('sales', 'sales.id=payments.sale_id', 'left')
+            ->where('payments.date >', $date)
+            ->where('payments.created_by', $user_id)
+            ->group_by("{$this->db->dbprefix('payments')}.paid_by");
+
+        $q = $this->db->get('payments');
+        $totales = array();
+        foreach ($q->result() as $fila) {
+            $totales[(string) $fila->paid_by] = array(
+                'total' => (float) $fila->total,
+                'pagos' => (int) $fila->pagos,
+            );
+        }
+
+        return $totales;
+    }
+
+    /**
+     * Ventas del turno agrupadas por tasa de impuesto.
+     *
+     * Las consultas por tasa comparaban `tax` contra '13', pero la columna
+     * guarda '13%': no coincidian nunca y el cierre solo mostraba las exentas.
+     * El subtotal viene con impuesto incluido, igual que en el resto del cierre.
+     *
+     * @return array tasa => ['subtotal' => float, 'impuesto' => float, 'lineas' => int]
+     */
+    public function getRegisterVentasPorImpuesto($date = NULL, $user_id = NULL) {
+        if (!$date) {
+            $date = $this->session->userdata('register_open_time');
+        }
+        if (!$user_id) {
+            $user_id = $this->session->userdata('user_id');
+        }
+
+        $items = $this->db->dbprefix('sale_items');
+        $this->db
+            ->select("CAST(REPLACE(COALESCE({$items}.tax, '0'), '%', '') AS DECIMAL(6,2)) AS tasa,
+                      COUNT({$items}.id) AS lineas,
+                      COALESCE(SUM(COALESCE({$items}.subtotal, 0)), 0) AS subtotal", FALSE)
+            ->join('sales', 'sales.id=' . $items . '.sale_id', 'left')
+            ->where('sales.date >', $date)
+            ->where('sales.created_by', $user_id)
+            ->group_by('tasa')
+            ->order_by('tasa', 'ASC');
+
+        $q = $this->db->get('sale_items');
+        $porTasa = array();
+        foreach ($q->result() as $fila) {
+            $tasa     = (float) $fila->tasa;
+            $subtotal = (float) $fila->subtotal;
+            $porTasa[(string) $tasa] = array(
+                'tasa'     => $tasa,
+                'lineas'   => (int) $fila->lineas,
+                'subtotal' => $subtotal,
+                'impuesto' => $tasa > 0 ? $subtotal - ($subtotal / (1 + ($tasa / 100))) : 0.0,
+            );
+        }
+
+        return $porTasa;
+    }
+
+    /**
+     * SINPE que entro durante el turno, segun lo que registro el servicio.
+     *
+     * Un SINPE entrante no es lo mismo que un pago con SINPE: puede llegar
+     * dinero que todavia no se aplico a ninguna venta.
+     *
+     * @return array entrantes/monto y aplicados/monto_aplicado
+     */
+    public function getRegisterSinpeEntrantes($date = NULL) {
+        if (!$date) {
+            $date = $this->session->userdata('register_open_time');
+        }
+        if (!$this->db->table_exists('sinpe_transactions')) {
+            return array('entrantes' => 0, 'monto' => 0.0, 'aplicados' => 0, 'monto_aplicado' => 0.0);
+        }
+
+        $this->db->select('COUNT(*) AS entrantes,
+                COALESCE(SUM(monto), 0) AS monto,
+                COALESCE(SUM(sale_id IS NOT NULL), 0) AS aplicados,
+                COALESCE(SUM(CASE WHEN sale_id IS NOT NULL THEN monto ELSE 0 END), 0) AS monto_aplicado', FALSE)
+            ->where('fecha >', $date);
+
+        $fila = $this->db->get('sinpe_transactions')->row();
+
+        return array(
+            'entrantes'      => $fila ? (int) $fila->entrantes : 0,
+            'monto'          => $fila ? (float) $fila->monto : 0.0,
+            'aplicados'      => $fila ? (int) $fila->aplicados : 0,
+            'monto_aplicado' => $fila ? (float) $fila->monto_aplicado : 0.0,
+        );
+    }
+
     public function getRegisterOtherSales($date = NULL, $user_id = NULL) {
         if (!$date) {
             $date = $this->session->userdata('register_open_time');
@@ -885,18 +1101,45 @@ class Pos_model extends CI_Model {
     }
 
     public function products_count($category_id) {
+        $store_id = (int) $this->session->userdata('store_id');
+        $psq = $this->db->dbprefix('product_store_qty');
+        $this->db->join('product_store_qty',
+            'product_store_qty.product_id = products.id AND product_store_qty.store_id = ' . ($store_id ?: 1),
+            'left');
         if ($category_id) {
-            $this->db->where('category_id', $category_id);
+            $this->db->where('products.category_id', $category_id);
         }
+        $this->_soloConExistencia($psq);
         return $this->db->count_all_results('products');
     }
 
+    /**
+     * La rejilla del POS no muestra articulos agotados: el cajero los toca por
+     * error y la venta se cae al validar existencias. Solo aplica al tipo
+     * 'standard'; servicios y combos no llevan inventario.
+     */
+    private function _soloConExistencia($psq) {
+        $pr = $this->db->dbprefix('products');
+        $this->db->where("({$pr}.type <> 'standard' OR COALESCE({$psq}.quantity, 0) > 0)", NULL, FALSE);
+    }
+
     public function fetch_products($category_id, $limit, $start) {
+        // La existencia vive en product_store_qty, una fila por tienda; el POS
+        // necesita mostrarla en la tarjeta del producto.
+        $store_id = (int) $this->session->userdata('store_id');
+        $psq = $this->db->dbprefix('product_store_qty');
+        $pr  = $this->db->dbprefix('products');
+
+        $this->db->select($pr . '.*, ' . $psq . '.quantity AS existencia', FALSE);
+        $this->db->join('product_store_qty',
+            'product_store_qty.product_id = products.id AND product_store_qty.store_id = ' . ($store_id ?: 1),
+            'left');
         $this->db->limit($limit, $start);
         if ($category_id) {
-            $this->db->where('category_id', $category_id);
+            $this->db->where('products.category_id', $category_id);
         }
-        $this->db->order_by("code", "asc");
+        $this->_soloConExistencia($psq);
+        $this->db->order_by($pr . ".code", "asc");
         $query = $this->db->get("products");
 
         if ($query->num_rows() > 0) {
@@ -928,6 +1171,9 @@ class Pos_model extends CI_Model {
         if (!$user_id) {
             $user_id = $this->session->userdata('user_id');
         }
+        // Orden explicito: la caja activa es siempre la mas vieja sin cerrar, no
+        // la que el motor devuelva primero.
+        $this->db->order_by('id', 'ASC');
         $q = $this->db->get_where('registers', array('user_id' => $user_id, 'status' => 'open'), 1);
         if ($q->num_rows() > 0) {
             return $q->row();
@@ -935,9 +1181,10 @@ class Pos_model extends CI_Model {
         return FALSE;
     }
 
+    /** Devuelve el id de la caja abierta, o FALSE si el INSERT falla. */
     public function openRegister($data) {
         if ($this->db->insert('registers', $data)) {
-            return true;
+            return (int) $this->db->insert_id();
         }
         return FALSE;
     }
@@ -1014,6 +1261,22 @@ class Pos_model extends CI_Model {
         }
         return FALSE;
     }    
+
+    /**
+     * Saldo pendiente de un cliente: lo que ya debe de ventas sin saldar.
+     *
+     * Es la mitad del calculo de crédito disponible; la otra es su límite.
+     */
+    public function deudaCliente($customer_id)
+    {
+        $q = $this->db->select('SUM(grand_total - paid) AS saldo', FALSE)
+            ->where('customer_id', (int) $customer_id)
+            ->where('status <>', 'paid')
+            ->get('sales');
+
+        $fila = $q->num_rows() ? $q->row() : null;
+        return $fila && $fila->saldo ? (float) $fila->saldo : 0.0;
+    }
 
     public function getProductByCode($code) {
         $jpsq = "( SELECT product_id, quantity, price from {$this->db->dbprefix('product_store_qty')} WHERE store_id = {$this->session->userdata('store_id')} ) AS PSQ";    
@@ -1127,9 +1390,12 @@ class Pos_model extends CI_Model {
                 }
             }
 
+            // La cuenta en espera que dio origen a la venta se cierra aca; los
+            // otros textos van aparte y quedaban huerfanos.
             if ($did) {
                 $this->db->delete('suspended_sales', array('id' => $did));
                 $this->db->delete('suspended_items', array('suspend_id' => $did));
+                $this->db->delete('suspended_otros_textos', array('suspend_id' => $did));
             }
             $msg = array();
             if (!empty($payment)) {
@@ -1341,10 +1607,6 @@ class Pos_model extends CI_Model {
         }
 
         return false;
-    }
-
-    public function impresoComanda($id, $qty_enviado){
-        $this->db->update('suspended_items', array('enviado_cocina' => 1, 'qty_enviado' => $qty_enviado), array('id' => $id));
     }
 
     public function TransformarApartadoSales($data, $items, $apa, $otrostextos) {
@@ -2247,9 +2509,12 @@ class Pos_model extends CI_Model {
     }
 
     public function getAllDebitNotesItems($id_nd) {
+        // CI no prefija lo que va dentro de una funcion: ahi el nombre real.
+        $ndi = $this->db->dbprefix('note_debits_items');
+        $pro = $this->db->dbprefix('products');
         $this->db->select("note_debits_items.*,
-            COALESCE(note_debits_items.product_code, products.code) as product_code,
-            COALESCE(note_debits_items.product_name, products.name) as product_name,
+            COALESCE(`{$ndi}`.product_code, `{$pro}`.code) as product_code,
+            COALESCE(`{$ndi}`.product_name, `{$pro}`.name) as product_name,
             products.tax as tax_rate")
             ->join('products', 'products.id = note_debits_items.product_id', 'left outer')
             ->order_by('note_debits_items.id');

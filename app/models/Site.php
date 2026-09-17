@@ -1,4 +1,10 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Site extends CI_Model
 {
@@ -121,7 +127,7 @@ class Site extends CI_Model
     }
 
     public function getAllUsers() {
-        $this->db->select("{$this->db->dbprefix('users')}.id as id, first_name, last_name, {$this->db->dbprefix('users')}.email, company, {$this->db->dbprefix('groups')}.name as group, active, {$this->db->dbprefix('stores')}.name as store")
+        $this->db->select("{$this->db->dbprefix('users')}.id as id, first_name, last_name, {$this->db->dbprefix('users')}.email, company, {$this->db->dbprefix('groups')}.description as group, {$this->db->dbprefix('groups')}.name as group_slug, active, {$this->db->dbprefix('stores')}.name as store")
             ->join('groups', 'users.group_id=groups.id', 'left')
             ->join('stores', 'users.store_id=stores.id', 'left')
             ->group_by('users.id');
@@ -272,21 +278,28 @@ class Site extends CI_Model
     }
  
     /**
-     * Admin-group users with a drawer PIN configured, for the cash-drawer
-     * PIN verification endpoint (PosPrint::verify_drawer_pin).
+     * Usuarios con PIN de cajon puesto, para el endpoint que lo verifica
+     * (PosPrint::verify_drawer_pin) y para autorizar una devolucion en efectivo.
+     *
+     * El supervisor existe justamente para eso: autoriza el cajon sin llevar
+     * los permisos de administrador.
      */
     public function getAdminUsersWithDrawerPin() {
         $this->db->select('users.id, users.username, users.drawer_pin');
         $this->db->join('groups', 'groups.id = users.group_id');
-        $this->db->where('groups.name', 'admin');
-        $this->db->where('users.drawer_pin IS NOT NULL', null, false);
+        $this->db->where_in('groups.name', array('admin', 'supervisor'));
+        // La condicion va sin escapar, y CI3 no aplica el prefijo de tabla a lo
+        // que no escapa: 'users.drawer_pin' llegaba literal y MySQL no conoce
+        // esa tabla. Sin esto, abrir el cajon con PIN respondia error de base.
+        $u = $this->db->dbprefix('users');
+        $this->db->where("`{$u}`.drawer_pin IS NOT NULL AND `{$u}`.drawer_pin <> ''", null, false);
         $this->db->where('users.active', 1);
         return $this->db->get('users')->result();
     }
 
     public function getUserSuspenedSales() {
         $user_id = $this->session->userdata('user_id');
-        $this->db->select('id, date, customer_name, hold_ref,id_waiting_tables, note')
+        $this->db->select('id, date, customer_name, hold_ref, id_waiting_tables, note, grand_total')
         ->order_by('id desc');
         //->limit(10);
         $this->db->where('store_id', $this->session->userdata('store_id'));
@@ -335,26 +348,6 @@ class Site extends CI_Model
         }
         $q = $this->db->get_where('registers', array('user_id' => $user_id, 'status' => 'open'), 1);
         if ($q->num_rows() > 0) {
-            return $q->row();
-        }
-        return FALSE;
-    }
-
-    public function getAllPrinters() {
-        $this->db->order_by('title');
-        $q = $this->db->get('printers');
-        if ($q->num_rows() > 0) {
-            foreach (($q->result()) as $row) {
-                $data[] = $row;
-            }
-            return $data;
-        }
-        return FALSE;
-    }
-
-    public function getPrinterByID($id) {
-        $q = $this->db->get_where('printers', array('id' => $id), 1);
-        if ( $q->num_rows() > 0 ) {
             return $q->row();
         }
         return FALSE;

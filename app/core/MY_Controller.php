@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class MY_Controller extends CI_Controller
@@ -9,6 +13,9 @@ class MY_Controller extends CI_Controller
     {
         parent::__construct();
 
+        $this->_cabeceras_seguridad();
+        $this->_cabecera_csrf();
+
         date_default_timezone_set('America/Costa_Rica');
         date_default_timezone_get();
 
@@ -16,7 +23,22 @@ class MY_Controller extends CI_Controller
         $this->Settings = $this->site->getSettings();
         $this->Settings->password_token_test = decrypt_credential($this->Settings->password_token_test ?? '');
         $this->Settings->password_token_prod = decrypt_credential($this->Settings->password_token_prod ?? '');
-        $this->Settings->certificado_pin     = decrypt_credential($this->Settings->certificado_pin ?? '');
+        // certificado_ced / certificado_pin son el par efectivo: quien firma no elige ambiente,
+        // lo hereda de aqui. Los sufijados guardan cada ambiente por separado.
+        $certPorAmbiente = property_exists($this->Settings, 'certificado_ced_test');
+        $this->Settings->certificado_pin_test = decrypt_credential($this->Settings->certificado_pin_test ?? '');
+        $this->Settings->certificado_pin_prod = decrypt_credential($this->Settings->certificado_pin_prod ?? '');
+        $this->Settings->certificado_pin      = decrypt_credential($this->Settings->certificado_pin ?? '');
+        $this->Settings->smtp_pass            = decrypt_credential($this->Settings->smtp_pass ?? '');
+        $this->Settings->mail_client_pass     = decrypt_credential($this->Settings->mail_client_pass ?? '');
+        $this->Settings->google_client_secret = decrypt_credential($this->Settings->google_client_secret ?? '');
+        $this->Settings->mail_oauth_refresh        = decrypt_credential($this->Settings->mail_oauth_refresh ?? '');
+        $this->Settings->mail_client_oauth_refresh = decrypt_credential($this->Settings->mail_client_oauth_refresh ?? '');
+        if ($certPorAmbiente) {
+            $amb = ($this->Settings->ambiente ?? 'test') === 'prod' ? 'prod' : 'test';
+            $this->Settings->certificado_ced = $this->Settings->{'certificado_ced_' . $amb} ?? '';
+            $this->Settings->certificado_pin = $this->Settings->{'certificado_pin_' . $amb} ?? '';
+        }
         if ($spos_language = $this->input->cookie('spos_language', TRUE)) {
             $this->Settings->selected_language = $spos_language;
             $this->config->set_item('language', $spos_language);
@@ -29,6 +51,7 @@ class MY_Controller extends CI_Controller
         $this->Settings->pin_code = $this->Settings->pin_code ? md5($this->Settings->pin_code) : NULL;
         $this->theme = $this->Settings->theme . '/views/';
         $this->data['assets'] = base_url() . 'themes/' . $this->Settings->theme . '/assets/';
+        $this->data['token_accion'] = $this->token_accion();
         $this->data['Settings'] = $this->Settings;
         $this->loggedIn = $this->tec->logged_in();
         $this->data['loggedIn'] = $this->loggedIn;
@@ -46,7 +69,7 @@ class MY_Controller extends CI_Controller
         $this->load->dbforge();
 
 
-        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 61) { // actualizar a max_version+2 al agregar nuevas migraciones
+        if (!isset($this->Settings->versionPOS) || (int)$this->Settings->versionPOS < 102) { // actualizar al versionPOS final de la ultima migracion al agregar nuevas
 
         $versionInitial = false;
         if (!$this->db->field_exists('versionPOS', 'settings')) {
@@ -1360,25 +1383,6 @@ class MY_Controller extends CI_Controller
 
         if ($this->Settings->versionPOS == "25" || $versionInitial) {
 
-            if (!$this->db->field_exists('enviado_cocina', 'suspended_items')) {
-                $this->dbforge->add_column('suspended_items', array(
-                    'enviado_cocina' => array(
-                        'type' => 'tinyint',
-                        'constraint' => '1',
-                        'default' => '0',
-                        'null' => FALSE,
-                    )
-                ));
-                $this->dbforge->add_column('suspended_items', array(
-                    'qty_enviado' => array(
-                        'type' => 'int',
-                        'constraint' => '10',
-                        'default' => '0',
-                        'null' => FALSE,
-                    )
-                ));
-            }
-
             $this->db->update('settings', array('versionPOS' => '26'));
         }
 
@@ -2026,10 +2030,10 @@ class MY_Controller extends CI_Controller
             if (!$this->db->table_exists('impuestos')) {
                 // Estructura idéntica al esquema real (posv) — Hacienda CR v4.4
                 $this->db->query("CREATE TABLE `{$this->db->dbprefix}impuestos` (
-                    `id_impuesto`          INT(10)       NOT NULL,
+                    `id_impuesto`          INT(10)       NOT NULL AUTO_INCREMENT,
                     `codigo_impuesto`      VARCHAR(12)   DEFAULT NULL,
                     `codigo_tarifa`        VARCHAR(6)    DEFAULT NULL,
-                    `tasa_impuesto`        DECIMAL(17,0) DEFAULT NULL,
+                    `tasa_impuesto`        DECIMAL(17,2) DEFAULT NULL,
                     `descripcion_impuesto` VARCHAR(360)  DEFAULT NULL,
                     `status_impuestos`     VARCHAR(3)    DEFAULT NULL,
                     PRIMARY KEY (`id_impuesto`)
@@ -2085,24 +2089,6 @@ class MY_Controller extends CI_Controller
         }
 
         if ($this->Settings->versionPOS == "53" || $versionInitial) {
-            // Agrega columnas faltantes a tec_printers (tabla creada con esquema antiguo)
-            if ($this->db->table_exists('printers')) {
-                if (!$this->db->field_exists('title', 'printers'))
-                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
-                        ADD COLUMN `title` VARCHAR(100) NULL DEFAULT NULL");
-                if (!$this->db->field_exists('profile', 'printers'))
-                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
-                        ADD COLUMN `profile` VARCHAR(50) NULL DEFAULT 'default'");
-                if (!$this->db->field_exists('char_per_line', 'printers'))
-                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
-                        ADD COLUMN `char_per_line` INT(3) NULL DEFAULT 42");
-                if (!$this->db->field_exists('ip_address', 'printers'))
-                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
-                        ADD COLUMN `ip_address` VARCHAR(45) NULL DEFAULT NULL");
-                if (!$this->db->field_exists('path', 'printers'))
-                    $this->db->query("ALTER TABLE `{$this->db->dbprefix}printers`
-                        ADD COLUMN `path` VARCHAR(255) NULL DEFAULT NULL");
-            }
             $this->db->update('settings', array('versionPOS' => '54'));
             $versionInitial = true;
         }
@@ -2316,7 +2302,1359 @@ class MY_Controller extends CI_Controller
             $versionInitial = true;
         }
 
+        if ($this->Settings->versionPOS == "61" || $versionInitial) {
+            // Transacciones SINPE Móvil detectadas por el servicio de vigilancia de Gmail
+            // (ver /sinpe-service junto a este repo). email_id es el id del mensaje de Gmail:
+            // es la clave de negocio real, evita procesar el mismo correo dos veces.
+            if (!$this->db->table_exists('sinpe_transactions')) {
+                $fields = array(
+                    'id_sinpe_transaction' => array(
+                        'type' => 'INT',
+                        'constraint' => 11,
+                        'unsigned' => TRUE,
+                        'auto_increment' => TRUE
+                    ),
+                    'email_id' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '64',
+                        'null' => FALSE,
+                    ),
+                    'comprobante' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '60',
+                        'null' => TRUE,
+                    ),
+                    'nombre' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '150',
+                        'null' => TRUE,
+                    ),
+                    'telefono' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '20',
+                        'null' => TRUE,
+                    ),
+                    'monto' => array(
+                        'type' => 'DECIMAL',
+                        'constraint' => '12,2',
+                        'null' => TRUE,
+                    ),
+                    'fecha' => array(
+                        'type' => 'DATETIME',
+                        'null' => TRUE,
+                    ),
+                    'banco' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '40',
+                        'null' => TRUE,
+                    ),
+                    'descripcion' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '255',
+                        'null' => TRUE,
+                    ),
+                    'estado' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '20',
+                        'default' => 'pendiente',
+                        'null' => FALSE,
+                    ),
+                    'sale_id' => array(
+                        'type' => 'INT',
+                        'constraint' => 11,
+                        'unsigned' => TRUE,
+                        'null' => TRUE,
+                    ),
+                    'created_at' => array(
+                        'type' => 'DATETIME',
+                        'null' => FALSE,
+                    ),
+                );
+                $this->dbforge->add_key('id_sinpe_transaction', TRUE);
+                $this->dbforge->add_field($fields);
+                $this->dbforge->create_table('sinpe_transactions');
+
+                $st = $this->db->dbprefix('sinpe_transactions');
+                $this->db->query("ALTER TABLE `{$st}` ADD UNIQUE KEY `email_id` (`email_id`)");
+                $this->db->query("ALTER TABLE `{$st}` ADD INDEX `idx_estado_fecha` (`estado`, `fecha`)");
+                $this->db->query("ALTER TABLE `{$st}` ADD INDEX `idx_sale_id` (`sale_id`)");
+            }
+
+            // Configuración de la vigilancia SINPE (una sola fila, id = 1).
+            // El refresh_token de Gmail se guarda cifrado (ver sinpe-service/crypto.js) —
+            // nunca en texto plano, aunque esta tabla no sea de acceso público.
+            if (!$this->db->table_exists('sinpe_settings')) {
+                $fields = array(
+                    'id_sinpe_settings' => array(
+                        'type' => 'INT',
+                        'constraint' => 11,
+                        'unsigned' => TRUE,
+                        'auto_increment' => TRUE
+                    ),
+                    'gmail_email' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '150',
+                        'null' => TRUE,
+                    ),
+                    'refresh_token_enc' => array(
+                        'type' => 'TEXT',
+                        'null' => TRUE,
+                    ),
+                    'banco' => array(
+                        'type' => 'VARCHAR',
+                        'constraint' => '40',
+                        'default' => 'auto',
+                        'null' => FALSE,
+                    ),
+                    'intervalo' => array(
+                        'type' => 'INT',
+                        'constraint' => 11,
+                        'default' => 15,
+                        'null' => FALSE,
+                    ),
+                    'activo' => array(
+                        'type' => 'TINYINT',
+                        'constraint' => 1,
+                        'default' => 0,
+                        'null' => FALSE,
+                    ),
+                    'last_check' => array(
+                        'type' => 'DATETIME',
+                        'null' => TRUE,
+                    ),
+                    'updated_at' => array(
+                        'type' => 'DATETIME',
+                        'null' => TRUE,
+                    ),
+                );
+                $this->dbforge->add_key('id_sinpe_settings', TRUE);
+                $this->dbforge->add_field($fields);
+                $this->dbforge->create_table('sinpe_settings');
+                $this->db->insert('sinpe_settings', array(
+                    'id_sinpe_settings' => 1,
+                    'banco' => 'auto',
+                    'intervalo' => 15,
+                    'activo' => 0,
+                ));
+            }
+
+            $this->db->update('settings', array('versionPOS' => '62'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "62" || $versionInitial) {
+            // Certificado y PIN separados por ambiente: Hacienda entrega una llave distinta
+            // para stag y otra para prod, y el PIN casi nunca coincide entre las dos.
+            $s = $this->db->dbprefix('settings');
+            foreach (array('certificado_ced_test', 'certificado_ced_prod', 'certificado_pin_test', 'certificado_pin_prod') as $col) {
+                if (!$this->db->field_exists($col, 'settings'))
+                    $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `{$col}` VARCHAR(255) NULL DEFAULT NULL");
+            }
+            // El certificado que ya estaba configurado pertenece al ambiente activo.
+            $amb = ($this->Settings->ambiente === 'prod') ? 'prod' : 'test';
+            $this->db->query("UPDATE `{$s}` SET `certificado_ced_{$amb}` = `certificado_ced`, `certificado_pin_{$amb}` = `certificado_pin`"
+                . " WHERE `certificado_ced_{$amb}` IS NULL AND `certificado_ced` IS NOT NULL AND `certificado_ced` != ''");
+            $this->db->update('settings', array('versionPOS' => '63'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "63" || $versionInitial) {
+            // certificado_pin nacio con 50 caracteres, insuficientes para un PIN cifrado
+            // largo: con STRICT_TRANS_TABLES el guardado entero falla en vez de truncar.
+            $s = $this->db->dbprefix('settings');
+            $this->db->query("ALTER TABLE `{$s}` MODIFY `certificado_pin` VARCHAR(255) NULL DEFAULT NULL");
+            $this->db->update('settings', array('versionPOS' => '64'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "64" || $versionInitial) {
+            // Arranque de la numeracion. El consecutivo se deduce del maximo de las
+            // tablas locales; al migrar desde otro sistema esas tablas estan vacias y
+            // la numeracion volveria a 1, que Hacienda rechaza por consecutivo repetido.
+            $s = $this->db->dbprefix('settings');
+            foreach (array('01', '02', '03', '04', '08', '09') as $tipo) {
+                if (!$this->db->field_exists('consec_inicial_' . $tipo, 'settings'))
+                    $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `consec_inicial_{$tipo}` INT UNSIGNED NOT NULL DEFAULT 0");
+            }
+            if (!$this->db->field_exists('clave_ultima', 'settings'))
+                $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `clave_ultima` VARCHAR(50) NULL DEFAULT NULL");
+            $this->db->update('settings', array('versionPOS' => '65'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "65" || $versionInitial) {
+            // El numero de comprobante ocupa 10 digitos: hasta 9.999.999.999, fuera
+            // del alcance de un INT UNSIGNED (4.294.967.295).
+            $s = $this->db->dbprefix('settings');
+            foreach (array('01', '02', '03', '04', '08', '09') as $tipo) {
+                $this->db->query("ALTER TABLE `{$s}` MODIFY `consec_inicial_{$tipo}` BIGINT UNSIGNED NOT NULL DEFAULT 0");
+            }
+            $this->db->update('settings', array('versionPOS' => '66'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "66" || $versionInitial) {
+            // Puestos de trabajo: que impresora usa cada computadora. QZ Tray corre en
+            // la maquina del cajero, asi que la eleccion es de la maquina y no del
+            // usuario. device_id lo genera el navegador y sobrevive a un cambio de IP;
+            // la IP se guarda para reconocer un equipo que perdio su almacenamiento.
+            if (!$this->db->table_exists('pos_workstations')) {
+                $this->dbforge->add_field(array(
+                    'id' => array('type' => 'INT', 'unsigned' => TRUE, 'auto_increment' => TRUE),
+                    'device_id'   => array('type' => 'VARCHAR', 'constraint' => 64),
+                    'nombre'      => array('type' => 'VARCHAR', 'constraint' => 100, 'null' => TRUE),
+                    'ip'          => array('type' => 'VARCHAR', 'constraint' => 45,  'null' => TRUE),
+                    'qz_printer'  => array('type' => 'VARCHAR', 'constraint' => 150, 'null' => TRUE),
+                    'printer_id'  => array('type' => 'INT', 'null' => TRUE),
+                    'store_id'    => array('type' => 'INT', 'null' => TRUE),
+                    'agente'      => array('type' => 'VARCHAR', 'constraint' => 255, 'null' => TRUE),
+                    'ultimo_uso'  => array('type' => 'DATETIME', 'null' => TRUE),
+                    'creado'      => array('type' => 'DATETIME', 'null' => TRUE),
+                ));
+                $this->dbforge->add_key('id', TRUE);
+                $this->dbforge->create_table('pos_workstations');
+                $w = $this->db->dbprefix('pos_workstations');
+                $this->db->query("ALTER TABLE `{$w}` ADD UNIQUE KEY `device_id` (`device_id`)");
+                $this->db->query("ALTER TABLE `{$w}` ADD KEY `ip` (`ip`)");
+            }
+            $this->db->update('settings', array('versionPOS' => '67'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "67" || $versionInitial) {
+            // Correo: autenticacion por contrasena de aplicacion o por OAuth de Google.
+            // Google retiro el acceso con la contrasena normal de la cuenta, asi que sin
+            // OAuth (o sin una contrasena de aplicacion) ni se envia ni se lee nada.
+            $s = $this->db->dbprefix('settings');
+            $nuevas = array(
+                'mail_auth'                 => "VARCHAR(20) NOT NULL DEFAULT 'password'",
+                'mail_oauth_refresh'        => 'VARCHAR(512) NULL DEFAULT NULL',
+                'mail_oauth_email'          => 'VARCHAR(150) NULL DEFAULT NULL',
+                'mail_client_auth'          => "VARCHAR(20) NOT NULL DEFAULT 'password'",
+                'mail_client_oauth_refresh' => 'VARCHAR(512) NULL DEFAULT NULL',
+                'mail_client_oauth_email'   => 'VARCHAR(150) NULL DEFAULT NULL',
+                'mail_client_crypto'        => "VARCHAR(10) NOT NULL DEFAULT 'ssl'",
+                'mail_client_enabled'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+                'mail_client_carpeta'       => "VARCHAR(100) NOT NULL DEFAULT 'INBOX'",
+                'google_client_id'          => 'VARCHAR(200) NULL DEFAULT NULL',
+                'google_client_secret'      => 'VARCHAR(255) NULL DEFAULT NULL',
+            );
+            foreach ($nuevas as $col => $tipo) {
+                if (!$this->db->field_exists($col, 'settings'))
+                    $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `{$col}` {$tipo}");
+            }
+            // Las contrasenas pasan a guardarse cifradas y ya no caben en el ancho viejo.
+            $this->db->query("ALTER TABLE `{$s}` MODIFY `smtp_pass` VARCHAR(255) NULL DEFAULT NULL");
+            $this->db->query("ALTER TABLE `{$s}` MODIFY `mail_client_pass` VARCHAR(255) NULL DEFAULT NULL");
+            $this->db->query("ALTER TABLE `{$s}` MODIFY `mail_client_port` VARCHAR(10) NULL DEFAULT NULL");
+            $this->db->update('settings', array('versionPOS' => '68'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "68" || $versionInitial) {
+            // Impresoras que reporta cada equipo. QZ Tray solo las puede enumerar desde
+            // el navegador de esa maquina, asi que el POS las manda y quedan guardadas
+            // para poder elegirlas despues desde Ajustes, en otra computadora.
+            if (!$this->db->field_exists('impresoras', 'pos_workstations')) {
+                $w = $this->db->dbprefix('pos_workstations');
+                $this->db->query("ALTER TABLE `{$w}` ADD COLUMN `impresoras` TEXT NULL DEFAULT NULL");
+            }
+            $this->db->update('settings', array('versionPOS' => '69'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "69" || $versionInitial) {
+            // ProveedorSistemas es obligatorio en los siete comprobantes de la v4.4
+            // (Anexos v4.4, datos del encabezado). Se guarda aparte de cedula_emisor
+            // porque puede ser la cedula de un tercero que provee el sistema.
+            if (!$this->db->field_exists('cedula_proveedor_sistemas', 'settings')) {
+                $s = $this->db->dbprefix('settings');
+                $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `cedula_proveedor_sistemas` VARCHAR(20) NULL DEFAULT NULL");
+            }
+            $this->db->update('settings', array('versionPOS' => '70'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "70" || $versionInitial) {
+            // El POS no lleva control de lo enviado a cocina: nada lee estas columnas.
+            foreach (array('enviado_cocina', 'qty_enviado') as $columna) {
+                if ($this->db->field_exists($columna, 'suspended_items')) {
+                    $this->dbforge->drop_column('suspended_items', $columna);
+                }
+            }
+            $this->db->update('settings', array('versionPOS' => '71'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "71" || $versionInitial) {
+            // Sin estas dos columnas el consecutivo sale de 12 digitos en vez de
+            // 20 y la clave de 42 en vez de 50: Hacienda rechaza el comprobante.
+            // El valor correcto esta en los consecutivos ya emitidos (casa matriz
+            // 3 + terminal 5 + tipo 2 + numero 10), asi que se recupera de ahi
+            // antes de caer al 001/00001 de una instalacion nueva.
+            if (!$this->db->field_exists('casa_matriz', 'settings')
+                || !$this->db->field_exists('terminal_pos', 'settings')) {
+
+                $s        = $this->db->dbprefix('settings');
+                $matriz   = '001';
+                $terminal = '00001';
+
+                if ($this->db->table_exists('hacienda_tiketes')) {
+                    $t = $this->db->dbprefix('hacienda_tiketes');
+                    $previo = $this->db->query(
+                        "SELECT consecutivo FROM `{$t}` WHERE CHAR_LENGTH(consecutivo) = 20 ORDER BY id DESC LIMIT 1"
+                    )->row();
+                    if ($previo) {
+                        $matriz   = substr($previo->consecutivo, 0, 3);
+                        $terminal = substr($previo->consecutivo, 3, 5);
+                    }
+                }
+
+                if (!$this->db->field_exists('casa_matriz', 'settings')) {
+                    $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `casa_matriz` VARCHAR(3) NOT NULL DEFAULT '001'");
+                    $this->db->update('settings', array('casa_matriz' => $matriz));
+                }
+                if (!$this->db->field_exists('terminal_pos', 'settings')) {
+                    $this->db->query("ALTER TABLE `{$s}` ADD COLUMN `terminal_pos` VARCHAR(5) NOT NULL DEFAULT '00001'");
+                    $this->db->update('settings', array('terminal_pos' => $terminal));
+                }
+            }
+
+            $this->db->update('settings', array('versionPOS' => '72'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "72" || $versionInitial) {
+            // Los atajos guardan la combinacion de teclas ("F3", "ALT+B"). En una
+            // columna numerica MySQL las convierte a 0 y el POS pierde los atajos,
+            // asi que ademas de cambiar el tipo hay que reponer el valor perdido.
+            $atajos = array(
+                'focus_add_item'         => 'F3',
+                'finalize_sale'          => 'F4',
+                'add_customer'           => 'F6',
+                'edit_last_product'      => 'F7',
+                'toggle_category_slider' => 'F8',
+                'cancel_sale'            => 'F9',
+                'suspend_sale'           => 'F10',
+                'open_hold_bills'        => 'ALT+S',
+                'today_sale'             => 'ALT+V',
+                'close_register'         => 'ALT+R',
+            );
+            $s = $this->db->dbprefix('settings');
+            $tipos = array();
+            foreach ($this->db->field_data('settings') as $col) {
+                $tipos[$col->name] = strtolower($col->type);
+            }
+            foreach ($atajos as $campo => $defecto) {
+                if (!isset($tipos[$campo]) || strpos($tipos[$campo], 'char') !== FALSE) {
+                    continue;
+                }
+                $this->db->query("ALTER TABLE `{$s}` MODIFY `{$campo}` VARCHAR(20) NULL DEFAULT NULL");
+                $this->db->update('settings', array($campo => $defecto));
+            }
+
+            if ($this->db->field_exists('print_order', 'settings')) {
+                $this->dbforge->drop_column('settings', 'print_order');
+            }
+
+            $this->db->update('settings', array('versionPOS' => '73'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "73" || $versionInitial) {
+            // Cada caja imprime por QZ Tray con la impresora que elige su propio
+            // navegador: no hay impresoras registradas en el servidor.
+            $this->dbforge->drop_table('printers', TRUE);
+            $this->db->update('settings', array('versionPOS' => '74'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "74" || $versionInitial) {
+            // El POS ya no tiene boton de imprimir la cuenta en curso: su atajo
+            // apuntaba a un elemento inexistente.
+            if ($this->db->field_exists('print_bill', 'settings')) {
+                $this->dbforge->drop_column('settings', 'print_bill');
+            }
+            $this->db->update('settings', array('versionPOS' => '75'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "75" || $versionInitial) {
+            // El codigo de actividad de Hacienda son 6 caracteres y admite punto
+            // ("4711.2"): en una columna int se truncaba y el XML salia invalido.
+            $this->db->query("ALTER TABLE {$this->db->dbprefix('settings')} MODIFY default_actividad VARCHAR(10) NULL");
+            $this->db->query("ALTER TABLE {$this->db->dbprefix('sales')} MODIFY id_actividad VARCHAR(10) NULL");
+            $this->db->update('settings', array('versionPOS' => '76'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "76" || $versionInitial) {
+            // TipoCambio es obligatorio en el resumen y no admite vacio: facturando
+            // en colones vale 1, y con otra moneda es su tipo de cambio al colon.
+            if (!$this->db->field_exists('value_changue', 'settings')) {
+                $this->dbforge->add_column('settings', array(
+                    'value_changue' => array('type' => 'DECIMAL', 'constraint' => '14,5', 'null' => FALSE, 'default' => 1)
+                ));
+            }
+            $this->db->update('settings', array('versionPOS' => '77'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "77" || $versionInitial) {
+            // Receptor/Ubicacion del comprobante (Anexos v4.4): Provincia, Canton y
+            // Distrito son obligatorios dentro del nodo, Barrio es opcional y
+            // OtrasSenas admite 250 caracteres.
+            $columnas_cliente = array(
+                'codigo_provincia'       => array('type' => 'VARCHAR', 'constraint' => 5,   'null' => TRUE),
+                'codigo_canton'          => array('type' => 'VARCHAR', 'constraint' => 5,   'null' => TRUE),
+                'codigo_distrito'        => array('type' => 'VARCHAR', 'constraint' => 5,   'null' => TRUE),
+                'codigo_barrio'          => array('type' => 'VARCHAR', 'constraint' => 5,   'null' => TRUE),
+                'otras_senas'            => array('type' => 'VARCHAR', 'constraint' => 250, 'null' => TRUE),
+                'otras_senas_extranjero' => array('type' => 'VARCHAR', 'constraint' => 300, 'null' => TRUE),
+                'cod_telefono'           => array('type' => 'VARCHAR', 'constraint' => 3,   'null' => TRUE, 'default' => '506'),
+                'notas'                  => array('type' => 'VARCHAR', 'constraint' => 255, 'null' => TRUE),
+            );
+            foreach ($columnas_cliente as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'customers')) {
+                    $this->dbforge->add_column('customers', array($campo => $definicion));
+                }
+            }
+            // customers.cf2 es UNIQUE y MySQL solo admite NULL repetido: con cadena
+            // vacia el segundo cliente sin identificacion choca contra el indice.
+            $this->db->query("UPDATE {$this->db->dbprefix('customers')} SET cf2 = NULL WHERE cf2 = ''");
+            $this->db->update('settings', array('versionPOS' => '78'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "78" || $versionInitial) {
+            // Catalogo de tarifas de IVA de la v4.4. El codigo 01 no es "exento":
+            // es la tarifa 0% del articulo 32 del RLIVA, que Hacienda cuenta como
+            // NO SUJETA. La exenta es la 10, y faltaban tambien la 09 y la 11.
+            $impuestos = $this->db->dbprefix('impuestos');
+
+            // id_impuesto = 0 es el centinela de "sin impuesto" en todo el POS, asi
+            // que ninguna tarifa real puede ocupar ese id.
+            if ($this->db->query("SELECT 1 FROM {$impuestos} WHERE id_impuesto = 0")->num_rows() > 0) {
+                $tope = (int) $this->db->query("SELECT MAX(id_impuesto) AS tope FROM {$impuestos}")->row()->tope;
+                $this->db->query("UPDATE {$impuestos} SET id_impuesto = " . ($tope + 1) . " WHERE id_impuesto = 0");
+            }
+            // La tabla nacio sin AUTO_INCREMENT: un INSERT sin id cae en 0 y el
+            // siguiente choca contra la primaria. La tarifa reducida de 0.5% ademas
+            // necesita decimales, que un DECIMAL(17,0) redondea a 1.
+            $this->db->query("ALTER TABLE {$impuestos}
+                MODIFY `tasa_impuesto` DECIMAL(17,2) NULL DEFAULT NULL,
+                MODIFY `id_impuesto`   INT(10) NOT NULL AUTO_INCREMENT");
+
+            $this->db->query("UPDATE {$impuestos} SET descripcion_impuesto = 'Impuesto al Valor Agregado (Tarifa 0%, art. 32 RLIVA - no sujeto)' WHERE codigo_impuesto = '01' AND codigo_tarifa = '01'");
+            $this->db->query("UPDATE {$impuestos} SET tasa_impuesto = 0.5 WHERE codigo_impuesto = '01' AND codigo_tarifa = '09'");
+            $faltantes = array(
+                array('codigo_impuesto' => '01', 'codigo_tarifa' => '09', 'tasa_impuesto' => 0.5, 'descripcion_impuesto' => 'Impuesto al Valor Agregado (Tarifa reducida 0.5%)', 'status_impuestos' => 1),
+                array('codigo_impuesto' => '01', 'codigo_tarifa' => '10', 'tasa_impuesto' => 0,   'descripcion_impuesto' => 'Impuesto al Valor Agregado (Tarifa Exenta)',       'status_impuestos' => 1),
+                array('codigo_impuesto' => '01', 'codigo_tarifa' => '11', 'tasa_impuesto' => 0,   'descripcion_impuesto' => 'Impuesto al Valor Agregado (Tarifa 0% sin derecho a credito)', 'status_impuestos' => 1),
+            );
+            foreach ($faltantes as $fila) {
+                $ya = $this->db->get_where('impuestos', array('codigo_impuesto' => $fila['codigo_impuesto'], 'codigo_tarifa' => $fila['codigo_tarifa']));
+                if ($ya->num_rows() === 0) {
+                    $this->db->insert('impuestos', $fila);
+                }
+            }
+            $this->db->update('settings', array('versionPOS' => '79'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "79" || $versionInitial) {
+            // El CABYS de un articulo rapido no tiene ficha de producto donde
+            // vivir: sin esta columna se pierde y la linea sale sin CodigoCABYS.
+            if (!$this->db->field_exists('cabys', 'sale_items')) {
+                $this->dbforge->add_column('sale_items', array(
+                    'cabys' => array('type' => 'VARCHAR', 'constraint' => 13, 'null' => TRUE)
+                ));
+            }
+            $this->db->update('settings', array('versionPOS' => '80'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "80" || $versionInitial) {
+            // La carga de facturas de compra escribe columnas que la tabla no
+            // tenia: el INSERT fallaba entero y el reporte D-101 consultaba
+            // dci.unit_of_measurement, que tampoco existia.
+            $cols_doc = array(
+                'ClaveDocEmisor'      => array('type' => 'VARCHAR', 'constraint' => 50,  'null' => TRUE),
+                'telefono_emisor'     => array('type' => 'VARCHAR', 'constraint' => 30,  'null' => TRUE),
+                'Mensaje'             => array('type' => 'TEXT',    'null' => TRUE),
+                'DetalleMensaje'      => array('type' => 'TEXT',    'null' => TRUE),
+                'xml_compra'          => array('type' => 'LONGTEXT','null' => TRUE),
+                'xml_mensajereceptor' => array('type' => 'LONGTEXT','null' => TRUE),
+                'store_id'            => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE),
+            );
+            foreach ($cols_doc as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'documentoshacienda')) {
+                    $this->dbforge->add_column('documentoshacienda', array($campo => $definicion));
+                }
+            }
+
+            $cols_item = array(
+                'code'                => array('type' => 'VARCHAR', 'constraint' => 50,  'null' => TRUE),
+                'consecutivo'         => array('type' => 'VARCHAR', 'constraint' => 20,  'null' => TRUE),
+                'name'                => array('type' => 'VARCHAR', 'constraint' => 255, 'null' => TRUE),
+                'cost'                => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'type'                => array('type' => 'VARCHAR', 'constraint' => 20,  'null' => TRUE),
+                'unit_of_measurement' => array('type' => 'VARCHAR', 'constraint' => 10,  'null' => TRUE),
+                'precio_unitario'     => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'tarifa_impuesto'     => array('type' => 'DECIMAL', 'constraint' => '12,2', 'null' => TRUE),
+                'monto_impuesto'      => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'monto_descuento'     => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'SubTotal'            => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'MontoTotalLinea'     => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+            );
+            foreach ($cols_item as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'documentositems')) {
+                    $this->dbforge->add_column('documentositems', array($campo => $definicion));
+                }
+            }
+
+            // El documento se identifica por id_documento en todo el modulo, y
+            // las filas viejas lo tienen vacio.
+            $dh = $this->db->dbprefix('documentoshacienda');
+            $this->db->query("UPDATE `{$dh}` SET id_documento = id WHERE id_documento IS NULL");
+
+            $this->db->update('settings', array('versionPOS' => '81'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "81" || $versionInitial) {
+            // La bitacora de inventario guardaba la cantidad del movimiento pero
+            // no el saldo, asi que no se podia reconstruir la existencia de una
+            // fecha ni saber de que tienda era el movimiento.
+            $cols_mov = array(
+                'qty_antes'   => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'qty_despues' => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'store_id'    => array('type' => 'INT', 'constraint' => 11, 'null' => FALSE, 'default' => 1),
+                'id_sesion'   => array('type' => 'VARCHAR', 'constraint' => 40, 'null' => TRUE),
+                'costo_ant'   => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'costo_act'   => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+            );
+            foreach ($cols_mov as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'mov_inventario')) {
+                    $this->dbforge->add_column('mov_inventario', array($campo => $definicion));
+                }
+            }
+
+            // `descripcion_mov` no admite NULL y el movimiento puede no tener motivo.
+            $mv = $this->db->dbprefix('mov_inventario');
+            $this->db->query("ALTER TABLE `{$mv}` MODIFY `descripcion_mov` VARCHAR(255) NOT NULL DEFAULT ''");
+            $this->db->query("ALTER TABLE `{$mv}` MODIFY `quantity_mov`  DECIMAL(25,4) NOT NULL DEFAULT 0");
+            $this->db->query("ALTER TABLE `{$mv}` MODIFY `qty_fracc_mov` DECIMAL(25,4) NOT NULL DEFAULT 0");
+            $this->db->query("ALTER TABLE `{$mv}` MODIFY `precio_ant`    DECIMAL(25,5) NOT NULL DEFAULT 0");
+            $this->db->query("ALTER TABLE `{$mv}` MODIFY `precio_act`    DECIMAL(25,5) NOT NULL DEFAULT 0");
+
+            $this->db->update('settings', array('versionPOS' => '82'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "82" || $versionInitial) {
+            // El envio del acuse de recepcion marca el documento como enviado en
+            // esta columna, que la tabla no tenia.
+            if (!$this->db->field_exists('mail', 'documentoshacienda')) {
+                $this->dbforge->add_column('documentoshacienda', array(
+                    'mail' => array('type' => 'TINYINT', 'constraint' => 1, 'null' => FALSE, 'default' => 0)
+                ));
+            }
+            $this->db->update('settings', array('versionPOS' => '83'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "83" || $versionInitial) {
+            // El proveedor es el receptor de la factura electronica de compra:
+            // necesita ubicacion completa, y `direccion` se quedaba en 100
+            // caracteres cuando el XML admite 250.
+            $cols_prov = array(
+                'otras_senas'        => array('type' => 'VARCHAR', 'constraint' => 250, 'null' => TRUE),
+                'codigo_pais_tel'    => array('type' => 'VARCHAR', 'constraint' => 3,  'null' => FALSE, 'default' => '506'),
+                'contacto_nombre'    => array('type' => 'VARCHAR', 'constraint' => 100, 'null' => TRUE),
+                'contacto_telefono'  => array('type' => 'VARCHAR', 'constraint' => 20,  'null' => TRUE),
+                'plazo_pago_dias'    => array('type' => 'INT', 'constraint' => 11, 'null' => FALSE, 'default' => 0),
+                'medio_pago_habitual'=> array('type' => 'VARCHAR', 'constraint' => 2,  'null' => TRUE),
+                'cuenta_iban'        => array('type' => 'VARCHAR', 'constraint' => 34, 'null' => TRUE),
+                'sinpe_telefono'     => array('type' => 'VARCHAR', 'constraint' => 20, 'null' => TRUE),
+                'moneda'             => array('type' => 'VARCHAR', 'constraint' => 3,  'null' => FALSE, 'default' => 'CRC'),
+                'notas'              => array('type' => 'TEXT', 'null' => TRUE),
+                'activo'             => array('type' => 'TINYINT', 'constraint' => 1, 'null' => FALSE, 'default' => 1),
+                'created_at'         => array('type' => 'DATETIME', 'null' => TRUE),
+                'updated_at'         => array('type' => 'DATETIME', 'null' => TRUE),
+                'created_by'         => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE),
+            );
+            foreach ($cols_prov as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'suppliers')) {
+                    $this->dbforge->add_column('suppliers', array($campo => $definicion));
+                }
+            }
+
+            $sp = $this->db->dbprefix('suppliers');
+            $this->db->query("UPDATE `{$sp}` SET otras_senas = direccion WHERE otras_senas IS NULL AND direccion <> ''");
+
+            // Una cedula repetida deja que la factura de compra elija proveedor al azar.
+            $this->db->query("UPDATE `{$sp}` SET cf2 = NULL WHERE cf2 = ''");
+            $repetidas = $this->db->query("SELECT cf2 FROM `{$sp}` WHERE cf2 IS NOT NULL AND deleted = 0 GROUP BY cf2 HAVING COUNT(*) > 1")->result();
+            if (!$repetidas) {
+                $this->db->query("ALTER TABLE `{$sp}` ADD UNIQUE KEY `cf2_unica` (`cf2`)");
+            } else {
+                log_message('error', '[Migracion 84] hay cedulas de proveedor repetidas: el indice unico no se creo.');
+            }
+
+            $this->db->update('settings', array('versionPOS' => '84'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "84" || $versionInitial) {
+            // La compra guardaba costo y cantidad y nada mas: sin el IVA por
+            // linea no hay con que conciliar el D-104, y sin vencimiento no hay
+            // cuentas por pagar.
+            $cols_compra = array(
+                'status'              => array('type' => 'VARCHAR', 'constraint' => 20, 'null' => FALSE, 'default' => 'pendiente'),
+                'payment_status'      => array('type' => 'VARCHAR', 'constraint' => 20, 'null' => FALSE, 'default' => 'pendiente'),
+                'due_date'            => array('type' => 'DATE', 'null' => TRUE),
+                'tax_total'           => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'discount_total'      => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'currency'            => array('type' => 'VARCHAR', 'constraint' => 3, 'null' => FALSE, 'default' => 'CRC'),
+                'exchange_rate'       => array('type' => 'DECIMAL', 'constraint' => '25,6', 'null' => FALSE, 'default' => 1),
+                'supplier_invoice_no' => array('type' => 'VARCHAR', 'constraint' => 50, 'null' => TRUE),
+            );
+            foreach ($cols_compra as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'purchases')) {
+                    $this->dbforge->add_column('purchases', array($campo => $definicion));
+                }
+            }
+
+            $cols_linea = array(
+                'tax_code'          => array('type' => 'VARCHAR', 'constraint' => 2, 'null' => TRUE),
+                'tax_rate'          => array('type' => 'DECIMAL', 'constraint' => '12,2', 'null' => FALSE, 'default' => 0),
+                'tax_amount'        => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'quantity_received' => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+            );
+            foreach ($cols_linea as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'purchase_items')) {
+                    $this->dbforge->add_column('purchase_items', array($campo => $definicion));
+                }
+            }
+
+            // Las compras ya registradas se dan por recibidas: es lo que
+            // significaba `received` antes de que hubiera estados.
+            $pc = $this->db->dbprefix('purchases');
+            $this->db->query("UPDATE `{$pc}` SET status = 'recibida' WHERE received = 1 AND status = 'pendiente'");
+
+            $this->db->update('settings', array('versionPOS' => '85'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "85" || $versionInitial) {
+            // Un POS con varios cajeros necesita saber quien es cada uno y
+            // obligar el cambio de la contrasena que le puso el administrador.
+            $cols_user = array(
+                'cedula'               => array('type' => 'VARCHAR', 'constraint' => 20, 'null' => TRUE),
+                'must_change_password' => array('type' => 'TINYINT', 'constraint' => 1, 'null' => FALSE, 'default' => 0),
+                'password_changed_at'  => array('type' => 'DATETIME', 'null' => TRUE),
+                'notes'                => array('type' => 'VARCHAR', 'constraint' => 255, 'null' => TRUE),
+                'created_by'           => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE),
+            );
+            foreach ($cols_user as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'users')) {
+                    $this->dbforge->add_column('users', array($campo => $definicion));
+                }
+            }
+            $this->db->update('settings', array('versionPOS' => '86'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "86" || $versionInitial) {
+            // La nota de credito nunca pudo crearse: Pos::nota_credito inserta
+            // trece columnas que la tabla no tiene y siete en las lineas, asi que
+            // el INSERT moria entero. Sin nota de credito no hay forma legal de
+            // anular una factura aceptada, que es inmutable.
+            $cols_nc = array(
+                'type_nc'           => array('type' => 'VARCHAR', 'constraint' => 2, 'null' => TRUE),
+                'product_discount'  => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'order_discount_id' => array('type' => 'VARCHAR', 'constraint' => 20, 'null' => TRUE),
+                'order_discount'    => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'product_tax'       => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'order_tax_id'      => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE),
+                'order_tax'         => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'total_items'       => array('type' => 'DECIMAL', 'constraint' => '15,4', 'null' => FALSE, 'default' => 0),
+                'total_quantity'    => array('type' => 'DECIMAL', 'constraint' => '15,4', 'null' => FALSE, 'default' => 0),
+                'rounding'          => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'status'            => array('type' => 'VARCHAR', 'constraint' => 10, 'null' => TRUE),
+                'note'              => array('type' => 'TEXT', 'null' => TRUE),
+                'hold_ref'          => array('type' => 'VARCHAR', 'constraint' => 255, 'null' => TRUE),
+            );
+            foreach ($cols_nc as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'note_credits')) {
+                    $this->dbforge->add_column('note_credits', array($campo => $definicion));
+                }
+            }
+
+            $cols_nci = array(
+                'net_unit_price'  => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'comment'         => array('type' => 'VARCHAR', 'constraint' => 255, 'null' => TRUE),
+                'item_discount'   => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'subtotal'        => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                'real_unit_price' => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'cost'            => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => TRUE),
+                'cabys'           => array('type' => 'VARCHAR', 'constraint' => 13, 'null' => TRUE),
+            );
+            foreach ($cols_nci as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'note_credits_items')) {
+                    $this->dbforge->add_column('note_credits_items', array($campo => $definicion));
+                }
+            }
+
+            // Anular una factura mueve dinero, existencias y contabilidad. Esta
+            // tabla guarda quien lo hizo, cuando, por que, si salio plata de la
+            // caja y si se abrio el cajon para entregarla.
+            if (!$this->db->table_exists('sale_anulaciones')) {
+                $this->dbforge->add_field(array(
+                    'id'              => array('type' => 'INT', 'constraint' => 11, 'unsigned' => TRUE, 'auto_increment' => TRUE),
+                    'sale_id'         => array('type' => 'INT', 'constraint' => 11, 'null' => FALSE),
+                    'cn_id'           => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE),
+                    // 'fiscal' = se emitio nota de credito · 'interna' = el comprobante
+                    // nunca fue aceptado, asi que no hay nada que decirle a Hacienda.
+                    'tipo'            => array('type' => 'VARCHAR', 'constraint' => 10, 'null' => FALSE, 'default' => 'interna'),
+                    'codigo_ref'      => array('type' => 'VARCHAR', 'constraint' => 2, 'null' => TRUE),
+                    'motivo'          => array('type' => 'VARCHAR', 'constraint' => 255, 'null' => FALSE),
+                    'devuelve_dinero' => array('type' => 'TINYINT', 'constraint' => 1, 'null' => FALSE, 'default' => 0),
+                    'monto_devuelto'  => array('type' => 'DECIMAL', 'constraint' => '25,4', 'null' => FALSE, 'default' => 0),
+                    'medio_devolucion' => array('type' => 'VARCHAR', 'constraint' => 30, 'null' => TRUE),
+                    'pin_verificado'  => array('type' => 'TINYINT', 'constraint' => 1, 'null' => FALSE, 'default' => 0),
+                    'cajon_abierto'   => array('type' => 'TINYINT', 'constraint' => 1, 'null' => FALSE, 'default' => 0),
+                    'register_id'     => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE),
+                    'store_id'        => array('type' => 'INT', 'constraint' => 11, 'null' => FALSE, 'default' => 1),
+                    'created_by'      => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE),
+                    'created_at'      => array('type' => 'DATETIME', 'null' => FALSE),
+                    'ip'              => array('type' => 'VARCHAR', 'constraint' => 45, 'null' => TRUE),
+                ));
+                $this->dbforge->add_key('id', TRUE);
+                $this->dbforge->add_key('sale_id');
+                $this->dbforge->add_key('register_id');
+                $this->dbforge->add_key('created_at');
+                $this->dbforge->create_table('sale_anulaciones');
+            }
+
+            $this->db->update('settings', array('versionPOS' => '87'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "86" || $versionInitial) {
+            // Las credenciales guardadas usaban AES-256-CBC con un IV fijo para
+            // todas: se regraban con AES-256-GCM e IV por valor.
+            $campos = array(
+                'password_token_test', 'password_token_prod',
+                'certificado_pin', 'certificado_pin_test', 'certificado_pin_prod',
+                'smtp_pass', 'mail_client_pass', 'google_client_secret',
+                'mail_oauth_refresh', 'mail_client_oauth_refresh',
+            );
+
+            $fila = $this->db->get('settings')->row_array();
+            $regrabar = array();
+            foreach ($campos as $campo) {
+                if (!isset($fila[$campo]) || !credencial_es_antigua($fila[$campo])) {
+                    continue;
+                }
+                $claro = decrypt_credential($fila[$campo]);
+                if ($claro !== '') {
+                    $regrabar[$campo] = encrypt_credential($claro);
+                }
+            }
+            if ($regrabar) {
+                // CI exige un WHERE en update(): sin el, la sentencia no sale.
+                $this->db->update('settings', $regrabar, array('setting_id' => $fila['setting_id']));
+                log_message('info', '[Cripto] credenciales regrabadas: ' . implode(', ', array_keys($regrabar)));
+            }
+
+            $this->db->update('settings', array('versionPOS' => '87'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "87" || $versionInitial) {
+            // Tope de descuento por linea, comprobado en el servidor. 100 deja
+            // el comportamiento anterior: el negocio decide cuanto bajar.
+            if (!$this->db->field_exists('tope_descuento', 'settings')) {
+                $this->dbforge->add_column('settings', array(
+                    'tope_descuento' => array('type' => 'DECIMAL', 'constraint' => '5,2', 'null' => FALSE, 'default' => 100)
+                ));
+            }
+            $this->db->update('settings', array('versionPOS' => '88'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "88" || $versionInitial) {
+            // Lo que el cobro necesita saber del cliente y no tenia donde vivir:
+            // el plazo que alimenta <PlazoCredito> y con que comprobante y forma
+            // de pago abre el modal.
+            $cols_cli = array(
+                'dias_credito'      => array('type' => 'INT', 'constraint' => 11, 'null' => FALSE, 'default' => 0),
+                'tipo_pago_defecto' => array('type' => 'VARCHAR', 'constraint' => 10, 'null' => TRUE),
+                'tipo_doc_defecto'  => array('type' => 'VARCHAR', 'constraint' => 2,  'null' => TRUE),
+                'codigo_cliente'    => array('type' => 'VARCHAR', 'constraint' => 30, 'null' => TRUE),
+                'whatsapp'          => array('type' => 'VARCHAR', 'constraint' => 20, 'null' => TRUE),
+            );
+            foreach ($cols_cli as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'customers')) {
+                    $this->dbforge->add_column('customers', array($campo => $definicion));
+                }
+            }
+            $this->db->update('settings', array('versionPOS' => '89'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "89" || $versionInitial) {
+            // Posicion 42 de la clave: 1 normal, 2 contingencia, 3 sin internet.
+            // Una factura emitida en contingencia hay que reenviarla cuando
+            // vuelve el internet, y sin esta columna no habria como saber cuales.
+            if (!$this->db->field_exists('situacion', 'sales')) {
+                $this->dbforge->add_column('sales', array(
+                    'situacion' => array('type' => 'VARCHAR', 'constraint' => 1, 'null' => FALSE, 'default' => '1')
+                ));
+            }
+            $this->db->update('settings', array('versionPOS' => '90'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "90" || $versionInitial) {
+            // El padron devuelve todas las actividades inscritas del cliente y
+            // el formulario solo guardaba la elegida: al facturar con otra habia
+            // que volver a consultar.
+            if (!$this->db->table_exists('customer_actividades')) {
+                $ca = $this->db->dbprefix('customer_actividades');
+                $this->db->query("CREATE TABLE `{$ca}` (
+                    `id`          INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `customer_id` INT(11) NOT NULL,
+                    `codigo`      VARCHAR(6) NOT NULL,
+                    `descripcion` VARCHAR(255) DEFAULT NULL,
+                    PRIMARY KEY (`id`),
+                    UNIQUE KEY `cliente_codigo` (`customer_id`, `codigo`),
+                    KEY `customer_id` (`customer_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+                // La actividad que ya tenia cada cliente entra como la primera.
+                $cu = $this->db->dbprefix('customers');
+                $this->db->query("INSERT IGNORE INTO `{$ca}` (customer_id, codigo)
+                    SELECT id, codigo_actividad FROM `{$cu}`
+                    WHERE codigo_actividad IS NOT NULL AND codigo_actividad <> ''");
+            }
+
+            // Una exoneracion es una resolucion vigente del cliente, no un dato
+            // que se teclee venta por venta: se guarda aca y se copia al vender.
+            $cols_exo = array(
+                'exo_tipo_documento' => array('type' => 'VARCHAR', 'constraint' => 2,   'null' => TRUE),
+                'exo_numero'         => array('type' => 'VARCHAR', 'constraint' => 40,  'null' => TRUE),
+                'exo_institucion'    => array('type' => 'VARCHAR', 'constraint' => 160, 'null' => TRUE),
+                'exo_fecha_emision'  => array('type' => 'DATE', 'null' => TRUE),
+                'exo_fecha_vence'    => array('type' => 'DATE', 'null' => TRUE),
+                'exo_porcentaje'     => array('type' => 'DECIMAL', 'constraint' => '5,2', 'null' => FALSE, 'default' => 0),
+            );
+            foreach ($cols_exo as $campo => $definicion) {
+                if (!$this->db->field_exists($campo, 'customers')) {
+                    $this->dbforge->add_column('customers', array($campo => $definicion));
+                }
+            }
+
+            $this->db->update('settings', array('versionPOS' => '91'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "91" || $versionInitial) {
+            // El numero de la resolucion de exoneracion es una cadena de 3 a 40
+            // caracteres (ExoneracionType del XSD) y la columna era INT: un
+            // numero como "EX-2026-77" se guardaba como 0 y salia asi en el XML.
+            $sa = $this->db->dbprefix('sales');
+            $this->db->query("ALTER TABLE `{$sa}`
+                MODIFY `TipoDocumentoE`   VARCHAR(2)  NULL,
+                MODIFY `NumeroDocumentoE` VARCHAR(40) NULL");
+
+            // <NombreInstitucion> no es texto libre: es un codigo de dos digitos
+            // del catalogo del anexo. Lo que hubiera escrito no vale como codigo.
+            $this->db->query("UPDATE `{$sa}` SET NombreInstitucionE = NULL
+                WHERE NombreInstitucionE IS NOT NULL AND NombreInstitucionE NOT REGEXP '^[0-9]{2}$'");
+            $this->db->query("ALTER TABLE `{$sa}` MODIFY `NombreInstitucionE` VARCHAR(2) NULL");
+
+            $this->db->update('settings', array('versionPOS' => '92'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "92" || $versionInitial) {
+            // `gender` guardaba 'male'/'female' en un VARCHAR(1): MySQL recortaba
+            // a 'm'/'f' y el desplegable del perfil no reconocia el valor propio.
+            $u = $this->db->dbprefix('users');
+            $this->db->query("ALTER TABLE `{$u}` MODIFY `gender` VARCHAR(6) NULL");
+            $this->db->query("UPDATE `{$u}` SET gender = 'male'   WHERE gender = 'm'");
+            $this->db->query("UPDATE `{$u}` SET gender = 'female' WHERE gender = 'f'");
+
+            // Los roles del sistema son tres. El grupo 2 se llamaba `customer`
+            // porque el POS del que nace esto vendia cuentas a clientes finales.
+            $g = $this->db->dbprefix('groups');
+            $this->db->query("UPDATE `{$g}` SET name = 'admin', description = 'Administrador' WHERE id = 1");
+            $this->db->query("UPDATE `{$g}` SET name = 'cajero', description = 'Cajero' WHERE id = 2");
+            if (!$this->db->get_where('groups', array('id' => 3))->num_rows()) {
+                $this->db->query("INSERT INTO `{$g}` (id, name, description) VALUES (3, 'supervisor', 'Supervisor')");
+            }
+            $this->db->query("UPDATE `{$u}` SET group_id = 2 WHERE group_id IS NULL OR group_id NOT IN (1,2,3)");
+
+            // El medio de pago 07 pide cual plataforma y el 99 exige
+            // <MedioPagoOtros>; los dos caben en la misma columna.
+            if (!$this->db->field_exists('medio_pago_detalle', 'suppliers')) {
+                $sp = $this->db->dbprefix('suppliers');
+                $this->db->query("ALTER TABLE `{$sp}` ADD COLUMN `medio_pago_detalle` VARCHAR(100) NULL DEFAULT NULL AFTER `medio_pago_habitual`");
+            }
+
+            $this->db->update('settings', array('versionPOS' => '93'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "93" || $versionInitial) {
+            // Bitacora de informes: sin ella un PDF impreso no se puede rastrear
+            // hasta los filtros con que salio, y dos copias del mismo periodo con
+            // cifras distintas no se pueden distinguir.
+            if (!$this->db->table_exists('report_log')) {
+                $rl = $this->db->dbprefix('report_log');
+                $this->db->query("CREATE TABLE `{$rl}` (
+                    `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `folio`       VARCHAR(24)  NOT NULL,
+                    `reporte`     VARCHAR(60)  NOT NULL,
+                    `titulo`      VARCHAR(160) NULL,
+                    `formato`     VARCHAR(10)  NOT NULL DEFAULT 'pantalla',
+                    `user_id`     INT          NULL,
+                    `store_id`    INT          NULL,
+                    `fecha`       DATETIME     NOT NULL,
+                    `desde`       DATETIME     NULL,
+                    `hasta`       DATETIME     NULL,
+                    `ambito`      VARCHAR(12)  NULL,
+                    `filtros`     TEXT         NULL,
+                    `registros`   INT          NOT NULL DEFAULT 0,
+                    `total`       DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `confiabilidad` DECIMAL(5,2) NULL,
+                    `version`     VARCHAR(10)  NULL,
+                    `ip`          VARCHAR(45)  NULL,
+                    PRIMARY KEY (`id`),
+                    UNIQUE KEY `folio` (`folio`),
+                    KEY `fecha` (`fecha`),
+                    KEY `reporte` (`reporte`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
+
+            // Umbral anual por contraparte del D-151. La DGT lo ha movido, asi
+            // que es un ajuste y no una constante del codigo.
+            if (!$this->db->field_exists('d151_umbral', 'settings')) {
+                $st = $this->db->dbprefix('settings');
+                $this->db->query("ALTER TABLE `{$st}` ADD COLUMN `d151_umbral` DECIMAL(25,2) NULL DEFAULT 2500000");
+            }
+
+            // Los informes filtran y ordenan por fecha de venta sobre decenas de
+            // miles de filas; sin indice cada consulta recorre la tabla entera.
+            $sa = $this->db->dbprefix('sales');
+            $si = $this->db->dbprefix('sale_items');
+            foreach (array(
+                array($sa, 'idx_sales_date',        '(`date`)'),
+                array($sa, 'idx_sales_store_date',  '(`store_id`, `date`)'),
+                array($si, 'idx_sitems_sale',       '(`sale_id`)'),
+                array($si, 'idx_sitems_product',    '(`product_id`)'),
+            ) as $ix) {
+                list($tabla, $nombre, $cols) = $ix;
+                $existe = $this->db->query("SHOW INDEX FROM `{$tabla}` WHERE Key_name = " . $this->db->escape($nombre));
+                if ($existe && $existe->num_rows() === 0) {
+                    $this->db->query("ALTER TABLE `{$tabla}` ADD INDEX `{$nombre}` {$cols}");
+                }
+            }
+
+            $this->db->update('settings', array('versionPOS' => '94'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "94" || $versionInitial) {
+            // La nota de debito guardaba menos columnas que la de credito, y
+            // Crearxml::getNotaDebito lee real_unit_price y cabys: sin ellas el
+            // precio unitario salia en cero y el CABYS dependia de la ficha del
+            // producto, que en un ajuste puede haber cambiado desde la venta.
+            $ndi = $this->db->dbprefix('note_debits_items');
+            foreach (array(
+                array('net_unit_price',  'DECIMAL(25,4) NOT NULL DEFAULT 0'),
+                array('real_unit_price', 'DECIMAL(25,4) NOT NULL DEFAULT 0'),
+                array('subtotal',        'DECIMAL(25,4) NOT NULL DEFAULT 0'),
+                array('item_discount',   'DECIMAL(25,4) NOT NULL DEFAULT 0'),
+                array('cost',            'DECIMAL(25,4) NOT NULL DEFAULT 0'),
+                array('comment',         'VARCHAR(255) NULL'),
+                array('cabys',           'VARCHAR(13) NULL'),
+            ) as $col) {
+                if (!$this->db->field_exists($col[0], 'note_debits_items')) {
+                    $this->db->query("ALTER TABLE `{$ndi}` ADD COLUMN `{$col[0]}` {$col[1]}");
+                }
+            }
+
+            // Las columnas nuevas empiezan vacias: para las notas que ya existen
+            // el precio sin impuesto es el mismo unit_price que se guardo.
+            $this->db->query("UPDATE `{$ndi}` SET `real_unit_price` = `unit_price`,
+                `net_unit_price` = `unit_price`, `subtotal` = `quantity` * `unit_price`
+                WHERE `real_unit_price` = 0");
+
+            // Historial de correcciones: que documento ajusto a cual, con que
+            // codigo y por cuanto. Una venta puede tener varias, asi que el
+            // vinculo no cabe como columna de la venta.
+            if (!$this->db->table_exists('sale_ajustes')) {
+                $sj = $this->db->dbprefix('sale_ajustes');
+                $this->db->query("CREATE TABLE `{$sj}` (
+                    `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `sale_id`        INT          NOT NULL,
+                    `tipo`           VARCHAR(16)  NOT NULL,
+                    `tipo_doc`       VARCHAR(2)   NOT NULL,
+                    `cn_id`          INT          NULL,
+                    `nd_id`          INT          NULL,
+                    `codigo_referencia` VARCHAR(2) NOT NULL,
+                    `motivo`         VARCHAR(255) NULL,
+                    `total_original` DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `total_nuevo`    DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `diferencia`     DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `total_nota`     DECIMAL(25,4) NOT NULL DEFAULT 0,
+                    `mixto`          TINYINT(1)   NOT NULL DEFAULT 0,
+                    `cambios`        TEXT         NULL,
+                    `created_by`     INT          NULL,
+                    `created_at`     DATETIME     NOT NULL,
+                    `ip`             VARCHAR(45)  NULL,
+                    PRIMARY KEY (`id`),
+                    KEY `sale_id` (`sale_id`),
+                    KEY `created_at` (`created_at`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
+
+            $this->db->update('settings', array('versionPOS' => '95'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "95" || $versionInitial) {
+            // addNoteCredit() marca en la venta cuanto se acredito de cada linea,
+            // pero esas columnas solo existian en note_credits_items: el UPDATE
+            // moria y con db_debug activo tumbaba la emision entera.
+            $si = $this->db->dbprefix('sale_items');
+            foreach (array(
+                array('nc_status', 'TINYINT(1) NOT NULL DEFAULT 0'),
+                array('nc_qty',    'DECIMAL(25,4) NOT NULL DEFAULT 0'),
+            ) as $col) {
+                if (!$this->db->field_exists($col[0], 'sale_items')) {
+                    $this->db->query("ALTER TABLE `{$si}` ADD COLUMN `{$col[0]}` {$col[1]}");
+                }
+            }
+
+            $this->db->update('settings', array('versionPOS' => '96'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "96" || $versionInitial) {
+            // Apiclient::MensajeAprobacion() lee y escribe xml_hacienda sobre
+            // documentoshacienda, donde la columna nunca existio: el UPDATE con
+            // la respuesta de Hacienda moria y el documento aceptado se quedaba
+            // en 'procesando' para siempre.
+            $dh = $this->db->dbprefix('documentoshacienda');
+            if (!$this->db->field_exists('xml_hacienda', 'documentoshacienda')) {
+                $this->db->query("ALTER TABLE `{$dh}` ADD COLUMN `xml_hacienda` LONGTEXT NULL");
+            }
+
+            $this->db->update('settings', array('versionPOS' => '97'));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "97" || $versionInitial) {
+            // Gestion de documentos recibidos: proveedor, destino de cada linea,
+            // relaciones aprendidas por proveedor y gastos con su documento.
+            $columnas = array(
+                'documentoshacienda' => array(
+                    'supplier_id'     => 'INT NULL',
+                    'ClaveReferencia' => 'VARCHAR(50) NULL',
+                    'gestion_estado'  => 'VARCHAR(20) NULL',
+                    'gestionado_por'  => 'INT NULL',
+                    'gestionado_en'   => 'DATETIME NULL',
+                ),
+                'documentositems' => array(
+                    'numero_linea'       => 'INT NULL',
+                    'codigo_tipo'        => 'VARCHAR(2) NULL',
+                    'codigo_barras'      => 'VARCHAR(60) NULL',
+                    'cabys'              => 'VARCHAR(13) NULL',
+                    'codigo_tarifa'      => 'VARCHAR(2) NULL',
+                    'impuesto_neto'      => 'DECIMAL(25,5) NULL',
+                    'destino'            => 'VARCHAR(12) NULL',
+                    'factor'             => 'DECIMAL(25,4) NULL',
+                    'categoria_gasto_id' => 'INT NULL',
+                ),
+                'suppliers' => array(
+                    'destino_habitual'       => 'VARCHAR(12) NULL',
+                    'categoria_gasto_id'     => 'INT NULL',
+                    'condicion_iva_habitual' => 'VARCHAR(2) NULL',
+                ),
+                'purchases' => array('documento_id' => 'INT NULL'),
+                'expenses'  => array(
+                    'supplier_id'  => 'INT NULL',
+                    'documento_id' => 'INT NULL',
+                    'impuesto'     => 'DECIMAL(25,4) NULL',
+                ),
+            );
+            foreach ($columnas as $tabla => $cols) {
+                $t = $this->db->dbprefix($tabla);
+                foreach ($cols as $col => $tipo) {
+                    if (!$this->db->field_exists($col, $tabla)) {
+                        $this->db->query("ALTER TABLE `{$t}` ADD COLUMN `{$col}` {$tipo}");
+                    }
+                }
+            }
+
+            if (!$this->db->table_exists('categorias_gasto')) {
+                $cg = $this->db->dbprefix('categorias_gasto');
+                $this->db->query("CREATE TABLE `{$cg}` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `clave` VARCHAR(20) NULL,
+                    `nombre` VARCHAR(80) NOT NULL,
+                    `activo` TINYINT(1) NOT NULL DEFAULT 1,
+                    PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $base = array(
+                    array('servicios', 'Servicios publicos'), array('alquiler', 'Alquiler'),
+                    array('mantenimiento', 'Mantenimiento y reparaciones'), array('combustible', 'Combustible y transporte'),
+                    array('suministros', 'Papeleria y suministros'), array('profesionales', 'Servicios profesionales'),
+                    array('seguros', 'Seguros'), array('publicidad', 'Publicidad'),
+                    array('telecom', 'Telefonia e internet'), array('activos', 'Activos y equipo'),
+                    array('otros', 'Otros gastos'),
+                );
+                foreach ($base as $c) {
+                    $this->db->insert('categorias_gasto', array('clave' => $c[0], 'nombre' => $c[1]));
+                }
+            }
+
+            if (!$this->db->table_exists('proveedor_producto')) {
+                $pp = $this->db->dbprefix('proveedor_producto');
+                $this->db->query("CREATE TABLE `{$pp}` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `supplier_id` INT NOT NULL,
+                    `codigo` VARCHAR(60) NOT NULL DEFAULT '',
+                    `descripcion` VARCHAR(255) NOT NULL DEFAULT '',
+                    `cabys` VARCHAR(13) NULL,
+                    `product_id` INT NOT NULL,
+                    `factor` DECIMAL(25,4) NOT NULL DEFAULT 1,
+                    `usos` INT NOT NULL DEFAULT 0,
+                    `ultimo_uso` DATETIME NULL,
+                    PRIMARY KEY (`id`),
+                    KEY `proveedor_codigo` (`supplier_id`, `codigo`),
+                    KEY `proveedor_descripcion` (`supplier_id`, `descripcion`(100))
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
+
+            // Las lineas ya cargadas perdieron descuento, CABYS y numero de linea
+            // al leerse: se vuelven a leer de su XML. field_exists() dejo en cache
+            // las columnas anteriores al ALTER y el modelo recorta contra esa lista.
+            $this->db->data_cache = array();
+            $this->load->model('recibidos_model');
+            $dh = $this->db->dbprefix('documentoshacienda');
+            foreach ($this->db->query("SELECT id_documento, store_id, xml_compra FROM `{$dh}` WHERE xml_compra IS NOT NULL AND xml_compra <> ''")->result() as $fila) {
+                $this->recibidos_model->reprocesar($fila);
+            }
+
+            $this->db->update('settings', array('versionPOS' => '98'), array('setting_id' => $this->Settings->setting_id));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "98" || $versionInitial) {
+            // Proveedor preferido de cada producto: a quien se le sugiere la compra
+            // cuando la existencia no alcanza. Arranca con el de la ultima compra.
+            $pr = $this->db->dbprefix('products');
+            if (!$this->db->field_exists('supplier_id', 'products')) {
+                $this->db->query("ALTER TABLE `{$pr}` ADD COLUMN `supplier_id` INT NULL");
+            }
+            $pu = $this->db->dbprefix('purchases');
+            $pi = $this->db->dbprefix('purchase_items');
+            $this->db->query(
+                "UPDATE `{$pr}` p
+                   JOIN (SELECT pi.product_id, SUBSTRING_INDEX(GROUP_CONCAT(pu.supplier_id ORDER BY pu.date DESC, pu.id DESC), ',', 1) AS supplier_id
+                           FROM `{$pi}` pi JOIN `{$pu}` pu ON pu.id = pi.purchase_id
+                          WHERE pu.supplier_id IS NOT NULL
+                          GROUP BY pi.product_id) u ON u.product_id = p.id
+                    SET p.supplier_id = u.supplier_id
+                  WHERE p.supplier_id IS NULL"
+            );
+
+            $this->db->update('settings', array('versionPOS' => '99'), array('setting_id' => $this->Settings->setting_id));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "99" || $versionInitial) {
+            // Articulos rapidos: lo que se vende suelto sin ficha (confites, varios)
+            // con su CABYS y su tarifa ya verificados contra el catalogo de Hacienda.
+            if (!$this->db->table_exists('articulos_rapidos')) {
+                $ar = $this->db->dbprefix('articulos_rapidos');
+                $this->db->query("CREATE TABLE `{$ar}` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `nombre` VARCHAR(80) NOT NULL,
+                    `cabys` CHAR(13) NOT NULL,
+                    `cabys_desc` VARCHAR(255) NULL,
+                    `impuesto` DECIMAL(5,2) NOT NULL DEFAULT 0,
+                    `id_tax` INT NULL,
+                    `precio` DECIMAL(25,4) NULL,
+                    `activo` TINYINT(1) NOT NULL DEFAULT 1,
+                    `created_by` INT NULL,
+                    `created_at` DATETIME NULL,
+                    PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
+
+            $this->db->update('settings', array('versionPOS' => '100'), array('setting_id' => $this->Settings->setting_id));
+            $versionInitial = true;
+        }
+
+        if ($this->Settings->versionPOS == "100" || $versionInitial) {
+            // Caracteres por linea del papel de cada puesto: el ancho depende de la
+            // impresora de esa computadora. NULL usa el del sistema (42, rollo de 80 mm).
+            if (!$this->db->field_exists('caracteres', 'pos_workstations')) {
+                $pw = $this->db->dbprefix('pos_workstations');
+                $this->db->query("ALTER TABLE `{$pw}` ADD COLUMN `caracteres` TINYINT UNSIGNED NULL");
+            }
+
+            $this->db->update('settings', array('versionPOS' => '101'), array('setting_id' => $this->Settings->setting_id));
+            $versionInitial = true;
+        }
+
+        if ($versionInitial) {
+            // El objeto de ajustes en cache es anterior a las columnas recien creadas.
+            $this->load->driver('cache', array('adapter' => 'file'));
+            $this->cache->file->delete('app_settings');
+        }
+
         } // end migration guard
+    }
+
+    /**
+     * Testigo para las acciones que se disparan con un enlace.
+     *
+     * El testigo CSRF de CI solo cubre POST y ademas rota en cada peticion, asi
+     * que no sirve para un enlace de la tabla. Este vive lo que dure la sesion y
+     * basta para que un enlace ajeno no pueda disparar un borrado.
+     */
+    protected function token_accion()
+    {
+        $token = $this->session->userdata('token_accion');
+        if (!$token) {
+            $token = bin2hex(random_bytes(16));
+            $this->session->set_userdata('token_accion', $token);
+        }
+        return $token;
+    }
+
+    /**
+     * Corta la peticion si el enlace no trae el testigo de la sesion.
+     */
+    protected function exigir_token_accion()
+    {
+        $enviado = (string) ($this->input->get('t') ?: $this->input->post('t'));
+        if (!hash_equals((string) $this->token_accion(), $enviado)) {
+            $this->session->set_flashdata('error', lang('accion_sin_testigo'));
+            redirect($this->_referente_propio() ?: 'welcome');
+            exit;
+        }
+    }
+
+    /**
+     * El referente, solo si apunta a este mismo sitio.
+     *
+     * Devolver al usuario a una direccion ajena convertiria cualquier enlace
+     * sin testigo en un salto fuera de la aplicacion.
+     *
+     * @return string cadena vacia si no hay referente utilizable
+     */
+    private function _referente_propio()
+    {
+        $ref = (string) $this->input->server('HTTP_REFERER');
+        if ($ref === '') {
+            return '';
+        }
+        $base = rtrim(base_url(), '/') . '/';
+        return (strncmp($ref, $base, strlen($base)) === 0) ? $ref : '';
+    }
+
+    /**
+     * Cabeceras de seguridad, en un solo lugar para todas las pantallas.
+     *
+     * La politica de contenido sale en modo informe: pasarla a bloqueo exige
+     * antes sacar el JavaScript en linea de las vistas (etapa S6).
+     */
+    /**
+     * Devuelve el token CSRF vigente en toda respuesta.
+     *
+     * `csrf_regenerate` esta activo, asi que cada POST rota el token y el que
+     * la pagina lleva impreso queda vencido: el envio siguiente —el de la
+     * venta, sin ir mas lejos— se rechaza con "The action you have requested
+     * is not allowed". El navegador lo relee de esta cabecera y refresca los
+     * campos ocultos sin recargar.
+     *
+     * No se condiciona a is_ajax_request(): eso mira X-Requested-With, que
+     * fetch() no manda, y dejaba sin token nuevo justo a las pantallas que
+     * piden por fetch. El valor ya viaja impreso en la pagina, asi que
+     * anunciarlo tambien en la cabecera no expone nada nuevo.
+     */
+    private function _cabecera_csrf()
+    {
+        if (!is_cli() && !headers_sent() && config_item('csrf_protection')) {
+            header('X-CSRF-Token: ' . $this->security->get_csrf_hash());
+        }
+    }
+
+    private function _cabeceras_seguridad()
+    {
+        if (is_cli() || headers_sent()) {
+            return;
+        }
+
+        header('X-Frame-Options: SAMEORIGIN');
+        header('X-Content-Type-Options: nosniff');
+        header('Referrer-Policy: same-origin');
+        header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
+        // HSTS solo tiene sentido sobre HTTPS; anunciarlo por HTTP no hace nada
+        // y en un local sin certificado dejaria el sitio inalcanzable.
+        if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+            header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+        }
+
+        header("Content-Security-Policy-Report-Only: default-src 'self'; "
+             . "img-src 'self' data: blob:; "
+             . "style-src 'self' 'unsafe-inline'; "
+             . "script-src 'self' 'unsafe-inline'; "
+             . "connect-src 'self' http://127.0.0.1:3001 ws://127.0.0.1:6441 ws://localhost:8181 wss://localhost:8181; "
+             . "frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
+    }
+
+    /**
+     * Guarda bytes ESC/POS para que el navegador los imprima por QZ Tray.
+     *
+     * La impresora esta en la computadora del cajero, no en el servidor, asi
+     * que el ticket se genera aca y la pagina siguiente lo retira con
+     * posprint/cola_bytes.
+     */
+    protected function encolar_bytes_qz($bytes)
+    {
+        if (!$bytes) {
+            return;
+        }
+        $cola = $this->session->userdata('qz_cola');
+        $cola = is_array($cola) ? $cola : array();
+        $cola[] = $bytes;
+        $this->session->set_userdata('qz_cola', $cola);
+    }
+
+    /**
+     * Encola un ticket con la estructura que entiende Escpos::print_data()
+     * (encabezado, pares etiqueta/valor y totales).
+     *
+     * @param object $data  Ticket ya armado
+     * @param object $store Sucursal a imprimir en el encabezado, si aplica
+     */
+    protected function encolar_ticket_qz($data, $store = null)
+    {
+        $this->load->library('escpos');
+        $this->escpos->loadBuffer();
+        $this->escpos->print_data($data, $store);
+        $this->encolar_bytes_qz($this->escpos->getBufferedData());
     }
 
     function page_construct($page, $data = array(), $meta = array())

@@ -1,0 +1,100 @@
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NxCompra — pestaña Gestionar de un documento recibido (.nxc-*).
+   Se apoya en la hoja de NxDoc: bloques, campos, bandas y botones son .nxd-*.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.nxc-pad{padding:14px 16px}
+.nxc-pad-s{padding:8px 10px}
+.nxc-sub{font-size:12px;color:var(--nx-txt3);margin-top:3px;line-height:1.45}
+.nxc-sub .mono,.nxc .mono{font-family:'Cascadia Code',Consolas,monospace;font-size:.95em}
+.nxc-dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;align-items:start}
+.nxc-dos>.nxd-bloque{margin-bottom:16px}
+@media(max-width:860px){.nxc-dos{grid-template-columns:1fr}}
+
+/* ── Compra o gasto ── */
+.nxc-seg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.nxc-seg{grid-template-columns:1fr}}
+.nxc-seg-op{
+  display:flex;align-items:flex-start;gap:11px;text-align:left;cursor:pointer;
+  padding:12px 14px;border-radius:var(--nx-radius);border:1px solid var(--nx-border);
+  background:var(--nx-card-bg);color:var(--nx-txt2);font-family:inherit;transition:var(--nx-transition);
+}
+.nxc-seg-op svg{color:var(--nx-txt4);flex-shrink:0;margin-top:1px}
+.nxc-seg-op b{display:block;font-size:13.5px;color:var(--nx-txt1)}
+.nxc-seg-op small{display:block;font-size:11.5px;color:var(--nx-txt3);margin-top:2px}
+.nxc-seg-op:hover{border-color:var(--nx-border3)}
+.nxc-seg-op.activa{border-color:var(--nx-a1);background:var(--nx-active-bg);box-shadow:0 0 0 3px color-mix(in srgb,var(--nx-a1) 16%,transparent)}
+.nxc-seg-op.activa svg{color:var(--nx-a1)}
+.nxc-cat-doc{margin:14px 0 0;max-width:360px}
+
+/* ── Respuesta a Hacienda ── */
+.nxc-msg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.nxc-msg-op{
+  flex:1 1 0;min-width:120px;padding:9px 10px;border-radius:9px;cursor:pointer;
+  border:1px solid var(--nx-border);background:var(--nx-card-bg);color:var(--nx-txt2);
+  font:600 12.5px inherit;font-family:inherit;transition:var(--nx-transition);
+}
+.nxc-msg-op:hover{border-color:color-mix(in srgb,var(--op-c) 50%,transparent)}
+.nxc-msg-op.activa{color:var(--op-c);border-color:var(--op-c);background:color-mix(in srgb,var(--op-c) 12%,transparent)}
+.nxc-montos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nxc-montos div{padding:9px 12px;border-radius:9px;background:var(--nx-input-bg);border:1px solid var(--nx-border)}
+.nxc-montos span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--nx-txt4)}
+.nxc-montos b{font-family:'Cascadia Code',Consolas,monospace;font-size:14px;color:var(--nx-txt1)}
+.nxc-contador{float:right;font-weight:600;letter-spacing:0;text-transform:none;color:var(--nx-txt4)}
+.nxc-aviso-rechazo{color:var(--nx-err);margin:0 0 4px}
+
+/* ── Líneas ── */
+.nxc-conteo{font:600 11.5px inherit;font-family:inherit;text-transform:none;letter-spacing:0;color:var(--nx-txt3);display:flex;gap:8px;align-items:center}
+.nxc-linea{
+  display:grid;grid-template-columns:minmax(0,1.1fr) 170px minmax(0,1.5fr);gap:14px;align-items:start;
+  padding:13px 16px;border-bottom:1px solid var(--nx-border2);
+}
+.nxc-linea:last-child{border-bottom:0}
+.nxc-linea.falta{background:color-mix(in srgb,var(--nx-warn) 7%,transparent);box-shadow:inset 3px 0 0 var(--nx-warn)}
+@media(max-width:900px){.nxc-linea{grid-template-columns:1fr}}
+.nxc-falta{font-size:11.5px;color:var(--nx-warn);margin-top:5px}
+
+.nxc-sel,.nxc .nxc-inline input,.nxc-precio,.nxc-crear input,.nxc-crear select{
+  width:100%;background:var(--nx-input-bg);border:1px solid var(--nx-border);border-radius:8px;
+  padding:7px 10px;color:var(--nx-txt1);font:400 13px inherit;font-family:inherit;outline:0;
+}
+.nxc-sel:focus,.nxc .nxc-inline input:focus,.nxc-precio:focus,.nxc-crear input:focus,.nxc-crear select:focus{
+  border-color:var(--nx-border3);box-shadow:0 0 0 3px rgba(56,189,248,.14);
+}
+.nxc-sel.vacio{color:var(--nx-warn);border-color:color-mix(in srgb,var(--nx-warn) 45%,transparent)}
+
+.nxc-prod{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.nxc-prod-nom{font-size:13px;color:var(--nx-txt1);line-height:1.5;min-width:0}
+.nxc-fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px}
+.nxc-inline{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--nx-txt3);margin:0}
+.nxc .nxc-inline input[type=number]{width:92px}
+.nxc-chk input{width:16px!important;height:16px;padding:0!important;accent-color:var(--nx-a1)}
+.nxc-precio{width:130px!important}
+.nxc-precio:disabled{opacity:.5}
+.nxc-btn-sm{padding:6px 10px;font-size:12px}
+
+.nxc-busca{display:flex;gap:8px;align-items:center}
+.nxc-busca .nxd-busca{flex:1;margin:0}
+.nxc-resultados{margin-top:6px;border-radius:9px;overflow:hidden;max-height:220px;overflow-y:auto}
+.nxc-resultados:not(:empty){border:1px solid var(--nx-border)}
+.nxc-res{
+  display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;cursor:pointer;
+  padding:8px 11px;border:0;border-bottom:1px solid var(--nx-border2);
+  background:var(--nx-card-bg);color:var(--nx-txt2);font:400 12.5px inherit;font-family:inherit;
+}
+.nxc-res:last-child{border-bottom:0}
+.nxc-res:hover{background:var(--nx-active-bg);color:var(--nx-txt1)}
+
+.nxc-crear{padding:12px;border:1px dashed var(--nx-border3);border-radius:var(--nx-radius);background:var(--nx-card-bg)}
+.nxc-crear .nxd-campo{display:block;margin-bottom:10px}
+.nxc-rot{display:block;margin-bottom:5px;font:700 10px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.08em;color:var(--nx-txt4)}
+.nxc-tres{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:560px){.nxc-tres{grid-template-columns:1fr}}
+.nxc-err{font-size:12px;color:var(--nx-err)}
+.nxc-err:empty{display:none}

@@ -1,567 +1,473 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ *
+ * Cierre de caja. Se carga dentro de un modal del POS (`abrirParcial`) y también
+ * lo reusa Reports para ver un turno ya cerrado (`$is_report`).
+ *
+ * El formulario solo manda lo que el cajero cuenta: el resto de las cifras las
+ * recalcula PosRegister::close_register() al guardar.
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed');
 
-<div class="modal-dialog">
-    <div class="modal-content">
-        <div class="modal-header">
-            <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i>
-            </button>
-            <span type="button" class="close mr10  imprimeweb" ><i class="fa fa-print"></i></span>
+$soloLectura = isset($is_report);
+$r           = isset($resumen) ? $resumen : null;
+$cajero      = isset($r['cajero']->first_name) ? trim($r['cajero']->first_name . ' ' . $r['cajero']->last_name) : '';
+$apertura    = $soloLectura ? ($register_open_time ?? '') : $this->session->userdata('register_open_time');
 
-            <h4 class="modal-title" id="myModalLabel">
-            
-            <?php if(!isset($is_report)){
-                    echo lang('register_details') . ' (' . lang('opened_at') . ': ' . $this->tec->hrld($this->session->userdata('register_open_time')) . ')'; 
-            }else{
+// El admin puede abrir el modal sin indicar cajero: entonces es el suyo.
+$user_id = $user_id ?: $this->session->userdata('user_id');
 
-                    echo lang('register_details') . ' (' . lang('opened_at') . ': ' . $this->tec->hrld($register_open_time) . ')'; 
-                 }?>
-        </h4>
+$accion = $soloLectura
+    ? 'reports/close_register/?user_id=' . $user_id . '&date=' . $register_open_time
+    : 'pos/close_register/' . $user_id;
+
+$impuestos = $r && !empty($r['impuestos']) ? $r['impuestos'] : array();
+
+/**
+ * Iconos en SVG. La hoja de Font Awesome del tema es la 4.1 y no trae varios
+ * de los glifos que hacen falta acá: salían como un recuadro vacío.
+ */
+$svg = function ($trazos, $tam = 17) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' . $tam . '" height="' . $tam . '"'
+        . ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"'
+        . ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $trazos . '</svg>';
+};
+$ico = array(
+    'caja'     => '<rect x="4" y="3" width="16" height="18" rx="2"/><rect x="8" y="7" width="8" height="3" rx="1"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01M16 17h.01"/>',
+    'correo'   => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    'imprimir' => '<path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/>',
+    'candado'  => '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    'lista'    => '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+    'celular'  => '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+    'anulada'  => '<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>',
+);
+?>
+
+<style>
+.nx-cc { --pad: 22px; color: var(--nx-txt1); }
+.nx-cc-head {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 20px var(--pad) 18px; border-bottom: 1px solid var(--nx-border2);
+}
+.nx-cc-ico {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(56,189,248,.13); color: var(--nx-a1);
+}
+.nx-cc-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.nx-cc-head p  { margin: 3px 0 0; font-size: 12px; color: var(--nx-txt3); line-height: 1.5; }
+.nx-cc-close { margin-left: auto; background: none; border: 0; color: var(--nx-txt3);
+    font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; }
+.nx-cc-close:hover { color: var(--nx-txt1); }
+
+.nx-cc-body { padding: 20px var(--pad); display: grid; gap: 18px; align-items: start; }
+@media (min-width: 780px) { .nx-cc-body { grid-template-columns: 1fr 1fr; } }
+
+.nx-cc-bloque { background: var(--nx-bg4); border: 1px solid var(--nx-border2); border-radius: 12px; padding: 16px 18px; }
+.nx-cc-bloque h3 {
+    display: flex; align-items: center; gap: 6px;
+    margin: 0 0 12px; font-size: 10.5px; font-weight: 700; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--nx-txt3);
+}
+.nx-cc-fila { display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--nx-border2); }
+.nx-cc-fila:last-of-type { border-bottom: 0; }
+.nx-cc-fila span { color: var(--nx-txt2); }
+.nx-cc-fila em { font-style: normal; font-size: 11px; color: var(--nx-txt3); margin-left: 5px; }
+.nx-cc-fila b { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nx-cc-fila.resta b { color: var(--nx-err); }
+.nx-cc-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--nx-border); }
+.nx-cc-total span { font-size: 13px; font-weight: 700; }
+.nx-cc-total b { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.nx-cc-vacio { font-size: 12.5px; color: var(--nx-txt3); padding: 6px 0; }
+.nx-cc-nota { margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: var(--nx-txt3); }
+
+.nx-cc-campo { margin-bottom: 8px; }
+.nx-cc-campo label { display: block; font-size: 12px; color: var(--nx-txt2); margin-bottom: 5px; }
+.nx-cc-campo .esperado { float: right; font-variant-numeric: tabular-nums; color: var(--nx-txt3); }
+.nx-cc-campo input, .nx-cc-campo textarea {
+    width: 100%; padding: 10px 12px; background: var(--nx-bg3);
+    border: 1px solid var(--nx-border); border-radius: 9px; color: var(--nx-txt1);
+    font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; outline: none;
+}
+.nx-cc-campo textarea { font-size: 13px; font-weight: 400; resize: vertical; min-height: 58px; }
+.nx-cc-campo input:focus, .nx-cc-campo textarea:focus {
+    border-color: var(--nx-a1); box-shadow: 0 0 0 3px rgba(56,189,248,.16);
+}
+.nx-cc-dif { display: flex; justify-content: space-between; font-size: 12.5px; min-height: 18px; }
+.nx-cc-dif b { font-variant-numeric: tabular-nums; }
+.nx-cc-dif.ok  b, .nx-cc-dif.ok  span { color: var(--nx-ok); }
+.nx-cc-dif.mal b, .nx-cc-dif.mal span { color: var(--nx-err); }
+
+.nx-cc-det { grid-column: 1 / -1; }
+.nx-cc-det summary { cursor: pointer; font-size: 12.5px; color: var(--nx-txt3); padding: 4px 0; }
+.nx-cc-det summary:hover { color: var(--nx-a1); }
+.nx-cc-det table { width: 100%; margin-top: 10px; font-size: 12.5px; border-collapse: collapse; }
+.nx-cc-det td, .nx-cc-det th { padding: 6px 0; border-bottom: 1px solid var(--nx-border2); text-align: left; }
+.nx-cc-det th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--nx-txt3); font-weight: 600; }
+.nx-cc-det td.num, .nx-cc-det th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.nx-cc-det tfoot td { border-bottom: 0; border-top: 1px solid var(--nx-border); }
+
+.nx-cc-pie {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 16px var(--pad); border-top: 1px solid var(--nx-border2);
+}
+.nx-cc-btn {
+    padding: 10px 18px; border-radius: 10px; border: 1px solid var(--nx-border);
+    background: transparent; color: var(--nx-txt2); font-size: 13px; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    text-decoration: none !important; transition: all .18s;
+}
+.nx-cc-btn:hover { border-color: var(--nx-border3); color: var(--nx-txt1); }
+.nx-cc-btn.principal { margin-left: auto; background: var(--nx-err); border-color: var(--nx-err); color: #fff; }
+.nx-cc-btn.principal:hover { filter: brightness(1.08); color: #fff; }
+.nx-cc-btn[disabled] { opacity: .6; cursor: progress; }
+.nx-cc-error {
+    margin: 0 var(--pad); padding: 11px 14px; border-radius: 10px;
+    background: rgba(239,68,68,.12); border: 1px solid var(--nx-err);
+    color: var(--nx-err); font-size: 12.5px; line-height: 1.5;
+}
+.nx-cc-error p { margin: 0; }
+.nx-cc-campo.exige input { border-color: var(--nx-err); }
+
+</style>
+
+<div class="nx-cc" id="nxCierre">
+
+    <div class="nx-cc-head">
+        <div class="nx-cc-ico"><?= $svg($ico['caja'], 21); ?></div>
+        <div>
+            <h2><?= lang('cierre_titulo'); ?></h2>
+            <p>
+                <?= lang('cierre_abierta_el'); ?> <b><?= html_escape($this->tec->hrld($apertura)); ?></b>
+                <?php if ($cajero !== ''): ?>
+                    &nbsp;·&nbsp; <?= lang('cierre_cajero'); ?>: <b><?= html_escape($cajero); ?></b>
+                <?php endif; ?>
+            </p>
         </div>
-        <?php if(!isset($is_report)){?>
-        <?php echo form_open("pos/close_register/" . $user_id); ?>
-
-        <div style='text-align: center;'>
-
-            <a target="_blank" href='pos/products_sales_in_register' class="btn btn-info"><?= lang('imprimir_articulos'); ?></a>
-            <span id="print-register-details" class="btn btn-warning imprimeweb"><?= lang('imprimir_cierre_web'); ?></span>
-            <?php echo form_submit('close_register', lang('cerrar_caja'), 'class="btn btn-primary"'); ?>
-
-        </div>
-        <?php }else{?>
-            <?php echo form_open("reports/close_register/?user_id=" . $user_id."&date=".$register_open_time); ?>
-
-        <div style='text-align: center;'>
-            <a target="_blank" href='pos/products_sales_in_register' class="btn btn-info"><?= lang('imprimir_articulos'); ?></a>
-            <span id="print-register-details" class="btn btn-warning imprimeweb"><?= lang('imprimir_cierre_web'); ?></span>
-            <?php echo form_submit('close_register', lang('imprimir_cierre_caja'), 'class="btn btn-primary"'); ?>
-
-        </div>
-        <?php }?>
-        <?php
-        $total_cash = ($cashsales->total ? $cashsales->total + ($cash_in_hand ? $cash_in_hand : $this->session->userdata('cash_in_hand')) : (($cash_in_hand ? $cash_in_hand : $this->session->userdata('cash_in_hand'))));
-        $total_cash -= ($expenses->total ? $expenses->total : 0.00);
-        $total_cash -= (@$notecredits->total ? $notecredits->total : 0.00);
-        ?>
-        <?php $apartadoEfect = 0; ?>
-        <?php if ($Settings->enable_layaway == 1) { ?>
-
-            <?php $apartadoEfect = $cashsalesApart->total; ?>
-        <?php } ?>
-
-        <div class="modal-body" style="padding: 5px 0px;">
-            <div class="col-md-12">
-                <div class="row" >
-                    <div class="col-sm-2">
-                    </div>
-                    <?php if(!isset($is_report)){?>
-                    <div class="col-sm-4">
-                        <div class="mb-3">
-                            <?php echo lang("total_cash_submitted"); ?>
-                            <?php echo form_hidden('total_cash', $total_cash); ?>
-                            <?php
-                            echo form_input('total_cash_submitted', 0
-                                    , 'class="form-control input-tip" id="total_cash_submitted" required="required"');
-                            ?>
-                        </div>
-                           
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="mb-3">
-                            <?php echo lang("total_cc_slips"); ?>
-                            <?php echo form_hidden('total_cc', $ccsales->total); ?>
-                            <?php
-                            echo form_input('total_cc_submitted', 0
-                                    , 'class="form-control input-tip" id="total_cc_submitted" required="required"');
-                            ?>
-                        </div>
-                    </div>
-                    <?php }?>
-                    <div class="col-sm-2">
-                    </div>
-                </div>
-                <?php echo form_hidden('total_cc_slips_submitted', (isset($_POST['total_cc_slips_submitted']) ? $_POST['total_cc_slips_submitted'] : '0'), 'class="form-control input-tip" id="total_cc_slips_submitted" required="required"'); ?>
-                <?php echo form_hidden('total_cheques', $chsales->total_cheques); ?>
-                <?php echo form_hidden('total_cheques_submitted', (isset($_POST['total_cheques_submitted']) ? $_POST['total_cheques_submitted'] : $chsales->total_cheques), 'class="form-control input-tip" id="total_cheques_submitted" required="required"'); ?>
-                <?php echo form_hidden('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control redactor" id="note" style="margin-top: 10px; height: 50px;"'); ?>
-
-            </div>
-            <div  id="imprimeesto" class="col-md-12" style="max-height: 400px; overflow-y: scroll; <?php if ($Settings->enable_detail_register == "0") { ?> display: none; visibility: hidden; <?php } ?>">
-                <div class="table-responsive">
-                <table style='margin: 0 auto;' >
-
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?php echo lang('cash_in_hand'); ?>:</h4></td>
-                        <td style="text-align:right; border-bottom: 1px solid var(--nx-ok);"><h4>
-                                <?php echo form_hidden('cash_in_hand', $this->session->userdata('cash_in_hand')); ?>
-                                <?php if(!isset($is_report)){?>
-                                <span><?php echo $this->tec->formatMoney($this->session->userdata('cash_in_hand')); ?></span>
-                                <?php }else{?>
-                                    <span><?php echo $this->tec->formatMoney($cash_in_hand); ?></span>
-                                <?php }?>
-                            </h4>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-border);"><h4><?php echo lang('cash_sale'); ?>:</h4></td>
-                        <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                <?php echo form_hidden('cash_sale', $cashsales->total ? $cashsales->total - ($notecredits?$notecredits->total:0) : '0.00'); ?>
-                                <span><?php echo $this->tec->formatMoney($cashsales->total ? $cashsales->total- ($notecredits?$notecredits->total:0) : '0.00'); ?></span>
-                            </h4></td>
-                    </tr>
-
-
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-ok);">
-                            <h4><?php echo lang('cc_sale'); ?>:</h4></td>
-                        <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><?php /* stripe ternary removed — was invalid CSS */ ?>
-                            <h4>
-                                <?php echo form_hidden('cc_sale', $ccsales->total ? $ccsales->total : '0.00'); ?>
-                                <span><?php echo $this->tec->formatMoney($ccsales->total ? $ccsales->total : '0.00'); ?></span>
-                            </h4></td>
-                    </tr>
-
-
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-ok); font-weight:bold;"><h4><b><?php echo lang('total_sales'); ?>:</b></h4></td>
-                        <td style="border-bottom: 1px  ; font-weight:bold;text-align:right;"><h4>
-                                <?php echo form_hidden('total_sales', $totalsales ? $totalsales : '0.00'); ?>
-                                <span><b><?php echo $this->tec->formatMoney($totalsales ? $totalsales : '0.00'); ?></b></span>
-                            </h4></td>
-                    </tr>
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-ok); font-weight:bold;"><h4><b><?php echo lang('total_credits_sales'); ?>:</b></h4></td>
-                        <td style="border-bottom: 1px ; font-weight:bold;text-align:right;"><h4>
-                                <?php echo form_hidden('total_credits_sales', $creditos->total ? $creditos->total : '0.00'); ?>
-                                <span><b><?php echo $this->tec->formatMoney($creditos->total ? $creditos->total : '0.00'); ?></b></span>
-                            </h4></td>
-                    </tr>
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-ok); font-weight:bold;"><h4><b><?php echo lang('grand_total'); ?>:</b></h4></td>
-                        <td style="border-bottom: 1px solid var(--nx-ok); font-weight:bold;text-align:right;"><h4>
-
-                                <?php echo form_hidden('grand_total_sales', (int) $totalsales + (int) $creditos->total); ?>
-                                <span><b><?php echo $this->tec->formatMoney((int) $totalsales + (int) $creditos->total); ?></b></span>
-                            </h4></td>
-                    </tr>
-
-                    <? $gravadasTotal = 0; ?>
-                    <?php if ($Settings->enabled_tax_split == '1') { ?>
-                    <? if ($gravadas1->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 1%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas1', @$gravadas1->total ? @$gravadas1->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas1->total ? $gravadas1->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 1%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas1', @$gravadas1->total ? @$gravadas1->total - (@$gravadas1->total / 1.01) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas1->total ? @$gravadas1->total - (@$gravadas1->total / 1.01) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas1->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas2->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 2%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas2', @$gravadas2->total ? @$gravadas2->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas2->total ? $gravadas2->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 2%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas2', @$gravadas2->total ? @$gravadas2->total - (@$gravadas2->total / 1.02) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas2->total ? @$gravadas2->total - (@$gravadas2->total / 1.02) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas2->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas3->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 3%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas3', @$gravadas3->total ? @$gravadas3->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas3->total ? $gravadas3->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 3%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas3', @$gravadas3->total ? @$gravadas3->total - (@$gravadas3->total / 1.03) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas3->total ? @$gravadas3->total - (@$gravadas3->total / 1.03) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas3->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas4->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 4%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas4', @$gravadas4->total ? @$gravadas4->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas4->total ? $gravadas4->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 4%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas4', @$gravadas4->total ? @$gravadas4->total - (@$gravadas4->total / 1.04) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas4->total ? @$gravadas4->total - (@$gravadas4->total / 1.04) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas4->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas5->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 5%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas5', @$gravadas5->total ? @$gravadas5->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas5->total ? $gravadas5->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 5%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas5', @$gravadas5->total ? @$gravadas5->total - (@$gravadas5->total / 1.05) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas5->total ? @$gravadas5->total - (@$gravadas5->total / 1.05) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas5->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas6->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 6%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas6', @$gravadas6->total ? @$gravadas6->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas6->total ? $gravadas6->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 6%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas6', @$gravadas6->total ? @$gravadas6->total - (@$gravadas6->total / 1.06) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas6->total ? @$gravadas6->total - (@$gravadas6->total / 1.06) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas6->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas7->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 7%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas7', @$gravadas7->total ? @$gravadas7->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas7->total ? $gravadas7->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 7%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas7', @$gravadas7->total ? @$gravadas7->total - (@$gravadas7->total / 1.07) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas7->total ? @$gravadas7->total - (@$gravadas7->total / 1.07) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas7->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas8->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 8%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas8', @$gravadas8->total ? @$gravadas8->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas8->total ? $gravadas8->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 8%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas8', @$gravadas8->total ? @$gravadas8->total - (@$gravadas8->total / 1.08) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas8->total ? @$gravadas8->total - (@$gravadas8->total / 1.08) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas8->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas9->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 8%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas9', @$gravadas9->total ? @$gravadas9->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas9->total ? $gravadas9->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 9%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas9', @$gravadas9->total ? @$gravadas9->total - (@$gravadas9->total / 1.09) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas9->total ? @$gravadas9->total - (@$gravadas9->total / 1.09) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas9->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas10->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 10%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas10', @$gravadas10->total ? @$gravadas10->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas10->total ? $gravadas10->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 10%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas10', @$gravadas10->total ? @$gravadas10->total - (@$gravadas10->total / 1.10) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas10->total ? @$gravadas10->total - (@$gravadas10->total / 1.10) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas10->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas11->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 11%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas11', @$gravadas11->total ? @$gravadas11->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas11->total ? $gravadas11->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 11%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas11', @$gravadas11->total ? @$gravadas11->total - (@$gravadas11->total / 1.11) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas11->total ? @$gravadas11->total - (@$gravadas11->total / 1.11) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas11->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas12->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 12%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas12', @$gravadas12->total ? @$gravadas12->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas12->total ? $gravadas12->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 12%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas12', @$gravadas12->total ? @$gravadas12->total - (@$gravadas12->total / 1.12) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas12->total ? @$gravadas12->total - (@$gravadas12->total / 1.12) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas12->total ?>
-                    <? } ?>
-
-                    <? if ($gravadas13->total) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_gravadas_con'); ?> 13%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('gravadas13', @$gravadas13->total ? @$gravadas13->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas13->total ? $gravadas13->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('total_impuesto_del'); ?> 13%:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('impuestogravadas13', @$gravadas13->total ? @$gravadas13->total - (@$gravadas13->total / 1.13) : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney(@$gravadas13->total ? @$gravadas13->total - (@$gravadas13->total / 1.13) : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-                        <? $gravadasTotal = $gravadasTotal + $gravadas13->total ?>
-                    <? } ?>
-
-
-
-
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('ventas_exentas'); ?>:</h4></td>
-                        <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                <?php echo form_hidden('exentas', @$exentas->total ? @$exentas->total : '0.00'); ?>
-                                <span><?php echo $this->tec->formatMoney(@$exentas->total ? $exentas->total : '0.00'); ?></span>
-                            </h4></td>
-                    </tr>
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-ok);"><h4><?= lang('total_exentas_gravadas'); ?>:</h4></td>
-                        <td style="text-align:right; border-bottom: 1px solid var(--nx-ok);"><h4>
-                                <?php echo form_hidden('tot_exentas_gravadas', @$exentas->total + $gravadasTotal ? @$exentas->total + $gravadasTotal : '0.00'); ?>
-                                <span><?php echo $this->tec->formatMoney(@$exentas->total + $gravadasTotal ? $exentas->total + $gravadasTotal : '0.00'); ?></span>
-                            </h4></td>
-                    </tr>
-                    <?php }?>
-                    <tr>
-                        <td style="border-bottom: 1px solid var(--nx-border);"><h4><?php echo lang('credit_notes'); ?>:</h4></td>
-                        <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-
-                                <?php echo form_hidden('credit_notes', @$notecredits->total ? $notecredits->total : '0.00'); ?>
-                                <span><?php echo $this->tec->formatMoney(@$notecredits->total ? $notecredits->total : '0.00'); ?></span>
-                            </h4></td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight:bold;"><h4><?php echo lang('Gastos / Retiros'); ?>:</h4></td>
-                        <td style="font-weight:bold;text-align:right;"><h4>
-                                <?php echo form_hidden('expenses', $expenses->total ? $expenses->total : '0.00'); ?>
-                                <span><?php echo $this->tec->formatMoney($expenses->total ? $expenses->total : '0.00'); ?></span>
-                            </h4></td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight:bold;"><h4><?php echo lang('Depositos'); ?>:</h4></td>
-                        <td style="font-weight:bold;text-align:right;"><h4>
-                                <?php echo form_hidden('depositos', $Totaldepositos->total ? $Totaldepositos->total : '0.00'); ?>
-                                <span><?php echo $this->tec->formatMoney($Totaldepositos->total ? $Totaldepositos->total : '0.00'); ?></span>
-                            </h4></td>
-                    </tr>
-
-
-
-                    <?php if ($Settings->enable_layaway == 1) { ?>
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-border);"><h4><?= lang('efectivo_apartados'); ?>:</h4></td>
-                            <td style="text-align:right; border-bottom: 1px solid var(--nx-border);"><h4>
-                                    <?php echo form_hidden('cash_sale', $cashsalesApart->total ? $cashsalesApart->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney($cashsalesApart->total ? $cashsalesApart->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-
-
-                        <tr>
-                            <td style="border-bottom: 1px solid var(--nx-ok);">
-                                <h4><?= lang('tarjetas_apartados'); ?>:</h4></td>
-                            <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><?php /* stripe ternary removed — was invalid CSS */ ?>
-                                <h4>
-                                    <?php echo form_hidden('ccsalesApart', $ccsalesApart->total ? $ccsalesApart->total : '0.00'); ?>
-                                    <span><?php echo $this->tec->formatMoney($ccsalesApart->total ? $ccsalesApart->total : '0.00'); ?></span>
-                                </h4></td>
-                        </tr>
-
-                        <?php if ($Settings->propina_enable) { ?>
-                            <tr>
-                                <td style="border-bottom: 1px solid var(--nx-ok);">
-                                    <h4><?= lang('servicio_propina'); ?> (<?= $Settings->propina_rate ?>%):</h4></td>
-                                <td style="text-align:right;border-bottom: 1px solid var(--nx-ok);"><?php /* stripe ternary removed — was invalid CSS */ ?>
-                                    <h4>
-                                        <?php echo form_hidden('ccsalesTips', $ccsalesTips->total ? $ccsalesTips->total : '0.00'); ?>
-                                        <span><?php echo $this->tec->formatMoney($ccsalesTips->total ? $ccsalesTips->total : '0.00'); ?></span>
-                                    </h4></td>
-                            </tr>
-                        <?php } ?>
-
-                    <?php } ?>
-
-                    <tr>
-                        <td style="font-weight:bold;"><h4><strong><?php echo lang('total_cash'); ?></strong>:
-                            </h4>
-                        </td>
-                        <td style="text-align:right;"><h4>
-                                <?php echo form_hidden('total_cash', $total_cash ? $total_cash + $apartadoEfect + $Totaldepositos->total : '0.00'); ?>
-                                <span><strong><?php echo $this->tec->formatMoney($total_cash + $apartadoEfect + $Totaldepositos->total); ?></strong></span>
-                            </h4></td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">__________________________________________________</td>
-                    </tr>
-
-                    <tr>
-                        <td colspan="2"></td>
-                    </tr>
-
-                    <tr>
-                        <td colspan="2"></td>
-                    </tr>
-
-                    <tr>
-                        <td colspan="2">&nbsp;</td>
-                    </tr>
-
-                </table>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-
-            </div>
-        </div>
+        <button type="button" class="nx-cc-close" data-bs-dismiss="modal" aria-label="Cerrar">&times;</button>
     </div>
+
+    <?php echo form_open($accion, array('id' => 'nxCierreForm')); ?>
+
+    <?php $avisoError = validation_errors() ?: ($error ?? ''); ?>
+    <?php if ($avisoError): ?>
+    <div class="nx-cc-error"><?= $avisoError; ?></div>
+    <?php endif; ?>
+
+    <div class="nx-cc-body">
+
+        <!-- Cobrado por forma de pago -->
+        <div class="nx-cc-bloque">
+            <h3><?= lang('cierre_cobrado_por'); ?></h3>
+            <?php
+            $conMovimiento = false;
+            if ($r) {
+                foreach ($r['metodos'] as $m) {
+                    if (!$m['total'] && !$m['pagos']) { continue; }
+                    $conMovimiento = true;
+                    $cuantos = $m['pagos']
+                        ? '<em>' . (int) $m['pagos'] . ' ' . ($m['pagos'] == 1 ? lang('cierre_pago') : lang('cierre_pagos')) . '</em>'
+                        : '';
+                    echo '<div class="nx-cc-fila"><span>' . html_escape($m['etiqueta']) . $cuantos . '</span><b>'
+                       . $this->tec->formatMoney($m['total']) . '</b></div>';
+                }
+            }
+            if (!$conMovimiento) {
+                echo '<div class="nx-cc-vacio">' . lang('cierre_sin_movimiento') . '</div>';
+            }
+            ?>
+            <div class="nx-cc-total">
+                <span><?= lang('cierre_total_cobrado'); ?></span>
+                <b><?= $this->tec->formatMoney($r ? $r['cobrado'] : 0); ?></b>
+            </div>
+        </div>
+
+        <!-- Efectivo: solo lo que entra o sale del cajon -->
+        <div class="nx-cc-bloque">
+            <h3><?= lang('cierre_movimientos'); ?></h3>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_fondo_inicial'); ?></span>
+                <b><?= $this->tec->formatMoney($r ? $r['fondo'] : 0); ?></b>
+            </div>
+            <div class="nx-cc-fila">
+                <span><?= lang('pago_efectivo'); ?></span>
+                <b><?= $this->tec->formatMoney($r ? $r['metodos']['efectivo']['total'] : 0); ?></b>
+            </div>
+            <?php if ($r && !empty($r['apartados'])): ?>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_apartados'); ?></span><b><?= $this->tec->formatMoney($r['apartados']); ?></b>
+            </div>
+            <?php endif; ?>
+            <?php if ($r && $r['depositos']): ?>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_depositos'); ?></span><b><?= $this->tec->formatMoney($r['depositos']); ?></b>
+            </div>
+            <?php endif; ?>
+            <?php if ($r && $r['gastos']): ?>
+            <div class="nx-cc-fila resta">
+                <span><?= lang('cierre_gastos'); ?></span><b>− <?= $this->tec->formatMoney($r['gastos']); ?></b>
+            </div>
+            <?php endif; ?>
+            <?php if ($r && !empty($r['anulaciones'])): ?>
+            <div class="nx-cc-fila resta">
+                <span><?= lang('anu_movimiento_caja'); ?><em><?= (int) $r['anulaciones_n']; ?></em></span>
+                <b>− <?= $this->tec->formatMoney($r['anulaciones']); ?></b>
+            </div>
+            <?php endif; ?>
+            <div class="nx-cc-total">
+                <span><?= lang('cierre_efectivo_esperado'); ?></span>
+                <b id="nxEsperado" data-monto="<?= $r ? (float) $r['efectivo_esperado'] : 0; ?>">
+                    <?= $this->tec->formatMoney($r ? $r['efectivo_esperado'] : 0); ?>
+                </b>
+            </div>
+        </div>
+
+        <!-- Facturas anuladas en el turno: que se anulo, por que y que paso con el dinero -->
+        <?php if ($r && !empty($r['anulaciones_detalle'])): ?>
+        <div class="nx-cc-bloque">
+            <h3><?= $svg($ico['anulada'], 13); ?> <?= lang('sales_anuladas'); ?></h3>
+            <?php foreach ($r['anulaciones_detalle'] as $anu): ?>
+            <div class="nx-cc-fila">
+                <span>
+                    #<?= (int) $anu->sale_id; ?>
+                    <em><?= html_escape(character_limiter($anu->motivo, 46)); ?></em>
+                </span>
+                <b><?= (float) $anu->monto_devuelto > 0
+                        ? $this->tec->formatMoney($anu->monto_devuelto)
+                        : lang('anu_sin_devolucion'); ?></b>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- SINPE del turno -->
+        <?php if ($r && !empty($r['sinpe']) && $r['sinpe']['entrantes']): ?>
+        <div class="nx-cc-bloque">
+            <h3><?= $svg($ico['celular'], 13); ?> <?= lang('cierre_sinpe'); ?></h3>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_sinpe_entrantes'); ?><em><?= (int) $r['sinpe']['entrantes']; ?></em></span>
+                <b><?= $this->tec->formatMoney($r['sinpe']['monto']); ?></b>
+            </div>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_sinpe_aplicados'); ?><em><?= (int) $r['sinpe']['aplicados']; ?></em></span>
+                <b><?= $this->tec->formatMoney($r['sinpe']['monto_aplicado']); ?></b>
+            </div>
+            <?php $sinAplicar = (int) $r['sinpe']['entrantes'] - (int) $r['sinpe']['aplicados']; ?>
+            <?php if ($sinAplicar > 0): ?>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_sinpe_sin_aplicar'); ?><em><?= $sinAplicar; ?></em></span>
+                <b><?= $this->tec->formatMoney($r['sinpe']['monto'] - $r['sinpe']['monto_aplicado']); ?></b>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- Lo que no pasa por la gaveta -->
+        <?php if ($r && ($r['notas_credito'] || $r['ventas_credito'])): ?>
+        <div class="nx-cc-bloque">
+            <h3><?= lang('cierre_otros_movimientos'); ?></h3>
+            <?php if ($r['ventas_credito']): ?>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_ventas_credito'); ?></span><b><?= $this->tec->formatMoney($r['ventas_credito']); ?></b>
+            </div>
+            <?php endif; ?>
+            <?php if ($r['notas_credito']): ?>
+            <div class="nx-cc-fila">
+                <span><?= lang('cierre_notas_credito'); ?></span><b><?= $this->tec->formatMoney($r['notas_credito']); ?></b>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- Arqueo: solo se cuenta el efectivo del cajon -->
+        <?php if (!$soloLectura): ?>
+        <div class="nx-cc-bloque" style="grid-column: 1 / -1;">
+            <h3><?= lang('cierre_arqueo'); ?></h3>
+            <p style="margin:-6px 0 14px;font-size:12px;color:var(--nx-txt3);"><?= lang('cierre_arqueo_ayuda'); ?></p>
+
+            <div style="display:grid;gap:0 20px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
+                <div>
+                    <div class="nx-cc-campo">
+                        <label for="total_cash_submitted">
+                            <?= lang('cierre_efectivo_contado'); ?>
+                            <span class="esperado"><?= $this->tec->formatMoney($r ? $r['efectivo_esperado'] : 0); ?></span>
+                        </label>
+                        <input type="text" inputmode="decimal" id="total_cash_submitted" name="total_cash_submitted"
+                               value="" placeholder="0" autocomplete="off" required>
+                    </div>
+                    <div class="nx-cc-dif" id="nxDifEfectivo"></div>
+                </div>
+                <div class="nx-cc-campo">
+                    <label for="note"><?= lang('cierre_nota'); ?></label>
+                    <textarea id="note" name="note" rows="2" placeholder="—"></textarea>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Detalle de impuestos -->
+        <?php if ($impuestos): ?>
+        <details class="nx-cc-det">
+            <summary><?= lang('cierre_detalle_impuestos'); ?></summary>
+            <table>
+                <thead>
+                    <tr>
+                        <th><?= lang('tax'); ?></th>
+                        <th class="num"><?= lang('cierre_lineas'); ?></th>
+                        <th class="num"><?= lang('total'); ?></th>
+                        <th class="num"><?= lang('cierre_impuesto'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php
+                $sumSub = 0; $sumImp = 0;
+                foreach ($impuestos as $t):
+                    $sumSub += $t['subtotal']; $sumImp += $t['impuesto']; ?>
+                    <tr>
+                        <td><?= $t['tasa'] > 0
+                                ? rtrim(rtrim(number_format($t['tasa'], 2, '.', ''), '0'), '.') . '%'
+                                : lang('ventas_exentas'); ?></td>
+                        <td class="num"><?= (int) $t['lineas']; ?></td>
+                        <td class="num"><?= $this->tec->formatMoney($t['subtotal']); ?></td>
+                        <td class="num"><?= $t['impuesto'] ? $this->tec->formatMoney($t['impuesto']) : '—'; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2"><b><?= lang('total'); ?></b></td>
+                        <td class="num"><b><?= $this->tec->formatMoney($sumSub); ?></b></td>
+                        <td class="num"><b><?= $this->tec->formatMoney($sumImp); ?></b></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </details>
+        <?php endif; ?>
+
+    </div>
+
+    <?php
+    // Lo unico que el controlador lee del POST ademas del efectivo contado y la
+    // nota. Los vouchers ya no se recuentan: se guarda lo que dice el sistema.
+    echo form_hidden('total_cc_submitted', $r ? number_format($r['metodos']['tarjeta']['total'], 2, '.', '') : '0');
+    echo form_hidden('total_cc_slips_submitted', $r ? (int) $r['metodos']['tarjeta']['pagos'] : 0);
+    echo form_hidden('total_cheques_submitted', $r ? number_format($r['metodos']['cheque']['total'], 2, '.', '') : '0');
+    ?>
+
+    <div class="nx-cc-pie">
+        <?php if (!$soloLectura): ?>
+        <a href="<?= site_url('pos/products_sales_in_register'); ?>" target="_blank" class="nx-cc-btn">
+            <?= $svg($ico['lista'], 15); ?> <span><?= lang('cierre_articulos_corto'); ?></span>
+        </a>
+        <button type="button" class="nx-cc-btn" id="nxCierreCorreo">
+            <?= $svg($ico['correo'], 15); ?> <span><?= lang('cierre_enviar_correo'); ?></span>
+        </button>
+        <?php endif; ?>
+        <a href="<?= site_url('pos/cierre_pdf'); ?>" target="_blank" class="nx-cc-btn" id="nxCierreImprimir">
+            <?= $svg($ico['imprimir'], 15); ?> <span><?= lang('cierre_imprimir'); ?></span>
+        </a>
+        <?php if (!$soloLectura): ?>
+        <button type="submit" name="close_register" value="1" class="nx-cc-btn principal" id="nxCierreGuardar">
+            <?= $svg($ico['candado'], 15); ?> <span><?= lang('cierre_cerrar'); ?></span>
+        </button>
+        <?php endif; ?>
+    </div>
+
     <?php echo form_close(); ?>
 </div>
 
+<script>
+(function () {
+    var raiz = document.getElementById('nxCierre');
+    if (!raiz) { return; }
 
-<?php
-if ($Settings->remote_printing == 2) {
-    ?>
-    <script type="text/javascript">
+    var nodoEsp  = document.getElementById('nxEsperado');
+    var esperado = nodoEsp ? (parseFloat(nodoEsp.getAttribute('data-monto')) || 0) : 0;
+    var contado  = document.getElementById('total_cash_submitted');
+    var difCaja  = document.getElementById('nxDifEfectivo');
 
+    var T = {
+        sobrante: <?= json_encode(lang('cierre_sobrante')); ?>,
+        faltante: <?= json_encode(lang('cierre_faltante')); ?>,
+        cuadra:   <?= json_encode(lang('cierre_cuadra')); ?>,
+        confirma: <?= json_encode(lang('cierre_confirmar')); ?>,
+        exigeNota: <?= json_encode(lang('cierre_nota_obligatoria')); ?>,
+        simbolo:  <?= json_encode($Settings->symbol ?? '₡'); ?>
+    };
 
+    function money(n) {
+        return (n < 0 ? '-' : '') + T.simbolo +
+               Math.abs(n).toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-        var socket = null;
-        $(document).ready(function () {
+    function pintarDiferencia() {
+        if (!contado || !difCaja) { return; }
+        var v = parseFloat(String(contado.value).replace(',', '.'));
+        if (isNaN(v)) { difCaja.className = 'nx-cc-dif'; difCaja.innerHTML = ''; return; }
+        var d = v - esperado;
+        var cuadra = Math.abs(d) < 0.005;
+        difCaja.className = 'nx-cc-dif ' + (cuadra ? 'ok' : 'mal');
+        difCaja.innerHTML = '<span>' + (cuadra ? T.cuadra : (d > 0 ? T.sobrante : T.faltante)) +
+                            '</span><b>' + (cuadra ? '' : money(d)) + '</b>';
+    }
 
+    if (contado) {
+        contado.addEventListener('input', pintarDiferencia);
+        contado.focus();
+    }
 
-
-            try {
-                socket = new WebSocket('ws://127.0.0.1:6441');
-                socket.onopen = function () {
-                    console.log('Connected');
-                    return;
-                };
-                socket.onclose = function () {
-                    console.log('Connection closed');
-                    return;
-                };
-            } catch (e) {
-                console.log(e);
-            }
-            function printRegister(data) {
-                if (socket.readyState == 1) {
-                    socket.send(JSON.stringify({
-                        type: 'print-data',
-                        data: data
-                    }));
-                    return false;
-                } else {
-                    bootbox.alert('<?php echo lang('pos_print_error'); ?>');
-                    return false;
-                }
-            }
-
-            $('#print-register-details').click(function (e) {
-                e.preventDefault();
-                $.get('<?php echo site_url('pos/print_register/2'); ?>', function (regData) {
-                    printRegister(regData);
-                    return false;
-                });
-                return false;
-            });
-
-
-
+    var btnCorreo = document.getElementById('nxCierreCorreo');
+    if (btnCorreo) {
+        btnCorreo.addEventListener('click', function () {
+            var texto = btnCorreo.querySelector('span');
+            btnCorreo.disabled = true;
+            var cuerpo = new FormData();
+            cuerpo.set('user_id', '<?= (int) $user_id; ?>');
+            cuerpo.set('<?= $this->security->get_csrf_token_name(); ?>', '<?= $this->security->get_csrf_hash(); ?>');
+            fetch('<?= site_url('pos/enviar_cierre'); ?>', {
+                method: 'POST', body: cuerpo, credentials: 'same-origin'
+            })
+            .then(function (res) { return res.json().catch(function () { return { ok: res.ok }; }); })
+            .then(function (data) {
+                if (texto && data.msg) { texto.textContent = data.msg; }
+                if (!data.ok) { btnCorreo.disabled = false; }
+            })
+            .catch(function () { btnCorreo.disabled = false; });
         });
-    </script>
+    }
 
-    <?php
-}
-?>
-<script type="text/javascript">
-    $(document).ready(function () {
-        document.querySelectorAll(".tom-select").forEach(el => new TomSelect(this, {minItems: 6});
-    });
+    var nota = document.getElementById('note');
 
-    $('.imprimeweb').on('click', function () {
-        var divElements = document.getElementById("imprimeesto").innerHTML;
-        var oldPage = document.body.innerHTML;
-        document.body.innerHTML =
-                "<html><head><title></title></head><body>" +
-                divElements + "</body>";
-        window.print();
-        document.body.innerHTML = oldPage;
-    });
+    /** Un faltante hay que explicarlo; el servidor lo vuelve a revisar. */
+    function faltaDinero() {
+        if (!contado) { return false; }
+        var v = parseFloat(String(contado.value).replace(',', '.'));
+        return !isNaN(v) && v + 0.005 < esperado;
+    }
+
+    var form = document.getElementById('nxCierreForm');
+    var btnGuardar = document.getElementById('nxCierreGuardar');
+    if (form && btnGuardar) {
+        form.addEventListener('submit', function (e) {
+            if (faltaDinero() && nota && nota.value.trim() === '') {
+                e.preventDefault();
+                nota.parentNode.classList.add('exige');
+                nota.setAttribute('placeholder', T.exigeNota);
+                nota.focus();
+                return;
+            }
+            if (!window.confirm(T.confirma)) { e.preventDefault(); return; }
+            btnGuardar.disabled = true;
+        });
+    }
+    if (nota) {
+        nota.addEventListener('input', function () { nota.parentNode.classList.remove('exige'); });
+    }
+})();
 </script>

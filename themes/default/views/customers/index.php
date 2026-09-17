@@ -1,4 +1,10 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
+<?php
+/**
+ * @package   Neurix POS
+ * @author    Jostin Aragón Barboza
+ * @copyright Arasoft Solutions
+ */
+(defined('BASEPATH')) OR exit('No direct script access allowed'); ?>
 
 <div class="nxt-head">
     <div class="nxt-title">
@@ -21,7 +27,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var ID_TYPES = { '01': 'Cédula Física', '02': 'Cédula Jurídica', '03': 'DIMEX', '04': 'NITE', '05': 'Pasaporte' };
+    var ID_TYPES = { '01': 'Cédula Física', '02': 'Cédula Jurídica', '03': 'DIMEX', '04': 'NITE', '05': '<?= lang('extranjero_no_domiciliado'); ?>' };
     var t = new NxTable({
         el: '#nxtList',
         url: '<?= site_url('customers/get_customers'); ?>',
