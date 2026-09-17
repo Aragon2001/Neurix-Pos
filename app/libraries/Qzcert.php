@@ -167,9 +167,12 @@ class Qzcert
 
         // La llave se escribe primero y el certificado de último: has_pair()
         // solo es cierto cuando ambos están completos.
-        if (@file_put_contents($this->key_path(), $key_pem) === false
-            || @file_put_contents($this->cert_path(), $cert_pem) === false) {
-            $this->error = 'Sin permiso de escritura en ' . $this->dir;
+        if (@file_put_contents($this->key_path(), $key_pem) === false) {
+            $this->error = 'Sin permiso de escritura en ' . $this->key_path();
+            return false;
+        }
+        if (@file_put_contents($this->cert_path(), $cert_pem) === false) {
+            $this->error = 'Sin permiso de escritura en ' . $this->cert_path();
             return false;
         }
         @chmod($this->key_path(), 0600);
@@ -193,11 +196,19 @@ class Qzcert
         );
     }
 
+    /**
+     * Crea la carpeta de trabajo y también la de cada ruta configurada a mano
+     * (QZ_CERT_PATH / QZ_KEY_PATH pueden apuntar fuera de $this->dir, y sin su
+     * carpeta la escritura falla y el POS se queda sin firmar).
+     */
     private function prepare_dir()
     {
-        if (!is_dir($this->dir) && !@mkdir($this->dir, 0750, true)) {
-            $this->error = 'No se pudo crear la carpeta ' . $this->dir;
-            return false;
+        $dirs = array($this->dir, dirname($this->cert_path()), dirname($this->key_path()));
+        foreach (array_unique($dirs) as $dir) {
+            if (!is_dir($dir) && !@mkdir($dir, 0750, true)) {
+                $this->error = 'No se pudo crear la carpeta ' . $dir;
+                return false;
+            }
         }
         $index = $this->dir . '/index.html';
         if (!file_exists($index)) {
