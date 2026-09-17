@@ -1350,7 +1350,10 @@
 
         <div style="background:#fff; color:#222; border-radius:14px; padding:26px 30px; max-width:380px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,.4);">
             <div style="font-size:2.4rem; line-height:1;">🖨️</div>
-            <a href="<?= $assets ?>instalar-qz-tray.bat" download class="btn btn-primary btn-lg" style="width:100%; font-weight:700; margin:14px 0;">
+            <!-- Instalador generado por el servidor: trae la direccion de ESTE POS y
+                 el permiso (override.crt) ya dentro, para que la caja no tenga que
+                 aceptar nada en QZ Tray despues. Ver PosPrint::qz_installer(). -->
+            <a href="<?= base_url('posprint/qz_installer') ?>" download class="btn btn-primary btn-lg" style="width:100%; font-weight:700; margin:14px 0;">
                 ⬇ <?= lang('descargar_e_instalar'); ?>
             </a>
             <ol style="text-align:left; font-size:.95rem; padding-left:20px; margin:0; color:#444;">

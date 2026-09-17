@@ -76,3 +76,7 @@ uploads/reporte_sinpe_*.csv
 
 # Credenciales OAuth de Google (copiar desde googlemail.example.php)
 app/config/googlemail.php
+
+# Certificado de firma para QZ Tray (se genera por instalacion)
+files/certificados/qz/*
+!files/certificados/qz/index.html

@@ -3007,14 +3007,64 @@
     });
   }
 
+  // Certificado propio de esta instalación: mientras el POS mande peticiones
+  // sin firmar, QZ Tray abre su ventana nativa ("An anonymous request wants
+  // to access connected printers") en CADA petición y el "Remember this
+  // decision" no se puede guardar, porque una petición anónima no tiene
+  // huella (Fingerprint: UNKNOWN REQUEST). Con el certificado + firma, QZ
+  // pregunta una sola vez —y con el certificado instalado como override.crt
+  // en la terminal, ni siquiera eso—. Si el servidor todavía no tiene
+  // certificado generado, se sigue trabajando sin firma (comportamiento v1).
+  var qzCert = null;
+
+  function qzFetchCertificate() {
+    return fetch(window.base_url + 'posprint/qz_certificate', {
+      cache: 'no-store',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (text) {
+        text = (text || '').trim();
+        return text.indexOf('-----BEGIN CERTIFICATE-----') === 0 ? text : null;
+      })
+      .catch(function () { return null; });
+  }
+
+  function qzSignRequest(toSign) {
+    var body = new URLSearchParams();
+    body.set('request', toSign);
+    if (window.CSRF_NAME) body.set(window.CSRF_NAME, window.CSRF_HASH);
+    return fetch(window.base_url + 'posprint/qz_sign', {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body
+    })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (sig) { return (sig || '').trim(); })
+      .catch(function () { return ''; });
+  }
+
   function initQzGate() {
     if (!window.qz) return;
-    // Modo sin firma de certificado (v1): evita el diálogo nativo de
-    // "sitio no confiable" en cada request, a costa de mostrar un único
-    // aviso de "Allow always" en la primera conexión por origen.
-    qz.security.setCertificatePromise(function (resolve) { resolve(); });
-    qz.security.setSignaturePromise(function () {
-      return function (resolve) { resolve(); };
+    // La llave privada vive en el servidor; el navegador solo recibe el
+    // certificado público y la firma ya calculada de cada petición.
+    if (qz.security.setSignatureAlgorithm) qz.security.setSignatureAlgorithm('SHA512');
+    qz.security.setCertificatePromise(function (resolve) {
+      qzFetchCertificate().then(function (cert) {
+        qzCert = cert;
+        // Sin certificado: resolver vacío = petición sin firma (modo v1).
+        if (cert) { resolve(cert); } else { resolve(); }
+      });
+    });
+    qz.security.setSignaturePromise(function (toSign) {
+      return function (resolve) {
+        if (!qzCert) { resolve(); return; }
+        qzSignRequest(toSign).then(function (sig) {
+          // Si la firma falla (sesión vencida, llave ilegible) se degrada a
+          // petición sin firma en vez de dejar la impresión colgada.
+          if (sig) { resolve(sig); } else { resolve(); }
+        });
+      };
     });
     qz.websocket.setClosedCallbacks(function () {
       qzConnect();

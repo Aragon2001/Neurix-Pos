@@ -605,6 +605,76 @@ class PosPrint extends MY_Controller
         }
     }
 
+    /* ──────────────────────────────────────────────────────
+       QZ TRAY — FIRMA DE PETICIONES E INSTALADOR POR CAJA
+       QZ Tray no valida el certificado TLS del sitio: valida la firma de
+       cada petición. Sin firma toda petición es anónima ("An anonymous
+       request wants to access connected printers", Fingerprint: UNKNOWN
+       REQUEST) y su ventana nativa reaparece siempre, porque no hay huella
+       que recordar. El par certificado/llave se genera solo la primera vez
+       que se pide (ver libraries/Qzcert.php); no hay paso manual.
+    ────────────────────────────────────────────────────── */
+
+    private function qz() {
+        $this->load->library('qzcert');
+        return $this->qzcert;
+    }
+
+    /**
+     * Entrega el certificado público que identifica a este POS ante QZ Tray,
+     * generándolo en el primer acceso. Sin sesión a propósito: el instalador
+     * de cada caja lo descarga antes de que nadie inicie sesión, y un
+     * certificado público no es un secreto.
+     */
+    function qz_certificate() {
+        $cert = $this->qz()->certificate();
+        if ($cert === '') {
+            log_message('error', 'QZ Tray: sin certificado. ' . $this->qzcert->last_error());
+        }
+        return $this->output
+            ->set_content_type('text/plain; charset=utf-8')
+            ->set_output($cert);
+    }
+
+    /**
+     * Firma con SHA-512 la cadena que QZ Tray pide firmar (incluye la
+     * llamada, sus parámetros y un timestamp, así que la firma no se puede
+     * reutilizar). Requiere sesión: solo el POS puede pedir firmas.
+     */
+    function qz_sign() {
+        $this->output->set_content_type('text/plain; charset=utf-8');
+        if (!$this->session->userdata('user_id')) {
+            return $this->output->set_status_header(403)->set_output('');
+        }
+        $signature = $this->qz()->sign((string) $this->input->post('request'));
+        if ($signature === '') {
+            log_message('error', 'QZ Tray: no se pudo firmar. ' . $this->qzcert->last_error());
+        }
+        return $this->output->set_output($signature);
+    }
+
+    /**
+     * Instalador .bat generado para ESTA instalación: trae la dirección del
+     * POS ya escrita, instala QZ Tray si falta y deja el certificado como
+     * override.crt para que QZ no vuelva a preguntar nunca en esa caja.
+     * Es lo que descarga el botón del overlay del POS, de modo que el cajero
+     * solo abre el archivo y acepta el aviso de Windows.
+     */
+    function qz_installer() {
+        // base_url() sale de HTTP_HOST, que lo controla el cliente: se limpia
+        // antes de escribirlo dentro de un archivo ejecutable.
+        $url = preg_replace('/[^A-Za-z0-9\.\-:\/_]/', '', base_url());
+        $url = rtrim($url, '/') . '/';
+        $bat = $this->load->view('pos/qz_installer_bat', array('pos_url' => $url), true);
+        $bat = str_replace(array("\r\n", "\n"), "\r\n", trim($bat)) . "\r\n";
+
+        return $this->output
+            ->set_content_type('application/octet-stream')
+            ->set_header('Content-Disposition: attachment; filename="instalar-impresion-neurix.bat"')
+            ->set_header('Cache-Control: no-store')
+            ->set_output($bat);
+    }
+
 
     function invice_barcode($id_invoice = NULL, $bcs = 'code128', $height = 60) {
         if ($this->input->get('code')) {

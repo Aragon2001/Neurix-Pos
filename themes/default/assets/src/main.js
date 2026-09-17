@@ -132,9 +132,9 @@ window.Swal = Swal
 window.bootstrap = bootstrap
 // QZ Tray: puente local (una instalación por terminal/computadora) que permite
 // listar las impresoras del sistema operativo de ESA PC e imprimir ESC/POS crudo
-// sin diálogo del navegador. v1 corre sin firma de certificado (qz.io/download) —
-// migrar a modo firmado más adelante si se requiere eliminar el diálogo nativo
-// de "Allow always" que QZ Tray muestra una sola vez por origen.
+// sin diálogo del navegador. Las peticiones van firmadas con el certificado de
+// la instalación (posprint/qz_certificate + posprint/qz_sign); si el servidor
+// aún no lo tiene generado, se degrada al modo sin firma. Ver README-QZ-TRAY.md.
 window.qz = qz
 
 // ═════════════════ MAIN - Ejecutar al cargar ═════════════════
