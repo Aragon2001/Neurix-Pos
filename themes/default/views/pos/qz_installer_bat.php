@@ -14,10 +14,19 @@ set "POSURL=<?= $pos_url ?>"
 set "CERTURL=%POSURL%posprint/qz_certificate"
 set "TMPCRT=%TEMP%\neurix-qz-override.crt"
 
+REM QZ Tray se puede haber instalado solo para el usuario actual
+REM (%LOCALAPPDATA%). Hay que resolver la ruta ANTES de elevar: al elevar,
+REM el perfil pasa a ser el del administrador y esa carpeta ya no es la del
+REM cajero. La ruta viaja al proceso elevado como argumento.
+call :buscarqz
+if not "%~1"=="" if exist "%~1\qz-tray.exe" set "QZDIR=%~1"
+
 net session >nul 2>&1
 if errorlevel 1 (
     echo Windows pedira permiso de administrador: elija "Si" para continuar.
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+    set "NX_SELF=%~f0"
+    set "NX_QZDIR=!QZDIR!"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath $env:NX_SELF -ArgumentList ([char]34 + $env:NX_QZDIR + [char]34) -Verb RunAs"
     exit /b
 )
 
@@ -28,7 +37,6 @@ echo   POS: %POSURL%
 echo  ============================================================
 echo.
 
-call :buscarqz
 if defined QZDIR goto yainstalado
 
 echo [1/3] Instalando QZ Tray... (puede tardar varios minutos, no cierre esta ventana)
@@ -48,7 +56,12 @@ if not defined QZDIR goto sinqz
 
 echo [2/3] Autorizando este POS en QZ Tray...
 if exist "%TMPCRT%" del /q "%TMPCRT%"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -Uri '%CERTURL%' -OutFile '%TMPCRT%' -UseBasicParsing -TimeoutSec 30 } catch { exit 1 }"
+REM La direccion viaja por variable de entorno, nunca pegada dentro del
+REM comando de PowerShell: asi ningun valor puede cerrar la comilla y
+REM convertirse en codigo ejecutado como administrador.
+set "NX_CERTURL=%CERTURL%"
+set "NX_TMPCRT=%TMPCRT%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -Uri $env:NX_CERTURL -OutFile $env:NX_TMPCRT -UseBasicParsing -TimeoutSec 30 } catch { exit 1 }"
 if errorlevel 1 goto sincertificado
 findstr /c:"BEGIN CERTIFICATE" "%TMPCRT%" >nul 2>&1
 if errorlevel 1 goto sincertificado
@@ -57,13 +70,12 @@ if errorlevel 1 goto sincertificado
 del /q "%TMPCRT%" >nul 2>&1
 
 echo [3/3] Iniciando QZ Tray...
-taskkill /f /im qz-tray.exe >nul 2>&1
-timeout /t 2 /nobreak >nul
-start "" "%QZDIR%\qz-tray.exe"
+call :reiniciarqz
 
 echo.
 echo  LISTO. Vuelva al POS: la pantalla se desbloquea sola en unos segundos
 echo  y esta caja ya no volvera a pedir permiso para imprimir.
+echo  (Si no arranca solo, abra QZ Tray desde el menu Inicio.)
 echo.
 pause
 exit /b 0
@@ -75,11 +87,7 @@ echo  desde %CERTURL%
 echo  El POS va a funcionar igual; QZ Tray preguntara UNA vez: marque
 echo  "Remember this decision" y elija "Allow".
 echo.
-if defined QZDIR (
-    taskkill /f /im qz-tray.exe >nul 2>&1
-    timeout /t 2 /nobreak >nul
-    start "" "%QZDIR%\qz-tray.exe"
-)
+if defined QZDIR call :reiniciarqz
 pause
 exit /b 1
 
@@ -97,4 +105,13 @@ set "QZDIR="
 if exist "%ProgramFiles%\QZ Tray\qz-tray.exe" set "QZDIR=%ProgramFiles%\QZ Tray"
 if not defined QZDIR if exist "%ProgramFiles(x86)%\QZ Tray\qz-tray.exe" set "QZDIR=%ProgramFiles(x86)%\QZ Tray"
 if not defined QZDIR if exist "%LOCALAPPDATA%\Programs\QZ Tray\qz-tray.exe" set "QZDIR=%LOCALAPPDATA%\Programs\QZ Tray"
+goto :eof
+
+:reiniciarqz
+REM Se arranca a traves de explorer para que QZ Tray corra como el cajero y
+REM no como administrador: elevado guardaria su configuracion en el perfil
+REM equivocado y el POS no lo encontraria.
+taskkill /f /im qz-tray.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+explorer.exe "%QZDIR%\qz-tray.exe"
 goto :eof

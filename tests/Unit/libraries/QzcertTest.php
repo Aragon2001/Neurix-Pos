@@ -24,10 +24,17 @@ class QzcertTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->dir . '/*') ?: [] as $file) {
-            @unlink($file);
+        putenv('QZ_CERT_PATH');
+        putenv('QZ_KEY_PATH');
+        $this->borrar($this->dir);
+    }
+
+    private function borrar(string $dir): void
+    {
+        foreach (glob($dir . '/*') ?: [] as $file) {
+            is_dir($file) ? $this->borrar($file) : @unlink($file);
         }
-        @rmdir($this->dir);
+        @rmdir($dir);
     }
 
     public function test_genera_el_par_la_primera_vez_que_se_pide(): void
@@ -103,5 +110,21 @@ class QzcertTest extends TestCase
         $qz->certificate();
 
         $this->assertSame('NeurixPOS Sucursal Centro', $qz->info()['cn']);
+    }
+
+    public function test_crea_la_carpeta_de_las_rutas_configuradas_a_mano(): void
+    {
+        // QZ_CERT_PATH/QZ_KEY_PATH pueden apuntar fuera de la carpeta de
+        // trabajo; sin crear su carpeta la escritura falla en silencio y el
+        // POS vuelve a imprimir sin firma.
+        $otra = $this->dir . '/otra/carpeta';
+        putenv('QZ_CERT_PATH=' . $otra . '/digital-certificate.txt');
+        putenv('QZ_KEY_PATH=' . $otra . '/private-key.pem');
+        $qz = new Qzcert(['dir' => $this->dir]);
+
+        $cert = $qz->certificate();
+
+        $this->assertStringStartsWith('-----BEGIN CERTIFICATE-----', $cert, $qz->last_error());
+        $this->assertFileExists($otra . '/private-key.pem');
     }
 }
