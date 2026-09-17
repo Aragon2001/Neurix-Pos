@@ -28,7 +28,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | privada, porque el POS se usa desde tabletas de la misma red.
 */
 $nx_hosts = array_filter(array_map('trim', explode(',', (string) (getenv('APP_HOSTS') ?: ''))));
-$nx_hosts = array_merge($nx_hosts, array('localhost', '127.0.0.1', '::1'));
+$nx_hosts = array_merge($nx_hosts, array('localhost', '127.0.0.1', '::1', 'neurixpos', 'neurixpos.test'));
 
 $nx_host = isset($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : 'localhost';
 $nx_solo = preg_replace('/:\d+$/', '', trim($nx_host, '[]'));

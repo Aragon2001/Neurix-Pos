@@ -5,9 +5,15 @@ propia máquina. Para que las terminales entren a `http://neurixpos.test/`
 (o `http://neurixpos/`) hay que darle un nombre al sitio en Apache y resolver
 ese nombre en cada computadora.
 
-El POS no necesita ningún cambio de código: `app/config/config.php` arma el
-`base_url` a partir del host con el que se entró (`$_SERVER['HTTP_HOST']`), y
-`manifest.json` / `sw.js` usan rutas relativas.
+`app/config/config.php` arma el `base_url` a partir del host con el que se
+entró, **pero solo si ese host está en la lista blanca**: si no, cae a
+`localhost` y todos los enlaces del POS apuntan ahí. `neurixpos` y
+`neurixpos.test` ya vienen en la lista; cualquier otro nombre va en
+`APP_HOSTS` dentro de `.env`.
+
+En el servidor, `tools/laragon/configurar-servidor-neurixpos.bat` (como
+administrador) agrega la línea al `hosts` e instala el certificado del POS en
+QZ Tray.
 
 ## ¿Se puede renombrar la carpeta del proyecto?
 

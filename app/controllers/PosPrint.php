@@ -665,7 +665,7 @@ class PosPrint extends MY_Controller
         // antes de escribirlo dentro de un archivo ejecutable.
         $url = preg_replace('/[^A-Za-z0-9\.\-:\/_]/', '', base_url());
         $url = rtrim($url, '/') . '/';
-        $bat = $this->load->view('pos/qz_installer_bat', array('pos_url' => $url), true);
+        $bat = $this->load->view($this->theme . 'pos/qz_installer_bat', array('pos_url' => $url), true);
         $bat = str_replace(array("\r\n", "\n"), "\r\n", trim($bat)) . "\r\n";
 
         return $this->output
